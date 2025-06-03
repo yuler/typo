@@ -12,11 +12,23 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "typo",
-        "width": 800,
-        "height": 600
+        "width": 400,
+        "height": 200,
+        "visible": false,
+        "decorations": false,
+        "skipTaskbar": false,
+        "alwaysOnTop": true,
+        "resizable": true,
+        "transparent": true
       }
     ],
+    "macOSPrivateApi": true,
+    "trayIcon": {
+      "iconPath": "icons/icon.ico",
+      "iconAsTemplate": true
+    },
     "security": {
       "csp": null
     }
