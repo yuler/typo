@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "typo.yuler.dev",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "pnpm dev:frontend",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "pnpm build:frontend",
     "frontendDist": "../dist"
   },
   "app": {
@@ -15,11 +15,11 @@
         "label": "main",
         "title": "typo",
         "width": 400,
-        "height": 200,
-        "visible": false,
+        "height": 600,
+        "visible": true,
         "decorations": false,
         "skipTaskbar": false,
-        "alwaysOnTop": true,
+        "alwaysOnTop": false,
         "resizable": true,
         "transparent": true
       }

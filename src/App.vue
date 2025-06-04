@@ -1,25 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
-import { invoke } from "@tauri-apps/api/core";
 import { Window } from '@tauri-apps/api/window';
+import { invoke } from "@tauri-apps/api/core";
+
+const PROMPT = `
+I am learning English and would like to improve my language skills.
+I will provide you with text that may contain grammatical errors or Chinese words.
+Please help me by:
+1. Correcting any grammatical mistakes
+2. Translating any Chinese words to English
+3. Improving the overall fluency while maintaining the original meaning
+
+**Important: Only provide the corrected English text without any explanations or additional comments.**
+`
 
 const window = new Window('main');
 const inputText = ref("");
-const isProcessing = ref(false);
-
-async function handleSubmit() {
-  if (!inputText.value.trim()) return;
-  isProcessing.value = true;
-  try {
-    await invoke("process_text", { text: inputText.value });
-    inputText.value = "";
-    await window.hide();
-  } catch (error) {
-    console.error(error);
-  } finally {
-    isProcessing.value = false;
-  }
-}
+const processedText = ref("");
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
@@ -28,9 +25,30 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
-  // Listen for clipboard text from Rust
-  const unlistenPromise = window.listen('set-input', (event: { payload: string }) => {
+  const unlistenPromise = window.listen('set-input', async (event: { payload: string }) => {
     inputText.value = event.payload;
+    console.log(event.payload);
+    fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: `${PROMPT}\n\n${event.payload}` }],
+      }),
+    })
+    .then(response => response.json())
+    .then(async data => {
+      const content = data.choices[0].message.content;
+      processedText.value = content;
+
+      await invoke('process_text', { text: content });
+    })
+    .catch(error => {
+      console.error(error);
+    });
   });
 
   document.addEventListener('keydown', handleKeydown);
@@ -45,17 +63,10 @@ onMounted(() => {
 
 <template>
   <main class="container">
-    <form class="input-form" @submit.prevent="handleSubmit">
-      <textarea
-        v-model="inputText"
-        placeholder="Enter text..."
-        @keydown.ctrl.enter.prevent="handleSubmit"
-        autofocus
-      />
-      <button type="submit" :disabled="isProcessing">
-        {{ isProcessing ? 'Processing...' : 'Submit' }}
-      </button>
-    </form>
+    <h2>Origin Input:</h2>
+    <div>{{ inputText }}</div>
+    <h2>Processing...</h2>
+    <div>{{ processedText }}</div>
   </main>
 </template>
 
@@ -131,6 +142,7 @@ button:disabled {
 
   .container {
     background-color: rgba(45, 45, 45, 0.95);
+    overflow-y: scroll;
   }
 
   textarea {

@@ -18,3 +18,8 @@ This app is mainly used to assist me with English input.
 pnpm install
 pnpm tauri dev
 ```
+
+## TODO
+
+- [ ] https://docs.rs/tauri-specta/2.0.0-rc.21/tauri_specta/index.html
+- [ ] https://github.com/enigo-rs/enigo 
