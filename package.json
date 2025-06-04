@@ -8,6 +8,7 @@
     "dev": "tauri dev",
     "dev:frontend": "vite",
     "build:frontend": "vue-tsc --noEmit && vite build",
+    "build": "tauri build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
