@@ -25,6 +25,7 @@ tauri-plugin-opener = "2.0.0"
 arboard = "3.3.0"
 get-selected-text = "0.1.6"
 enigo = "0.3.0"
+tauri-plugin-store = "2"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

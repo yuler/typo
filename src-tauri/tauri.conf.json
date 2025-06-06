@@ -20,7 +20,9 @@
         "decorations": false,
         "skipTaskbar": false,
         "alwaysOnTop": false,
-        "resizable": true,
+        "resizable": false,
+        "minimizable": false,
+        "closable": false,
         "transparent": true
       }
     ],

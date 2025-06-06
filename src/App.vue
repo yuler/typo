@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { Window } from '@tauri-apps/api/window';
 import { invoke } from "@tauri-apps/api/core";
+import { LazyStore } from '@tauri-apps/plugin-store';
 
 const PROMPT = `
 I am learning English and would like to improve my language skills.
@@ -15,8 +16,21 @@ Please help me by:
 `
 
 const window = new Window('main');
+const settingsStore = new LazyStore('settings.json');
 const inputText = ref("");
 const processedText = ref("");
+const deepseekApiKey = ref("");
+
+async function loadApiKey() {
+  try {
+    const key = await settingsStore.get('deepseek_api_key');
+    if (key) {
+      deepseekApiKey.value = key as string;
+    }
+  } catch (error) {
+    console.error('Failed to load API key:', error);
+  }
+}
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
@@ -24,37 +38,57 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => {
+
+onMounted(async () => {
+  await loadApiKey();
+  
   const unlistenPromise = window.listen('set-input', async (event: { payload: string }) => {
     inputText.value = event.payload;
     console.log(event.payload);
-    fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [{ role: 'user', content: `${PROMPT}\n\n${event.payload}` }],
-      }),
-    })
-    .then(response => response.json())
-    .then(async data => {
+    
+    if (!deepseekApiKey.value) {
+      console.error('API key not set');
+      return;
+    }
+    
+    try {
+      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${deepseekApiKey.value}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [{ role: 'user', content: `${PROMPT}\n\n${event.payload}` }],
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
       const content = data.choices[0].message.content;
       processedText.value = content;
 
       await invoke('process_text', { text: content });
-    })
-    .catch(error => {
-      console.error(error);
-    });
+    } catch (error) {
+      console.error('Failed to process text:', error);
+      processedText.value = 'Error processing text. Please check your API key and try again.';
+    }
   });
+
+  // Watch for store changes by periodically checking
+  const storeCheckInterval = setInterval(async () => {
+    await loadApiKey();
+  }, 1000);
 
   document.addEventListener('keydown', handleKeydown);
 
   onUnmounted(async () => {
     document.removeEventListener('keydown', handleKeydown);
+    clearInterval(storeCheckInterval);
     const unlisten = await unlistenPromise;
     unlisten();
   });
@@ -96,6 +130,8 @@ body {
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .input-form {
