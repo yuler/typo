@@ -1,26 +1,30 @@
 <script setup lang="ts">
-import { invoke } from '@tauri-apps/api/core'
-import { ref } from 'vue'
+import type { CurrentWindow } from './composables/useGlobalState'
+import Navbar from './components/Navbar.vue'
+import Window from './components/Window.vue'
+import { useGlobalState } from './composables/useGlobalState'
 
-const greetMsg = ref('')
-const name = ref('')
+const { setCurrentWindow } = useGlobalState()
 
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke('greet', { name: name.value })
+function onChangeWindow(window: CurrentWindow) {
+  setCurrentWindow(window)
 }
 </script>
 
 <template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
+  <main class="h-screen w-screen">
+    <Navbar @change-window="onChangeWindow" />
 
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name...">
-      <button type="submit">
-        Greet
-      </button>
-    </form>
-    <p>{{ greetMsg }}</p>
+    <Window />
   </main>
 </template>
+
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.75);
+}
+</style>
