@@ -1,6 +1,6 @@
 # typo
 
-This app is mainly used to assist me with English input.
+A desktop tool that helps improve English writing through AI-powered suggestions and corrections.
 
 ## Ideas
 
