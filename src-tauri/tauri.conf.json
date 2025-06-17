@@ -14,7 +14,7 @@
       {
         "label": "main",
         "title": "typo",
-        "width": 400,
+        "width": 800,
         "height": 600,
         "visible": true,
         "decorations": false,
@@ -28,6 +28,7 @@
     ],
     "macOSPrivateApi": true,
     "trayIcon": {
+      "id": "tray",
       "iconPath": "icons/icon.ico",
       "iconAsTemplate": true
     },

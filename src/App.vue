@@ -38,11 +38,12 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-
+let storeCheckInterval: any
+let unlistenPromise: any
 onMounted(async () => {
   await loadApiKey();
   
-  const unlistenPromise = window.listen('set-input', async (event: { payload: string }) => {
+  unlistenPromise = window.listen('set-input', async (event: { payload: string }) => {
     inputText.value = event.payload;
     console.log(event.payload);
     
@@ -80,18 +81,18 @@ onMounted(async () => {
   });
 
   // Watch for store changes by periodically checking
-  const storeCheckInterval = setInterval(async () => {
+  storeCheckInterval = setInterval(async () => {
     await loadApiKey();
   }, 1000);
 
   document.addEventListener('keydown', handleKeydown);
+});
 
-  onUnmounted(async () => {
-    document.removeEventListener('keydown', handleKeydown);
-    clearInterval(storeCheckInterval);
-    const unlisten = await unlistenPromise;
-    unlisten();
-  });
+onUnmounted(async () => {
+  document.removeEventListener('keydown', handleKeydown);
+  clearInterval(storeCheckInterval);
+  const unlisten = await unlistenPromise;
+  unlisten();
 });
 </script>
 

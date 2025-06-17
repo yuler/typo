@@ -3,6 +3,7 @@ import App from './App.vue'
 import { Window } from '@tauri-apps/api/window'
 import { register, unregister, isRegistered } from '@tauri-apps/plugin-global-shortcut'
 import { invoke } from '@tauri-apps/api/core'
+import { Menu } from '@tauri-apps/api/menu';
 
 createApp(App).mount('#app')
 
@@ -50,4 +51,34 @@ async function setupGlobalShortcut() {
   }
 }
 
-setupGlobalShortcut()
+async function setupMenus() {
+  const menus = await Menu.new({
+      items: [
+          {
+              id: 'settings',
+              text: 'Settings',
+              action: async () => {
+                const settingsWindow = await Window.getByLabel('settings')
+                settingsWindow?.show() 
+              },
+          },
+          {
+              id: 'about',
+              text: 'About',
+              action: async () => {
+                open('https://github.com/yuler/typo')
+              }
+          },
+      ],
+  });
+
+
+  menus.setAsAppMenu().then((res) => {
+    console.log('menu set success', res);
+  }).catch((err) => {
+    console.error('Error setting up menus:', err);
+  })
+}
+
+// setupGlobalShortcut()
+setupMenus()

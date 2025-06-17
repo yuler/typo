@@ -1,7 +1,6 @@
+mod tray;
+
 use enigo::Keyboard;
-use tauri::{
-    menu::{Menu, MenuItem}, Manager
-};
 
 #[tauri::command]
 async fn process_text(text: String) -> Result<(), String> {
@@ -45,30 +44,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![process_text, get_selected_text])
         .setup(|app| {
-            // Menus
-            let settings_i = MenuItem::with_id(app, "settings", "Settings", true, Some("CmdOrCtrl+,"))?;
-            let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            
-            let menu = Menu::with_items(app, &[&settings_i, &quit_i])?;
-
-            app.set_menu(menu)?;
+            let app_handle = app.handle();
+            tray::create_tray(&app_handle)?;
 
             Ok(())
-        })
-        .on_menu_event(|app, event| match event.id.as_ref() {
-            "settings" => {
-                println!("settings menu item was clicked");
-                // get the settings window
-                let settings_window = app.get_webview_window("settings").unwrap();
-                settings_window.show().unwrap();    
-            }
-            "quit" => {
-                println!("quit menu item was clicked");
-                app.exit(0);
-            }
-            _ => {
-                println!("menu item {:?} not handled", event.id);
-            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
