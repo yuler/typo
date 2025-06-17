@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { deepSeekCorrect } from '../ai'
 import { useGlobalState } from '../composables/useGlobalState'
 import { getDeepSeekApiKey } from '../store'
 
@@ -9,6 +10,14 @@ const DEEPSEEK_API_KEY = ref('')
 onMounted(async () => {
   DEEPSEEK_API_KEY.value = await getDeepSeekApiKey()
 })
+
+const input = ref('')
+const output = ref('')
+
+async function correct() {
+  const result = await deepSeekCorrect(input.value)
+  output.value = result.text
+}
 </script>
 
 <template>
@@ -16,8 +25,11 @@ onMounted(async () => {
     <h1>Main</h1>
 
     <div v-if="DEEPSEEK_API_KEY">
-      <h2>DeepSeek API Key</h2>
-      <p>{{ DEEPSEEK_API_KEY }}</p>
+      <textarea v-model="input" />
+      <pre>{{ output }}</pre>
+      <button @click="correct">
+        Correct
+      </button>
     </div>
     <div v-else>
       <h2>No DeepSeek API Key</h2>
