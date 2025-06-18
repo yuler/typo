@@ -17,6 +17,9 @@ importers:
       '@tauri-apps/plugin-clipboard-manager':
         specifier: ~2.2.3
         version: 2.2.3
+      '@tauri-apps/plugin-global-shortcut':
+        specifier: ~2.2.1
+        version: 2.2.1
       '@tauri-apps/plugin-notification':
         specifier: ~2.2.3
         version: 2.2.3
@@ -810,6 +813,9 @@ packages:
 
   '@tauri-apps/plugin-clipboard-manager@2.2.3':
     resolution: {integrity: sha512-myZTLyBpJ9gnDsywtdgRpAYLxEtSVaJa11s1xoiB6w8cjFtG2/znas4Cz3vqYigJkY0A57tyZUE6tjxavIAzgw==}
+
+  '@tauri-apps/plugin-global-shortcut@2.2.1':
+    resolution: {integrity: sha512-b64/TI1t5LIi2JY4OWlYjZpPRq60T5GVVL/no27sUuxaNUZY8dVtwsMtDUgxUpln2yR+P2PJsYlqY5V8sLSxEw==}
 
   '@tauri-apps/plugin-notification@2.2.3':
     resolution: {integrity: sha512-IlMdSVFsrKg0eIHBloFFosnWbbz6JdwBywfZrYZnE1+acgXvNS3T1YB5w9R6UXw+KKQ94ODBu7JF7a1YUiAK6A==}
@@ -2885,6 +2891,10 @@ snapshots:
       '@tauri-apps/cli-win32-x64-msvc': 2.5.0
 
   '@tauri-apps/plugin-clipboard-manager@2.2.3':
+    dependencies:
+      '@tauri-apps/api': 2.5.0
+
+  '@tauri-apps/plugin-global-shortcut@2.2.1':
     dependencies:
       '@tauri-apps/api': 2.5.0
 

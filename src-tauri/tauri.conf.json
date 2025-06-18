@@ -12,11 +12,13 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "typo",
         "width": 800,
         "height": 400,
         "transparent": true,
-        "decorations": false
+        "decorations": false,
+        "resizable": true
       }
     ],
     "security": {

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { invoke } from '@tauri-apps/api/core'
+import { Window } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ClipboardCopyIcon, CopyIcon, Loader2Icon, SendIcon } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
@@ -12,19 +14,33 @@ import { getDeepSeekApiKey } from '../store'
 const { setCurrentWindow } = useGlobalState()
 
 const DEEPSEEK_API_KEY = ref('')
-onMounted(async () => {
-  DEEPSEEK_API_KEY.value = await getDeepSeekApiKey()
-})
+const window = new Window('main')
 
 const input = ref('')
 const output = ref('')
-
 const submitting = ref(false)
+
+onMounted(async () => {
+  DEEPSEEK_API_KEY.value = await getDeepSeekApiKey()
+
+  window.listen('set-input', async (event: { payload: string }) => {
+    input.value = event.payload
+    if (!DEEPSEEK_API_KEY.value) {
+      console.error('API key not set')
+      return
+    }
+
+    await correct()
+    // await window.hide()
+  })
+})
+
 async function correct() {
   submitting.value = true
   try {
     const result = await deepSeekCorrect(input.value)
     output.value = result.text
+    await invoke('type_text', { text: result.text })
   }
   finally {
     submitting.value = false
@@ -43,14 +59,14 @@ async function copy(text: string) {
 <template>
   <div class="px-8 py-4 border-t">
     <form v-if="DEEPSEEK_API_KEY" @submit.prevent="correct">
-      <div class="grid grid-cols-2 w-full gap-1.5">
+      <div class="grid grid-cols-2 w-full gap-2">
         <div>
           <h2 class="text-lg font-bold mb-2">
             Input
           </h2>
           <Textarea
             v-model="input"
-            placeholder="Enter your text here"
+            placeholder="Quick pick up your selected text with CommandOrControl+Shift+A"
             rows="10"
             :disabled="submitting"
             @keydown.ctrl.enter.prevent="correct"
