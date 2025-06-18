@@ -4,7 +4,7 @@ import Navbar from './components/Navbar.vue'
 import Window from './components/Window.vue'
 import { useGlobalState } from './composables/useGlobalState'
 
-const { setCurrentWindow } = useGlobalState()
+const { currentWindow, setCurrentWindow } = useGlobalState()
 
 function onChangeWindow(window: CurrentWindow) {
   setCurrentWindow(window)
@@ -13,7 +13,7 @@ function onChangeWindow(window: CurrentWindow) {
 
 <template>
   <main class="h-screen w-screen">
-    <Navbar @change-window="onChangeWindow" />
+    <Navbar v-if="currentWindow === 'None'" @change-window="onChangeWindow" />
 
     <Window />
   </main>

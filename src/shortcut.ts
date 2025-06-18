@@ -1,8 +1,10 @@
 import { Window } from '@tauri-apps/api/window'
 import { readText } from '@tauri-apps/plugin-clipboard-manager'
 import { isRegistered, register, unregister } from '@tauri-apps/plugin-global-shortcut'
+import { useGlobalState } from '@/composables/useGlobalState'
 
 const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+A'
+const SETTING_SHORTCUT = 'CommandOrControl+,'
 
 let lastClipboardText = ''
 
@@ -18,17 +20,10 @@ export async function setupGlobalShortcut() {
       }
 
       const mainWindow = await Window.getByLabel('main')
-      const mainVisible = await mainWindow?.isVisible()
 
-      // toggle the main window
-      if (mainVisible) {
-        await mainWindow?.hide()
-        await mainWindow?.setAlwaysOnTop(false)
-      }
-      else {
-        await mainWindow?.show()
-        await mainWindow?.setAlwaysOnTop(true)
-      }
+      await mainWindow?.show()
+      await mainWindow?.setVisibleOnAllWorkspaces(true)
+      await mainWindow?.setFocus()
 
       const clipboardText = await readText()
       if (!clipboardText || clipboardText === lastClipboardText) {
@@ -38,8 +33,16 @@ export async function setupGlobalShortcut() {
       lastClipboardText = clipboardText
       await mainWindow?.emit('set-input', clipboardText)
     })
-  }
-  catch (error) {
+
+    await register(SETTING_SHORTCUT, async (event) => {
+      if (event.state !== 'Released') {
+        return
+      }
+
+      const { setCurrentWindow } = useGlobalState()
+      setCurrentWindow('Settings')
+    })
+  } catch (error) {
     console.error('Error setting up global shortcut:', error)
   }
 }

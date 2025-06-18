@@ -14,13 +14,14 @@
       {
         "label": "main",
         "title": "typo",
-        "width": 800,
-        "height": 400,
+        "width": 600,
+        "height": 200,
         "transparent": true,
         "decorations": false,
         "resizable": true
       }
     ],
+    "macOSPrivateApi": true,
     "security": {
       "csp": null
     }

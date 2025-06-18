@@ -11,29 +11,30 @@ async fn get_selected_text() -> Result<String, String> {
 async fn type_text(text: String) -> Result<(), String> {
     let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
 
-    // First press Escape to clear any existing IME state
-    enigo
-        .key(enigo::Key::Escape, enigo::Direction::Press)
-        .unwrap();
-    enigo
-        .key(enigo::Key::Escape, enigo::Direction::Release)
-        .unwrap();
+    enigo.text(&text).unwrap();
 
-    // Type each character individually to avoid IME
-    for c in text.chars() {
-        if c.is_ascii() {
-            enigo
-                .key(enigo::Key::Unicode(c), enigo::Direction::Press)
-                .unwrap();
-            enigo
-                .key(enigo::Key::Unicode(c), enigo::Direction::Release)
-                .unwrap();
-        }
-    }
+    // First press Escape to clear any existing IME state
+    // enigo
+    //     .key(enigo::Key::Escape, enigo::Direction::Press)
+    //     .unwrap();
+    // enigo
+    //     .key(enigo::Key::Escape, enigo::Direction::Release)
+    //     .unwrap();
+
+    // // Type each character individually to avoid IME
+    // for c in text.chars() {
+    //     if c.is_ascii() {
+    //         enigo
+    //             .key(enigo::Key::Unicode(c), enigo::Direction::Press)
+    //             .unwrap();
+    //         enigo
+    //             .key(enigo::Key::Unicode(c), enigo::Direction::Release)
+    //             .unwrap();
+    //     }
+    // }
 
     Ok(())
 }
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
