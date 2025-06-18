@@ -1,5 +1,5 @@
+import Tailwindcss from '@tailwindcss/vite'
 import Vue from '@vitejs/plugin-vue'
-import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vite'
 
 // @ts-expect-error process is a nodejs global
@@ -8,7 +8,7 @@ const host = process.env.TAURI_DEV_HOST
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [Vue(), UnoCSS()],
+  plugins: [Vue(), Tailwindcss()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

@@ -20,6 +20,7 @@ function onChangeWindow(window: CurrentWindow) {
 </template>
 
 <style>
+@import 'tailwindcss';
 body {
   margin: 0;
   padding: 0;
