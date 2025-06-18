@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { ClipboardCopyIcon, CopyIcon, Loader2Icon, SendIcon } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { sleep } from '@/utils'
 import { deepSeekCorrect } from '../ai'
 import { useGlobalState } from '../composables/useGlobalState'
 import { getDeepSeekApiKey } from '../store'
@@ -28,8 +31,12 @@ async function correct() {
   }
 }
 
-function copy(text: string) {
-  navigator.clipboard.writeText(text)
+const copied = ref(false)
+async function copy(text: string) {
+  await writeText(text)
+  copied.value = true
+  await sleep(500)
+  copied.value = false
 }
 </script>
 
@@ -45,6 +52,7 @@ function copy(text: string) {
             v-model="input"
             placeholder="Enter your text here"
             rows="10"
+            :disabled="submitting"
             @keydown.ctrl.enter.prevent="correct"
           />
         </div>
@@ -53,14 +61,18 @@ function copy(text: string) {
             Output
           </h2>
           <pre class="border rounded-md p-4 text-muted-foreground whitespace-pre-wrap">{{ output }}</pre>
-          <Button class="mt-4" @click="copy(output)">
-            Copy
+          <Button class="mt-4" @click.prevent="copy(output)">
+            <ClipboardCopyIcon v-if="!copied" class="w-4 h-4" />
+            <CopyIcon v-else class="w-4 h-4" />
+            {{ copied ? 'Copied' : 'Copy' }}
           </Button>
         </div>
       </div>
 
       <div class="mt-4 flex">
         <Button type="submit" :disabled="submitting">
+          <SendIcon v-if="!submitting" class="w-4 h-4" />
+          <Loader2Icon v-else class="w-4 h-4 animate-spin" />
           {{ submitting ? 'Correcting...' : 'Correct' }}
         </Button>
       </div>

@@ -18,6 +18,8 @@
   "dependencies": {
     "@ai-sdk/deepseek": "^0.2.14",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-clipboard-manager": "~2.2.3",
+    "@tauri-apps/plugin-notification": "~2.2.3",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-store": "~2.2.1",
     "@vueuse/core": "^13.3.0",

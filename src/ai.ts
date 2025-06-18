@@ -16,7 +16,6 @@ Please help me by:
 
 export async function deepSeekCorrect(text: string) {
   const apiKey = await getDeepSeekApiKey()
-  debugger
   return generateText({
     model: createDeepSeek({ apiKey }).languageModel('deepseek-chat'),
     prompt: `${DEFAULT_PROMPT}\n\n${text}`,

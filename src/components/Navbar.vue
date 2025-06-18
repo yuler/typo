@@ -16,7 +16,7 @@ function openGitHubRepo() {
 </script>
 
 <template>
-  <div data-tauri-drag-region class="p-4 bg-white flex cursor-move items-center justify-between">
+  <div data-tauri-drag-region class="px-4 py-2 bg-white flex cursor-move items-center justify-between">
     <div class="flex gap-2 items-center cursor-pointer" @click="openGitHubRepo">
       <img src="@/assets/logo.svg" alt="logo" class="w-10 h-10 rounded-md">
     </div>
