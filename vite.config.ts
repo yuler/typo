@@ -1,8 +1,8 @@
+import { fileURLToPath } from 'node:url'
 import Tailwindcss from '@tailwindcss/vite'
 import Vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-// @ts-expect-error process is a nodejs global
 // eslint-disable-next-line node/prefer-global/process
 const host = process.env.TAURI_DEV_HOST
 
@@ -29,6 +29,12 @@ export default defineConfig(async () => ({
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ['**/src-tauri/**'],
+    },
+  },
+
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 }))
