@@ -11,6 +11,4 @@ pnpm dev
 
 ## Usage
 
-- Input the origin content text, then `CtrlOrCmd + X` cut to clipboard, then `CtrlOrCmd + Shift + A` to call `type` main window
-
-Hello there
+Press `CtrlOrCmd + Shift + A` to open the main window. The app will automatically detect and process any selected text.

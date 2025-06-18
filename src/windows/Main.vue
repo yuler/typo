@@ -13,44 +13,54 @@ const window = Window.getCurrent()
 const { setCurrentWindow } = useGlobalState()
 
 window.setSizeConstraints({
-  maxHeight: 100,
+  maxHeight: 250,
 })
 
 const DEEPSEEK_API_KEY = ref('')
-const fethcing = ref(false)
-const confirm = ref(false)
+const processing = ref(false)
+const finished = ref(false)
 onMounted(async () => {
   DEEPSEEK_API_KEY.value = await getDeepSeekApiKey()
 
+  // TODO: 区分两种交互模式, 能读取 selected text 的, 和无法读取到的
   window.listen('set-input', async (event: { payload: string }) => {
     input.value = event.payload
     if (!DEEPSEEK_API_KEY.value) {
       console.error('API key not set')
     }
 
-    fethcing.value = true
+    processing.value = true
     try {
       const result = await deepSeekCorrect(input.value)
       input.value = result.text
-      confirm.value = true
+      finished.value = true
     }
     finally {
-      fethcing.value = false
+      processing.value = false
     }
+
+    await onConfirm()
   })
 })
 
-function onEnter() {
-  window.emit('set-input', input.value)
-}
-
-function onESC() {
-  window.hide()
-}
-
-async function onSpace() {
-  window.hide()
+async function onConfirm() {
+  // Auto write to current cursor position
+  // await window.hide()
+  
   await invoke('type_text', { text: input.value })
+  await window.hide()
+  input.value = ''
+  finished.value = false
+}
+
+async function onESC() {
+  await window.hide()
+  input.value = ''
+  finished.value = false
+}
+
+async function onSubmit() {
+  await window.emit('set-input', input.value)
 }
 
 async function gotoSettings() {
@@ -62,19 +72,15 @@ async function gotoSettings() {
   <div class="p-2 h-full">
     <div v-if="DEEPSEEK_API_KEY" class="h-full flex flex-col gap-2">
       <Textarea
-        v-model="input" class="flex-1" placeholder="Input" autofocus
-        @keydown.enter.prevent="onEnter"
+        v-model="input" class="flex-1" placeholder="Input" :disabled="processing"
         @keydown.esc="onESC"
+        @keydown.meta.enter.prevent="onSubmit"
       />
-      <p class="flex justify-end">
-        <span class="text-sm text-muted-foreground">⌘ + Enter</span>
+      <p data-tauri-drag-region class="flex justify-end">
+        <span v-if="processing">Processing...</span>
+        <Button v-else-if="finished" @click="onConfirm">Confirm</Button>
+        <span v-else class="text-sm text-muted-foreground">⌘ + ↵ to confirm</span>
       </p>
-      <!-- <Button
-        v-if="confirm" @click="onSpace"
-        @keydown.space.prevent="onSpace"
-      >
-        Confirm
-      </Button> -->
     </div>
 
     <div v-else class="full text-center">
@@ -85,6 +91,5 @@ async function gotoSettings() {
         Settings
       </Button>
     </div>
-    <!-- cmd + enter to submit -->
   </div>
 </template>

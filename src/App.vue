@@ -3,12 +3,18 @@ import type { CurrentWindow } from './composables/useGlobalState'
 import Navbar from './components/Navbar.vue'
 import Window from './components/Window.vue'
 import { useGlobalState } from './composables/useGlobalState'
+import { onMounted } from 'vue'
+import { setupGlobalShortcut } from '@/shortcut'
 
 const { currentWindow, setCurrentWindow } = useGlobalState()
 
 function onChangeWindow(window: CurrentWindow) {
   setCurrentWindow(window)
 }
+
+onMounted(() => {
+  setupGlobalShortcut()
+})
 </script>
 
 <template>
