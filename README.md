@@ -12,3 +12,8 @@ pnpm dev
 ## Usage
 
 Press `CtrlOrCmd + Shift + A` to open the main window. The app will automatically detect and process any selected text.
+
+
+## FAQ
+
+- Mac need to enable the accessibility permission for the app.
