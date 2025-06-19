@@ -1,7 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "typo",
-  "version": "0.1.0",
   "identifier": "com.typo.app",
   "build": {
     "beforeDevCommand": "pnpm dev:frontend",
