@@ -17,10 +17,9 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
     
     // Use the window's clipboard instead of creating a new app
     window.clipboard().write_text(text.clone()).map_err(|e| e.to_string())?;
-    println!("text copied to clipboard: {}", text);
 
     // Small delay to ensure clipboard is updated
-    std::thread::sleep(std::time::Duration::from_millis(100));
+    std::thread::sleep(std::time::Duration::from_millis(200));
 
     // Ctrl + V to paste text
     let control_or_command = if cfg!(target_os = "macos") {
