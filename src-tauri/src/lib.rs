@@ -1,4 +1,5 @@
 use enigo::Keyboard;
+use tauri_plugin_clipboard_manager::ClipboardExt;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -8,31 +9,30 @@ async fn get_selected_text() -> Result<String, String> {
 }
 
 #[tauri::command]
-async fn type_text(text: String) -> Result<(), String> {
+async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
     let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
 
-    enigo.text(&text).unwrap();
+    // Through clipboard copy/paste text content avoid no-english input method
+    println!("text: {}", text);
+    
+    // Use the window's clipboard instead of creating a new app
+    window.clipboard().write_text(text.clone()).map_err(|e| e.to_string())?;
+    println!("text copied to clipboard: {}", text);
 
-    // First press Escape to clear any existing IME state
-    // enigo
-    //     .key(enigo::Key::Escape, enigo::Direction::Press)
-    //     .unwrap();
-    // enigo
-    //     .key(enigo::Key::Escape, enigo::Direction::Release)
-    //     .unwrap();
+    // Small delay to ensure clipboard is updated
+    std::thread::sleep(std::time::Duration::from_millis(100));
 
-    // // Type each character individually to avoid IME
-    // for c in text.chars() {
-    //     if c.is_ascii() {
-    //         enigo
-    //             .key(enigo::Key::Unicode(c), enigo::Direction::Press)
-    //             .unwrap();
-    //         enigo
-    //             .key(enigo::Key::Unicode(c), enigo::Direction::Release)
-    //             .unwrap();
-    //     }
-    // }
-
+    // Ctrl + V to paste text
+    let control_or_command = if cfg!(target_os = "macos") {
+        enigo::Key::Meta
+    } else {
+        enigo::Key::Control
+    };
+    
+    enigo.key(control_or_command, enigo::Direction::Press).map_err(|e| e.to_string())?;
+    enigo.key(enigo::Key::Unicode('v'), enigo::Direction::Click).map_err(|e| e.to_string())?;
+    enigo.key(control_or_command, enigo::Direction::Release).map_err(|e| e.to_string())?;
+    
     Ok(())
 }
 

@@ -1,13 +1,13 @@
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
+import { readText } from '@tauri-apps/plugin-clipboard-manager'
 import { isRegistered, register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { useGlobalState } from '@/composables/useGlobalState'
 
-const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+A'
+const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+X'
 const SETTING_SHORTCUT = 'CommandOrControl+,'
 
-// let lastClipboardText = ''
-
+let lastClipboardText = ''
 export async function setupGlobalShortcut() {
   try {
     if (await isRegistered(DEFAULT_SHORTCUT)) {
@@ -23,24 +23,25 @@ export async function setupGlobalShortcut() {
       }
 
       const selectedText = await invoke('get_selected_text')
-      console.log('selectedText', selectedText)
 
       const mainWindow = await Window.getByLabel('main')
-
       await mainWindow?.show()
       await mainWindow?.setVisibleOnAllWorkspaces(true)
       await mainWindow?.setAlwaysOnTop(true)
 
       if (selectedText) {
-        await mainWindow?.emit('set-input', selectedText)
+        await mainWindow?.emit('set-input', { text: selectedText, mode: 'selected' })
       }
+      else {
+        const clipboardText = await readText()
 
-      // const clipboardText = await readText()
-      // if (!clipboardText || clipboardText === lastClipboardText) {
-      //   return
-      // }
+        if (!clipboardText || clipboardText === lastClipboardText) {
+          return
+        }
 
-      // lastClipboardText = clipboardText
+        lastClipboardText = clipboardText
+        await mainWindow?.emit('set-input', { text: clipboardText, mode: 'clipboard' })
+      }
     })
 
     await register(SETTING_SHORTCUT, async (event) => {
@@ -51,7 +52,8 @@ export async function setupGlobalShortcut() {
       const { setCurrentWindow } = useGlobalState()
       setCurrentWindow('Settings')
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error setting up global shortcut:', error)
   }
 }

@@ -19,35 +19,45 @@ window.setSizeConstraints({
 const DEEPSEEK_API_KEY = ref('')
 const processing = ref(false)
 const finished = ref(false)
+const textareaRef = ref<InstanceType<typeof Textarea>>()
+
 onMounted(async () => {
   DEEPSEEK_API_KEY.value = await getDeepSeekApiKey()
 
   // TODO: 区分两种交互模式, 能读取 selected text 的, 和无法读取到的
-  window.listen('set-input', async (event: { payload: string }) => {
-    input.value = event.payload
+  window.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
+    input.value = event.payload.text
+
+    // if (event.payload.mode === 'clipboard') {
+    //   textareaRef.value?.$el.focus()
+    //   return
+    // }
+
     if (!DEEPSEEK_API_KEY.value) {
       console.error('API key not set')
     }
 
+    if (processing.value)
+      return
+
     processing.value = true
+    let output = ''
     try {
       const result = await deepSeekCorrect(input.value)
-      input.value = result.text
+      output = result.text
       finished.value = true
     }
     finally {
       processing.value = false
     }
 
-    await onConfirm()
+    await window.hide()
+    await onConfirm(output)
   })
 })
 
-async function onConfirm() {
-  // Auto write to current cursor position
-  // await window.hide()
-  
-  await invoke('type_text', { text: input.value })
+async function onConfirm(text: string) {
+  await invoke('type_text', { text })
   await window.hide()
   input.value = ''
   finished.value = false
@@ -60,7 +70,7 @@ async function onESC() {
 }
 
 async function onSubmit() {
-  await window.emit('set-input', input.value)
+  await window.emit('set-input', { text: input.value, mode: 'manual' })
 }
 
 async function gotoSettings() {
@@ -72,14 +82,19 @@ async function gotoSettings() {
   <div class="p-2 h-full">
     <div v-if="DEEPSEEK_API_KEY" class="h-full flex flex-col gap-2">
       <Textarea
+        ref="textareaRef"
         v-model="input" class="flex-1" placeholder="Input" :disabled="processing"
         @keydown.esc="onESC"
-        @keydown.meta.enter.prevent="onSubmit"
+        @keydown.ctrl.enter.prevent="onSubmit"
       />
       <p data-tauri-drag-region class="flex justify-end">
         <span v-if="processing">Processing...</span>
-        <Button v-else-if="finished" @click="onConfirm">Confirm</Button>
         <span v-else class="text-sm text-muted-foreground">⌘ + ↵ to confirm</span>
+        <!--
+        <Button v-else-if="finished" @click="onConfirm">
+          Confirm
+        </Button>
+        -->
       </p>
     </div>
 

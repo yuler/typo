@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { CurrentWindow } from './composables/useGlobalState'
+import { onMounted } from 'vue'
+import { setupGlobalShortcut } from '@/shortcut'
 import Navbar from './components/Navbar.vue'
 import Window from './components/Window.vue'
 import { useGlobalState } from './composables/useGlobalState'
-import { onMounted } from 'vue'
-import { setupGlobalShortcut } from '@/shortcut'
 
 const { currentWindow, setCurrentWindow } = useGlobalState()
 
