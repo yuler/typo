@@ -23,4 +23,4 @@ git commit --amend --message "Release v$package_version"
 
 echo $package_version
 git tag v$package_version
-git push origin $package_version
+git push origin --tags
