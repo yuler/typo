@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version to release
+        required: true
+        default: 0.1.0
 
 # This is the example from the readme.
 # On each push to the `release` branch it will create or update a GitHub release, build your app, and upload the artifacts to the release.
