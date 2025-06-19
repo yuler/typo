@@ -11,8 +11,7 @@ pnpm dev
 
 ## Usage
 
-Press `CtrlOrCmd + Shift + A` to open the main window. The app will automatically detect and process any selected text.
-
+Press `CtrlOrCmd + Shift + X` to open the main window. The app will automatically detect and process any selected text.
 
 ## FAQ
 
