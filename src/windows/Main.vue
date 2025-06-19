@@ -2,7 +2,7 @@
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
-import { ArrowBigUpIcon, CommandIcon, PlusIcon, SettingsIcon } from 'lucide-vue-next'
+import { ArrowBigUpIcon, PlusIcon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect } from '@/ai'
 import { Button } from '@/components/ui/button'
@@ -104,10 +104,10 @@ async function gotoSettings() {
           <SettingsIcon class="w-4 h-4" />
         </Button>
         <span v-if="processing">Processing...</span>
-        <Button v-else>
+        <Button v-else @click="onSubmit">
           Submit
           <kbd class="px-2 py-1 rounded bg-muted text-muted-foreground flex items-center gap-1">
-            <CommandIcon class="w-4 h-4" />
+            Ctrl
             <PlusIcon class="w-4 h-4" />
             <ArrowBigUpIcon class="w-4 h-4" />
           </kbd>
