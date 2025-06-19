@@ -1,6 +1,11 @@
+> [!WARNING]
+> Still in early development
+
+---
+
 # typo
 
-A desktop tool that helps improve English writing through AI-powered suggestions and corrections.
+An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
 
 ## Development
 
@@ -16,3 +21,11 @@ Press `CtrlOrCmd + Shift + X` to open the main window. The app will automaticall
 ## FAQ
 
 - Mac need to enable the accessibility permission for the app.
+- `xattr -cr /Applications/typo.app`
+
+## TODO
+
+- [ ] Update app icon
+- [ ] Update main window UI, And stream response
+- [ ] Add System tray menus
+- [ ] Update settings fields
