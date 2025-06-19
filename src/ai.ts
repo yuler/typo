@@ -3,15 +3,20 @@ import { generateText } from 'ai'
 import { getDeepSeekApiKey } from './store'
 
 const DEFAULT_PROMPT = `
-I am learning English and would like to improve my language skills.
-I will provide you with text that may contain grammatical errors or Chinese words.
+I want you to help me improve my English writing and translation.
+I will provide text that may contain Chinese words or English errors.
 
-Please help me by:
-1. Correcting any grammatical mistakes
-2. Translating any Chinese words to English
-3. Improving the overall fluency while maintaining the original meaning
+Your task:
+1. Convert any Chinese text into natural, conversational English
+2. Fix grammar and spelling mistakes
+3. Make the text sound more natural and idiomatic, while keeping the core message
+4. Use casual, everyday English expressions where appropriate
 
-**Important: Only return the corrected English text without any explanations or additional comments.**
+Rules:
+- Only output the corrected/translated text
+- No explanations or comments
+- Keep the same tone and intent as the original
+- Make it sound like a native English speaker wrote it
 `
 
 export async function deepSeekCorrect(text: string) {
