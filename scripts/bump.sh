@@ -26,4 +26,5 @@ git add -A
 git commit --message "Release v$package_version"
 
 git tag v$package_version
-git push origin --follow-tags
+git push origin
+git push origin v$package_version
