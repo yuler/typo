@@ -26,6 +26,7 @@
     "@vueuse/core": "^13.3.0",
     "ai": "^4.3.16",
     "lucide-vue-next": "^0.516.0",
+    "ollama-ai-provider": "^1.2.0",
     "reka-ui": "^2.3.1",
     "vue": "^3.5.13"
   },

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { CurrentWindow } from './composables/useGlobalState'
+import type { CurrentWindow } from '@/composables/useGlobalState'
 import { onMounted } from 'vue'
+import Navbar from '@/components/Navbar.vue'
+import Window from '@/components/Window.vue'
+import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
-import Navbar from './components/Navbar.vue'
-import Window from './components/Window.vue'
-import { useGlobalState } from './composables/useGlobalState'
+import * as store from '@/store'
 
 const { currentWindow, setCurrentWindow } = useGlobalState()
 
@@ -14,6 +15,7 @@ function onChangeWindow(window: CurrentWindow) {
 
 onMounted(() => {
   setupGlobalShortcut()
+  store.initialize()
 })
 </script>
 
@@ -21,7 +23,7 @@ onMounted(() => {
   <main class="h-screen w-screen">
     <Navbar v-if="currentWindow === 'None'" @change-window="onChangeWindow" />
 
-    <Window />
+    <Window data-tauri-drag-region />
   </main>
 </template>
 

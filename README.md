@@ -9,23 +9,38 @@ An AI-powered desktop tool that helps you write better English with smart sugges
 
 ## Development
 
-```
+```bash
 pnpm install
 pnpm dev
 ```
 
 ## Usage
 
-Press `CtrlOrCmd + Shift + X` to open the main window. The app will automatically detect and process any selected text.
+1. Select any text you want to improve
+2. Press `Ctrl/Cmd + Shift + X` to open the AI interface
+3. Wait for the response and replace the selected content
+
+## Features
+
+- Support for DeepSeek & Ollama AI models
+- Global hotkey activation
+- Real-time text processing
 
 ## FAQ
 
-- Mac need to enable the accessibility permission for the app.
-- `xattr -cr /Applications/typo.app`
+### macOS
 
-## TODO
+- Enable accessibility permission for the app
+- Run: `xattr -cr /Applications/typo.app`
+
+### Ollma
+
+- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
+
+## Roadmap
 
 - [ ] Update app icon
-- [ ] Update main window UI, And stream response
-- [ ] Add System tray menus
-- [ ] Update settings fields
+- [ ] Improve main window UI with streaming responses
+- [ ] Add system tray menu
+- [ ] Enhance settings interface
+- [ ] Better error handling for AI API calls

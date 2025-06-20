@@ -2,13 +2,13 @@
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
-import { ArrowBigUpIcon, PlusIcon, SettingsIcon } from 'lucide-vue-next'
+import { ArrowBigUpIcon, Loader2Icon, PlusIcon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { deepSeekCorrect } from '@/ai'
+import { deepSeekCorrect, ollamaCorrect } from '@/ai'
 import { Button } from '@/components/ui/button'
 import Textarea from '@/components/ui/textarea/Textarea.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
-import { getDeepSeekApiKey } from '@/store'
+import * as store from '@/store'
 import { sleep } from '@/utils'
 
 const input = ref('')
@@ -19,24 +19,27 @@ window.setSizeConstraints({
   maxHeight: 250,
 })
 
-const DEEPSEEK_API_KEY = ref('')
+const showSettings = ref(false)
 const processing = ref(false)
 const finished = ref(false)
 const textareaRef = ref<InstanceType<typeof Textarea>>()
 
 let unlistenSetInput: UnlistenFn
 onMounted(async () => {
-  DEEPSEEK_API_KEY.value = await getDeepSeekApiKey()
+  showSettings.value = (await store.get('ai_provider')) === 'deepseek' && (await store.get('deepseek_api_key')) === ''
 
   unlistenSetInput = await window.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
     input.value = event.payload.text
 
+    // TODO: add dialog to confirm the action
     if (event.payload.mode === 'clipboard') {
-      setTimeout(() => {
-        textareaRef.value?.$el.select()
-        textareaRef.value?.$el.focus()
-      }, 250)
-      return
+      // eslint-disable-next-line no-alert
+      const confirmed = confirm('Are you want use clipboard text?')
+      await window.setFocus()
+      await window.center()
+      if (!confirmed) {
+        return
+      }
     }
 
     const output = await fetchTranslate(input.value)
@@ -55,17 +58,25 @@ onUnmounted(async () => {
 })
 
 async function fetchTranslate(text: string) {
-  if (!DEEPSEEK_API_KEY.value) {
-    console.error('API key not set')
-  }
-
   if (processing.value)
     return
 
   processing.value = true
   let output = ''
   try {
-    const result = await deepSeekCorrect(text)
+    const aiProvider = await store.get('ai_provider')
+    let aiCorrect: (text: string) => Promise<{ text: string }>
+    switch (aiProvider) {
+      case 'deepseek':
+        aiCorrect = deepSeekCorrect
+        break
+      case 'ollama':
+        aiCorrect = ollamaCorrect
+        break
+      default:
+        throw new Error('Invalid AI provider')
+    }
+    const result = await aiCorrect(text)
     output = result.text
     finished.value = true
     return output
@@ -92,18 +103,30 @@ async function gotoSettings() {
 
 <template>
   <div class="p-2 h-full">
-    <div v-if="DEEPSEEK_API_KEY" class="h-full flex flex-col gap-2">
+    <div v-if="showSettings" class="h-full flex flex-col justify-center items-center">
+      <p class="mt-2 text-sm text-muted-foreground">
+        You need to set your DeepSeek API Key or Ollama model in the settings.
+      </p>
+      <Button class="mt-4" @click="gotoSettings">
+        Settings
+      </Button>
+    </div>
+
+    <div v-else class="h-full flex flex-col gap-2">
       <Textarea
         ref="textareaRef"
-        v-model="input" class="flex-1" placeholder="Input" :disabled="processing"
+        v-model="input" class="flex-1" placeholder="Enter text to correct" :disabled="processing"
         @keydown.esc="onESC"
         @keydown.ctrl.enter.prevent="onSubmit"
       />
-      <p data-tauri-drag-region class="flex justify-between">
+      <p class="flex justify-between">
         <Button variant="outline" size="icon" @click="gotoSettings">
           <SettingsIcon class="w-4 h-4" />
         </Button>
-        <span v-if="processing">Processing...</span>
+        <Button v-if="processing">
+          <Loader2Icon class="w-4 h-4 animate-spin" />
+          Processing...
+        </Button>
         <Button v-else @click="onSubmit">
           Submit
           <kbd class="px-2 py-1 rounded bg-muted text-muted-foreground flex items-center gap-1">
@@ -113,16 +136,6 @@ async function gotoSettings() {
           </kbd>
         </Button>
       </p>
-    </div>
-
-    <div v-else class="full text-center">
-      <p class="mt-2 text-sm text-muted-foreground">
-        You need to set your DeepSeek API Key in the settings. <br>
-        <a href="https://www.deepseek.com/apikey" target="_blank">Get your API key</a>
-      </p>
-      <Button class="mt-4" @click="gotoSettings">
-        Settings
-      </Button>
     </div>
   </div>
 </template>
