@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { sleep } from '@/utils'
 import { deepSeekCorrect } from '../ai'
 import { useGlobalState } from '../composables/useGlobalState'
-import { getDeepSeekApiKey } from '../store'
+import * as store from '../store'
 
 const { setCurrentWindow } = useGlobalState()
 
@@ -21,7 +21,7 @@ const output = ref('')
 const submitting = ref(false)
 
 onMounted(async () => {
-  DEEPSEEK_API_KEY.value = await getDeepSeekApiKey()
+  DEEPSEEK_API_KEY.value = await store.get('deepseek_api_key')
 
   window.listen('set-input', async (event: { payload: string }) => {
     input.value = event.payload
