@@ -5,7 +5,7 @@ import { Window } from '@tauri-apps/api/window'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
-import Error from '@/components/Error.vue'
+import AlertError from '@/components/AlertError.vue'
 import { Button } from '@/components/ui/button'
 import Separator from '@/components/ui/separator/Separator.vue'
 import Textarea from '@/components/ui/textarea/Textarea.vue'
@@ -89,7 +89,7 @@ async function fetchTranslate(text: string) {
     finished.value = true
     return output
   }
-  catch (err) {
+  catch (err: any) {
     error.value = {
       title: 'Error',
       description: err.message || 'Something went wrong',
@@ -133,7 +133,7 @@ async function gotoSettings() {
     <div v-else class="h-full flex flex-col gap-2">
       <div v-if="error" class="h-full">
         <div class="relative">
-          <Error :title="error.title" :description="error.description" />
+          <AlertError :title="error.title" :description="error.description" />
           <Button variant="secondary" class="absolute top-4 right-4" @click="onRetry">
             Retry
           </Button>
