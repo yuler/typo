@@ -7,6 +7,10 @@
 
 An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
 
+## Screenshots
+
+![screenshot](./shots/screen.png)
+
 ## Development
 
 ```bash
