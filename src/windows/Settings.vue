@@ -97,7 +97,7 @@ function onSubmit() {
       </div>
 
       <div class="fixed bottom-4 right-8 flex justify-end">
-        <Button type="submit">
+        <Button variant="secondary" type="submit">
           <SaveIcon class="w-4 h-4" />
           Save
         </Button>

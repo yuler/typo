@@ -5,6 +5,7 @@ import { Window } from '@tauri-apps/api/window'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
+import Error from '@/components/Error.vue'
 import { Button } from '@/components/ui/button'
 import Separator from '@/components/ui/separator/Separator.vue'
 import Textarea from '@/components/ui/textarea/Textarea.vue'
@@ -23,6 +24,7 @@ window.setSizeConstraints({
 const showSettings = ref(false)
 const processing = ref(false)
 const finished = ref(false)
+const error = ref<{ title: string, description: string } | null>(null)
 const textareaRef = ref<InstanceType<typeof Textarea>>()
 
 let unlistenSetInput: UnlistenFn
@@ -45,6 +47,10 @@ onMounted(async () => {
 
     const output = await fetchTranslate(input.value)
 
+    if (error.value) {
+      return
+    }
+
     // Note: Hide the window, then wait 200 milliseconds before entering the text.
     await window.hide()
     await sleep(200)
@@ -63,6 +69,7 @@ async function fetchTranslate(text: string) {
     return
 
   processing.value = true
+  error.value = null
   let output = ''
   try {
     const aiProvider = await store.get('ai_provider')
@@ -82,9 +89,19 @@ async function fetchTranslate(text: string) {
     finished.value = true
     return output
   }
+  catch (err) {
+    error.value = {
+      title: 'Error',
+      description: err.message || 'Something went wrong',
+    }
+  }
   finally {
     processing.value = false
   }
+}
+
+async function onRetry() {
+  error.value = null
 }
 
 async function onESC() {
@@ -103,7 +120,7 @@ async function gotoSettings() {
 </script>
 
 <template>
-  <div class="px-4 py-2 h-full">
+  <div class="px-4 py-2 h-full" @keydown.esc="onESC">
     <div v-if="showSettings" class="h-full flex flex-col justify-center items-center">
       <p class="mt-2 text-sm text-muted-foreground">
         You need to set your DeepSeek API Key or Ollama model in the settings.
@@ -114,11 +131,20 @@ async function gotoSettings() {
     </div>
 
     <div v-else class="h-full flex flex-col gap-2">
+      <div v-if="error" class="h-full">
+        <div class="relative">
+          <Error :title="error.title" :description="error.description" />
+          <Button variant="secondary" class="absolute top-4 right-4" @click="onRetry">
+            Retry
+          </Button>
+        </div>
+      </div>
+
       <Textarea
+        v-if="!error"
         ref="textareaRef"
         v-model="input" class="flex-1" placeholder="Enter your content to correct typos" :disabled="processing"
-        @keydown.esc="onESC"
-        @keydown.ctrl.enter.prevent="onSubmit"
+        @keydown.enter.prevent="onSubmit"
       />
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-2 h-4">
@@ -141,7 +167,7 @@ async function gotoSettings() {
           </p>
         </div>
 
-        <Button v-if="processing">
+        <Button v-if="processing" variant="outline">
           <Loader2Icon class="w-4 h-4 animate-spin" />
           Processing...
         </Button>
