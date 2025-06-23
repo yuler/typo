@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { openUrl } from '@tauri-apps/plugin-opener'
-import { HomeIcon, SettingsIcon } from 'lucide-vue-next'
-// import { useCurrentWindow } from '../composables/useCurrentWindow'
+import { SettingsIcon } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
 import { useGlobalState } from '../composables/useGlobalState'
 
 defineEmits<{
-  (event: 'changeWindow', window: 'Main' | 'Settings'): void
+  (event: 'settings'): void
 }>()
 
 const { currentWindow } = useGlobalState()
@@ -16,17 +16,12 @@ function openGitHubRepo() {
 </script>
 
 <template>
-  <div data-tauri-drag-region class="px-4 py-2 bg-white flex cursor-move items-center justify-between">
+  <div data-tauri-drag-region class="px-4 py-1 flex cursor-move items-center justify-between">
     <div class="flex gap-2 items-center cursor-pointer" @click="openGitHubRepo">
-      <img src="@/assets/logo.svg" alt="logo" class="w-10 h-10 rounded-md">
+      <img src="@/assets/logo.png" alt="logo" class="h-8 rounded">
     </div>
-    <div class="flex gap-2 items-center">
-      <button v-if="currentWindow === 'Main'" class="cursor-pointer" @click="$emit('changeWindow', 'Settings')">
-        <SettingsIcon class="text-black h-6 w-6" />
-      </button>
-      <button v-else class="cursor-pointer" @click="$emit('changeWindow', 'Main')">
-        <HomeIcon class="text-black h-6 w-6" />
-      </button>
-    </div>
+    <Button v-if="currentWindow !== 'Settings'" variant="outline" size="icon" @click="$emit('settings')">
+      <SettingsIcon class="h-6 w-6" />
+    </Button>
   </div>
 </template>

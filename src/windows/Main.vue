@@ -2,10 +2,11 @@
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
-import { ArrowBigUpIcon, Loader2Icon, PlusIcon, SettingsIcon } from 'lucide-vue-next'
+import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
 import { Button } from '@/components/ui/button'
+import Separator from '@/components/ui/separator/Separator.vue'
 import Textarea from '@/components/ui/textarea/Textarea.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import * as store from '@/store'
@@ -102,7 +103,7 @@ async function gotoSettings() {
 </script>
 
 <template>
-  <div class="p-2 h-full">
+  <div class="px-4 py-2 h-full">
     <div v-if="showSettings" class="h-full flex flex-col justify-center items-center">
       <p class="mt-2 text-sm text-muted-foreground">
         You need to set your DeepSeek API Key or Ollama model in the settings.
@@ -115,27 +116,40 @@ async function gotoSettings() {
     <div v-else class="h-full flex flex-col gap-2">
       <Textarea
         ref="textareaRef"
-        v-model="input" class="flex-1" placeholder="Enter text to correct" :disabled="processing"
+        v-model="input" class="flex-1" placeholder="Enter your content to correct typos" :disabled="processing"
         @keydown.esc="onESC"
         @keydown.ctrl.enter.prevent="onSubmit"
       />
-      <p class="flex justify-between">
-        <Button variant="outline" size="icon" @click="gotoSettings">
-          <SettingsIcon class="w-4 h-4" />
-        </Button>
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2 h-4">
+          <p class="text-sm text-muted-foreground space-x-2">
+            <kbd
+              class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
+            >
+              <span class="text-xs">Ctrl + Shift + X</span>
+            </kbd>
+            <span>Show</span>
+          </p>
+          <Separator orientation="vertical" />
+          <p class="text-sm text-muted-foreground space-x-2">
+            <kbd
+              class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
+            >
+              <span class="text-xs">Esc</span>
+            </kbd>
+            Hide
+          </p>
+        </div>
+
         <Button v-if="processing">
           <Loader2Icon class="w-4 h-4 animate-spin" />
           Processing...
         </Button>
-        <Button v-else @click="onSubmit">
+        <Button v-else variant="outline" @click="onSubmit">
           Submit
-          <kbd class="px-2 py-1 rounded bg-muted text-muted-foreground flex items-center gap-1">
-            Ctrl
-            <PlusIcon class="w-4 h-4" />
-            <ArrowBigUpIcon class="w-4 h-4" />
-          </kbd>
+          <ArrowBigUpIcon class="w-4 h-4" />
         </Button>
-      </p>
+      </div>
     </div>
   </div>
 </template>
