@@ -34,8 +34,8 @@ pnpm dev
 
 ### macOS
 
-- Enable accessibility permission for the app
 - Run: `xattr -cr /Applications/typo.app`
+- Enable accessibility permission for the app
 
 ### Ollma
 
@@ -44,8 +44,12 @@ pnpm dev
 ## Roadmap
 
 - [x] Improve main window UI with streaming responses
+- [x] Mac Accessibility permission request
+- [ ] Add an upgrade notification alert for quick updates
 - [ ] When the window appears, keep it centered, or position it near the current cursor location.
+- [ ] Add an option to stop streaming responses and improve other UE, like hiding the window.
 - [ ] Core interaction optimization
 - [ ] More settings available
 - [ ] Add system tray menu
 - [ ] Ctrl+1 to 5 for custom prompts
+- [ ] Add some rules for Cursor
