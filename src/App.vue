@@ -40,7 +40,7 @@ body {
 #app {
   height: 100vh;
   border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(24, 24, 24, 0.75);
   overflow: hidden;
   color: #fff;
 }
@@ -49,11 +49,11 @@ body {
   position: relative;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(1px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(211, 211, 211, 0.5);
   border-radius: 8px;
   box-shadow:
     0 8px 32px rgba(31, 38, 135, 0.1),
-    inset 0 4px 20px rgba(255, 255, 255, 0.2);
+    inset 0 4px 16px rgba(255, 255, 255, 0.2);
 }
 
 .glass::after {
