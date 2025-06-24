@@ -1,11 +1,11 @@
 import { createDeepSeek } from '@ai-sdk/deepseek'
-import { generateText } from 'ai'
+import { streamText } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
 import { get, SYSTEM_PROMPT } from './store'
 
 export async function deepSeekCorrect(text: string) {
   const apiKey = await get('deepseek_api_key')
-  return generateText({
+  return streamText({
     model: createDeepSeek({ apiKey }).chat('deepseek-chat'),
     system: SYSTEM_PROMPT,
     messages: [
@@ -19,7 +19,7 @@ export async function deepSeekCorrect(text: string) {
 
 export async function ollamaCorrect(text: string) {
   const model = await get('ollama_model')
-  return generateText({
+  return streamText({
     model: createOllama().chat(model),
     system: SYSTEM_PROMPT,
     messages: [

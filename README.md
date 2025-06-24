@@ -43,8 +43,8 @@ pnpm dev
 
 ## Roadmap
 
+- [x] Improve main window UI with streaming responses
 - [ ] When the window appears, keep it centered, or position it near the current cursor location.
-- [ ] Improve main window UI with streaming responses
 - [ ] Core interaction optimization
 - [ ] More settings available
 - [ ] Add system tray menu

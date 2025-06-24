@@ -64,7 +64,7 @@ body {
   width: 100%;
   height: 100%;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 2rem;
+  border-radius: 8px;
   backdrop-filter: blur(1px);
   box-shadow:
     inset -10px -8px 0px -11px rgba(255, 255, 255, 1),

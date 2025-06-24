@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
+import type { StreamTextResult, ToolSet } from 'ai'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
@@ -73,19 +74,22 @@ async function fetchTranslate(text: string) {
   let output = ''
   try {
     const aiProvider = await store.get('ai_provider')
-    let aiCorrect: (text: string) => Promise<{ text: string }>
+    let streamText: (text: string) => Promise<StreamTextResult<ToolSet, never>>
     switch (aiProvider) {
       case 'deepseek':
-        aiCorrect = deepSeekCorrect
+        streamText = deepSeekCorrect
         break
       case 'ollama':
-        aiCorrect = ollamaCorrect
+        streamText = ollamaCorrect
         break
       default:
         throw new Error('Invalid AI provider')
     }
-    const result = await aiCorrect(text)
-    output = result.text
+    const result = await streamText(text)
+    for await (const chunk of result.textStream) {
+      output += chunk
+      input.value = output
+    }
     finished.value = true
     return output
   }
