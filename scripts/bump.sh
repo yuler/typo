@@ -9,6 +9,9 @@ if [[ ! "$version" =~ ^(patch|minor|major)$ ]]; then
   exit 1
 fi
 
+# Build first, if failed, exit
+pnpm run build:frontend || exit 1
+
 # Update package.json version, without tag
 pnpm version $version --no-git-tag-version
 package_version=$(cat package.json | jq -r '.version')
