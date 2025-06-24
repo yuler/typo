@@ -3,6 +3,7 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { StreamTextResult, ToolSet } from 'ai'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
+import { relaunch } from '@tauri-apps/plugin-process'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
@@ -27,9 +28,24 @@ const processing = ref(false)
 const finished = ref(false)
 const error = ref<{ title: string, description: string } | null>(null)
 const textareaRef = ref<InstanceType<typeof Textarea>>()
+const isMacOS = ref(false)
+const showMacAccessibilityWarning = ref(false)
 
 let unlistenSetInput: UnlistenFn
 onMounted(async () => {
+  // Check platform and accessibility permissions
+  const platform = await invoke('get_platform_info')
+  isMacOS.value = platform === 'macos'
+  if (isMacOS.value) {
+    try {
+      showMacAccessibilityWarning.value = !(await invoke('request_mac_accessibility_permissions'))
+    }
+    catch (error) {
+      console.error(error)
+    }
+  }
+
+  // Must have AI provider settings
   showSettings.value = (await store.get('ai_provider')) === 'deepseek' && (await store.get('deepseek_api_key')) === ''
 
   unlistenSetInput = await window.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
@@ -125,7 +141,20 @@ async function gotoSettings() {
 
 <template>
   <div class="px-4 py-2 h-full" @keydown.esc="onESC">
-    <div v-if="showSettings" class="h-full flex flex-col justify-center items-center">
+    <div v-if="showMacAccessibilityWarning" class="h-full flex flex-col justify-center items-center">
+      <h3 class="text-xl mb-2 font-semibold text-center">
+        Your need enable accessibility permissions on macOS.
+      </h3>
+      <ol class="list-decimal list-inside space-y-1 ml-4">
+        <li>Go to System Preferences → Security & Privacy → Privacy</li>
+        <li>Select "Accessibility", then click plus button to add this app</li>
+      </ol>
+      <Button class="mt-4" variant="outline" @click="relaunch">
+        Relaunch App
+      </Button>
+    </div>
+
+    <div v-else-if="showSettings" class="h-full flex flex-col justify-center items-center">
       <p class="mt-2 text-sm text-muted-foreground">
         You need to set your DeepSeek API Key or Ollama model in the settings.
       </p>
@@ -156,7 +185,7 @@ async function gotoSettings() {
             <kbd
               class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
             >
-              <span class="text-xs">Ctrl + Shift + X</span>
+              <span class="text-xs">{{ isMacOS ? 'Command' : 'Ctrl' }} + Shift + X</span>
             </kbd>
             <span>Show</span>
           </p>
