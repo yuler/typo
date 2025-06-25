@@ -9,7 +9,7 @@ An AI-powered desktop tool that helps you write better English with smart sugges
 
 ## Screenshots
 
-![screenshot](./shots/screen.png)
+https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e
 
 ## Development
 
