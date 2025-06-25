@@ -1,6 +1,9 @@
 use enigo::Keyboard;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
+#[cfg(target_os = "macos")]
+use macos_accessibility_client;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 async fn get_selected_text() -> Result<String, String> {
@@ -14,14 +17,22 @@ async fn get_platform_info() -> Result<String, String> {
 }
 
 #[tauri::command]
-fn request_mac_accessibility_permissions() -> bool {
-    let trusted = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
-    if trusted {
-        print!("Application is totally trusted!");
-    } else {
-        print!("Application isn't trusted :(");
+fn request_mac_accessibility_permissions() -> Result<bool, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let trusted = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+        if trusted {
+            print!("Application is totally trusted!");
+        } else {
+            print!("Application isn't trusted :(");
+        }
+        Ok(trusted)
     }
-    return trusted;
+    
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(true)
+    }
 }
 
 #[tauri::command]
