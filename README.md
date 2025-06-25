@@ -5,7 +5,9 @@
 
 # typo
 
-An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
+> An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
+
+[![Download](https://img.shields.io/github/v/release/yuler/typo)](https://github.com/yuler/typo/releases)
 
 ## Screenshots
 
@@ -21,13 +23,13 @@ pnpm dev
 ## Usage
 
 1. Select any text you want to improve
-2. Press `Ctrl/Cmd + Shift + X` to open the AI interface
+2. Press `Ctrl/Cmd + Shift + X` to activate the application
 3. Wait for the response and replace the selected content
 
 ## Features
 
 - Support for DeepSeek & Ollama AI models
-- Global hotkey activation
+- Global `Ctrl/Cmd + Shift + X` hotkey activation
 - Real-time text processing
 
 ## FAQ
