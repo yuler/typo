@@ -4,6 +4,7 @@ import type { StreamTextResult, ToolSet } from 'ai'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
 import { relaunch } from '@tauri-apps/plugin-process'
+import { check } from '@tauri-apps/plugin-updater'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
@@ -33,6 +34,9 @@ const showMacAccessibilityWarning = ref(false)
 
 let unlistenSetInput: UnlistenFn
 onMounted(async () => {
+  // Check update
+  checkUpdate()
+
   // Check platform and accessibility permissions
   const platform = await invoke('get_platform_info')
   isMacOS.value = platform === 'macos'
@@ -80,6 +84,12 @@ onMounted(async () => {
 onUnmounted(async () => {
   unlistenSetInput?.()
 })
+
+async function checkUpdate() {
+  const update = await check()
+  // eslint-disable-next-line no-console
+  console.log(update)
+}
 
 async function fetchTranslate(text: string) {
   if (processing.value)

@@ -20,7 +20,8 @@ async fn get_platform_info() -> Result<String, String> {
 fn request_mac_accessibility_permissions() -> Result<bool, String> {
     #[cfg(target_os = "macos")]
     {
-        let trusted = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+        let trusted =
+            macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
         if trusted {
             print!("Application is totally trusted!");
         } else {
@@ -28,7 +29,7 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
         }
         Ok(trusted)
     }
-    
+
     #[cfg(not(target_os = "macos"))]
     {
         Ok(true)
@@ -79,6 +80,7 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_notification::init())

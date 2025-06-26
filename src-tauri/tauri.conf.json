@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "typo",
   "identifier": "com.typo.app",
   "build": {
@@ -25,7 +25,20 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI4MjJCQTgwM0EyNEUyMjIKU",
+      "endpoints": [
+        "https://github.com/yuler/typo/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
+    "createUpdaterArtifacts": true,
     "active": true,
     "targets": "all",
     "icon": [
