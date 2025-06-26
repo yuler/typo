@@ -4,11 +4,13 @@ import type { StreamTextResult, ToolSet } from 'ai'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
 import { relaunch } from '@tauri-apps/plugin-process'
-import { check } from '@tauri-apps/plugin-updater'
+// import { open } from '@tauri-apps/plugin-shell'
+import { check, Update } from '@tauri-apps/plugin-updater'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
 import AlertError from '@/components/AlertError.vue'
+import AlertUpgrade from '@/components/AlertUpgrade.vue'
 import { Button } from '@/components/ui/button'
 import Separator from '@/components/ui/separator/Separator.vue'
 import Textarea from '@/components/ui/textarea/Textarea.vue'
@@ -85,10 +87,54 @@ onUnmounted(async () => {
   unlistenSetInput?.()
 })
 
+const upgradeAlert = ref(false)
+const upgradeData = ref<{ rid: number, currentVersion: string, version: string, notes: string, downloadUrl: string }>({
+  rid: 0,
+  currentVersion: '',
+  version: '',
+  notes: '',
+  downloadUrl: '',
+})
+
 async function checkUpdate() {
-  const update = await check()
-  // eslint-disable-next-line no-console
-  console.log(update)
+  try {
+    const update = await check()
+
+    if (!update) {
+      return
+    }
+
+    upgradeData.value = {
+      rid: update.rid,
+      currentVersion: update.currentVersion,
+      version: update.version,
+      notes: update.body || '',
+      downloadUrl: update.rawJson.url as string,
+    }
+    upgradeAlert.value = true
+  }
+  catch (error) {
+    console.error(error)
+  }
+}
+async function onUpgrade() {
+  if (!upgradeData.value)
+    return
+
+  const update = new Update({
+    rid: upgradeData.value.rid,
+    currentVersion: upgradeData.value.currentVersion,
+    version: upgradeData.value.version,
+    rawJson: {
+      url: upgradeData.value.downloadUrl as string,
+    },
+  })
+  // TODO: add progress bar
+  await update.downloadAndInstall((event) => {
+    console.log({ event })
+  })
+  await relaunch()
+  upgradeAlert.value = false
 }
 
 async function fetchTranslate(text: string) {
@@ -220,5 +266,13 @@ async function gotoSettings() {
         </Button>
       </div>
     </div>
+
+    <AlertUpgrade
+      v-model="upgradeAlert"
+      :version="upgradeData.version"
+      :notes="upgradeData.notes"
+      @cancel="upgradeAlert = false"
+      @confirm="onUpgrade"
+    />
   </div>
 </template>

@@ -13,8 +13,8 @@
       {
         "label": "main",
         "title": "typo",
-        "width": 600,
-        "height": 200,
+        "width": 640,
+        "height": 240,
         "transparent": true,
         "decorations": false,
         "resizable": true

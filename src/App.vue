@@ -40,7 +40,7 @@ body {
 #app {
   height: 100vh;
   border-radius: 8px;
-  background-color: rgba(24, 24, 24, 0.75);
+  background-color: rgba(24, 24, 24, 0.8);
   overflow: hidden;
   color: #fff;
 }
