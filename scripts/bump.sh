@@ -1,12 +1,36 @@
 #!/bin/bash
 
-version=$1
+# Function to display radio-style selection
+select_version() {
+    echo "Select version type:"
+    echo "1) patch"
+    echo "2) minor" 
+    echo "3) major"
+    echo ""
+    
+    while true; do
+        read -p "Enter your choice (1-3): " choice
+        case $choice in
+            1) version="patch"; break ;;
+            2) version="minor"; break ;;
+            3) version="major"; break ;;
+            *) echo "Invalid choice. Please enter 1, 2, or 3." ;;
+        esac
+    done
+}
 
-# Validate version argument
-if [[ ! "$version" =~ ^(patch|minor|major)$ ]]; then
-  echo "Error: version must be one of: patch, minor, major"
-  echo "Usage: ./scripts/bump.sh <patch|minor|major>"
-  exit 1
+# Check if version argument is provided
+if [ -z "$1" ]; then
+    select_version
+else
+    version=$1
+    # Validate version argument
+    if [[ ! "$version" =~ ^(patch|minor|major)$ ]]; then
+        echo "Error: version must be one of: patch, minor, major"
+        echo "Usage: ./scripts/bump.sh <patch|minor|major>"
+        echo "Or run without arguments for interactive selection"
+        exit 1
+    fi
 fi
 
 # Build first, if failed, exit
