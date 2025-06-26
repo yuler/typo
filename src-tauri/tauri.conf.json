@@ -28,7 +28,7 @@
   "plugins": {
     "updater": {
       "active": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI4MjJCQTgwM0EyNEUyMjIKU",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI4MjJCQTgwM0EyNEUyMjIKUldRaTRpUTZnTG9pdUFKSEJIZ3JnMG5Oay8zYVZjWW9rWisya2x3T2JhY1JsbnFvYzhqeDFsUFEK",
       "endpoints": [
         "https://github.com/yuler/typo/releases/latest/download/latest.json"
       ],
