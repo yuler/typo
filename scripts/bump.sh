@@ -3,20 +3,17 @@
 # Function to display radio-style selection
 select_version() {
     echo "Select version type:"
-    echo "1) patch"
+    echo "1) patch (default)"
     echo "2) minor" 
     echo "3) major"
     echo ""
     
-    while true; do
-        read -p "Enter your choice (1-3): " choice
-        case $choice in
-            1) version="patch"; break ;;
-            2) version="minor"; break ;;
-            3) version="major"; break ;;
-            *) echo "Invalid choice. Please enter 1, 2, or 3." ;;
-        esac
-    done
+    read -t 5 -p "Enter your choice (1-3), default is patch in 5s: " choice
+    case $choice in
+        2) version="minor" ;;
+        3) version="major" ;;
+        *) version="patch" ;;
+    esac
 }
 
 # Check if version argument is provided
