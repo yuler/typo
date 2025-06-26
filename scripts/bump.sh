@@ -8,7 +8,7 @@ select_version() {
     echo "3) major"
     echo ""
     
-    read -t 5 -p "Enter your choice (1-3), default is patch in 5s: " choice
+    read -p "Enter your choice (1-3), default is patch: " choice
     case $choice in
         2) version="minor" ;;
         3) version="major" ;;
