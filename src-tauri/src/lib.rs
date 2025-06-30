@@ -1,5 +1,6 @@
 use enigo::Keyboard;
 use tauri_plugin_clipboard_manager::ClipboardExt;
+use tauri_plugin_notification::NotificationExt;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
@@ -83,10 +84,19 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
+            println!("{}, {argv:?}, {cwd}", app.package_info().name);
+            app.notification()
+                .builder()
+                .title("This app is already running!")
+                .body("You can find it in the tray menu.")
+                .show()
+                .unwrap();
+        }))
         .invoke_handler(tauri::generate_handler![
             get_selected_text,
             type_text,
