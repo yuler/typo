@@ -39,7 +39,7 @@ const model = defineModel<boolean>({ required: true })
           Later
         </AlertDialogCancel>
         <AlertDialogAction @click="emit('confirm')">
-          Download
+          Upgrade
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

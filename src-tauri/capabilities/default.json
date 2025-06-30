@@ -23,6 +23,6 @@
     "clipboard-manager:allow-write-text",
     "notification:default",
     "process:default",
-    "shell:default"
+    "process:allow-restart"
   ]
 }

@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
+import type { Update } from '@tauri-apps/plugin-updater'
 import type { StreamTextResult, ToolSet } from 'ai'
 import { invoke } from '@tauri-apps/api/core'
 import { Window } from '@tauri-apps/api/window'
 import { relaunch } from '@tauri-apps/plugin-process'
-// import { open } from '@tauri-apps/plugin-shell'
-import { check, Update } from '@tauri-apps/plugin-updater'
+import { check } from '@tauri-apps/plugin-updater'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
 import AlertError from '@/components/AlertError.vue'
 import AlertUpgrade from '@/components/AlertUpgrade.vue'
+import AlertUpgradeProgress from '@/components/AlertUpgradeProgress.vue'
 import { Button } from '@/components/ui/button'
 import Separator from '@/components/ui/separator/Separator.vue'
 import Textarea from '@/components/ui/textarea/Textarea.vue'
@@ -37,7 +38,7 @@ const showMacAccessibilityWarning = ref(false)
 let unlistenSetInput: UnlistenFn
 onMounted(async () => {
   // Check update
-  checkUpdate()
+  checkUpgrade()
 
   // Check platform and accessibility permissions
   const platform = await invoke('get_platform_info')
@@ -88,28 +89,33 @@ onUnmounted(async () => {
 })
 
 const upgradeAlert = ref(false)
-const upgradeData = ref<{ rid: number, currentVersion: string, version: string, notes: string, downloadUrl: string }>({
+const upgradeAlertData = ref<{ rid: number, currentVersion: string, version: string, notes: string, rawJson: Record<string, unknown> }>({
   rid: 0,
   currentVersion: '',
   version: '',
   notes: '',
-  downloadUrl: '',
+  rawJson: {},
+})
+const upgradeAlertProgress = ref(false)
+const upgradeAlertProgressData = ref<{ progress: number }>({
+  progress: 0,
 })
 
-async function checkUpdate() {
+let update: Update | null = null
+async function checkUpgrade() {
   try {
-    const update = await check()
+    update = await check()
 
     if (!update) {
       return
     }
 
-    upgradeData.value = {
+    upgradeAlertData.value = {
       rid: update.rid,
       currentVersion: update.currentVersion,
       version: update.version,
       notes: update.body || '',
-      downloadUrl: update.rawJson.url as string,
+      rawJson: update.rawJson,
     }
     upgradeAlert.value = true
   }
@@ -118,23 +124,36 @@ async function checkUpdate() {
   }
 }
 async function onUpgrade() {
-  if (!upgradeData.value)
+  if (!update)
     return
 
-  const update = new Update({
-    rid: upgradeData.value.rid,
-    currentVersion: upgradeData.value.currentVersion,
-    version: upgradeData.value.version,
-    rawJson: {
-      url: upgradeData.value.downloadUrl as string,
-    },
-  })
-  // TODO: add progress bar
-  await update.downloadAndInstall((event) => {
-    console.log({ event })
-  })
-  await relaunch()
   upgradeAlert.value = false
+  upgradeAlertProgress.value = true
+
+  // eslint-disable-next-line no-console
+  console.log(
+    `found update ${update.version} from ${update.date} with notes ${update.body}`,
+  )
+
+  let downloaded = 0
+  let contentLength = 0
+
+  await update.downloadAndInstall(async (event) => {
+    switch (event.event) {
+      case 'Started':
+        contentLength = event.data.contentLength!
+        upgradeAlertProgressData.value.progress = 0
+        break
+      case 'Progress':
+        downloaded += event.data.chunkLength
+        upgradeAlertProgressData.value.progress = Math.round(downloaded / contentLength * 100)
+        break
+      case 'Finished':
+        upgradeAlertProgress.value = false
+    }
+  })
+
+  await relaunch()
 }
 
 async function fetchTranslate(text: string) {
@@ -197,6 +216,7 @@ async function gotoSettings() {
 
 <template>
   <div class="px-4 py-2 h-full" @keydown.esc="onESC">
+    <!-- MacOS Must Enable Accessibility -->
     <div v-if="showMacAccessibilityWarning" class="h-full flex flex-col justify-center items-center">
       <h3 class="text-xl mb-2 font-semibold text-center">
         Your need enable accessibility permissions on macOS.
@@ -210,6 +230,7 @@ async function gotoSettings() {
       </Button>
     </div>
 
+    <!-- Must have AI provider settings -->
     <div v-else-if="showSettings" class="h-full flex flex-col justify-center items-center">
       <p class="mt-2 text-sm text-muted-foreground">
         You need to set your DeepSeek API Key or Ollama model in the settings.
@@ -219,6 +240,7 @@ async function gotoSettings() {
       </Button>
     </div>
 
+    <!-- Main content -->
     <div v-else class="h-full flex flex-col gap-2">
       <div v-if="error" class="h-full">
         <div class="relative">
@@ -267,12 +289,17 @@ async function gotoSettings() {
       </div>
     </div>
 
+    <!-- Alert: Upgrade -->
     <AlertUpgrade
       v-model="upgradeAlert"
-      :version="upgradeData.version"
-      :notes="upgradeData.notes"
+      :version="upgradeAlertData.version"
+      :notes="upgradeAlertData.notes"
       @cancel="upgradeAlert = false"
       @confirm="onUpgrade"
+    />
+    <AlertUpgradeProgress
+      v-model="upgradeAlertProgress"
+      :progress="upgradeAlertProgressData.progress"
     />
   </div>
 </template>
