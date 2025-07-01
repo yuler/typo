@@ -13,6 +13,7 @@
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
+    "webview:allow-internal-toggle-devtools",
     "updater:default"
   ]
 }

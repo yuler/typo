@@ -119,8 +119,8 @@ async function checkUpgrade() {
     }
     upgradeAlert.value = true
   }
-  catch (error) {
-    console.error(error)
+  catch (err) {
+    console.error(err)
   }
 }
 async function onUpgrade() {
@@ -138,22 +138,27 @@ async function onUpgrade() {
   let downloaded = 0
   let contentLength = 0
 
-  await update.downloadAndInstall(async (event) => {
-    switch (event.event) {
-      case 'Started':
-        contentLength = event.data.contentLength!
-        upgradeAlertProgressData.value.progress = 0
-        break
-      case 'Progress':
-        downloaded += event.data.chunkLength
-        upgradeAlertProgressData.value.progress = Math.round(downloaded / contentLength * 100)
-        break
-      case 'Finished':
-        upgradeAlertProgress.value = false
-    }
-  })
-
-  await relaunch()
+  try {
+    await update.downloadAndInstall(async (event) => {
+      switch (event.event) {
+        case 'Started':
+          contentLength = event.data.contentLength!
+          upgradeAlertProgressData.value.progress = 0
+          break
+        case 'Progress':
+          downloaded += event.data.chunkLength
+          upgradeAlertProgressData.value.progress = Math.round(downloaded / contentLength * 100)
+          break
+        case 'Finished':
+          upgradeAlertProgress.value = false
+      }
+    })
+    await relaunch()
+  }
+  catch (err) {
+    // Open download file, user must manually install it
+    console.error({ err })
+  }
 }
 
 async function fetchTranslate(text: string) {

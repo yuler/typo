@@ -52,6 +52,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxdo-dev
 
+      - name: Get version
+        id: get_version
+        run: |
+          echo "version=v${{ github.ref_name }}" >> $GITHUB_OUTPUT
+
+      - name: Get tag message
+        id: tag
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$(git tag -l --format='%(contents)' ${{ steps.get_version.outputs.version }})" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: install frontend dependencies
         run: |
           corepack enable
@@ -67,7 +80,8 @@ jobs:
         with:
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: App v__VERSION__
-          releaseBody: See the assets to download this version and install.
+          releaseBody: ${{ steps.tag.outputs.message }}
           releaseDraft: true
           prerelease: false
+          includeDebug: true
           args: ${{ matrix.args }}
