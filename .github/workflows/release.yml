@@ -83,5 +83,5 @@ jobs:
           releaseBody: ${{ steps.tag.outputs.message }}
           releaseDraft: true
           prerelease: false
-          includeDebug: true
+          # includeDebug: true
           args: ${{ matrix.args }}
