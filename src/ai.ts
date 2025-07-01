@@ -11,7 +11,7 @@ export async function deepSeekCorrect(text: string) {
     messages: [
       {
         role: 'user',
-        content: text,
+        content: `### Input\n${text}\n###`,
       },
     ],
   })
@@ -25,7 +25,7 @@ export async function ollamaCorrect(text: string) {
     messages: [
       {
         role: 'user',
-        content: text,
+        content: `### Input\n${text}\n###`,
       },
     ],
   })
