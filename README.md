@@ -39,6 +39,36 @@ pnpm dev
 - Run: `xattr -cr /Applications/typo.app`
 - Enable accessibility permission for the app
 
+### Linux
+
+For installation and auto-updates, we recommend using the AppImage version:
+
+```bash
+# Move the downloaded AppImage to a permanent location
+mv ~/Downloads/typo_*.AppImage ~/Applications/typo.appimage
+# Make it executable
+chmod +x ~/Applications/typo.appimage
+```
+
+Create a desktop entry for easy access:
+
+```bash
+sudo nano /usr/share/applications/typo.desktop
+```
+
+Add the following content:
+
+```text
+[Desktop Entry]
+Name=Typo
+Comment=AI-powered text improvement tool
+Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
+Icon=
+Type=Application
+Categories=Utility;TextEditor;
+Terminal=false
+```
+
 ### Ollma
 
 - [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
@@ -47,11 +77,10 @@ pnpm dev
 
 - [x] Improve main window UI with streaming responses
 - [x] Mac Accessibility permission request
-- [ ] Add an upgrade notification alert for quick updates
+- [-] Add an upgrade notification alert for quick updates
 - [ ] When the window appears, keep it centered, or position it near the current cursor location.
 - [ ] Add an option to stop streaming responses and improve other UE, like hiding the window.
 - [ ] Core interaction optimization
 - [ ] More settings available
 - [ ] Add system tray menu
 - [ ] Ctrl+1 to 5 for custom prompts
-- [ ] Add some rules for Cursor
