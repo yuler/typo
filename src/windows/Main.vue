@@ -30,7 +30,7 @@ window.setSizeConstraints({
 const showSettings = ref(false)
 const processing = ref(false)
 const finished = ref(false)
-const error = ref<{ title: string, description: string } | null>(null)
+const error = ref<{ type: 'translate' | 'upgrade' | 'other', title: string, description: string } | null>(null)
 const textareaRef = ref<InstanceType<typeof Textarea>>()
 const isMacOS = ref(false)
 const showMacAccessibilityWarning = ref(false)
@@ -157,6 +157,11 @@ async function onUpgrade() {
   }
   catch (err) {
     // Open download file, user must manually install it
+    error.value = {
+      type: 'upgrade',
+      title: 'Error',
+      description: `Failed to download and install the update: ${err}`,
+    }
     console.error({ err })
   }
 }
@@ -191,6 +196,7 @@ async function fetchTranslate(text: string) {
   }
   catch (err: any) {
     error.value = {
+      type: 'translate',
       title: 'Error',
       description: err.message || 'Something went wrong',
     }
@@ -250,9 +256,12 @@ async function gotoSettings() {
       <div v-if="error" class="h-full">
         <div class="relative">
           <AlertError :title="error.title" :description="error.description" />
-          <Button variant="secondary" class="absolute top-4 right-4" @click="onRetry">
+          <Button v-if="error.type === 'translate'" variant="secondary" class="absolute top-4 right-4" @click="onRetry">
             Retry
           </Button>
+          <p v-if="error.type === 'upgrade'" class="mt-4 text-center">
+            Your can manual download from <a class="underline" href="https://github.com/yuler/typo/releases" target="_blank">GitHub Releases</a> and install it.
+          </p>
         </div>
       </div>
 
