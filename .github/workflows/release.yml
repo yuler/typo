@@ -55,7 +55,7 @@ jobs:
       - name: Get version
         id: get_version
         run: |
-          echo "version=v${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Get tag message
         id: tag
