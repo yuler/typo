@@ -12,6 +12,7 @@ import { deepSeekCorrect, ollamaCorrect } from '@/ai'
 import AlertError from '@/components/AlertError.vue'
 import AlertUpgrade from '@/components/AlertUpgrade.vue'
 import AlertUpgradeProgress from '@/components/AlertUpgradeProgress.vue'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Separator from '@/components/ui/separator/Separator.vue'
 import Textarea from '@/components/ui/textarea/Textarea.vue'
@@ -27,6 +28,7 @@ window.setSizeConstraints({
   maxHeight: 250,
 })
 
+const aiProvider = ref<'deepseek' | 'ollama' | null>(null)
 const showSettings = ref(false)
 const processing = ref(false)
 const finished = ref(false)
@@ -53,7 +55,8 @@ onMounted(async () => {
   }
 
   // Must have AI provider settings
-  showSettings.value = (await store.get('ai_provider')) === 'deepseek' && (await store.get('deepseek_api_key')) === ''
+  aiProvider.value = await store.get('ai_provider')
+  showSettings.value = aiProvider.value === 'deepseek' && (await store.get('deepseek_api_key')) === ''
 
   unlistenSetInput = await window.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
     input.value = event.payload.text
@@ -273,6 +276,12 @@ async function gotoSettings() {
       />
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-2 h-4">
+          <template v-if="aiProvider">
+            <Badge variant="secondary" class="bg-green-700">
+              {{ aiProvider }}
+            </Badge>
+            <Separator orientation="vertical" />
+          </template>
           <p class="text-sm text-muted-foreground space-x-2">
             <kbd
               class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
