@@ -78,7 +78,7 @@ Terminal=false
 - [x] Improve main window UI with streaming responses
 - [x] Mac Accessibility permission request
 - [-] Add an upgrade notification alert for quick updates
-- [ ] When the window appears, keep it centered, or position it near the current cursor location.
+- [x] When the window appears, keep it centered
 - [ ] Add an option to stop streaming responses and improve other UE, like hiding the window.
 - [ ] Core interaction optimization
 - [ ] More settings available

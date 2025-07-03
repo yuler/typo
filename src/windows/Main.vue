@@ -3,7 +3,7 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { Update } from '@tauri-apps/plugin-updater'
 import type { StreamTextResult, ToolSet } from 'ai'
 import { invoke } from '@tauri-apps/api/core'
-import { Window } from '@tauri-apps/api/window'
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
 import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
@@ -20,14 +20,14 @@ import { useGlobalState } from '@/composables/useGlobalState'
 import * as store from '@/store'
 import { sleep } from '@/utils'
 
-const input = ref('')
-const window = Window.getCurrent()
+const appWindow = WebviewWindow.getCurrent()
 const { setCurrentWindow } = useGlobalState()
 
-window.setSizeConstraints({
+appWindow.setSizeConstraints({
   maxHeight: 250,
 })
 
+const input = ref('')
 const aiProvider = ref<'deepseek' | 'ollama' | null>(null)
 const showSettings = ref(false)
 const processing = ref(false)
@@ -36,6 +36,10 @@ const error = ref<{ type: 'translate' | 'upgrade' | 'other', title: string, desc
 const textareaRef = ref<InstanceType<typeof Textarea>>()
 const isMacOS = ref(false)
 const showMacAccessibilityWarning = ref(false)
+
+appWindow.once('tauri://focus', () => {
+  textareaRef.value?.$el.focus()
+})
 
 let unlistenSetInput: UnlistenFn
 onMounted(async () => {
@@ -58,18 +62,15 @@ onMounted(async () => {
   aiProvider.value = await store.get('ai_provider')
   showSettings.value = aiProvider.value === 'deepseek' && (await store.get('deepseek_api_key')) === ''
 
-  unlistenSetInput = await window.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
+  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
     input.value = event.payload.text
 
-    // TODO: add dialog to confirm the action
+    await appWindow.show()
+    await appWindow.setFocus()
+
+    // TODO: add some tips? or auto submit settings
     if (event.payload.mode === 'clipboard') {
-      // eslint-disable-next-line no-alert
-      const confirmed = confirm('Are you want use clipboard text?')
-      await window.setFocus()
-      await window.center()
-      if (!confirmed) {
-        return
-      }
+      return
     }
 
     const output = await fetchTranslate(input.value)
@@ -79,7 +80,7 @@ onMounted(async () => {
     }
 
     // Note: Hide the window, then wait 200 milliseconds before entering the text.
-    await window.hide()
+    await appWindow.hide()
     await sleep(200)
     await invoke('type_text', { text: output })
     input.value = ''
@@ -214,13 +215,15 @@ async function onRetry() {
 }
 
 async function onESC() {
-  await window.hide()
+  await appWindow.setAlwaysOnTop(false)
+  await appWindow.hide()
+  await appWindow.center()
   input.value = ''
   finished.value = false
 }
 
 async function onSubmit() {
-  await window.emit('set-input', { text: input.value, mode: 'manual' })
+  await appWindow.emit('set-input', { text: input.value, mode: 'manual' })
 }
 
 async function gotoSettings() {

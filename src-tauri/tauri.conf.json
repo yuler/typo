@@ -17,7 +17,8 @@
         "height": 240,
         "transparent": true,
         "decorations": false,
-        "resizable": true
+        "resizable": true,
+        "alwaysOnTop": true
       }
     ],
     "macOSPrivateApi": true,
