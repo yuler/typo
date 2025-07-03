@@ -79,8 +79,8 @@ Terminal=false
 - [x] Mac Accessibility permission request
 - [-] Add an upgrade notification alert for quick updates
 - [x] When the window appears, keep it centered
-- [ ] Add an option to stop streaming responses and improve other UE, like hiding the window.
-- [ ] Core interaction optimization
+- [x] Add an option to stop streaming responses and improve other UE, like hiding the window.
+- [-] Core interaction optimization
 - [ ] More settings available
 - [ ] Add system tray menu
 - [ ] Ctrl+1 to 5 for custom prompts

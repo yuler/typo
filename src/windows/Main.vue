@@ -31,7 +31,6 @@ const input = ref('')
 const aiProvider = ref<'deepseek' | 'ollama' | null>(null)
 const showSettings = ref(false)
 const processing = ref(false)
-const finished = ref(false)
 const error = ref<{ type: 'translate' | 'upgrade' | 'other', title: string, description: string } | null>(null)
 const textareaRef = ref<InstanceType<typeof Textarea>>()
 const isMacOS = ref(false)
@@ -73,18 +72,27 @@ onMounted(async () => {
       return
     }
 
-    const output = await fetchTranslate(input.value)
-
-    if (error.value) {
-      return
+    try {
+      const output = await fetchTranslate(input.value)
+      // Note: Hide the window, then wait 200 milliseconds before entering the text.
+      await appWindow.hide()
+      await sleep(200)
+      await invoke('type_text', { text: output })
+      input.value = ''
     }
-
-    // Note: Hide the window, then wait 200 milliseconds before entering the text.
-    await appWindow.hide()
-    await sleep(200)
-    await invoke('type_text', { text: output })
-    input.value = ''
-    finished.value = false
+    catch (err: any) {
+      if (err.name === 'AbortError') {
+        return
+      }
+      error.value = {
+        type: 'translate',
+        title: 'Error',
+        description: err.message || 'Something went wrong',
+      }
+    }
+    finally {
+      processing.value = false
+    }
   })
 })
 
@@ -170,44 +178,33 @@ async function onUpgrade() {
   }
 }
 
+let translateAbortController: AbortController | null = null
 async function fetchTranslate(text: string) {
   if (processing.value)
     return
 
+  translateAbortController = new AbortController()
   processing.value = true
   error.value = null
   let output = ''
-  try {
-    const aiProvider = await store.get('ai_provider')
-    let streamText: (text: string) => Promise<StreamTextResult<ToolSet, never>>
-    switch (aiProvider) {
-      case 'deepseek':
-        streamText = deepSeekCorrect
-        break
-      case 'ollama':
-        streamText = ollamaCorrect
-        break
-      default:
-        throw new Error('Invalid AI provider')
-    }
-    const result = await streamText(text)
-    for await (const chunk of result.textStream) {
-      output += chunk
-      input.value = output
-    }
-    finished.value = true
-    return output
+  const aiProvider = await store.get('ai_provider')
+  let streamText: (text: string, abortSignal?: AbortSignal) => Promise<StreamTextResult<ToolSet, never>>
+  switch (aiProvider) {
+    case 'deepseek':
+      streamText = deepSeekCorrect
+      break
+    case 'ollama':
+      streamText = ollamaCorrect
+      break
+    default:
+      throw new Error('Invalid AI provider')
   }
-  catch (err: any) {
-    error.value = {
-      type: 'translate',
-      title: 'Error',
-      description: err.message || 'Something went wrong',
-    }
+  const { textStream } = await streamText(text, translateAbortController.signal)
+  for await (const chunk of textStream) {
+    output += chunk
+    input.value = output
   }
-  finally {
-    processing.value = false
-  }
+  return output
 }
 
 async function onRetry() {
@@ -215,11 +212,15 @@ async function onRetry() {
 }
 
 async function onESC() {
+  if (processing.value) {
+    translateAbortController?.abort()
+    return
+  }
+
   await appWindow.setAlwaysOnTop(false)
   await appWindow.hide()
   await appWindow.center()
   input.value = ''
-  finished.value = false
 }
 
 async function onSubmit() {
@@ -274,7 +275,7 @@ async function gotoSettings() {
       <Textarea
         v-if="!error"
         ref="textareaRef"
-        v-model="input" class="flex-1" placeholder="Enter your content to correct typos" :disabled="processing"
+        v-model="input" class="flex-1" placeholder="Enter your content to correct typos" :readonly="processing"
         @keydown.enter.prevent="onSubmit"
       />
       <div class="flex justify-between items-center">
@@ -306,7 +307,7 @@ async function gotoSettings() {
 
         <Button v-if="processing" variant="outline">
           <Loader2Icon class="w-4 h-4 animate-spin" />
-          Processing...
+          <span class="animate-pulse">Processing...</span>
         </Button>
         <Button v-else variant="outline" @click="onSubmit">
           Submit

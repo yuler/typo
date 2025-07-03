@@ -21,3 +21,5 @@ export async function showNotification(title: string, body: string) {
     sendNotification({ title, body })
   }
 }
+
+export function noop() {}
