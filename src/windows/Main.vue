@@ -217,9 +217,9 @@ async function onESC() {
     return
   }
 
-  await appWindow.setAlwaysOnTop(false)
+  // await appWindow.setAlwaysOnTop(false)
   await appWindow.hide()
-  await appWindow.center()
+  // await appWindow.center()
   input.value = ''
 }
 

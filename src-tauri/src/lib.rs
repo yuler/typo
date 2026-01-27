@@ -5,10 +5,20 @@ use tauri_plugin_notification::NotificationExt;
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use rdev::{listen, Event, EventType, Key};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use std::sync::{Arc, Mutex};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use tauri::Emitter;
+
+mod utils;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 async fn get_selected_text() -> Result<String, String> {
-    let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
+    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
+    let text = crate::utils::get_selected_text_by_clipboard(&mut enigo, false).map_err(|e| e.to_string())?;
     Ok(text)
 }
 
@@ -78,12 +88,81 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn setup_global_shortcuts(app: tauri::AppHandle) {
+    let app_handle = app.clone();
+    
+    // 跟踪修饰键状态
+    let ctrl_pressed = Arc::new(Mutex::new(false));
+    let shift_pressed = Arc::new(Mutex::new(false));
+    // 防抖：记录上次触发时间，避免重复触发
+    let last_trigger_time = Arc::new(Mutex::new(std::time::Instant::now()));
+    
+    let ctrl_pressed_clone = ctrl_pressed.clone();
+    let shift_pressed_clone = shift_pressed.clone();
+    let app_handle_clone = app_handle.clone();
+    let last_trigger_time_clone = last_trigger_time.clone();
+    
+    std::thread::spawn(move || {
+        listen(move |event: Event| {
+            match event.event_type {
+                // 检测 Ctrl/Cmd 键（左右两侧都检测）
+                EventType::KeyPress(Key::ControlLeft) 
+                | EventType::KeyPress(Key::ControlRight)
+                | EventType::KeyPress(Key::MetaLeft)
+                | EventType::KeyPress(Key::MetaRight) => {
+                    *ctrl_pressed_clone.lock().unwrap() = true;
+                }
+                EventType::KeyRelease(Key::ControlLeft)
+                | EventType::KeyRelease(Key::ControlRight)
+                | EventType::KeyRelease(Key::MetaLeft)
+                | EventType::KeyRelease(Key::MetaRight) => {
+                    *ctrl_pressed_clone.lock().unwrap() = false;
+                }
+                // 检测 Shift 键（左右两侧都检测）
+                EventType::KeyPress(Key::ShiftLeft) | EventType::KeyPress(Key::ShiftRight) => {
+                    *shift_pressed_clone.lock().unwrap() = true;
+                }
+                EventType::KeyRelease(Key::ShiftLeft) | EventType::KeyRelease(Key::ShiftRight) => {
+                    *shift_pressed_clone.lock().unwrap() = false;
+                }
+                // 检测 Ctrl/Cmd + Shift + X (DEFAULT_SHORTCUT)
+                EventType::KeyPress(Key::KeyX) => {
+                    let ctrl = *ctrl_pressed_clone.lock().unwrap();
+                    let shift = *shift_pressed_clone.lock().unwrap();
+                    if ctrl && shift {
+                        let mut last_time = last_trigger_time_clone.lock().unwrap();
+                        // 防抖：至少间隔 200ms
+                        if last_time.elapsed().as_millis() > 200 {
+                            *last_time = std::time::Instant::now();
+                            let _ = app_handle_clone.emit("global-shortcut", "default");
+                        }
+                    }
+                }
+                // 检测 Ctrl/Cmd + , (SETTING_SHORTCUT)
+                EventType::KeyPress(Key::Comma) => {
+                    let ctrl = *ctrl_pressed_clone.lock().unwrap();
+                    if ctrl {
+                        let mut last_time = last_trigger_time_clone.lock().unwrap();
+                        // 防抖：至少间隔 200ms
+                        if last_time.elapsed().as_millis() > 200 {
+                            *last_time = std::time::Instant::now();
+                            let _ = app_handle_clone.emit("global-shortcut", "settings");
+                        }
+                    }
+                }
+                _ => {}
+            }
+        })
+        .expect("Failed to listen to global keyboard events");
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
@@ -97,6 +176,13 @@ pub fn run() {
                 .show()
                 .unwrap();
         }))
+        .setup(|app| {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            {
+                setup_global_shortcuts(app.handle().clone());
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_selected_text,
             type_text,
