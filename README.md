@@ -41,7 +41,7 @@ pnpm dev
 
 ### Linux
 
-For installation and auto-updates, we recommend using the AppImage version:
+**For installation and auto-updates, we recommend using the AppImage version:**
 
 ```bash
 # Move the downloaded AppImage to a permanent location
@@ -68,6 +68,20 @@ Type=Application
 Categories=Utility;TextEditor;
 Terminal=false
 ```
+
+**Why don't my hotkeys work in VS Code?**
+
+If you're using Wayland and notice that your hotkeys stop working in VS Code, don't worry! This happens because the latest VS Code version blocks global shortcuts on Wayland due to an upstream bug in Electron.
+
+Here's a quick fix to get your hotkeys working again:
+
+```bash
+sudo vim /usr/share/applications/code.desktop
+# Force use x11
+Exec=/usr/share/code/code --ozone-platform=x11 %F
+```
+
+After making this change, restart VS Code and your hotkeys should work properly!
 
 ### Ollma
 
