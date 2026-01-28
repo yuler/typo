@@ -61,11 +61,13 @@ onMounted(async () => {
   aiProvider.value = await store.get('ai_provider')
   showSettings.value = aiProvider.value === 'deepseek' && (await store.get('deepseek_api_key')) === ''
 
-  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
+  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual', focus?: boolean } }) => {
     input.value = event.payload.text
 
     await appWindow.show()
-    await appWindow.setFocus()
+    if (event.payload.focus) {
+      await appWindow.setFocus()
+    }
 
     // TODO: add some tips? or auto submit settings
     if (event.payload.mode === 'clipboard') {
@@ -74,9 +76,9 @@ onMounted(async () => {
 
     try {
       const output = await fetchTranslate(input.value)
-      // Note: Hide the window, then wait 500 milliseconds before entering the text.
-      await appWindow.hide()
-      await sleep(500)
+      // Note: Hide the window, then wait 200 milliseconds before entering the text.
+      // await appWindow.hide()
+      await sleep(200)
       await invoke('type_text', { text: output })
       input.value = ''
     }
@@ -218,7 +220,7 @@ async function onESC() {
   }
 
   // await appWindow.setAlwaysOnTop(false)
-  await appWindow.hide()
+  // await appWindow.hide()
   // await appWindow.center()
   input.value = ''
 }

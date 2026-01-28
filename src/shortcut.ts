@@ -14,16 +14,16 @@ export async function setupGlobalShortcut() {
         const selectedText = await invoke('get_selected_text')
 
         const appWindow = WebviewWindow.getCurrent()
-        // await appWindow?.setAlwaysOnTop(true)
+        await appWindow?.setAlwaysOnTop(true)
         // await appWindow?.setVisibleOnAllWorkspaces(true)
         await appWindow?.show()
 
         if (selectedText) {
-          await appWindow?.emit('set-input', { text: selectedText, mode: 'selected', noFocus: true })
+          await appWindow?.emit('set-input', { mode: 'selected', text: selectedText, focus: false })
         }
         else {
           const clipboardText = await readText()
-          await appWindow?.emit('set-input', { text: clipboardText, mode: 'clipboard', noFocus: true })
+          await appWindow?.emit('set-input', { mode: 'clipboard', text: clipboardText, focus: true })
         }
       }
       else if (shortcut === 'settings') {
