@@ -74,9 +74,9 @@ onMounted(async () => {
 
     try {
       const output = await fetchTranslate(input.value)
-      // Note: Hide the window, then wait 200 milliseconds before entering the text.
+      // Note: Hide the window, then wait 500 milliseconds before entering the text.
       await appWindow.hide()
-      await sleep(200)
+      await sleep(500)
       await invoke('type_text', { text: output })
       input.value = ''
     }
