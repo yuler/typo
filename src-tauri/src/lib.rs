@@ -105,6 +105,8 @@ fn setup_global_shortcuts(app: tauri::AppHandle) {
     
     std::thread::spawn(move || {
         listen(move |event: Event| {
+            // output event.event_type to console
+            println!("event.event_type: {:?}", event.event_type);
             match event.event_type {
                 // 检测 Ctrl/Cmd 键（左右两侧都检测）
                 EventType::KeyPress(Key::ControlLeft) 
