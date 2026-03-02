@@ -16,7 +16,7 @@ const { setCurrentWindow } = useGlobalState()
 const window = Window.getCurrent()
 
 const form = ref({
-  autoselect: false,
+  autoselect: true,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
   deepseek_api_key: '',
   ollama_model: '',
