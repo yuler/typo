@@ -13,12 +13,13 @@
       {
         "label": "main",
         "title": "typo",
-        "width": 640,
-        "height": 240,
+        "width": 200,
+        "height": 40,
         "transparent": true,
         "decorations": false,
         "resizable": true,
-        "alwaysOnTop": true
+        "alwaysOnTop": true,
+        "visible": true
       }
     ],
     "macOSPrivateApi": true,

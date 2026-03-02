@@ -13,6 +13,20 @@ async fn get_selected_text() -> Result<String, String> {
 }
 
 #[tauri::command]
+async fn select_all() -> Result<(), String> {
+    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
+    let modifier = if cfg!(target_os = "macos") {
+        enigo::Key::Meta
+    } else {
+        enigo::Key::Control
+    };
+    enigo.key(modifier, enigo::Direction::Press).map_err(|e| e.to_string())?;
+    enigo.key(enigo::Key::Unicode('a'), enigo::Direction::Click).map_err(|e| e.to_string())?;
+    enigo.key(modifier, enigo::Direction::Release).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 async fn get_platform_info() -> Result<String, String> {
     Ok(std::env::consts::OS.to_string())
 }
@@ -99,6 +113,7 @@ pub fn run() {
         }))
         .invoke_handler(tauri::generate_handler![
             get_selected_text,
+            select_all,
             type_text,
             get_platform_info,
             request_mac_accessibility_permissions,

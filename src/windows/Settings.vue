@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LogicalSize } from '@tauri-apps/api/dpi'
 import { Window } from '@tauri-apps/api/window'
 import { SaveIcon } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '../composables/useGlobalState'
 import * as store from '../store'
@@ -14,6 +16,7 @@ const { setCurrentWindow } = useGlobalState()
 const window = Window.getCurrent()
 
 const form = ref({
+  autoselect: false,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
   deepseek_api_key: '',
   ollama_model: '',
@@ -21,14 +24,14 @@ const form = ref({
 })
 
 onMounted(async () => {
+  await window.setResizable(true)
+  await window.setSize(new LogicalSize(640, 480))
+  await window.center()
+
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
-
-  window.setSizeConstraints({
-    minHeight: 450,
-  })
 })
 
 const ollamaModels = ref<any[]>([])
@@ -38,11 +41,14 @@ watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
   }
 })
 
-function onSubmit() {
-  store.set('ai_provider', form.value.ai_provider)
-  store.set('deepseek_api_key', form.value.deepseek_api_key)
-  store.set('ollama_model', form.value.ollama_model)
-  store.set('ai_system_prompt', form.value.system_prompt)
+async function onSubmit() {
+  await Promise.all([
+    store.set('autoselect', form.value.autoselect),
+    store.set('ai_provider', form.value.ai_provider),
+    store.set('deepseek_api_key', form.value.deepseek_api_key),
+    store.set('ollama_model', form.value.ollama_model),
+    store.set('ai_system_prompt', form.value.system_prompt),
+  ])
   setCurrentWindow('Main')
 }
 </script>
@@ -54,6 +60,11 @@ function onSubmit() {
     </h1>
     <form class="mt-4 w-full flex flex-col gap-4" @submit.prevent="onSubmit">
       <div class="grid w-full items-center gap-1.5">
+        <!-- Auto Select -->
+        <div class="flex items-center space-x-2">
+          <Switch id="autoselect" v-model:checked="form.autoselect" />
+          <Label for="autoselect">Auto Select</Label>
+        </div>
         <Label for="ai_provider">AI Provider</Label>
         <Select id="ai_provider" v-model="form.ai_provider">
           <SelectTrigger class="w-full">

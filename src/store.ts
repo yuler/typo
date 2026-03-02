@@ -36,6 +36,7 @@ The text to improve will be provided between ### markers:
 export type AI_PROVIDER = 'deepseek' | 'ollama'
 
 const DEFAULT_STORE = {
+  autoselect: false,
   ai_provider: 'deepseek' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',

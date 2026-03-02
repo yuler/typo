@@ -1,11 +1,29 @@
 import { invoke } from '@tauri-apps/api/core'
+import { LogicalPosition } from '@tauri-apps/api/dpi'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { readText } from '@tauri-apps/plugin-clipboard-manager'
+import { currentMonitor } from '@tauri-apps/api/window'
 import { isRegistered, register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { useGlobalState } from '@/composables/useGlobalState'
+import * as store from '@/store'
 
 const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+X'
 const SETTING_SHORTCUT = 'CommandOrControl+,'
+
+const CAPSULE_WIDTH = 400
+const CAPSULE_HEIGHT = 60
+const BOTTOM_OFFSET = 48
+
+async function positionBottomCenter(win: WebviewWindow) {
+  const monitor = await currentMonitor()
+  if (!monitor)
+    return
+  const scale = monitor.scaleFactor
+  const screenW = monitor.size.width / scale
+  const screenH = monitor.size.height / scale
+  const x = (screenW - CAPSULE_WIDTH) / 2
+  const y = screenH - CAPSULE_HEIGHT - BOTTOM_OFFSET
+  await win.setPosition(new LogicalPosition(x, y))
+}
 
 export async function setupGlobalShortcut() {
   try {
@@ -24,16 +42,17 @@ export async function setupGlobalShortcut() {
       const selectedText = await invoke('get_selected_text')
 
       const appWindow = WebviewWindow.getCurrent()
-      await appWindow?.center()
+      await positionBottomCenter(appWindow)
       await appWindow?.setAlwaysOnTop(true)
       await appWindow?.setVisibleOnAllWorkspaces(true)
 
       if (selectedText) {
         await appWindow?.emit('set-input', { text: selectedText, mode: 'selected' })
       }
-      else {
-        const clipboardText = await readText()
-        await appWindow?.emit('set-input', { text: clipboardText, mode: 'clipboard' })
+      else if (await store.get('autoselect')) {
+        await invoke('select_all')
+        const selectedText = await invoke('get_selected_text')
+        await appWindow?.emit('set-input', { text: selectedText, mode: 'selected' })
       }
     })
 

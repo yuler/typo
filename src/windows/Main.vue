@@ -1,94 +1,103 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
-import type { Update } from '@tauri-apps/plugin-updater'
-import type { StreamTextResult, ToolSet } from 'ai'
 import { invoke } from '@tauri-apps/api/core'
+import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { relaunch } from '@tauri-apps/plugin-process'
+import { currentMonitor } from '@tauri-apps/api/window'
 import { check } from '@tauri-apps/plugin-updater'
-import { ArrowBigUpIcon, Loader2Icon } from 'lucide-vue-next'
+import { Loader2Icon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
-import AlertError from '@/components/AlertError.vue'
-import AlertUpgrade from '@/components/AlertUpgrade.vue'
-import AlertUpgradeProgress from '@/components/AlertUpgradeProgress.vue'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import Separator from '@/components/ui/separator/Separator.vue'
-import Textarea from '@/components/ui/textarea/Textarea.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import * as store from '@/store'
 import { sleep } from '@/utils'
 
+const CAPSULE_WIDTH = 200
+const CAPSULE_HEIGHT = 50
+const BOTTOM_OFFSET = 200
+
 const appWindow = WebviewWindow.getCurrent()
 const { setCurrentWindow } = useGlobalState()
+const appVersion = __APP_VERSION__
 
-appWindow.setSizeConstraints({
-  maxHeight: 250,
-})
+type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 
-const input = ref('')
-const aiProvider = ref<'deepseek' | 'ollama' | null>(null)
-const showSettings = ref(false)
+const state = ref<CapsuleState>('idle')
+const resultText = ref('')
+const errorText = ref('')
 const processing = ref(false)
-const error = ref<{ type: 'translate' | 'upgrade' | 'other', title: string, description: string } | null>(null)
-const textareaRef = ref<InstanceType<typeof Textarea>>()
 const isMacOS = ref(false)
-const showMacAccessibilityWarning = ref(false)
-
-appWindow.once('tauri://focus', () => {
-  textareaRef.value?.$el.focus()
-})
 
 let unlistenSetInput: UnlistenFn
-onMounted(async () => {
-  // Check update
-  checkUpgrade()
 
-  // Check platform and accessibility permissions
+onMounted(async () => {
+  await appWindow.setSize(new LogicalSize(300, 50))
+  await appWindow.setResizable(false)
+  await positionBottomCenter()
+
   const platform = await invoke('get_platform_info')
   isMacOS.value = platform === 'macos'
+
   if (isMacOS.value) {
     try {
-      showMacAccessibilityWarning.value = !(await invoke('request_mac_accessibility_permissions'))
+      const trusted = await invoke('request_mac_accessibility_permissions')
+      if (!trusted) {
+        errorText.value = 'Enable Accessibility in System Preferences'
+        state.value = 'error'
+      }
     }
-    catch (error) {
-      console.error(error)
+    catch (err) {
+      console.error(err)
     }
   }
 
-  // Must have AI provider settings
-  aiProvider.value = await store.get('ai_provider')
-  showSettings.value = aiProvider.value === 'deepseek' && (await store.get('deepseek_api_key')) === ''
+  const aiProvider = await store.get('ai_provider')
+  if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
+    setCurrentWindow('Settings')
+    return
+  }
 
-  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: { text: string, mode: 'selected' | 'clipboard' | 'manual' } }) => {
-    input.value = event.payload.text
+  checkUpgrade()
+
+  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: { text: string, mode: string } }) => {
+    const { text, mode } = event.payload
 
     await appWindow.show()
     await appWindow.setFocus()
 
-    // TODO: add some tips? or auto submit settings
-    if (event.payload.mode === 'clipboard') {
+    if (mode === 'clipboard') {
+      resultText.value = text
+      state.value = 'result'
       return
     }
 
     try {
-      const output = await fetchTranslate(input.value)
-      // Note: Hide the window, then wait 500 milliseconds before entering the text.
-      await appWindow.hide()
+      state.value = 'processing'
+      processing.value = true
+
+      const output = await fetchCorrection(text)
+
+      resultText.value = output
+      state.value = 'result'
+
       await sleep(500)
       await invoke('type_text', { text: output })
-      input.value = ''
+
+      await sleep(1500)
+      state.value = 'idle'
+      resultText.value = ''
     }
     catch (err: any) {
       if (err.name === 'AbortError') {
+        state.value = 'idle'
         return
       }
-      error.value = {
-        type: 'translate',
-        title: 'Error',
-        description: err.message || 'Something went wrong',
-      }
+      errorText.value = err.message || 'Something went wrong'
+      state.value = 'error'
+      setTimeout(() => {
+        state.value = 'idle'
+        errorText.value = ''
+      }, 3000)
     }
     finally {
       processing.value = false
@@ -96,237 +105,131 @@ onMounted(async () => {
   })
 })
 
-onUnmounted(async () => {
+onUnmounted(() => {
   unlistenSetInput?.()
 })
 
-const upgradeAlert = ref(false)
-const upgradeAlertData = ref<{ rid: number, currentVersion: string, version: string, notes: string, rawJson: Record<string, unknown> }>({
-  rid: 0,
-  currentVersion: '',
-  version: '',
-  notes: '',
-  rawJson: {},
-})
-const upgradeAlertProgress = ref(false)
-const upgradeAlertProgressData = ref<{ progress: number }>({
-  progress: 0,
-})
+async function positionBottomCenter() {
+  const monitor = await currentMonitor()
+  if (!monitor)
+    return
+  const scale = monitor.scaleFactor
+  const screenW = monitor.size.width / scale
+  const screenH = monitor.size.height / scale
+  const x = (screenW - CAPSULE_WIDTH) / 2
+  const y = screenH - CAPSULE_HEIGHT - BOTTOM_OFFSET
+  await appWindow.setPosition(new LogicalPosition(x, y))
+}
 
-let update: Update | null = null
+let abortController: AbortController | null = null
+
+async function fetchCorrection(text: string): Promise<string> {
+  abortController = new AbortController()
+  const aiProvider = await store.get('ai_provider')
+  let correct: (text: string, abortSignal?: AbortSignal) => Promise<string>
+  switch (aiProvider) {
+    case 'deepseek':
+      correct = deepSeekCorrect
+      break
+    case 'ollama':
+      correct = ollamaCorrect
+      break
+    default:
+      throw new Error('Invalid AI provider')
+  }
+  return correct(text, abortController.signal)
+}
+
 async function checkUpgrade() {
   try {
-    update = await check()
-
-    if (!update) {
-      return
-    }
-
-    upgradeAlertData.value = {
-      rid: update.rid,
-      currentVersion: update.currentVersion,
-      version: update.version,
-      notes: update.body || '',
-      rawJson: update.rawJson,
-    }
-    upgradeAlert.value = true
+    await check()
   }
   catch (err) {
     console.error(err)
   }
 }
-async function onUpgrade() {
-  if (!update)
-    return
-
-  upgradeAlert.value = false
-  upgradeAlertProgress.value = true
-
-  // eslint-disable-next-line no-console
-  console.log(
-    `found update ${update.version} from ${update.date} with notes ${update.body}`,
-  )
-
-  let downloaded = 0
-  let contentLength = 0
-
-  try {
-    await update.downloadAndInstall(async (event) => {
-      switch (event.event) {
-        case 'Started':
-          contentLength = event.data.contentLength!
-          upgradeAlertProgressData.value.progress = 0
-          break
-        case 'Progress':
-          downloaded += event.data.chunkLength
-          upgradeAlertProgressData.value.progress = Math.round(downloaded / contentLength * 100)
-          break
-        case 'Finished':
-          upgradeAlertProgress.value = false
-      }
-    })
-    await relaunch()
-  }
-  catch (err) {
-    // Open download file, user must manually install it
-    error.value = {
-      type: 'upgrade',
-      title: 'Error',
-      description: `Failed to download and install the update: ${err}`,
-    }
-    console.error({ err })
-  }
-}
-
-let translateAbortController: AbortController | null = null
-async function fetchTranslate(text: string) {
-  if (processing.value)
-    return
-
-  translateAbortController = new AbortController()
-  processing.value = true
-  error.value = null
-  let output = ''
-  const aiProvider = await store.get('ai_provider')
-  let streamText: (text: string, abortSignal?: AbortSignal) => Promise<StreamTextResult<ToolSet, never>>
-  switch (aiProvider) {
-    case 'deepseek':
-      streamText = deepSeekCorrect
-      break
-    case 'ollama':
-      streamText = ollamaCorrect
-      break
-    default:
-      throw new Error('Invalid AI provider')
-  }
-  const { textStream } = await streamText(text, translateAbortController.signal)
-  for await (const chunk of textStream) {
-    output += chunk
-    input.value = output
-  }
-  return output
-}
-
-async function onRetry() {
-  error.value = null
-}
 
 async function onESC() {
   if (processing.value) {
-    translateAbortController?.abort()
+    abortController?.abort()
+    state.value = 'idle'
+    processing.value = false
     return
   }
-
   await appWindow.setAlwaysOnTop(false)
-  await appWindow.hide()
-  await appWindow.center()
-  input.value = ''
+  state.value = 'idle'
+  resultText.value = ''
 }
 
-async function onSubmit() {
-  await appWindow.emit('set-input', { text: input.value, mode: 'manual' })
-}
-
-async function gotoSettings() {
+function gotoSettings() {
   setCurrentWindow('Settings')
 }
 </script>
 
 <template>
-  <div class="px-4 py-2 h-full" @keydown.esc="onESC">
-    <!-- MacOS Must Enable Accessibility -->
-    <div v-if="showMacAccessibilityWarning" class="h-full flex flex-col justify-center items-center">
-      <h3 class="text-xl mb-2 font-semibold text-center">
-        Your need enable accessibility permissions on macOS.
-      </h3>
-      <ol class="list-decimal list-inside space-y-1 ml-4">
-        <li>Go to System Preferences → Security & Privacy → Privacy</li>
-        <li>Select "Accessibility", then click plus button to add this app</li>
-      </ol>
-      <Button class="mt-4" variant="outline" @click="relaunch">
-        Relaunch App
-      </Button>
+  <div
+    data-tauri-drag-region
+    class="h-full w-full flex items-center px-3 gap-3 cursor-move transition-shadow duration-300 select-none"
+    :class="{
+      'capsule-processing': state === 'processing',
+      'capsule-result': state === 'result',
+      'capsule-error': state === 'error',
+    }"
+    tabindex="0"
+    @keydown.esc="onESC"
+  >
+    <!-- Left: Logo + Version -->
+    <div class="relative flex flex-col items-center shrink-0 ">
+      <img src="@/assets/logo.png" alt="logo" class="w-12">
+      <span class="text-[8px] absolute top-1 right-0 text-muted-foreground/60">v{{ appVersion }}</span>
     </div>
 
-    <!-- Must have AI provider settings -->
-    <div v-else-if="showSettings" class="h-full flex flex-col justify-center items-center">
-      <p class="mt-2 text-sm text-muted-foreground">
-        You need to set your DeepSeek API Key or Ollama model in the settings.
+    <!-- Center: Status -->
+    <div class="flex-1 flex justify-center overflow-hidden min-w-0">
+      <div v-if="state === 'processing'" class="flex items-center gap-2">
+        <Loader2Icon class="w-4 h-4 animate-spin text-blue-400" />
+        <span class="text-sm text-blue-400 animate-pulse">Processing...</span>
+      </div>
+
+      <p v-else-if="state === 'result'" class="truncate text-sm text-green-400 px-2">
+        {{ resultText }}
       </p>
-      <Button class="mt-4" @click="gotoSettings">
-        Settings
-      </Button>
+
+      <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">
+        {{ errorText }}
+      </p>
+
+      <kbd v-else class="px-1.5 py-0.5 rounded border border-border/50 bg-muted/30 font-mono text-[10px] text-muted-foreground/60">
+        {{ isMacOS ? '⌘' : 'Ctrl' }}+Shift+X
+      </kbd>
     </div>
 
-    <!-- Main content -->
-    <div v-else class="h-full flex flex-col gap-2">
-      <div v-if="error" class="h-full">
-        <div class="relative">
-          <AlertError :title="error.title" :description="error.description" />
-          <Button v-if="error.type === 'translate'" variant="secondary" class="absolute top-4 right-4" @click="onRetry">
-            Retry
-          </Button>
-          <p v-if="error.type === 'upgrade'" class="mt-4 text-center">
-            Your can manual download from <a class="underline" href="https://github.com/yuler/typo/releases" target="_blank">GitHub Releases</a> and install it.
-          </p>
-        </div>
-      </div>
-
-      <Textarea
-        v-if="!error"
-        ref="textareaRef"
-        v-model="input" class="flex-1" placeholder="Enter your content to correct typos" :readonly="processing"
-        @keydown.enter.prevent="onSubmit"
-      />
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 h-4">
-          <template v-if="aiProvider">
-            <Badge variant="secondary" class="bg-green-700">
-              {{ aiProvider }}
-            </Badge>
-            <Separator orientation="vertical" />
-          </template>
-          <p class="text-sm text-muted-foreground space-x-2">
-            <kbd
-              class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
-            >
-              <span class="text-xs">{{ isMacOS ? 'Command' : 'Ctrl' }} + Shift + X</span>
-            </kbd>
-            <span>Show</span>
-          </p>
-          <Separator orientation="vertical" />
-          <p class="text-sm text-muted-foreground space-x-2">
-            <kbd
-              class="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100"
-            >
-              <span class="text-xs">Esc</span>
-            </kbd>
-            Hide
-          </p>
-        </div>
-
-        <Button v-if="processing" variant="outline">
-          <Loader2Icon class="w-4 h-4 animate-spin" />
-          <span class="animate-pulse">Processing...</span>
-        </Button>
-        <Button v-else variant="outline" @click="onSubmit">
-          Submit
-          <ArrowBigUpIcon class="w-4 h-4" />
-        </Button>
-      </div>
-    </div>
-
-    <!-- Alert: Upgrade -->
-    <AlertUpgrade
-      v-model="upgradeAlert"
-      :version="upgradeAlertData.version"
-      :notes="upgradeAlertData.notes"
-      @cancel="upgradeAlert = false"
-      @confirm="onUpgrade"
-    />
-    <AlertUpgradeProgress
-      v-model="upgradeAlertProgress"
-      :progress="upgradeAlertProgressData.progress"
-    />
+    <!-- Right: Settings -->
+    <button
+      class="shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+      @click="gotoSettings"
+    >
+      <SettingsIcon class="w-4 h-4 text-muted-foreground" />
+    </button>
   </div>
 </template>
+
+<style scoped>
+.capsule-processing {
+  box-shadow:
+    0 0 20px rgba(59, 130, 246, 0.3),
+    inset 0 0 20px rgba(59, 130, 246, 0.05);
+}
+
+.capsule-result {
+  box-shadow:
+    0 0 20px rgba(34, 197, 94, 0.3),
+    inset 0 0 20px rgba(34, 197, 94, 0.05);
+}
+
+.capsule-error {
+  box-shadow:
+    0 0 20px rgba(239, 68, 68, 0.3),
+    inset 0 0 20px rgba(239, 68, 68, 0.05);
+}
+</style>
