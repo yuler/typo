@@ -14,7 +14,7 @@ async fn get_selected_text() -> Result<String, String> {
 
 #[tauri::command]
 async fn select_all() -> Result<(), String> {
-    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
+    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
     let modifier = if cfg!(target_os = "macos") {
         enigo::Key::Meta
     } else {
