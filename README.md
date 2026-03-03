@@ -58,12 +58,17 @@ sudo vim /usr/share/applications/typo.desktop
 
 Add the following content:
 
+```bash
+# Download icon for the desktop entry (Icon=typo)
+sudo curl -L -o /usr/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
+```
+
 ```text
 [Desktop Entry]
 Name=Typo
 Comment=AI-powered text improvement tool
 Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
-Icon=
+Icon=typo
 Type=Application
 Categories=Utility;TextEditor;
 Terminal=false
