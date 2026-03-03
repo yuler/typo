@@ -23,3 +23,7 @@ export async function showNotification(title: string, body: string) {
 }
 
 export function noop() {}
+
+export function isUndefined(val: any): val is undefined {
+  return val === undefined
+}

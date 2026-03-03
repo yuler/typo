@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
   "scripts": {
     "dev": "tauri dev",
+    "dev:x11": "GDK_BACKEND=x11 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
     "dev:frontend": "vite",
     "build:frontend": "vue-tsc --noEmit && vite build",
     "build": "tauri build",
