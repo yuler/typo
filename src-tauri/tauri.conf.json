@@ -13,13 +13,16 @@
       {
         "label": "main",
         "title": "typo",
-        "width": 200,
-        "height": 40,
+        "width": 300,
+        "height": 56,
+        "minWidth": 300,
+        "minHeight": 56,
         "transparent": true,
         "decorations": false,
         "resizable": true,
         "alwaysOnTop": true,
-        "visible": true
+        "visible": true,
+        "visibleOnAllWorkspaces": true
       }
     ],
     "macOSPrivateApi": true,

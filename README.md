@@ -53,7 +53,7 @@ chmod +x ~/Applications/typo.appimage
 Create a desktop entry for easy access:
 
 ```bash
-sudo nano /usr/share/applications/typo.desktop
+sudo vim /usr/share/applications/typo.desktop
 ```
 
 Add the following content:

@@ -1,28 +1,23 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
-import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { currentMonitor } from '@tauri-apps/api/window'
 import { check } from '@tauri-apps/plugin-updater'
 import { Loader2Icon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekCorrect, ollamaCorrect } from '@/ai'
+import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import * as store from '@/store'
 import { sleep } from '@/utils'
 
-const CAPSULE_WIDTH = 200
-const CAPSULE_HEIGHT = 50
-const BOTTOM_OFFSET = 200
-
 const appWindow = WebviewWindow.getCurrent()
 const { setCurrentWindow } = useGlobalState()
-const appVersion = __APP_VERSION__
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 
 const state = ref<CapsuleState>('idle')
+const inputText = ref('')
 const resultText = ref('')
 const errorText = ref('')
 const processing = ref(false)
@@ -31,10 +26,6 @@ const isMacOS = ref(false)
 let unlistenSetInput: UnlistenFn
 
 onMounted(async () => {
-  await appWindow.setSize(new LogicalSize(300, 50))
-  await appWindow.setResizable(false)
-  await positionBottomCenter()
-
   const platform = await invoke('get_platform_info')
   isMacOS.value = platform === 'macos'
 
@@ -74,6 +65,7 @@ onMounted(async () => {
     try {
       state.value = 'processing'
       processing.value = true
+      inputText.value = text
 
       const output = await fetchCorrection(text)
 
@@ -85,6 +77,7 @@ onMounted(async () => {
 
       await sleep(1500)
       state.value = 'idle'
+      inputText.value = ''
       resultText.value = ''
     }
     catch (err: any) {
@@ -108,18 +101,6 @@ onMounted(async () => {
 onUnmounted(() => {
   unlistenSetInput?.()
 })
-
-async function positionBottomCenter() {
-  const monitor = await currentMonitor()
-  if (!monitor)
-    return
-  const scale = monitor.scaleFactor
-  const screenW = monitor.size.width / scale
-  const screenH = monitor.size.height / scale
-  const x = (screenW - CAPSULE_WIDTH) / 2
-  const y = screenH - CAPSULE_HEIGHT - BOTTOM_OFFSET
-  await appWindow.setPosition(new LogicalPosition(x, y))
-}
 
 let abortController: AbortController | null = null
 
@@ -156,7 +137,6 @@ async function onESC() {
     processing.value = false
     return
   }
-  await appWindow.setAlwaysOnTop(false)
   state.value = 'idle'
   resultText.value = ''
 }
@@ -168,7 +148,6 @@ function gotoSettings() {
 
 <template>
   <div
-    data-tauri-drag-region
     class="h-full w-full flex items-center px-3 gap-3 cursor-move transition-shadow duration-300 select-none"
     :class="{
       'capsule-processing': state === 'processing',
@@ -178,17 +157,14 @@ function gotoSettings() {
     tabindex="0"
     @keydown.esc="onESC"
   >
-    <!-- Left: Logo + Version -->
-    <div class="relative flex flex-col items-center shrink-0 ">
-      <img src="@/assets/logo.png" alt="logo" class="w-12">
-      <span class="text-[8px] absolute top-1 right-0 text-muted-foreground/60">v{{ appVersion }}</span>
-    </div>
+    <Logo />
 
     <!-- Center: Status -->
-    <div class="flex-1 flex justify-center overflow-hidden min-w-0">
-      <div v-if="state === 'processing'" class="flex items-center gap-2">
-        <Loader2Icon class="w-4 h-4 animate-spin text-blue-400" />
-        <span class="text-sm text-blue-400 animate-pulse">Processing...</span>
+    <div class="flex-1 flex overflow-hidden min-w-0">
+      <div v-if="state === 'processing'" class="flex items-center gap-2 px-2 overflow-hidden">
+        <Loader2Icon class="w-4 h-4 animate-spin text-blue-400 shrink-0" />
+        <span class="truncate text-sm text-blue-400/70">{{ inputText }}</span>
+        <span class="text-[10px] text-blue-400/40 font-mono shrink-0">{{ inputText?.length }}</span>
       </div>
 
       <p v-else-if="state === 'result'" class="truncate text-sm text-green-400 px-2">

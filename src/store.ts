@@ -1,4 +1,5 @@
 import { LazyStore } from '@tauri-apps/plugin-store'
+import { isUndefined } from './utils'
 
 const store = new LazyStore('store.json', { autoSave: false })
 
@@ -43,9 +44,10 @@ const DEFAULT_STORE = {
   ollama_model: '',
 }
 
+// only set default when key not exists
 export async function initialize() {
   for (const [key, value] of Object.entries(DEFAULT_STORE)) {
-    if (!(await store.has(key))) {
+    if (isUndefined(await store.has(key))) {
       await store.set(key, value)
     }
   }
@@ -57,6 +59,10 @@ export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise
 
 export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: typeof DEFAULT_STORE[T] | undefined): Promise<void> {
   await store.set(key, value)
+}
+
+export async function save(): Promise<void> {
+  await store.save()
 }
 
 const OLLAMA_SERVER_URL = 'http://localhost:11434'

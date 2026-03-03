@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
-import { onMounted, watchEffect } from 'vue'
+import { onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
 import * as store from '@/store'
+import { setupMainWindow, setupSettingsWindow } from '@/window'
 
 const { currentWindow, setCurrentWindow } = useGlobalState()
 
@@ -13,11 +14,13 @@ function onChangeWindow(window: CurrentWindow) {
   setCurrentWindow(window)
 }
 
-watchEffect(() => {
-  document.documentElement.style.setProperty(
-    '--app-radius',
-    currentWindow.value === 'Main' ? '8px' : '8px',
-  )
+watch(() => currentWindow.value, async () => {
+  if (currentWindow.value === 'Main') {
+    await setupMainWindow()
+  }
+  else if (currentWindow.value === 'Settings') {
+    await setupSettingsWindow()
+  }
 })
 
 onMounted(() => {
@@ -53,7 +56,7 @@ body {
 
 .glass {
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
   backdrop-filter: blur(1px) saturate(180%);
   border: 1px solid rgba(211, 211, 211, 0.5);
   border-radius: var(--app-radius, 8px);
@@ -69,7 +72,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: var(--app-radius, 8px);
   backdrop-filter: blur(1px);
   box-shadow:
