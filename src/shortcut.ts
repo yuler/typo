@@ -9,7 +9,7 @@ import * as store from '@/store'
 const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+X'
 const SETTING_SHORTCUT = 'CommandOrControl+,'
 
-const CAPSULE_WIDTH = 400
+const CAPSULE_WIDTH = 300
 const CAPSULE_HEIGHT = 60
 const BOTTOM_OFFSET = 48
 
