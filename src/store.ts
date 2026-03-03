@@ -1,5 +1,4 @@
 import { LazyStore } from '@tauri-apps/plugin-store'
-import { isUndefined } from './utils'
 
 const store = new LazyStore('store.json', { autoSave: false })
 
