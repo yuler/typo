@@ -56,3 +56,8 @@ git commit --message "Release v$package_version"
 git tag v$package_version -m "$notes"
 git push origin
 git push origin v$package_version
+
+echo ""
+echo "Wait for CI to create the draft release, then publish it at:"
+echo "https://github.com/yuler/typo/releases"
+echo ""
