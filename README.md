@@ -74,6 +74,36 @@ Categories=Utility;TextEditor;
 Terminal=false
 ```
 
+#### Wayland Compatibility (e.g., VS Code)
+
+Typo may require Electron-based apps like VS Code to run in X11 (XWayland) rather than native Wayland.
+
+**Verify if an app is using X11:**
+
+```bash
+sudo apt install x11-apps
+xeyes
+```
+
+Hover your cursor over the app window. If the eyes follow your mouse, it's X11; if they freeze, it's Wayland.
+
+**Force VS Code to use X11:**
+
+Temporary via CLI:
+
+```bash
+code --ozone-platform=x11
+```
+
+Permanent via Desktop Shortcut:
+
+```bash
+cp /usr/share/applications/code.desktop ~/.local/share/applications/
+vim ~/.local/share/applications/code.desktop
+# Modify the Exec line to append the flag:
+# Exec=/usr/share/code/code %F --ozone-platform=x11
+```
+
 ### Ollma
 
 - [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
