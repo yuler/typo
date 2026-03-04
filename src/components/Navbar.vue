@@ -22,7 +22,7 @@ function openGitHubRepo() {
 <template>
   <div data-tauri-drag-region class="px-4 py-1 flex cursor-move items-center justify-between">
     <div class="flex gap-2 items-end cursor-pointer" @click="openGitHubRepo">
-      <img src="@/assets/logo.png" alt="logo" class="h-8 rounded">
+      <img src="@/assets/logo.png" alt="logo" class="w-8 h-8 object-contain rounded">
       <Badge variant="secondary">
         v{{ appVersion }}
       </Badge>

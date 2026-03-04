@@ -15,7 +15,8 @@
     "bump": "./scripts/bump.sh",
     "clean": "rm -rf dist && cd src-tauri && cargo clean",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "app:icon:update": "tauri icon ./resources/logo.png"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^0.2.14",
