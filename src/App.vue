@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
+import { check } from '@tauri-apps/plugin-updater'
 import { nextTick, onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
 import { initializeStore } from '@/store'
-import { initializeWindow, setupMainWindow, setupSettingsWindow } from '@/window'
+import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
-const { currentWindow, setCurrentWindow } = useGlobalState()
+const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
+
+async function checkUpgrade() {
+  try {
+    const update = await check()
+    if (update) {
+      setUpdateInfo(update)
+      setCurrentWindow('Upgrade')
+    }
+  }
+  catch (err) {
+    console.error(err)
+  }
+}
 
 function onChangeWindow(window: CurrentWindow) {
   setCurrentWindow(window)
@@ -23,9 +37,14 @@ watch(() => currentWindow.value, async () => {
     await nextTick()
     await setupSettingsWindow()
   }
+  else if (currentWindow.value === 'Upgrade') {
+    await nextTick()
+    await setupUpgradeWindow()
+  }
 })
 
 onMounted(async () => {
+  checkUpgrade()
   setupGlobalShortcut()
   initializeStore()
   initializeWindow()

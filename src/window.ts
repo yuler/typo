@@ -99,3 +99,15 @@ export async function setupSettingsWindow() {
   await sleep(50)
   await appWindow.center()
 }
+
+export const UPGRADE_WINDOW_WIDTH = 400
+export const UPGRADE_WINDOW_HEIGHT = 450
+export async function setupUpgradeWindow() {
+  const appWindow = getCurrentWindow()
+  const size = new LogicalSize(UPGRADE_WINDOW_WIDTH, UPGRADE_WINDOW_HEIGHT)
+  await appWindow.setSize(size)
+  await appWindow.setMinSize(size)
+  await appWindow.setMaxSize(size)
+  await sleep(50)
+  await appWindow.center()
+}

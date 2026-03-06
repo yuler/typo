@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SaveIcon } from 'lucide-vue-next'
-import { onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,6 +26,15 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
+
+  // autofocus textarea
+  nextTick(() => {
+    const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
+    if (textarea) {
+      textarea.focus()
+      textarea.setSelectionRange(0, 0)
+    }
+  })
 })
 
 const ollamaModels = ref<any[]>([])
@@ -51,6 +60,7 @@ async function onSubmit() {
 <template>
   <div
     class="w-full px-8 py-4 border-t"
+    @keydown.esc="setCurrentWindow('Main')"
   >
     <h1 class="text-2xl font-bold">
       Settings
@@ -101,7 +111,7 @@ async function onSubmit() {
 
       <div class="grid w-full items-center gap-1.5">
         <Label for="system_prompt">System Prompt</Label>
-        <Textarea id="system_prompt" v-model="form.system_prompt" :rows="20" placeholder="Enter your system prompt" />
+        <Textarea id="system_prompt" v-model="form.system_prompt" autofocus :rows="20" placeholder="Enter your system prompt" />
       </div>
 
       <div class="fixed bottom-4 right-8 flex justify-end">

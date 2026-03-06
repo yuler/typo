@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { openUrl } from '@tauri-apps/plugin-opener'
 import { SettingsIcon } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,20 +8,15 @@ defineEmits<{
   (event: 'settings'): void
 }>()
 
-// __APP_VERSION__ is defined in vite.config.ts and available as a global variable
 const appVersion = __APP_VERSION__
 
 const { currentWindow } = useGlobalState()
-
-function openGitHubRepo() {
-  openUrl('https://github.com/yuler/typo')
-}
 </script>
 
 <template>
-  <div data-tauri-drag-region class="px-4 py-1 flex cursor-move items-center justify-between">
-    <div class="flex gap-2 items-end cursor-pointer" @click="openGitHubRepo">
-      <img src="@/assets/logo.png" alt="logo" class="w-8 h-8 object-contain rounded">
+  <div class="px-4 py-1 flex cursor-move items-center justify-between">
+    <div class="flex gap-2 items-center cursor-pointer">
+      <img data-tauri-drag-region src="@/assets/logo.png" alt="logo" class="w-10 h-10 object-contain rounded">
       <Badge variant="secondary">
         v{{ appVersion }}
       </Badge>
