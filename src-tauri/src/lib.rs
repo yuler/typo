@@ -55,38 +55,43 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
 async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
     let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
 
-    // Through clipboard copy/paste text content avoid no-english input method
-    println!("text: {}", text);
+    // log text
+    println!("Typing text: {}", text);
 
-    // TODO: diffent mode for user option
-    if cfg!(target_os = "macos") {
-        enigo.text(&text).map_err(|e| e.to_string())?;
+    // 1. Save current clipboard content to restore later
+    let previous_clipboard = window.clipboard().read_text().unwrap_or_default();
+
+    // 2. Write the new text to the clipboard
+    window
+        .clipboard()
+        .write_text(text.clone())
+        .map_err(|e| e.to_string())?;
+
+    // Small delay to ensure clipboard is updated
+    std::thread::sleep(std::time::Duration::from_millis(50));
+
+    // 3. Ctrl/Cmd + V to paste text
+    let control_or_command = if cfg!(target_os = "macos") {
+        enigo::Key::Meta
     } else {
-        // Use the window's clipboard instead of creating a new app
-        window
-            .clipboard()
-            .write_text(text.clone())
-            .map_err(|e| e.to_string())?;
+        enigo::Key::Control
+    };
+    enigo
+        .key(control_or_command, enigo::Direction::Press)
+        .map_err(|e| e.to_string())?;
+    enigo
+        .key(enigo::Key::Unicode('v'), enigo::Direction::Click)
+        .map_err(|e| e.to_string())?;
+    enigo
+        .key(control_or_command, enigo::Direction::Release)
+        .map_err(|e| e.to_string())?;
 
-        // Small delay to ensure clipboard is updated
-        std::thread::sleep(std::time::Duration::from_millis(200));
+    // 4. Small delay to ensure paste is completed before restoring clipboard
+    std::thread::sleep(std::time::Duration::from_millis(50));
 
-        // Ctrl + V to paste text
-        let control_or_command = if cfg!(target_os = "macos") {
-            enigo::Key::Meta
-        } else {
-            enigo::Key::Control
-        };
-
-        enigo
-            .key(control_or_command, enigo::Direction::Press)
-            .map_err(|e| e.to_string())?;
-        enigo
-            .key(enigo::Key::Unicode('v'), enigo::Direction::Click)
-            .map_err(|e| e.to_string())?;
-        enigo
-            .key(control_or_command, enigo::Direction::Release)
-            .map_err(|e| e.to_string())?;
+    // 5. Restore previous clipboard
+    if !previous_clipboard.is_empty() {
+        let _ = window.clipboard().write_text(previous_clipboard);
     }
 
     Ok(())

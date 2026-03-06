@@ -53,14 +53,8 @@ onMounted(async () => {
   unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: { text: string, mode: string } }) => {
     const { text, mode } = event.payload
 
-    await appWindow.show()
-    await appWindow.setFocus()
-
-    if (mode === 'clipboard') {
-      resultText.value = text
-      state.value = 'result'
-      return
-    }
+    // eslint-disable-next-line no-console
+    console.debug({ mode })
 
     try {
       state.value = 'processing'

@@ -11,7 +11,7 @@
 
 ## Screenshots
 
-https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e
+![Screenshot](https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e)
 
 ## Development
 
@@ -26,11 +26,16 @@ pnpm dev
 2. Press `Ctrl/Cmd + Shift + X` to activate the application
 3. Wait for the response and replace the selected content
 
+## How it works
+
+- Get the selected text
+- Send it to AI with a custom prompt(your can custom it in settings)
+- Copy the AI's response to the clipboard, then paste it at the current cursor position (using the clipboard helps avoid input method issues).
+
 ## Features
 
 - Support for DeepSeek & Ollama AI models
 - Global `Ctrl/Cmd + Shift + X` hotkey activation
-- Real-time text processing
 
 ## FAQ
 
@@ -101,21 +106,9 @@ Permanent via Desktop Shortcut:
 cp /usr/share/applications/code.desktop ~/.local/share/applications/
 vim ~/.local/share/applications/code.desktop
 # Modify the Exec line to append the flag:
-# Exec=/usr/share/code/code %F --ozone-platform=x11
+Exec=/usr/share/code/code %F --ozone-platform=x11
 ```
 
 ### Ollma
 
 - [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
-
-## Roadmap
-
-- [x] Improve main window UI with streaming responses
-- [x] Mac Accessibility permission request
-- [-] Add an upgrade notification alert for quick updates
-- [x] When the window appears, keep it centered
-- [x] Add an option to stop streaming responses and improve other UE, like hiding the window.
-- [-] Core interaction optimization
-- [ ] More settings available
-- [ ] Add system tray menu
-- [ ] Ctrl+1 to 5 for custom prompts

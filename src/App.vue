@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { currentMonitor, LogicalPosition } from '@tauri-apps/api/window'
 import { onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Window from '@/components/Window.vue'
@@ -14,7 +16,27 @@ function onChangeWindow(window: CurrentWindow) {
   setCurrentWindow(window)
 }
 
+const CAPSULE_WIDTH = 300
+const CAPSULE_HEIGHT = 60
+const BOTTOM_OFFSET = 48
+async function positionBottomCenter(win: WebviewWindow) {
+  const monitor = await currentMonitor()
+  if (!monitor)
+    return
+  const scale = monitor.scaleFactor
+  const screenW = monitor.size.width / scale
+  const screenH = monitor.size.height / scale
+  const x = (screenW - CAPSULE_WIDTH) / 2
+  const y = screenH - CAPSULE_HEIGHT - BOTTOM_OFFSET
+  await win.setPosition(new LogicalPosition(x, y))
+}
+
 watch(() => currentWindow.value, async () => {
+  const appWindow = WebviewWindow.getCurrent()
+  await positionBottomCenter(appWindow)
+  await appWindow?.setAlwaysOnTop(true)
+  await appWindow?.setVisibleOnAllWorkspaces(true)
+
   if (currentWindow.value === 'Main') {
     await setupMainWindow()
   }
