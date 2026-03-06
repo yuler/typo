@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import { check } from '@tauri-apps/plugin-updater'
 import { Loader2Icon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
@@ -11,7 +11,7 @@ import { useGlobalState } from '@/composables/useGlobalState'
 import * as store from '@/store'
 import { sleep } from '@/utils'
 
-const appWindow = WebviewWindow.getCurrent()
+const appWindow = getCurrentWindow()
 const { setCurrentWindow } = useGlobalState()
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'

@@ -44,7 +44,7 @@ const DEFAULT_STORE = {
 }
 
 // only set default when key not exists
-export async function initialize() {
+export async function initializeStore() {
   for (const [key, value] of Object.entries(DEFAULT_STORE)) {
     if (!(await store.has(key))) {
       await store.set(key, value)

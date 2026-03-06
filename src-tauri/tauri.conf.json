@@ -13,15 +13,11 @@
       {
         "label": "main",
         "title": "typo",
-        "width": 300,
-        "height": 56,
-        "minWidth": 300,
-        "minHeight": 56,
         "transparent": true,
         "decorations": false,
         "resizable": true,
         "alwaysOnTop": true,
-        "visible": true,
+        "visible": false,
         "visibleOnAllWorkspaces": true
       }
     ],

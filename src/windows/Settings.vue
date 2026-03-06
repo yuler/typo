@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { useGlobalState } from '../composables/useGlobalState'
-import * as store from '../store'
+import { useGlobalState } from '@/composables/useGlobalState'
+import * as store from '@/store'
 
 const { setCurrentWindow } = useGlobalState()
 
@@ -49,7 +49,9 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="w-full px-8 py-4 border-t">
+  <div
+    class="w-full px-8 py-4 border-t"
+  >
     <h1 class="text-2xl font-bold">
       Settings
     </h1>
@@ -99,7 +101,7 @@ async function onSubmit() {
 
       <div class="grid w-full items-center gap-1.5">
         <Label for="system_prompt">System Prompt</Label>
-        <Textarea id="system_prompt" v-model="form.system_prompt" :rows="5" placeholder="Enter your system prompt" />
+        <Textarea id="system_prompt" v-model="form.system_prompt" :rows="20" placeholder="Enter your system prompt" />
       </div>
 
       <div class="fixed bottom-4 right-8 flex justify-end">
