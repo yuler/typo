@@ -35,12 +35,25 @@ The text to improve will be provided between ### markers:
 
 export type AI_PROVIDER = 'deepseek' | 'ollama'
 
+export interface PromptShortcut {
+  key: string
+  value: string
+}
+
+export const DEFAULT_PROMPT_SHORTCUTS: PromptShortcut[] = [
+  { key: '/tr:zh', value: 'Translate the input text into Simplified Chinese while preserving meaning. Return only translated text.' },
+  { key: '/tr:ja', value: 'Translate the input text into Japanese while preserving meaning. Return only translated text.' },
+  { key: '/tr:en', value: 'Translate the input text into natural English while preserving meaning. Return only translated text.' },
+  { key: '/prompt', value: 'Apply this extra instruction on top of the saved System Prompt: {{args}}' },
+]
+
 const DEFAULT_STORE = {
   autoselect: false,
   ai_provider: 'deepseek' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',
   ollama_model: '',
+  prompt_shortcuts: DEFAULT_PROMPT_SHORTCUTS,
 }
 
 // only set default when key not exists
