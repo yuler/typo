@@ -37,6 +37,28 @@ pnpm dev
 - Support for DeepSeek & Ollama AI models
 - Global `Ctrl/Cmd + Shift + X` hotkey activation
 
+
+## Prompt shortcuts
+
+You can define up to **5** custom prompt shortcuts in **Settings -> Prompts**.
+
+- Each shortcut has a `key` (for example `/tr:zh` or `/prompt`) and an instruction `value`.
+- Trigger it from selected text with one of these forms:
+  - first line: `/prompt make it formal`
+  - last line: `/tr:ja`
+  - trailing token: `hello world /tr:zh`
+- Template placeholders in shortcut values:
+  - `{{args}}`: arguments after the command, e.g. `/prompt xxx`
+  - `{{text}}`: cleaned selected text after command line/token is removed
+
+Example:
+
+```text
+你好啊
+
+/prompt Translate to Japanese in polite style
+```
+
 ## FAQ
 
 ### macOS

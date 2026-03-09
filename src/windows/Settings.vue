@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SaveIcon } from 'lucide-vue-next'
+import { PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,13 +12,24 @@ import * as store from '@/store'
 
 const { setCurrentWindow } = useGlobalState()
 
+type SettingsTab = 'basic' | 'prompts'
+
+const activeTab = ref<SettingsTab>('basic')
+
 const form = ref({
   autoselect: false,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
   deepseek_api_key: '',
   ollama_model: '',
   system_prompt: '',
+  prompt_shortcuts: [] as store.PromptShortcut[],
 })
+
+const ollamaModels = ref<any[]>([])
+
+async function loadOllamaModels() {
+  ollamaModels.value = await store.getOllamaModels()
+}
 
 onMounted(async () => {
   form.value.autoselect = await store.get('autoselect')
@@ -26,8 +37,12 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
+  form.value.prompt_shortcuts = await store.get('prompt_shortcuts')
 
-  // autofocus textarea
+  if (form.value.ai_provider === 'ollama') {
+    await loadOllamaModels()
+  }
+
   nextTick(() => {
     const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
     if (textarea) {
@@ -37,20 +52,37 @@ onMounted(async () => {
   })
 })
 
-const ollamaModels = ref<any[]>([])
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
   if (value === 'ollama') {
-    ollamaModels.value = await store.getOllamaModels()
+    await loadOllamaModels()
   }
 })
 
+function addPromptShortcut() {
+  if (form.value.prompt_shortcuts.length >= 5) {
+    return
+  }
+
+  form.value.prompt_shortcuts.push({ key: '', value: '' })
+}
+
+function removePromptShortcut(index: number) {
+  form.value.prompt_shortcuts.splice(index, 1)
+}
+
 async function onSubmit() {
+  const promptShortcuts = form.value.prompt_shortcuts
+    .map(item => ({ key: item.key.trim(), value: item.value.trim() }))
+    .filter(item => item.key && item.value)
+    .slice(0, 5)
+
   await Promise.all([
     store.set('autoselect', form.value.autoselect),
     store.set('ai_provider', form.value.ai_provider),
     store.set('deepseek_api_key', form.value.deepseek_api_key),
     store.set('ollama_model', form.value.ollama_model),
     store.set('ai_system_prompt', form.value.system_prompt),
+    store.set('prompt_shortcuts', promptShortcuts),
   ])
   await store.save()
   setCurrentWindow('Main')
@@ -58,68 +90,133 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div
-    class="w-full px-8 py-4 border-t"
-    @keydown.esc="setCurrentWindow('Main')"
-  >
-    <h1 class="text-2xl font-bold">
-      Settings
-    </h1>
-    <form class="mt-4 w-full flex flex-col gap-4" @submit.prevent="onSubmit">
-      <div class="grid w-full items-center gap-1.5">
-        <!-- Auto Select -->
-        <div class="flex items-center space-x-2">
-          <Switch id="autoselect" v-model="form.autoselect" />
-          <Label for="autoselect">Auto Select</Label>
-        </div>
-        <Label for="ai_provider">AI Provider</Label>
-        <Select id="ai_provider" v-model="form.ai_provider">
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select an AI Provider" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="deepseek">
-              DeepSeek
-            </SelectItem>
-            <SelectItem value="ollama">
-              Ollama
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+  <div class="h-full w-full border-t" @keydown.esc="setCurrentWindow('Main')">
+    <div class="flex h-full">
+      <aside class="w-44 border-r bg-muted/20 px-3 py-4 space-y-2">
+        <h2 class="text-sm font-semibold px-2 text-muted-foreground uppercase tracking-wide">
+          Settings
+        </h2>
+        <button
+          class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
+          :class="activeTab === 'basic' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
+          @click="activeTab = 'basic'"
+        >
+          Basic
+        </button>
+        <button
+          class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
+          :class="activeTab === 'prompts' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
+          @click="activeTab = 'prompts'"
+        >
+          Prompts
+        </button>
+      </aside>
 
-      <div v-if="form.ai_provider === 'ollama'" class="grid w-full items-center gap-1.5">
-        <Label for="ollama_model">Ollama Model</Label>
-        <Select id="ollama_model" v-model="form.ollama_model">
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select a Ollama Model" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem v-for="model in ollamaModels" :key="model.name" :value="model.name">
-                {{ model.name }} ({{ model.details?.parameter_size ?? 'Unknown' }})
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      <main class="flex-1 overflow-y-auto px-8 py-6">
+        <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
+          <template v-if="activeTab === 'basic'">
+            <h1 class="text-2xl font-bold">
+              Basic Settings
+            </h1>
 
-      <div v-if="form.ai_provider === 'deepseek'" class="grid w-full items-center gap-1.5">
-        <Label for="deepseek_api_key">DeepSeek API Key</Label>
-        <Input id="deepseek_api_key" v-model="form.deepseek_api_key" type="text" placeholder="Enter your DeepSeek API Key" />
-      </div>
+            <div class="grid w-full items-center gap-2">
+              <div class="flex items-center space-x-2">
+                <Switch id="autoselect" v-model="form.autoselect" />
+                <Label for="autoselect">Auto Select</Label>
+              </div>
 
-      <div class="grid w-full items-center gap-1.5">
-        <Label for="system_prompt">System Prompt</Label>
-        <Textarea id="system_prompt" v-model="form.system_prompt" autofocus :rows="20" placeholder="Enter your system prompt" />
-      </div>
+              <Label for="ai_provider">AI Provider</Label>
+              <Select id="ai_provider" v-model="form.ai_provider">
+                <SelectTrigger class="w-full">
+                  <SelectValue placeholder="Select an AI Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="deepseek">
+                    DeepSeek
+                  </SelectItem>
+                  <SelectItem value="ollama">
+                    Ollama
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-      <div class="fixed bottom-4 right-8 flex justify-end">
-        <Button variant="secondary" type="submit">
-          <SaveIcon class="w-4 h-4" />
-          Save
-        </Button>
-      </div>
-    </form>
+            <div v-if="form.ai_provider === 'ollama'" class="grid w-full items-center gap-2">
+              <Label for="ollama_model">Ollama Model</Label>
+              <Select id="ollama_model" v-model="form.ollama_model">
+                <SelectTrigger class="w-full">
+                  <SelectValue placeholder="Select a Ollama Model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem v-for="model in ollamaModels" :key="model.name" :value="model.name">
+                      {{ model.name }} ({{ model.details?.parameter_size ?? 'Unknown' }})
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div v-if="form.ai_provider === 'deepseek'" class="grid w-full items-center gap-2">
+              <Label for="deepseek_api_key">DeepSeek API Key</Label>
+              <Input id="deepseek_api_key" v-model="form.deepseek_api_key" type="password" autocomplete="off" placeholder="Enter your DeepSeek API Key" />
+            </div>
+          </template>
+
+          <template v-else>
+            <h1 class="text-2xl font-bold">
+              Prompt Settings
+            </h1>
+
+            <div class="grid w-full items-center gap-2">
+              <Label for="system_prompt">System Prompt</Label>
+              <Textarea id="system_prompt" v-model="form.system_prompt" autofocus :rows="12" placeholder="Enter your system prompt" />
+            </div>
+
+            <div class="grid w-full gap-3">
+              <div class="flex items-center justify-between">
+                <Label>Prompt Shortcuts (Max 5)</Label>
+                <Button type="button" variant="outline" :disabled="form.prompt_shortcuts.length >= 5" @click="addPromptShortcut">
+                  <PlusIcon class="w-4 h-4" />
+                  Add Prompt
+                </Button>
+              </div>
+
+              <div
+                v-for="(item, index) in form.prompt_shortcuts"
+                :key="index"
+                class="rounded-lg border p-3 grid gap-2"
+              >
+                <div class="grid gap-1">
+                  <Label :for="`prompt-key-${index}`">Key</Label>
+                  <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh or /prompt" />
+                </div>
+                <div class="grid gap-1">
+                  <Label :for="`prompt-value-${index}`">Instruction</Label>
+                  <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" placeholder="Use {{args}} and {{text}} placeholders if needed" />
+                </div>
+                <div class="flex justify-end">
+                  <Button type="button" variant="ghost" @click="removePromptShortcut(index)">
+                    <Trash2Icon class="w-4 h-4" />
+                    Remove
+                  </Button>
+                </div>
+              </div>
+
+              <p class="text-xs text-muted-foreground">
+                Example: input ends with <code>/tr:zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.
+              </p>
+            </div>
+          </template>
+
+          <div class="fixed bottom-4 right-8 flex justify-end">
+            <Button variant="secondary" type="submit">
+              <SaveIcon class="w-4 h-4" />
+              Save
+            </Button>
+          </div>
+        </form>
+      </main>
+    </div>
   </div>
 </template>
