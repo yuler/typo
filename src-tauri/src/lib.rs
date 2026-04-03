@@ -12,8 +12,7 @@ async fn get_selected_text() -> Result<String, String> {
     Ok(text)
 }
 
-#[tauri::command]
-async fn select_all() -> Result<(), String> {
+fn select_all_sync() -> Result<(), String> {
     let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
     let modifier = if cfg!(target_os = "macos") {
         enigo::Key::Meta
@@ -24,6 +23,29 @@ async fn select_all() -> Result<(), String> {
     enigo.key(enigo::Key::Unicode('a'), enigo::Direction::Click).map_err(|e| e.to_string())?;
     enigo.key(modifier, enigo::Direction::Release).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+async fn select_all(app: tauri::AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
+        app
+            .run_on_main_thread(move || {
+                let _ = tx.send(select_all_sync());
+            })
+            .map_err(|e| e.to_string())?;
+        tauri::async_runtime::spawn_blocking(move || match rx.recv() {
+            Ok(r) => r,
+            Err(_) => Err("select_all was cancelled".to_string()),
+        })
+        .await
+        .map_err(|e| e.to_string())?
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        select_all_sync()
+    }
 }
 
 #[tauri::command]
@@ -51,9 +73,8 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
     }
 }
 
-#[tauri::command]
-async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
-    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
+fn type_text_sync(text: String, window: tauri::Window) -> Result<(), String> {
+    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
 
     // log text
     println!("Typing text: {}", text);
@@ -95,6 +116,30 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[tauri::command]
+async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
+        let window_for_task = window.clone();
+        window
+            .run_on_main_thread(move || {
+                let _ = tx.send(type_text_sync(text, window_for_task));
+            })
+            .map_err(|e| e.to_string())?;
+        tauri::async_runtime::spawn_blocking(move || match rx.recv() {
+            Ok(r) => r,
+            Err(_) => Err("type_text was cancelled".to_string()),
+        })
+        .await
+        .map_err(|e| e.to_string())?
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        type_text_sync(text, window)
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
