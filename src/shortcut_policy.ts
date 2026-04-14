@@ -9,5 +9,5 @@ export interface ShortcutRegistrationStatus {
 export function shouldRegisterPluginGlobalShortcuts(
   s: ShortcutRegistrationStatus,
 ): boolean {
-  return s.backend === 'plugin'
+  return s.backend !== 'portal'
 }

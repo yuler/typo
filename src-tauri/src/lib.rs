@@ -68,6 +68,31 @@ fn get_shortcut_registration_status() -> shortcut_status::ShortcutRegistrationSt
 }
 
 #[tauri::command]
+fn shortcut_mark_plugin_active() {
+    shortcut_status::set_shortcut_registration_status(shortcut_status::ShortcutRegistrationStatus {
+        backend: shortcut_status::ShortcutRegistrationBackend::Plugin,
+        plugin_fallback_attempted: true,
+        error_message: None,
+    });
+}
+
+#[cfg(target_os = "linux")]
+#[tauri::command]
+fn get_session_kind() -> String {
+    match session_linux::session_kind_from_env() {
+        session_linux::SessionKind::Wayland => "wayland".into(),
+        session_linux::SessionKind::X11 => "x11".into(),
+        session_linux::SessionKind::Unknown => "unknown".into(),
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+#[tauri::command]
+fn get_session_kind() -> String {
+    "unsupported".into()
+}
+
+#[tauri::command]
 fn request_mac_accessibility_permissions() -> Result<bool, String> {
     #[cfg(target_os = "macos")]
     {
@@ -206,6 +231,8 @@ pub fn run() {
             type_text,
             get_platform_info,
             get_shortcut_registration_status,
+            shortcut_mark_plugin_active,
+            get_session_kind,
             request_mac_accessibility_permissions,
         ])
         .run(tauri::generate_context!())
