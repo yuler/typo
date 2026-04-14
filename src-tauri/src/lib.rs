@@ -9,6 +9,7 @@ use macos_accessibility_client;
 mod session_linux;
 
 mod accelerator_xdg;
+mod shortcut_status;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -56,6 +57,11 @@ async fn select_all(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 async fn get_platform_info() -> Result<String, String> {
     Ok(std::env::consts::OS.to_string())
+}
+
+#[tauri::command]
+fn get_shortcut_registration_status() -> shortcut_status::ShortcutRegistrationStatus {
+    shortcut_status::get_shortcut_registration_status()
 }
 
 #[tauri::command]
@@ -171,8 +177,15 @@ pub fn run() {
             select_all,
             type_text,
             get_platform_info,
+            get_shortcut_registration_status,
             request_mac_accessibility_permissions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+#[test]
+fn serializes_snake_case() {
+    shortcut_status::assert_portal_backend_serializes_as_snake_case_json();
 }
