@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
+import type { SessionInfo } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
 import { check } from '@tauri-apps/plugin-updater'
 import { nextTick, onMounted, watch } from 'vue'
@@ -11,11 +12,6 @@ import { initializeStore } from '@/store'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
 const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
-
-interface SessionInfo {
-  os: string
-  is_wayland: boolean
-}
 
 async function checkUpgrade() {
   try {

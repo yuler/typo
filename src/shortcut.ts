@@ -1,3 +1,4 @@
+import type { SessionInfo } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isRegistered, register, unregister } from '@tauri-apps/plugin-global-shortcut'
@@ -6,11 +7,6 @@ import store from './store'
 
 const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+X'
 const SETTING_SHORTCUT = 'CommandOrControl+,'
-
-interface SessionInfo {
-  os: string
-  is_wayland: boolean
-}
 
 export async function setupGlobalShortcut(sessionInfo?: SessionInfo) {
   const isLinuxWayland = sessionInfo?.os === 'linux' && sessionInfo?.is_wayland

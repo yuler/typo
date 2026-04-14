@@ -107,45 +107,32 @@ fn copy_selection_and_read_clipboard(window: &tauri::WebviewWindow) -> Result<St
         eprintln!("Failed to create enigo input context: {}", error);
         copy_failure_message.clone()
     })?;
-    enigo
-        .key(enigo::Key::Control, enigo::Direction::Press)
-        .map_err(|error| {
+    enigo.key(enigo::Key::Control, enigo::Direction::Press).map_err(
+        |error| {
             eprintln!("Failed to press Ctrl key for copy: {}", error);
             copy_failure_message.clone()
-        })?;
-    let c_key_result = enigo
-        .key(enigo::Key::Unicode('c'), enigo::Direction::Click)
-        .map_err(|error| {
+        },
+    )?;
+    enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click).map_err(
+        |error| {
             eprintln!("Failed to send C key for copy: {}", error);
             copy_failure_message.clone()
-        });
+        },
+    )?;
+    enigo.key(enigo::Key::Control, enigo::Direction::Release).map_err(
+        |error| {
+            eprintln!("Failed to release Ctrl key after copy: {}", error);
+            copy_failure_message.clone()
+        },
+    )?;
 
-    if let Err(error) = enigo.key(enigo::Key::Control, enigo::Direction::Release) {
-        eprintln!("Failed to release Ctrl key after copy: {}", error);
-        return Err(copy_failure_message);
-    }
-
-    c_key_result?;
-
-    std::thread::sleep(std::time::Duration::from_millis(120));
-
-    let mut text = window
+    let text = window
         .clipboard()
         .read_text()
         .map_err(|error| {
-            eprintln!("Failed to read clipboard text (attempt 1): {}", error);
+            eprintln!("Failed to read clipboard text: {}", error);
             "Failed to read clipboard text.".to_string()
         })?;
-    if text.trim().is_empty() {
-        std::thread::sleep(std::time::Duration::from_millis(120));
-        text = window
-            .clipboard()
-            .read_text()
-            .map_err(|error| {
-                eprintln!("Failed to read clipboard text (attempt 2): {}", error);
-                "Failed to read clipboard text.".to_string()
-            })?;
-    }
 
     if text.trim().is_empty() {
         return Err(
@@ -248,9 +235,6 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
 fn type_text_sync(text: String, window: tauri::Window) -> Result<(), String> {
     let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
 
-    // log text
-    println!("Typing text: {}", text);
-
     // 1. Save current clipboard content to restore later
     let previous_clipboard = window.clipboard().read_text().unwrap_or_default();
 
@@ -310,7 +294,9 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
     }
     #[cfg(not(target_os = "macos"))]
     {
-        type_text_sync(text, window)
+        tauri::async_runtime::spawn_blocking(move || type_text_sync(text, window))
+            .await
+            .map_err(|e| e.to_string())?
     }
 }
 
@@ -331,8 +317,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
-            println!("{}, {argv:?}, {cwd}", app.package_info().name);
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let selection_requested = argv.iter().any(|arg| arg == "--selection");
             if selection_requested && is_linux_wayland_session() {
                 handle_selection_trigger(app);
