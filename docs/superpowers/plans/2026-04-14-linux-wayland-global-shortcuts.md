@@ -14,19 +14,21 @@
 
 ## File map (create / modify)
 
-| Path | Responsibility |
-|------|----------------|
-| `src-tauri/src/session_linux.rs` | `SessionKind` from `WAYLAND_DISPLAY` / `DISPLAY` (injected for tests). |
-| `src-tauri/src/accelerator_xdg.rs` | Map Typo accelerator strings → XDG `preferred_trigger` (unit-tested). |
-| `src-tauri/src/linux_global_shortcuts.rs` | Portal bind + `receive_activated` loop + `AppHandle` emits; optional plugin fallback signal. |
-| `src-tauri/src/lib.rs` | `mod` declarations, `#[cfg(target_os = "linux")]` setup spawn, new `invoke_handler` commands, shared emit helper used by portal task. |
-| `src-tauri/Cargo.toml` | Linux-only deps: `ashpd`, `futures-util`. |
-| `src/shortcut.ts` | Query backend status, `listen` for Rust emits, conditional `register` / skip to avoid double bind. |
-| `src/shortcut_policy.ts` | Pure TS: given status JSON, decide whether frontend should call plugin `register` (Vitest). |
-| `src/App.vue` | Await backend init before or alongside `setupGlobalShortcut()` (exact call order in task). |
-| `src/windows/Settings.vue` | Banner when `registration.degraded` or `registration.error_message` set. |
-| `README.md` | Typo-on-Wayland + Portal + limitations (per spec §5). |
-| `package.json` / `vitest.config.ts` | Add `vitest` + `happy-dom`, `test` script. |
+
+| Path                                      | Responsibility                                                                                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `src-tauri/src/session_linux.rs`          | `SessionKind` from `WAYLAND_DISPLAY` / `DISPLAY` (injected for tests).                                                                |
+| `src-tauri/src/accelerator_xdg.rs`        | Map Typo accelerator strings → XDG `preferred_trigger` (unit-tested).                                                                 |
+| `src-tauri/src/linux_global_shortcuts.rs` | Portal bind + `receive_activated` loop + `AppHandle` emits; optional plugin fallback signal.                                          |
+| `src-tauri/src/lib.rs`                    | `mod` declarations, `#[cfg(target_os = "linux")]` setup spawn, new `invoke_handler` commands, shared emit helper used by portal task. |
+| `src-tauri/Cargo.toml`                    | Linux-only deps: `ashpd`, `futures-util`.                                                                                             |
+| `src/shortcut.ts`                         | Query backend status, `listen` for Rust emits, conditional `register` / skip to avoid double bind.                                    |
+| `src/shortcut_policy.ts`                  | Pure TS: given status JSON, decide whether frontend should call plugin `register` (Vitest).                                           |
+| `src/App.vue`                             | Await backend init before or alongside `setupGlobalShortcut()` (exact call order in task).                                            |
+| `src/windows/Settings.vue`                | Banner when `registration.degraded` or `registration.error_message` set.                                                              |
+| `README.md`                               | Typo-on-Wayland + Portal + limitations (per spec §5).                                                                                 |
+| `package.json` / `vitest.config.ts`       | Add `vitest` + `happy-dom`, `test` script.                                                                                            |
+
 
 Reference implementation for Portal call sequence: ashpd demo `bind_shortcuts` + `request.response()` after `await` (see `/tmp/ashpd-src` clone from upstream or [ashpd demo global_shortcuts.rs](https://github.com/bilelmoussaoui/ashpd/blob/master/demo/client/src/portals/desktop/global_shortcuts.rs)).
 
@@ -41,7 +43,7 @@ Reference implementation for Portal call sequence: ashpd demo `bind_shortcuts` +
 
 **Test:** inline `#[cfg(test)]` in `session_linux.rs`
 
-- [ ] **Step 1: Write the failing test**
+- **Step 1: Write the failing test**
 
 Add `session_linux.rs`:
 
@@ -106,7 +108,7 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: Run tests (Linux host or cross-target)**
+- **Step 2: Run tests (Linux host or cross-target)**
 
 Run:
 
@@ -116,7 +118,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo test session_kind_from -- --exact
 
 Expected: **FAIL** with `cannot find session_linux` or unresolved `SessionKind` until `mod session_linux` exists.
 
-- [ ] **Step 3: Wire module in `lib.rs`**
+- **Step 3: Wire module in `lib.rs`**
 
 Add (inside `lib.rs`, after existing `use` block):
 
@@ -125,7 +127,7 @@ Add (inside `lib.rs`, after existing `use` block):
 mod session_linux;
 ```
 
-- [ ] **Step 4: Re-run tests**
+- **Step 4: Re-run tests**
 
 Run:
 
@@ -135,7 +137,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo test session_kind_from -- --exact
 
 Expected: **PASS** (3 tests on Linux). On non-Linux CI matrix rows this module is cfg’d out; those rows skip this test file — acceptable; optional follow-up is `#[cfg(test)]` stubs if you need macOS/Windows CI to compile tests (not required by this plan).
 
-- [ ] **Step 5: Commit**
+- **Step 5: Commit**
 
 ```bash
 cd /home/yule/Sides/typo && git add src-tauri/src/session_linux.rs src-tauri/src/lib.rs && git commit -m "feat(linux): add SessionKind env detection with unit tests"
@@ -152,7 +154,7 @@ cd /home/yule/Sides/typo && git add src-tauri/src/session_linux.rs src-tauri/src
 
 **Test:** `#[cfg(test)]` in same file (runs on all targets; no Linux cfg needed).
 
-- [ ] **Step 1: Write failing tests**
+- **Step 1: Write failing tests**
 
 ```rust
 pub fn typo_default_accelerators_to_xdg() -> Vec<(&'static str, &'static str, &'static str)> {
@@ -214,7 +216,7 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: Run tests before implementation**
+- **Step 2: Run tests before implementation**
 
 Run:
 
@@ -224,11 +226,11 @@ cd /home/yule/Sides/typo/src-tauri && cargo test tauri_style_to_xdg_trigger -- -
 
 Expected: **FAIL** (missing module / function).
 
-- [ ] **Step 3: Add module + implementation**
+- **Step 3: Add module + implementation**
 
 Create `accelerator_xdg.rs` with the code from Step 1 (tests included), add `mod accelerator_xdg` in `lib.rs` under `#[cfg(target_os = "linux")]` **or** without cfg if you want tests on macOS CI — recommended: **no cfg on mod** so `cargo test` runs mapping tests everywhere.
 
-- [ ] **Step 4: Run tests**
+- **Step 4: Run tests**
 
 Run:
 
@@ -238,7 +240,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo test tauri_style_to_xdg_trigger -- -
 
 Expected: **PASS**.
 
-- [ ] **Step 5: Commit**
+- **Step 5: Commit**
 
 ```bash
 git add src-tauri/src/accelerator_xdg.rs src-tauri/src/lib.rs && git commit -m "feat(linux): map Typo accelerators to XDG shortcut triggers"
@@ -253,8 +255,7 @@ git add src-tauri/src/accelerator_xdg.rs src-tauri/src/lib.rs && git commit -m "
 - Create: `src/shortcut_policy.ts`
 - Create: `vitest.config.ts`
 - Modify: `package.json` (add `vitest`, `happy-dom`, script `"test": "vitest run"`)
-
-- [ ] **Step 1: Add devDependencies**
+- **Step 1: Add devDependencies**
 
 Run:
 
@@ -264,7 +265,7 @@ cd /home/yule/Sides/typo && pnpm add -D vitest happy-dom @vitejs/plugin-vue
 
 (If `@vitejs/plugin-vue` is already present, omit duplicate.)
 
-- [ ] **Step 2: Write `vitest.config.ts`**
+- **Step 2: Write `vitest.config.ts`**
 
 ```ts
 import vue from '@vitejs/plugin-vue'
@@ -279,7 +280,7 @@ export default defineConfig({
 })
 ```
 
-- [ ] **Step 3: Write failing test `src/shortcut_policy.spec.ts`**
+- **Step 3: Write failing test `src/shortcut_policy.spec.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest'
@@ -308,7 +309,7 @@ describe('shouldRegisterPluginGlobalShortcuts', () => {
 })
 ```
 
-- [ ] **Step 4: Run Vitest (expect failure)**
+- **Step 4: Run Vitest (expect failure)**
 
 Run:
 
@@ -318,7 +319,7 @@ cd /home/yule/Sides/typo && pnpm exec vitest run src/shortcut_policy.spec.ts
 
 Expected: **FAIL** (`shouldRegisterPluginGlobalShortcuts` not exported).
 
-- [ ] **Step 5: Implement `src/shortcut_policy.ts`**
+- **Step 5: Implement `src/shortcut_policy.ts`**
 
 ```ts
 export type ShortcutRegistrationBackend = 'portal' | 'plugin' | 'none'
@@ -336,7 +337,7 @@ export function shouldRegisterPluginGlobalShortcuts(
 }
 ```
 
-- [ ] **Step 6: Re-run Vitest**
+- **Step 6: Re-run Vitest**
 
 Run:
 
@@ -346,7 +347,7 @@ pnpm exec vitest run src/shortcut_policy.spec.ts
 
 Expected: **PASS**.
 
-- [ ] **Step 7: Commit**
+- **Step 7: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml vitest.config.ts src/shortcut_policy.ts src/shortcut_policy.spec.ts && git commit -m "test: add vitest and shortcut_policy helper"
@@ -360,8 +361,7 @@ git add package.json pnpm-lock.yaml vitest.config.ts src/shortcut_policy.ts src/
 
 - Create: `src-tauri/src/shortcut_status.rs` (serde struct + `OnceLock` or `Mutex` holder)
 - Modify: `src-tauri/src/lib.rs` — register command, initialize status to `none` before setup
-
-- [ ] **Step 1: Write failing Rust test for JSON shape**
+- **Step 1: Write failing Rust test for JSON shape**
 
 In `shortcut_status.rs`:
 
@@ -400,7 +400,7 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: Run test (fail until mod wired)**
+- **Step 2: Run test (fail until mod wired)**
 
 ```bash
 cd /home/yule/Sides/typo/src-tauri && cargo test serializes_snake_case -- --exact
@@ -408,7 +408,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo test serializes_snake_case -- --exac
 
 Expected: **FAIL** if module not in `lib.rs`.
 
-- [ ] **Step 3: Add `mod shortcut_status;` and minimal `get_shortcut_registration_status` command**
+- **Step 3: Add `mod shortcut_status;` and minimal `get_shortcut_registration_status` command**
 
 ```rust
 // in lib.rs
@@ -435,7 +435,7 @@ Register in `generate_handler![..., get_shortcut_registration_status]`.
 
 Export `ShortcutRegistrationBackend` from `shortcut_status.rs` as above.
 
-- [ ] **Step 4: Run tests + compile**
+- **Step 4: Run tests + compile**
 
 ```bash
 cd /home/yule/Sides/typo/src-tauri && cargo test serializes_snake_case -- --exact && cargo check
@@ -443,7 +443,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo test serializes_snake_case -- --exac
 
 Expected: **PASS**.
 
-- [ ] **Step 5: Commit**
+- **Step 5: Commit**
 
 ```bash
 git add src-tauri/src/shortcut_status.rs src-tauri/src/lib.rs && git commit -m "feat: expose shortcut registration status to frontend"
@@ -467,7 +467,7 @@ futures-util = "0.3.31"
 
 (Patch `0.13.9` to the latest 0.13.x if lockfile resolves newer patch.)
 
-- [ ] **Step 1: Write `#[ignore]` integration test skeleton**
+- **Step 1: Write `#[ignore]` integration test skeleton**
 
 In `linux_global_shortcuts.rs`:
 
@@ -491,7 +491,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo test global_shortcuts_new_succeeds -
 
 Expected on CI without portal: may **FAIL** inside test body — that is acceptable for `--ignored`; default `cargo test` must **PASS** (ignored tests not run).
 
-- [ ] **Step 2: Implement `pub async fn try_register_portal(app: tauri::AppHandle) -> Result<(), String>`**
+- **Step 2: Implement `pub async fn try_register_portal(app: tauri::AppHandle) -> Result<(), String>`**
 
 Implementation outline (real code for engineer to paste and adjust types against `cargo check`):
 
@@ -602,8 +602,7 @@ Notes for implementer:
 - Replace `tracing::error!` with `eprintln!` if you do not add `tracing` dependency; keep **one** style project-wide.
 - Tauri 2 `emit` signature may be `app.emit(...)` or `app.emit_to(...)` — use whatever `cargo check` accepts for broadcasting to the main window’s webview.
 - **Leak / lifetime:** keep `gs` and `session` alive inside the spawned task (e.g. `move` them into the same `spawn` block as the stream, before the `while let` loop) so the portal session is not dropped until app exit.
-
-- [ ] **Step 3: Wire `setup` in `lib.rs`**
+- **Step 3: Wire `setup` in `lib.rs`**
 
 ```rust
 .setup(|app| {
@@ -626,7 +625,7 @@ Notes for implementer:
 })
 ```
 
-- [ ] **Step 4: `cargo check` on Linux**
+- **Step 4: `cargo check` on Linux**
 
 ```bash
 cd /home/yule/Sides/typo/src-tauri && cargo check
@@ -634,7 +633,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo check
 
 Expected: **PASS** (fix API drift until clean).
 
-- [ ] **Step 5: Commit**
+- **Step 5: Commit**
 
 ```bash
 git add src-tauri/src/linux_global_shortcuts.rs src-tauri/src/lib.rs src-tauri/Cargo.toml src-tauri/Cargo.lock && git commit -m "feat(linux): bind global shortcuts via XDG portal on Wayland"
@@ -647,9 +646,7 @@ git add src-tauri/src/linux_global_shortcuts.rs src-tauri/src/lib.rs src-tauri/C
 **Files:**
 
 - Modify: `src-tauri/src/lib.rs` — after portal failure on Wayland, set `plugin_fallback_attempted: true`, optionally call into `tauri_plugin_global_shortcut` from Rust **or** leave plugin to frontend only — **this plan chooses frontend plugin** for fallback to avoid duplicating handler logic: set status to `Plugin` with `error_message: None` when frontend successfully registers.
-
 - Modify: `src/shortcut.ts` — on mount:
-
   1. `const status = await invoke<ShortcutRegistrationStatus>('get_shortcut_registration_status')`
   2. If `status.backend === 'none'` and `session` is Wayland (expose `get_session_kind` command or encode in status), call `register` as today.
   3. If `status.backend === 'portal'`, skip `register`, add `listen('typo-global-shortcut', handler)`.
@@ -684,7 +681,7 @@ fn get_session_kind() -> String {
 }
 ```
 
-- [ ] **Step 1: Refactor `src/shortcut.ts` handlers into named async functions** so both `register` callbacks and `listen` reuse them.
+- **Step 1: Refactor `src/shortcut.ts` handlers into named async functions** so both `register` callbacks and `listen` reuse them.
 
 Example structure:
 
@@ -716,7 +713,7 @@ export async function setupGlobalShortcut() {
 
 Align `ShortcutRegistrationStatus` TypeScript type with Rust serde field names (`snake_case`).
 
-- [ ] **Step 2: Run typecheck**
+- **Step 2: Run typecheck**
 
 ```bash
 cd /home/yule/Sides/typo && pnpm exec vue-tsc --noEmit
@@ -724,7 +721,7 @@ cd /home/yule/Sides/typo && pnpm exec vue-tsc --noEmit
 
 Expected: **PASS**.
 
-- [ ] **Step 3: Run Vitest**
+- **Step 3: Run Vitest**
 
 ```bash
 pnpm test
@@ -732,7 +729,7 @@ pnpm test
 
 Expected: **PASS**.
 
-- [ ] **Step 4: Commit**
+- **Step 4: Commit**
 
 ```bash
 git add src/shortcut.ts src-tauri/src/lib.rs src/shortcut_policy.ts && git commit -m "feat: unify portal and plugin global shortcut dispatch"
@@ -746,8 +743,7 @@ git add src/shortcut.ts src-tauri/src/lib.rs src/shortcut_policy.ts && git commi
 
 - Modify: `src/windows/Settings.vue` — top of form: `Alert` when `error_message` or `(backend === 'none' && session === 'wayland')` after refresh.
 - Modify: `src/App.vue` — `onMounted`: if status reports failure, `import('@tauri-apps/plugin-notification')` then `Notification` banner (optional if permission noisy — then Settings-only is enough per spec).
-
-- [ ] **Step 1: Add status fetch in Settings `onMounted`**
+- **Step 1: Add status fetch in Settings `onMounted`**
 
 ```ts
 const shortcutStatus = ref<ShortcutRegistrationStatus | null>(null)
@@ -757,11 +753,11 @@ onMounted(async () => {
 })
 ```
 
-- [ ] **Step 2: Template block**
+- **Step 2: Template block**
 
 Use existing `@/components/ui/alert` to show `shortcutStatus?.error_message` or static text linking to README anchor `#wayland-global-shortcuts-typo`.
 
-- [ ] **Step 3: Run `vue-tsc`**
+- **Step 3: Run `vue-tsc`**
 
 ```bash
 pnpm exec vue-tsc --noEmit
@@ -769,7 +765,7 @@ pnpm exec vue-tsc --noEmit
 
 Expected: **PASS**.
 
-- [ ] **Step 4: Commit**
+- **Step 4: Commit**
 
 ```bash
 git add src/windows/Settings.vue src/App.vue && git commit -m "feat: surface Wayland shortcut registration errors in UI"
@@ -783,10 +779,8 @@ git add src/windows/Settings.vue src/App.vue && git commit -m "feat: surface Way
 
 - Modify: `README.md` — new section **Wayland: Typo’s own global shortcuts** with Portal requirement, link to freedesktop GlobalShortcuts portal, note GNOME/KDE version caveats, env-var limitations.
 - Modify: `src-tauri/capabilities/desktop.json` only if `emit` / `event:default` is not already allowed for `typo-global-shortcut` (Tauri 2 often allows app events by default — verify and add explicit permission if `cargo tauri dev` logs a capability denial).
-
-- [ ] **Step 1: Append README section** (concrete markdown text is left to implementer but must include anchor `wayland-global-shortcuts-typo` as `## Wayland: Typo global shortcuts` with HTML comment id if needed).
-
-- [ ] **Step 2: Manual smoke**
+- **Step 1: Append README section** (concrete markdown text is left to implementer but must include anchor `wayland-global-shortcuts-typo` as `## Wayland: Typo global shortcuts` with HTML comment id if needed).
+- **Step 2: Manual smoke**
 
 Run on Wayland desktop:
 
@@ -796,7 +790,7 @@ cd /home/yule/Sides/typo && pnpm tauri dev
 
 Expected: first bind may show portal UI; after accept, shortcut triggers main window behavior; Settings shows `portal` backend when status polled.
 
-- [ ] **Step 3: Commit**
+- **Step 3: Commit**
 
 ```bash
 git add README.md src-tauri/capabilities/desktop.json && git commit -m "docs: Wayland portal global shortcuts for Typo"
@@ -806,7 +800,7 @@ git add README.md src-tauri/capabilities/desktop.json && git commit -m "docs: Wa
 
 ### Task 9: Final verification gate
 
-- [ ] **Step 1: Rust**
+- **Step 1: Rust**
 
 ```bash
 cd /home/yule/Sides/typo/src-tauri && cargo test && cargo clippy -- -D warnings
@@ -814,7 +808,7 @@ cd /home/yule/Sides/typo/src-tauri && cargo test && cargo clippy -- -D warnings
 
 Expected: **PASS** (fix clippy or adjust code).
 
-- [ ] **Step 2: Frontend**
+- **Step 2: Frontend**
 
 ```bash
 cd /home/yule/Sides/typo && pnpm test && pnpm run build:frontend
@@ -822,7 +816,7 @@ cd /home/yule/Sides/typo && pnpm test && pnpm run build:frontend
 
 Expected: **PASS**.
 
-- [ ] **Step 3: Optional full Tauri build (Linux)**
+- **Step 3: Optional full Tauri build (Linux)**
 
 ```bash
 pnpm tauri build
@@ -830,7 +824,7 @@ pnpm tauri build
 
 Expected: **PASS** on Ubuntu runner matching `release.yml` deps.
 
-- [ ] **Step 4: Commit** (only if fixes were needed)
+- **Step 4: Commit** (only if fixes were needed)
 
 ```bash
 git add -A && git commit -m "chore: fix clippy and shortcut integration nits"
@@ -840,13 +834,15 @@ git add -A && git commit -m "chore: fix clippy and shortcut integration nits"
 
 ## Plan self-review (spec coverage)
 
-| Spec section | Task coverage |
-|--------------|---------------|
-| §4.1 Session + expose summary | Task 1, 4, 6 (`get_session_kind` / status) |
-| §4.2 Binding order Portal → unified → plugin → error | Tasks 5, 6 |
-| §4.3 Single owner, no double register | Tasks 3, 6 |
-| §5 Errors + README | Tasks 7, 8 |
-| §6 CI | Task 9 (no workflow change expected) |
+
+| Spec section                                         | Task coverage                              |
+| ---------------------------------------------------- | ------------------------------------------ |
+| §4.1 Session + expose summary                        | Task 1, 4, 6 (`get_session_kind` / status) |
+| §4.2 Binding order Portal → unified → plugin → error | Tasks 5, 6                                 |
+| §4.3 Single owner, no double register                | Tasks 3, 6                                 |
+| §5 Errors + README                                   | Tasks 7, 8                                 |
+| §6 CI                                                | Task 9 (no workflow change expected)       |
+
 
 **Placeholder scan:** No `TBD` / `implement later` in this plan file.
 
@@ -857,7 +853,6 @@ git add -A && git commit -m "chore: fix clippy and shortcut integration nits"
 **Plan complete and saved to `docs/superpowers/plans/2026-04-14-linux-wayland-global-shortcuts.md`. Two execution options:**
 
 1. **Subagent-Driven (recommended)** — dispatch a fresh subagent per task, review between tasks, fast iteration. **REQUIRED SUB-SKILL:** superpowers:subagent-driven-development.
-
 2. **Inline Execution** — execute tasks in this session using executing-plans, batch execution with checkpoints. **REQUIRED SUB-SKILL:** superpowers:executing-plans.
 
 **Which approach do you want?**

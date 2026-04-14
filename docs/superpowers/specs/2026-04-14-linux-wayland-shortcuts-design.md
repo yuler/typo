@@ -29,11 +29,13 @@
 
 ## 3. Approach selection
 
-| Approach | Summary | Verdict |
-|----------|---------|--------|
-| **A. Runtime detection + layered backends** | Wayland → Portal `GlobalShortcuts` first; unify dispatch with existing shortcut flows; fall back to plugin then user-visible errors + docs. | **Primary** |
-| **B. Documentation / env vars only** | Low engineering cost; does not solve global capture when focus is on native Wayland clients. | Supplement to A (user escape hatches) |
-| **C. Per-desktop D-Bus** | GNOME/KDE-specific integrations. | Not primary (maintenance vs unknown Release users) |
+
+| Approach                                    | Summary                                                                                                                                     | Verdict                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **A. Runtime detection + layered backends** | Wayland → Portal `GlobalShortcuts` first; unify dispatch with existing shortcut flows; fall back to plugin then user-visible errors + docs. | **Primary**                                        |
+| **B. Documentation / env vars only**        | Low engineering cost; does not solve global capture when focus is on native Wayland clients.                                                | Supplement to A (user escape hatches)              |
+| **C. Per-desktop D-Bus**                    | GNOME/KDE-specific integrations.                                                                                                            | Not primary (maintenance vs unknown Release users) |
+
 
 ## 4. Architecture and data flow
 

@@ -161,7 +161,7 @@ pub async fn try_register_portal(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg(all(test, target_os = "linux"))]
 mod portal_smoke {
     #[tokio::test]
-    #[ignore = "requires a running Wayland desktop session with xdg-desktop-portal"]
+    // #[ignore = "requires a running Wayland desktop session with xdg-desktop-portal"]
     async fn global_shortcuts_new_succeeds_on_wayland_desktop() {
         let gs = ashpd::desktop::global_shortcuts::GlobalShortcuts::new().await;
         assert!(gs.is_ok(), "{:?}", gs.err());
