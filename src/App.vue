@@ -46,11 +46,12 @@ watch(() => currentWindow.value, async () => {
 
 onMounted(async () => {
   await initializeStore()
+  // Main window starts `visible: false`; Portal / global-shortcut need a real native surface first.
+  await initializeWindow()
   const linuxShortcutBackend = await storeGet('linux_shortcut_backend')
   await invoke('init_linux_global_shortcuts', { backend: linuxShortcutBackend })
-  checkUpgrade()
+  await checkUpgrade()
   await setupGlobalShortcut()
-  initializeWindow()
 })
 </script>
 

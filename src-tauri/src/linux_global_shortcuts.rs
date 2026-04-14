@@ -4,7 +4,10 @@ use ashpd::desktop::global_shortcuts::{BindShortcutsOptions, GlobalShortcuts, Ne
 use ashpd::desktop::CreateSessionOptions;
 use ashpd::WindowIdentifier;
 use futures_util::StreamExt;
-use raw_window_handle::{HasDisplayHandle, HasWindowHandle, RawDisplayHandle, RawWindowHandle};
+use raw_window_handle::{
+    HandleError, HasDisplayHandle, HasWindowHandle, RawDisplayHandle, RawWindowHandle,
+};
+use std::time::Duration;
 use tauri::{Emitter, Manager};
 
 use crate::accelerator_xdg::typo_default_accelerators_to_xdg;
@@ -12,38 +15,77 @@ use crate::shortcut_status::{
     set_shortcut_registration_status, ShortcutRegistrationBackend, ShortcutRegistrationStatus,
 };
 
+const HANDLE_RETRY_DELAY_MS: u64 = 80;
+const HANDLE_RETRY_MAX: u32 = 50;
+
+/// `raw-window-handle` returns [`HandleError::Unavailable`] until the webview has a real surface
+/// (e.g. after the window is shown on Wayland).
+async fn try_capture_wayland_surface_ptrs(window: &tauri::WebviewWindow) -> Result<(usize, usize), String> {
+    for attempt in 0..HANDLE_RETRY_MAX {
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(usize, usize), String>>(1);
+        let win = window.clone();
+        window
+            .run_on_main_thread(move || {
+                let res = (|| -> Result<(usize, usize), String> {
+                    let wh = match win.window_handle() {
+                        Ok(h) => h.as_raw(),
+                        Err(HandleError::Unavailable) => {
+                            return Err("__UNAVAILABLE__".to_string());
+                        }
+                        Err(e) => return Err(e.to_string()),
+                    };
+                    let dh = match win.display_handle() {
+                        Ok(h) => h.as_raw(),
+                        Err(HandleError::Unavailable) => {
+                            return Err("__UNAVAILABLE__".to_string());
+                        }
+                        Err(e) => return Err(e.to_string()),
+                    };
+                    match (wh, dh) {
+                        (
+                            RawWindowHandle::Wayland(w),
+                            RawDisplayHandle::Wayland(d),
+                        ) => Ok((w.surface.as_ptr() as usize, d.display.as_ptr() as usize)),
+                        _ => Err(
+                            "expected Wayland raw window and display handles".to_string(),
+                        ),
+                    }
+                })();
+                let _ = tx.send(res);
+            })
+            .map_err(|e| e.to_string())?;
+
+        let recv_result = tauri::async_runtime::spawn_blocking(move || {
+            rx.recv()
+                .map_err(|_| "window handle channel closed".to_string())?
+        })
+        .await
+        .map_err(|e| e.to_string())?;
+
+        match recv_result {
+            Ok(pair) => return Ok(pair),
+            Err(msg) if msg == "__UNAVAILABLE__" => {
+                if attempt + 1 == HANDLE_RETRY_MAX {
+                    return Err(
+                        "the underlying handle is not available (window surface not ready)"
+                            .to_string(),
+                    );
+                }
+                std::thread::sleep(Duration::from_millis(HANDLE_RETRY_DELAY_MS));
+            }
+            Err(e) => return Err(e),
+        }
+    }
+
+    Err("timed out waiting for Wayland window surface".to_string())
+}
+
 pub async fn try_register_portal(app: tauri::AppHandle) -> Result<(), String> {
     let window = app
         .get_webview_window("main")
         .ok_or_else(|| "missing main webview window".to_string())?;
 
-    let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(usize, usize), String>>(1);
-    let win = window.clone();
-    window
-        .run_on_main_thread(move || {
-            let res = (|| {
-                let wh = win.window_handle().map_err(|e| e.to_string())?.as_raw();
-                let dh = win.display_handle().map_err(|e| e.to_string())?.as_raw();
-                match (wh, dh) {
-                    (
-                        RawWindowHandle::Wayland(w),
-                        RawDisplayHandle::Wayland(d),
-                    ) => Ok((w.surface.as_ptr() as usize, d.display.as_ptr() as usize)),
-                    _ => Err(
-                        "expected Wayland raw window and display handles".to_string(),
-                    ),
-                }
-            })();
-            let _ = tx.send(res);
-        })
-        .map_err(|e| e.to_string())?;
-
-    let (surface_ptr, display_ptr) = tauri::async_runtime::spawn_blocking(move || {
-        rx.recv()
-            .map_err(|_| "window handle channel closed".to_string())?
-    })
-    .await
-    .map_err(|e| e.to_string())??;
+    let (surface_ptr, display_ptr) = try_capture_wayland_surface_ptrs(&window).await?;
 
     let identifier = unsafe {
         WindowIdentifier::from_wayland_raw(
