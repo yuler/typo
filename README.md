@@ -37,6 +37,17 @@ pnpm dev
 - Support for DeepSeek & Ollama AI models
 - Global `Ctrl/Cmd + Shift + X` hotkey activation
 
+## Wayland: Typo global shortcuts
+
+<!-- anchor:wayland-global-shortcuts-typo -->
+
+- On Wayland, Typo prefers **XDG Desktop Portal** `GlobalShortcuts` when the compositor or session exposes it.
+- The first time this path is used, the system may show a permission or shortcut-binding dialog.
+- This needs `xdg-desktop-portal` and a suitable portal backend on the host (for example GNOME or KDE). AppImage builds do not include these components.
+- If portal registration fails, Typo falls back to the global-shortcut plugin, which may still not receive shortcuts when the focused app is a native Wayland client.
+- Portal API reference: [org.freedesktop.portal.GlobalShortcuts](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.GlobalShortcuts.html).
+- Environment-variable workarounds that force **target applications** (for example editors) onto XWayland stay in the existing **Linux** FAQ: [Wayland Compatibility (e.g., VS Code)](#linux) (same subsection as the `xeyes` / VS Code notes).
+
 ## FAQ
 
 ### macOS
@@ -112,3 +123,4 @@ Exec=/usr/share/code/code %F --ozone-platform=x11
 ### Ollma
 
 - [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
+
