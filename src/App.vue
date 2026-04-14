@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
+import { invoke } from '@tauri-apps/api/core'
 import { check } from '@tauri-apps/plugin-updater'
 import { nextTick, onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
@@ -10,6 +11,11 @@ import { initializeStore } from '@/store'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
 const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
+
+interface SessionInfo {
+  os: string
+  is_wayland: boolean
+}
 
 async function checkUpgrade() {
   try {
@@ -45,7 +51,14 @@ watch(() => currentWindow.value, async () => {
 
 onMounted(async () => {
   checkUpgrade()
-  setupGlobalShortcut()
+  try {
+    const sessionInfo = await invoke<SessionInfo>('get_session_info')
+    await setupGlobalShortcut(sessionInfo)
+  }
+  catch (err) {
+    console.error('Failed to get session info, falling back to default shortcut setup:', err)
+    await setupGlobalShortcut()
+  }
   initializeStore()
   initializeWindow()
 })

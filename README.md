@@ -7,11 +7,11 @@
 
 > An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
 
-[![Download](https://img.shields.io/github/v/release/yuler/typo)](https://github.com/yuler/typo/releases)
+[Download](https://github.com/yuler/typo/releases)
 
 ## Screenshots
 
-![Screenshot](https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e)
+Screenshot
 
 ## Development
 
@@ -23,7 +23,7 @@ pnpm dev
 ## Usage
 
 1. Select any text you want to improve
-2. Press `Ctrl/Cmd + Shift + X` to activate the application
+2. Press `Ctrl/Cmd + Shift + X` to activate the application (default for macOS, Windows, and Linux X11)
 3. Wait for the response and replace the selected content
 
 ## How it works
@@ -79,9 +79,19 @@ Categories=Utility;TextEditor;
 Terminal=false
 ```
 
-#### Wayland Compatibility (e.g., VS Code)
+#### Wayland Compatibility (Linux only, e.g., VS Code)
 
-Typo may require Electron-based apps like VS Code to run in X11 (XWayland) rather than native Wayland.
+This section applies to **Linux Wayland only**.
+
+Set up a system shortcut:
+
+1. Open `Settings -> Keyboard -> Custom Shortcuts`
+2. Add a shortcut command: `typo --selection`
+3. Set keys to: `Ctrl + Shift + X`
+
+In Linux Wayland sessions, use this system shortcut instead of relying on app-level global shortcuts.
+
+If selection capture still fails in specific apps (for example some Electron apps), running that app in X11 (XWayland) can be an optional workaround.
 
 **Verify if an app is using X11:**
 
@@ -108,6 +118,11 @@ vim ~/.local/share/applications/code.desktop
 # Modify the Exec line to append the flag:
 Exec=/usr/share/code/code %F --ozone-platform=x11
 ```
+
+**Troubleshooting (Wayland):**
+
+- Empty selection: some apps block synthetic `Ctrl+C`, so Typo may not receive selected text. Re-select and retry, or use the app's X11 mode as a workaround when available.
+- Clipboard issues: failures are often related to clipboard read restrictions, portal behavior, or desktop permission policy. Retry once and check clipboard managers/history tools or sandbox permissions.
 
 ### Ollma
 

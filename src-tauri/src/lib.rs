@@ -1,13 +1,24 @@
 use enigo::Keyboard;
+use serde::Serialize;
+use tauri::Emitter;
+use tauri::Manager;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_notification::NotificationExt;
+use std::sync::{Mutex, OnceLock};
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-async fn get_selected_text() -> Result<String, String> {
+async fn get_selected_text(
+    app: tauri::AppHandle,
+    window: tauri::WebviewWindow,
+) -> Result<String, String> {
+    if is_linux_wayland_session() {
+        return capture_selection_with_feedback(&app, &window);
+    }
+
     let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
     Ok(text)
 }
@@ -26,11 +37,11 @@ fn select_all_sync() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn select_all(app: tauri::AppHandle) -> Result<(), String> {
+async fn select_all(_app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
-        app
+        _app
             .run_on_main_thread(move || {
                 let _ = tx.send(select_all_sync());
             })
@@ -51,6 +62,167 @@ async fn select_all(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 async fn get_platform_info() -> Result<String, String> {
     Ok(std::env::consts::OS.to_string())
+}
+
+#[derive(Serialize)]
+struct SessionInfo {
+    os: String,
+    is_wayland: bool,
+}
+
+#[tauri::command]
+fn get_session_info() -> SessionInfo {
+    SessionInfo {
+        os: std::env::consts::OS.to_string(),
+        is_wayland: is_linux_wayland_session(),
+    }
+}
+
+fn is_linux_wayland_session() -> bool {
+    if !cfg!(target_os = "linux") {
+        return false;
+    }
+
+    let wayland_display = std::env::var_os("WAYLAND_DISPLAY").is_some();
+    let session_type = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
+    wayland_display || session_type.eq_ignore_ascii_case("wayland")
+}
+
+fn notify_selection_capture_failure(app: &tauri::AppHandle, message: &str) {
+    if let Err(error) = app
+        .notification()
+        .builder()
+        .title("Typo")
+        .body(message)
+        .show()
+    {
+        eprintln!("Failed to show selection capture notification: {}", error);
+    }
+}
+
+fn copy_selection_and_read_clipboard(window: &tauri::WebviewWindow) -> Result<String, String> {
+    let copy_failure_message =
+        "Failed to trigger Ctrl+C. Make sure the target app supports Ctrl+C.".to_string();
+    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).map_err(|error| {
+        eprintln!("Failed to create enigo input context: {}", error);
+        copy_failure_message.clone()
+    })?;
+    enigo
+        .key(enigo::Key::Control, enigo::Direction::Press)
+        .map_err(|error| {
+            eprintln!("Failed to press Ctrl key for copy: {}", error);
+            copy_failure_message.clone()
+        })?;
+    let c_key_result = enigo
+        .key(enigo::Key::Unicode('c'), enigo::Direction::Click)
+        .map_err(|error| {
+            eprintln!("Failed to send C key for copy: {}", error);
+            copy_failure_message.clone()
+        });
+
+    if let Err(error) = enigo.key(enigo::Key::Control, enigo::Direction::Release) {
+        eprintln!("Failed to release Ctrl key after copy: {}", error);
+        return Err(copy_failure_message);
+    }
+
+    c_key_result?;
+
+    std::thread::sleep(std::time::Duration::from_millis(120));
+
+    let mut text = window
+        .clipboard()
+        .read_text()
+        .map_err(|error| {
+            eprintln!("Failed to read clipboard text (attempt 1): {}", error);
+            "Failed to read clipboard text.".to_string()
+        })?;
+    if text.trim().is_empty() {
+        std::thread::sleep(std::time::Duration::from_millis(120));
+        text = window
+            .clipboard()
+            .read_text()
+            .map_err(|error| {
+                eprintln!("Failed to read clipboard text (attempt 2): {}", error);
+                "Failed to read clipboard text.".to_string()
+            })?;
+    }
+
+    if text.trim().is_empty() {
+        return Err(
+            "No selected text captured. Make sure the target app supports Ctrl+C.".to_string(),
+        );
+    }
+
+    Ok(text)
+}
+
+fn capture_selection_with_feedback(
+    app: &tauri::AppHandle,
+    window: &tauri::WebviewWindow,
+) -> Result<String, String> {
+    match copy_selection_and_read_clipboard(window) {
+        Ok(text) => Ok(text),
+        Err(message) => {
+            notify_selection_capture_failure(app, &message);
+            Err(message)
+        }
+    }
+}
+
+#[derive(Clone, Serialize)]
+struct SetInputPayload {
+    text: String,
+    mode: String,
+}
+
+fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
+    static PENDING_SELECTION_PAYLOAD: OnceLock<Mutex<Option<SetInputPayload>>> = OnceLock::new();
+    PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
+}
+
+fn capture_selection_payload(app: &tauri::AppHandle) -> Option<SetInputPayload> {
+    let Some(window) = app.get_webview_window("main") else {
+        eprintln!("Main window not found for selection trigger");
+        return None;
+    };
+
+    match capture_selection_with_feedback(app, &window) {
+        Ok(text) => Some(SetInputPayload {
+            text,
+            mode: "selected".to_string(),
+        }),
+        Err(error) => {
+            eprintln!("Selection trigger failed: {}", error);
+            None
+        }
+    }
+}
+
+fn handle_selection_trigger(app: &tauri::AppHandle) {
+    if let Some(payload) = capture_selection_payload(app) {
+        if let Err(error) = app.emit("set-input", payload) {
+            eprintln!("Failed to emit set-input event: {}", error);
+        }
+    }
+}
+
+fn handle_startup_selection_trigger(app: &tauri::AppHandle) {
+    if let Some(payload) = capture_selection_payload(app) {
+        if let Ok(mut pending) = pending_selection_payload().lock() {
+            *pending = Some(payload);
+        }
+    }
+}
+
+#[tauri::command]
+fn consume_pending_selection_input() -> Option<SetInputPayload> {
+    match pending_selection_payload().lock() {
+        Ok(mut pending) => pending.take(),
+        Err(error) => {
+            eprintln!("Failed to access pending selection payload: {}", error);
+            None
+        }
+    }
 }
 
 #[tauri::command]
@@ -144,6 +316,13 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let startup_selection = std::env::args().any(|arg| arg == "--selection");
+
+    println!(
+        "is_linux_wayland_session={}",
+        is_linux_wayland_session()
+    );
+
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
@@ -154,6 +333,11 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             println!("{}, {argv:?}, {cwd}", app.package_info().name);
+            let selection_requested = argv.iter().any(|arg| arg == "--selection");
+            if selection_requested && is_linux_wayland_session() {
+                handle_selection_trigger(app);
+                return;
+            }
             app.notification()
                 .builder()
                 .title("This app is already running!")
@@ -161,11 +345,19 @@ pub fn run() {
                 .show()
                 .unwrap();
         }))
+        .setup(move |app| {
+            if startup_selection && is_linux_wayland_session() {
+                handle_startup_selection_trigger(&app.handle());
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_selected_text,
             select_all,
             type_text,
             get_platform_info,
+            get_session_info,
+            consume_pending_selection_input,
             request_mac_accessibility_permissions,
         ])
         .run(tauri::generate_context!())

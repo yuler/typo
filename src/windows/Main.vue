@@ -25,6 +25,52 @@ const isMacOS = ref(false)
 
 let unlistenSetInput: UnlistenFn
 
+interface SetInputPayload {
+  text: string
+  mode: string
+}
+
+async function processSetInputPayload(payload: SetInputPayload) {
+  const { text, mode } = payload
+
+  // eslint-disable-next-line no-console
+  console.debug({ mode })
+
+  try {
+    state.value = 'processing'
+    processing.value = true
+    inputText.value = text
+
+    const output = await fetchCorrection(text)
+
+    resultText.value = output
+    state.value = 'result'
+
+    await sleep(500)
+    await invoke('type_text', { text: output })
+
+    await sleep(1500)
+    state.value = 'idle'
+    inputText.value = ''
+    resultText.value = ''
+  }
+  catch (err: any) {
+    if (err.name === 'AbortError') {
+      state.value = 'idle'
+      return
+    }
+    errorText.value = err.message || 'Something went wrong'
+    state.value = 'error'
+    setTimeout(() => {
+      state.value = 'idle'
+      errorText.value = ''
+    }, 3000)
+  }
+  finally {
+    processing.value = false
+  }
+}
+
 onMounted(async () => {
   const platform = await invoke('get_platform_info')
   isMacOS.value = platform === 'macos'
@@ -50,46 +96,14 @@ onMounted(async () => {
 
   checkUpgrade()
 
-  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: { text: string, mode: string } }) => {
-    const { text, mode } = event.payload
-
-    // eslint-disable-next-line no-console
-    console.debug({ mode })
-
-    try {
-      state.value = 'processing'
-      processing.value = true
-      inputText.value = text
-
-      const output = await fetchCorrection(text)
-
-      resultText.value = output
-      state.value = 'result'
-
-      await sleep(500)
-      await invoke('type_text', { text: output })
-
-      await sleep(1500)
-      state.value = 'idle'
-      inputText.value = ''
-      resultText.value = ''
-    }
-    catch (err: any) {
-      if (err.name === 'AbortError') {
-        state.value = 'idle'
-        return
-      }
-      errorText.value = err.message || 'Something went wrong'
-      state.value = 'error'
-      setTimeout(() => {
-        state.value = 'idle'
-        errorText.value = ''
-      }, 3000)
-    }
-    finally {
-      processing.value = false
-    }
+  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
+    await processSetInputPayload(event.payload)
   })
+
+  const pendingPayload = await invoke<SetInputPayload | null>('consume_pending_selection_input')
+  if (pendingPayload) {
+    await processSetInputPayload(pendingPayload)
+  }
 })
 
 onUnmounted(() => {
