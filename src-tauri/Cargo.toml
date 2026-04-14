@@ -14,6 +14,9 @@ edition = "2021"
 name = "typo_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -37,3 +40,8 @@ tauri-plugin-updater = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 macos-accessibility-client = "0.0.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+ashpd = { version = "0.13.9", default-features = false, features = ["tokio", "wayland", "global_shortcuts", "raw_handle"] }
+futures-util = "0.3.31"
+raw-window-handle = { version = "0.6", features = ["std"] }

@@ -8,6 +8,9 @@ use macos_accessibility_client;
 #[cfg(target_os = "linux")]
 mod session_linux;
 
+#[cfg(target_os = "linux")]
+mod linux_global_shortcuts;
+
 mod accelerator_xdg;
 mod shortcut_status;
 
@@ -156,6 +159,31 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(target_os = "linux")]
+            {
+                use session_linux::SessionKind;
+                use shortcut_status::{
+                    set_shortcut_registration_status, ShortcutRegistrationBackend,
+                    ShortcutRegistrationStatus,
+                };
+                if session_linux::session_kind_from_env() == SessionKind::Wayland {
+                    let handle = app.handle().clone();
+                    std::thread::spawn(move || {
+                        if let Err(e) = tauri::async_runtime::block_on(
+                            linux_global_shortcuts::try_register_portal(handle),
+                        ) {
+                            set_shortcut_registration_status(ShortcutRegistrationStatus {
+                                backend: ShortcutRegistrationBackend::None,
+                                plugin_fallback_attempted: false,
+                                error_message: Some(e),
+                            });
+                        }
+                    });
+                }
+            }
+            Ok(())
+        })
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
