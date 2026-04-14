@@ -28,3 +28,4 @@ dist-ssr
 
 # Misc
 # TODO.md
+.worktrees/
