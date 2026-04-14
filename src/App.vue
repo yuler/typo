@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { check } from '@tauri-apps/plugin-updater'
 import { nextTick, onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
+import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
@@ -12,6 +13,7 @@ import { initializeStore } from '@/store'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
 const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
+const isDev = import.meta.env.DEV
 
 async function checkUpgrade() {
   try {
@@ -64,6 +66,7 @@ onMounted(async () => {
   <main class="dark glass h-screen w-screen overflow-hidden flex flex-col">
     <Navbar v-if="currentWindow !== 'Main'" data-tauri-drag-region @settings="() => onChangeWindow('Settings')" />
     <Window class="flex-1" />
+    <Ribbon v-if="isDev" />
   </main>
 </template>
 
