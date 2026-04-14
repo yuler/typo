@@ -1,24 +1,18 @@
 use enigo::Keyboard;
 use serde::Serialize;
 use tauri::Emitter;
-use tauri::Manager;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_notification::NotificationExt;
 use std::sync::{Mutex, OnceLock};
+
+mod cli;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-async fn get_selected_text(
-    app: tauri::AppHandle,
-    window: tauri::WebviewWindow,
-) -> Result<String, String> {
-    if is_linux_wayland_session() {
-        return capture_selection_with_feedback(&app, &window);
-    }
-
+async fn get_selected_text() -> Result<String, String> {
     let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
     Ok(text)
 }
@@ -37,7 +31,7 @@ fn select_all_sync() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn select_all(app: tauri::AppHandle) -> Result<(), String> {
+async fn select_all(_app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
@@ -74,11 +68,11 @@ struct SessionInfo {
 fn get_session_info() -> SessionInfo {
     SessionInfo {
         os: std::env::consts::OS.to_string(),
-        is_wayland: is_linux_wayland_session(),
+        is_wayland: in_linux_wayland(),
     }
 }
 
-fn is_linux_wayland_session() -> bool {
+fn in_linux_wayland() -> bool {
     if !cfg!(target_os = "linux") {
         return false;
     }
@@ -100,62 +94,6 @@ fn notify_selection_capture_failure(app: &tauri::AppHandle, message: &str) {
     }
 }
 
-fn copy_selection_and_read_clipboard(window: &tauri::WebviewWindow) -> Result<String, String> {
-    let copy_failure_message =
-        "Failed to trigger Ctrl+C. Make sure the target app supports Ctrl+C.".to_string();
-    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).map_err(|error| {
-        eprintln!("Failed to create enigo input context: {}", error);
-        copy_failure_message.clone()
-    })?;
-    enigo.key(enigo::Key::Control, enigo::Direction::Press).map_err(
-        |error| {
-            eprintln!("Failed to press Ctrl key for copy: {}", error);
-            copy_failure_message.clone()
-        },
-    )?;
-    enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click).map_err(
-        |error| {
-            eprintln!("Failed to send C key for copy: {}", error);
-            copy_failure_message.clone()
-        },
-    )?;
-    enigo.key(enigo::Key::Control, enigo::Direction::Release).map_err(
-        |error| {
-            eprintln!("Failed to release Ctrl key after copy: {}", error);
-            copy_failure_message.clone()
-        },
-    )?;
-
-    let text = window
-        .clipboard()
-        .read_text()
-        .map_err(|error| {
-            eprintln!("Failed to read clipboard text: {}", error);
-            "Failed to read clipboard text.".to_string()
-        })?;
-
-    if text.trim().is_empty() {
-        return Err(
-            "No selected text captured. Make sure the target app supports Ctrl+C.".to_string(),
-        );
-    }
-
-    Ok(text)
-}
-
-fn capture_selection_with_feedback(
-    app: &tauri::AppHandle,
-    window: &tauri::WebviewWindow,
-) -> Result<String, String> {
-    match copy_selection_and_read_clipboard(window) {
-        Ok(text) => Ok(text),
-        Err(message) => {
-            notify_selection_capture_failure(app, &message);
-            Err(message)
-        }
-    }
-}
-
 #[derive(Clone, Serialize)]
 struct SetInputPayload {
     text: String,
@@ -167,36 +105,40 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
     PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
 }
 
-fn capture_selection_payload(app: &tauri::AppHandle) -> Option<SetInputPayload> {
-    let Some(window) = app.get_webview_window("main") else {
-        eprintln!("Main window not found for selection trigger");
-        return None;
-    };
-
-    match capture_selection_with_feedback(app, &window) {
-        Ok(text) => Some(SetInputPayload {
-            text,
-            mode: "selected".to_string(),
-        }),
-        Err(error) => {
-            eprintln!("Selection trigger failed: {}", error);
-            None
-        }
-    }
-}
-
 fn handle_selection_trigger(app: &tauri::AppHandle) {
-    if let Some(payload) = capture_selection_payload(app) {
-        if let Err(error) = app.emit("set-input", payload) {
-            eprintln!("Failed to emit set-input event: {}", error);
+    match get_selected_text::get_selected_text() {
+        Ok(text) => {
+            let payload = SetInputPayload {
+                text,
+                mode: "selected".to_string(),
+            };
+            if let Err(error) = app.emit("set-input", payload) {
+                eprintln!("Failed to emit set-input event: {}", error);
+            }
+        }
+        Err(error) => {
+            let message = error.to_string();
+            notify_selection_capture_failure(app, &message);
+            eprintln!("Failed to get selected text: {}", message);
         }
     }
 }
 
 fn handle_startup_selection_trigger(app: &tauri::AppHandle) {
-    if let Some(payload) = capture_selection_payload(app) {
-        if let Ok(mut pending) = pending_selection_payload().lock() {
-            *pending = Some(payload);
+    match get_selected_text::get_selected_text() {
+        Ok(text) => {
+            let payload = SetInputPayload {
+                text,
+                mode: "selected".to_string(),
+            };
+            if let Ok(mut pending) = pending_selection_payload().lock() {
+                *pending = Some(payload);
+            }
+        }
+        Err(error) => {
+            let message = error.to_string();
+            notify_selection_capture_failure(app, &message);
+            eprintln!("Failed to get startup selected text: {}", message);
         }
     }
 }
@@ -302,11 +244,11 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let startup_selection = std::env::args().any(|arg| arg == "--selection");
+    let startup_selection = cli::has_selection_flag(std::env::args());
 
     println!(
-        "is_linux_wayland_session={}",
-        is_linux_wayland_session()
+        "in_linux_wayland={}",
+        in_linux_wayland()
     );
 
     tauri::Builder::default()
@@ -318,20 +260,15 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
-            let selection_requested = argv.iter().any(|arg| arg == "--selection");
-            if selection_requested && is_linux_wayland_session() {
-                handle_selection_trigger(app);
-                return;
-            }
-            app.notification()
-                .builder()
-                .title("This app is already running!")
-                .body("You can find it in the tray menu.")
-                .show()
-                .unwrap();
+            cli::handle_single_instance_event(
+                app,
+                &argv,
+                in_linux_wayland(),
+                handle_selection_trigger,
+            );
         }))
         .setup(move |app| {
-            if startup_selection && is_linux_wayland_session() {
+            if startup_selection && in_linux_wayland() {
                 handle_startup_selection_trigger(&app.handle());
             }
             Ok(())
