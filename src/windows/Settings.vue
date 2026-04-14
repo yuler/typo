@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { invoke } from '@tauri-apps/api/core'
 import { SaveIcon } from 'lucide-vue-next'
 import { nextTick, onMounted, ref, watch } from 'vue'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,9 +10,13 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
+import type { ShortcutRegistrationStatus } from '@/shortcut_policy'
 import * as store from '@/store'
 
 const { setCurrentWindow } = useGlobalState()
+
+const shortcutStatus = ref<ShortcutRegistrationStatus | null>(null)
+const sessionKind = ref<string>('')
 
 const form = ref({
   autoselect: false,
@@ -21,6 +27,9 @@ const form = ref({
 })
 
 onMounted(async () => {
+  shortcutStatus.value = await invoke<ShortcutRegistrationStatus>('get_shortcut_registration_status')
+  sessionKind.value = await invoke<string>('get_session_kind')
+
   form.value.autoselect = await store.get('autoselect')
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
@@ -65,6 +74,24 @@ async function onSubmit() {
     <h1 class="text-2xl font-bold">
       Settings
     </h1>
+    <Alert
+      v-if="shortcutStatus && (shortcutStatus.error_message || (shortcutStatus.backend === 'none' && sessionKind === 'wayland'))"
+      :variant="shortcutStatus.error_message ? 'destructive' : 'default'"
+      class="mt-4"
+    >
+      <AlertTitle>Global shortcuts</AlertTitle>
+      <AlertDescription>
+        <template v-if="shortcutStatus.error_message">
+          {{ shortcutStatus.error_message }}
+        </template>
+        <template v-else>
+          Global shortcuts may not work on this Wayland session. See the section
+          <span class="font-medium">Wayland: Typo global shortcuts</span>
+          in <code class="rounded bg-muted px-1 py-0.5 text-xs">README.md</code>
+          in this repository.
+        </template>
+      </AlertDescription>
+    </Alert>
     <form class="mt-4 w-full flex flex-col gap-4" @submit.prevent="onSubmit">
       <div class="grid w-full items-center gap-1.5">
         <!-- Auto Select -->
