@@ -35,22 +35,17 @@ pub(crate) fn set_shortcut_registration_status(s: ShortcutRegistrationStatus) {
 }
 
 #[cfg(test)]
-pub(crate) fn assert_portal_backend_serializes_as_snake_case_json() {
-    let sample = ShortcutRegistrationStatus {
-        backend: ShortcutRegistrationBackend::Portal,
-        plugin_fallback_attempted: false,
-        error_message: None,
-    };
-    let v = serde_json::to_value(&sample).unwrap();
-    assert_eq!(v["backend"], "portal");
-}
-
-#[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn serializes_snake_case() {
-        assert_portal_backend_serializes_as_snake_case_json();
+        let s = ShortcutRegistrationStatus {
+            backend: ShortcutRegistrationBackend::Portal,
+            plugin_fallback_attempted: false,
+            error_message: None,
+        };
+        let v = serde_json::to_value(&s).unwrap();
+        assert_eq!(v["backend"], "portal");
     }
 }

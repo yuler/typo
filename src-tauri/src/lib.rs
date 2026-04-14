@@ -183,9 +183,3 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
-#[cfg(test)]
-#[test]
-fn serializes_snake_case() {
-    shortcut_status::assert_portal_backend_serializes_as_snake_case_json();
-}
