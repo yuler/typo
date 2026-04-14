@@ -5,6 +5,9 @@ use tauri_plugin_notification::NotificationExt;
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
 
+#[cfg(target_os = "linux")]
+mod session_linux;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 async fn get_selected_text() -> Result<String, String> {
