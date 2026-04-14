@@ -35,7 +35,7 @@ fn select_all_sync() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn select_all(app: tauri::AppHandle) -> Result<(), String> {
+async fn select_all(_app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);

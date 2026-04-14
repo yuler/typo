@@ -7,6 +7,7 @@ pub fn typo_default_accelerators_to_xdg() -> Vec<(&'static str, &'static str, &'
 
 /// Maps the subset of strings Typo uses today to XDG shortcut triggers.
 /// Spec: https://specifications.freedesktop.org/shortcuts-spec/shortcuts-latest.html
+#[allow(dead_code)]
 pub fn tauri_style_to_xdg_trigger(input: &str) -> Option<String> {
     let parts: Vec<&str> = input.split('+').map(str::trim).collect();
     let mut mods: Vec<&str> = Vec::new();
