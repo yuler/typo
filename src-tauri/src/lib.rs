@@ -184,6 +184,27 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
 #[cfg(target_os = "linux")]
 static LINUX_PORTAL_INIT: std::sync::Once = std::sync::Once::new();
 
+#[cfg(target_os = "linux")]
+fn format_global_shortcuts_portal_error(err: String) -> String {
+    if err.contains("GlobalShortcuts") && err.contains("not found") {
+        format!(
+            "{err}\n\n\
+No desktop portal backend on your session implements GlobalShortcuts yet. Install one that matches your compositor, then log out and back in.\n\
+Examples:\n\
+  • GNOME (Debian/Ubuntu): sudo apt install xdg-desktop-portal-gnome\n\
+  • KDE (Debian/Ubuntu): sudo apt install xdg-desktop-portal-kde\n\
+  • wlroots-based (Sway, etc.): sudo apt install xdg-desktop-portal-wlr\n\
+  • Hyprland: sudo apt install xdg-desktop-portal-hyprland (or your distro’s package name)\n\
+  • Fedora GNOME: sudo dnf install xdg-desktop-portal-gnome\n\
+  • Arch: pacman -S xdg-desktop-portal-gnome (or -kde, -hyprland, etc.)\n\n\
+Until then, set Typo’s shortcut backend to “Plugin only” in Settings if you need the legacy hotkey path."
+        )
+    }
+    else {
+        err
+    }
+}
+
 /// Starts XDG Portal global shortcut registration when appropriate (Wayland + user preference).
 /// Call once after `initializeStore()` on the frontend so `backend` matches persisted settings.
 #[cfg(target_os = "linux")]
@@ -210,7 +231,7 @@ fn init_linux_global_shortcuts(backend: String, app: tauri::AppHandle) -> Result
                         set_shortcut_registration_status(ShortcutRegistrationStatus {
                             backend: ShortcutRegistrationBackend::None,
                             plugin_fallback_attempted: false,
-                            error_message: Some(e),
+                            error_message: Some(format_global_shortcuts_portal_error(e)),
                         });
                     }
                 });

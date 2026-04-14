@@ -7,11 +7,11 @@
 
 > An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
 
-[![Download](https://img.shields.io/github/v/release/yuler/typo)](https://github.com/yuler/typo/releases)
+[Download](https://github.com/yuler/typo/releases)
 
 ## Screenshots
 
-![Screenshot](https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e)
+Screenshot
 
 ## Development
 
@@ -39,14 +39,35 @@ pnpm dev
 
 ## Wayland: Typo global shortcuts
 
-<!-- anchor:wayland-global-shortcuts-typo -->
-
 - On Wayland, Typo prefers **XDG Desktop Portal** `GlobalShortcuts` when the compositor or session exposes it.
 - The first time this path is used, the system may show a permission or shortcut-binding dialog.
 - This needs `xdg-desktop-portal` and a suitable portal backend on the host (for example GNOME or KDE). AppImage builds do not include these components.
 - If portal registration fails, Typo falls back to the global-shortcut plugin, which may still not receive shortcuts when the focused app is a native Wayland client.
 - Portal API reference: [org.freedesktop.portal.GlobalShortcuts](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.GlobalShortcuts.html).
 - Environment-variable workarounds that force **target applications** (for example editors) onto XWayland stay in the existing **Linux** FAQ: [Wayland Compatibility (e.g., VS Code)](#linux) (same subsection as the `xeyes` / VS Code notes).
+
+### Error: “A portal frontend implementing `org.freedesktop.portal.GlobalShortcuts` was not found”
+
+`xdg-desktop-portal` is running, but **no installed backend** advertises the **GlobalShortcuts** D-Bus API (or your compositor’s integration is missing). Typo cannot bind Wayland global shortcuts through the portal until you add a matching backend.
+
+Install **one** stack that fits your session (then **log out and back in**):
+
+| Session | Typical packages |
+|--------|-------------------|
+| GNOME on Debian/Ubuntu | `sudo apt install xdg-desktop-portal-gnome` |
+| KDE on Debian/Ubuntu | `sudo apt install xdg-desktop-portal-kde` |
+| Sway / other wlroots | `sudo apt install xdg-desktop-portal-wlr` |
+| Hyprland | `sudo apt install xdg-desktop-portal-hyprland` (name varies by distro) |
+| Fedora GNOME | `sudo dnf install xdg-desktop-portal-gnome` |
+| Arch | `pacman -S xdg-desktop-portal-gnome` (or `-kde`, `-hyprland`, `-wlr`, …) |
+
+Verify the interface exists (optional):
+
+```bash
+gdbus introspect --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop 2>/dev/null | grep -i GlobalShortcuts || true
+```
+
+Until a backend is available, use Typo **Settings → Global shortcut backend → Plugin only** if you need the legacy global-hotkey path (with Wayland limitations described above).
 
 ## FAQ
 

@@ -29,6 +29,7 @@ const form = ref({
 
 onMounted(async () => {
   shortcutStatus.value = await invoke<ShortcutRegistrationStatus>('get_shortcut_registration_status')
+  console.log(shortcutStatus.value)
   sessionKind.value = await invoke<string>('get_session_kind')
 
   form.value.autoselect = await store.get('autoselect')
@@ -83,7 +84,7 @@ async function onSubmit() {
       class="mt-4"
     >
       <AlertTitle>Global shortcuts</AlertTitle>
-      <AlertDescription>
+      <AlertDescription class="whitespace-pre-line">
         <template v-if="shortcutStatus.error_message">
           {{ shortcutStatus.error_message }}
         </template>
