@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
+import { invoke } from '@tauri-apps/api/core'
 import { check } from '@tauri-apps/plugin-updater'
 import { nextTick, onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
-import { initializeStore } from '@/store'
+import { get as storeGet, initializeStore } from '@/store'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
 const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
@@ -44,9 +45,11 @@ watch(() => currentWindow.value, async () => {
 })
 
 onMounted(async () => {
+  await initializeStore()
+  const linuxShortcutBackend = await storeGet('linux_shortcut_backend')
+  await invoke('init_linux_global_shortcuts', { backend: linuxShortcutBackend })
   checkUpgrade()
-  setupGlobalShortcut()
-  initializeStore()
+  await setupGlobalShortcut()
   initializeWindow()
 })
 </script>

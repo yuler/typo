@@ -35,12 +35,17 @@ The text to improve will be provided between ### markers:
 
 export type AI_PROVIDER = 'deepseek' | 'ollama'
 
+/** Linux global shortcuts: try Portal first, force Portal only, or force plugin only. */
+export type LinuxShortcutBackend = 'auto' | 'portal' | 'plugin'
+
 const DEFAULT_STORE = {
   autoselect: false,
   ai_provider: 'deepseek' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',
   ollama_model: '',
+  /** Persisted; applied on next app start unless init is called again. */
+  linux_shortcut_backend: 'auto' as LinuxShortcutBackend,
 }
 
 // only set default when key not exists

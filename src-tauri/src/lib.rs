@@ -39,7 +39,7 @@ async fn select_all(_app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
-        app
+        _app
             .run_on_main_thread(move || {
                 let _ = tx.send(select_all_sync());
             })
@@ -181,34 +181,56 @@ async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
     }
 }
 
+#[cfg(target_os = "linux")]
+static LINUX_PORTAL_INIT: std::sync::Once = std::sync::Once::new();
+
+/// Starts XDG Portal global shortcut registration when appropriate (Wayland + user preference).
+/// Call once after `initializeStore()` on the frontend so `backend` matches persisted settings.
+#[cfg(target_os = "linux")]
+#[tauri::command]
+fn init_linux_global_shortcuts(backend: String, app: tauri::AppHandle) -> Result<(), String> {
+    use session_linux::{session_kind_from_env, SessionKind};
+    use shortcut_status::{
+        set_shortcut_registration_status, ShortcutRegistrationBackend, ShortcutRegistrationStatus,
+    };
+
+    if session_kind_from_env() != SessionKind::Wayland {
+        return Ok(());
+    }
+
+    match backend.as_str() {
+        "plugin" => Ok(()),
+        "auto" | "portal" => {
+            LINUX_PORTAL_INIT.call_once(|| {
+                let handle = app.clone();
+                std::thread::spawn(move || {
+                    if let Err(e) = tauri::async_runtime::block_on(
+                        linux_global_shortcuts::try_register_portal(handle),
+                    ) {
+                        set_shortcut_registration_status(ShortcutRegistrationStatus {
+                            backend: ShortcutRegistrationBackend::None,
+                            plugin_fallback_attempted: false,
+                            error_message: Some(e),
+                        });
+                    }
+                });
+            });
+            Ok(())
+        }
+        _ => Ok(()),
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+#[tauri::command]
+fn init_linux_global_shortcuts(_backend: String, _app: tauri::AppHandle) -> Result<(), String> {
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .setup(|app| {
-            #[cfg(target_os = "linux")]
-            {
-                use session_linux::SessionKind;
-                use shortcut_status::{
-                    set_shortcut_registration_status, ShortcutRegistrationBackend,
-                    ShortcutRegistrationStatus,
-                };
-                if session_linux::session_kind_from_env() == SessionKind::Wayland {
-                    let handle = app.handle().clone();
-                    std::thread::spawn(move || {
-                        if let Err(e) = tauri::async_runtime::block_on(
-                            linux_global_shortcuts::try_register_portal(handle),
-                        ) {
-                            set_shortcut_registration_status(ShortcutRegistrationStatus {
-                                backend: ShortcutRegistrationBackend::None,
-                                plugin_fallback_attempted: false,
-                                error_message: Some(e),
-                            });
-                        }
-                    });
-                }
-            }
-            Ok(())
-        })
+        .setup(|_app| Ok(()))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -233,6 +255,7 @@ pub fn run() {
             get_shortcut_registration_status,
             shortcut_mark_plugin_active,
             get_session_kind,
+            init_linux_global_shortcuts,
             request_mac_accessibility_permissions,
         ])
         .run(tauri::generate_context!())

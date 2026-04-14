@@ -24,6 +24,7 @@ const form = ref({
   deepseek_api_key: '',
   ollama_model: '',
   system_prompt: '',
+  linux_shortcut_backend: 'auto' as store.LinuxShortcutBackend,
 })
 
 onMounted(async () => {
@@ -35,6 +36,7 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
+  form.value.linux_shortcut_backend = await store.get('linux_shortcut_backend')
 
   // autofocus textarea
   nextTick(() => {
@@ -60,6 +62,7 @@ async function onSubmit() {
     store.set('deepseek_api_key', form.value.deepseek_api_key),
     store.set('ollama_model', form.value.ollama_model),
     store.set('ai_system_prompt', form.value.system_prompt),
+    store.set('linux_shortcut_backend', form.value.linux_shortcut_backend),
   ])
   await store.save()
   setCurrentWindow('Main')
@@ -94,6 +97,28 @@ async function onSubmit() {
     </Alert>
     <form class="mt-4 w-full flex flex-col gap-4" @submit.prevent="onSubmit">
       <div class="grid w-full items-center gap-1.5">
+        <template v-if="sessionKind !== 'unsupported'">
+          <Label for="linux_shortcut_backend">Global shortcut backend (Linux)</Label>
+          <Select id="linux_shortcut_backend" v-model="form.linux_shortcut_backend">
+            <SelectTrigger class="w-full">
+              <SelectValue placeholder="Backend" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">
+                Auto (Portal on Wayland when available)
+              </SelectItem>
+              <SelectItem value="portal">
+                Portal only
+              </SelectItem>
+              <SelectItem value="plugin">
+                Plugin only
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p class="text-xs text-muted-foreground">
+            Changing this takes full effect after you restart Typo.
+          </p>
+        </template>
         <!-- Auto Select -->
         <div class="flex items-center space-x-2">
           <Switch id="autoselect" v-model="form.autoselect" />

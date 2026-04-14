@@ -1,3 +1,5 @@
+import type { LinuxShortcutBackend } from './store'
+
 export type ShortcutRegistrationBackend = 'portal' | 'plugin' | 'none'
 
 export interface ShortcutRegistrationStatus {
@@ -6,8 +8,21 @@ export interface ShortcutRegistrationStatus {
   error_message: string | null
 }
 
+/** Whether the frontend should register `@tauri-apps/plugin-global-shortcut` handlers. */
 export function shouldRegisterPluginGlobalShortcuts(
-  s: ShortcutRegistrationStatus,
+  status: ShortcutRegistrationStatus,
+  preference: LinuxShortcutBackend,
+  sessionKind: string,
 ): boolean {
-  return s.backend !== 'portal'
+  if (preference === 'portal') {
+    return false
+  }
+  if (preference === 'plugin') {
+    return true
+  }
+  // auto
+  if (sessionKind === 'wayland') {
+    return status.backend !== 'portal'
+  }
+  return status.backend !== 'portal'
 }

@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isRegistered, register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { useGlobalState } from '@/composables/useGlobalState'
-import store from './store'
+import store, { get as storeGet } from './store'
 import {
   type ShortcutRegistrationStatus,
   shouldRegisterPluginGlobalShortcuts,
@@ -36,6 +36,8 @@ async function onSettingsShortcutReleased() {
 export async function setupGlobalShortcut() {
   try {
     const status = await invoke<ShortcutRegistrationStatus>('get_shortcut_registration_status')
+    const preference = await storeGet('linux_shortcut_backend')
+    const sessionKind = await invoke<string>('get_session_kind')
 
     await listen<string>('typo-global-shortcut', async (e) => {
       if (e.payload === 'main') {
@@ -46,7 +48,7 @@ export async function setupGlobalShortcut() {
       }
     })
 
-    if (!shouldRegisterPluginGlobalShortcuts(status)) {
+    if (!shouldRegisterPluginGlobalShortcuts(status, preference, sessionKind)) {
       return
     }
 
