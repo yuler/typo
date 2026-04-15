@@ -22,15 +22,13 @@ export async function setupGlobalShortcut() {
       }
 
       const selectedText = await invoke('get_selected_text')
-
       const appWindow = WebviewWindow.getCurrent()
-      await appWindow?.setVisibleOnAllWorkspaces(true)
 
       if (selectedText) {
         await appWindow?.emit('set-input', { text: selectedText, mode: 'selected' })
       }
       else if (await store.get('autoselect')) {
-        await invoke('select_all')
+        await invoke('keyboard_select_all')
         const autoSelectedText = await invoke('get_selected_text')
         await appWindow?.emit('set-input', { text: autoSelectedText, mode: 'autoselect' })
       }

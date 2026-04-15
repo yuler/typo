@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
+import type { SystemInfo } from '@/types'
+import { invoke } from '@tauri-apps/api/core'
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { check } from '@tauri-apps/plugin-updater'
 import { nextTick, onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
+import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
@@ -10,6 +14,7 @@ import { initializeStore } from '@/store'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
 const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
+const isDev = import.meta.env.DEV
 
 async function checkUpgrade() {
   try {
@@ -44,8 +49,17 @@ watch(() => currentWindow.value, async () => {
 })
 
 onMounted(async () => {
+  const appWindow = WebviewWindow.getCurrent()
+  await appWindow?.setVisibleOnAllWorkspaces(true)
+
   checkUpgrade()
-  setupGlobalShortcut()
+  const systemInfo = await invoke<SystemInfo>('get_system_info')
+
+  const isLinuxWayland = systemInfo.os === 'linux' && systemInfo.is_wayland
+  if (!isLinuxWayland) {
+    await setupGlobalShortcut()
+  }
+
   initializeStore()
   initializeWindow()
 })
@@ -55,6 +69,7 @@ onMounted(async () => {
   <main class="dark glass h-screen w-screen overflow-hidden flex flex-col">
     <Navbar v-if="currentWindow !== 'Main'" data-tauri-drag-region @settings="() => onChangeWindow('Settings')" />
     <Window class="flex-1" />
+    <Ribbon v-if="isDev" />
   </main>
 </template>
 
