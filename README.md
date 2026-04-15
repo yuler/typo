@@ -11,7 +11,9 @@
 
 ## Screenshots
 
-Screenshot
+<!-- TODO: need updated -->
+
+- ![Screenshot](https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e)
 
 ## Development
 
@@ -37,19 +39,6 @@ pnpm dev
 - Support for DeepSeek & Ollama AI models
 - Global `Ctrl/Cmd + Shift + X` hotkey activation
 
-## Linux Wayland: Typo global shortcuts
-
-On Wayland, the built-in global shortcut is not registered for you. Add a shortcut manually:
-
-1. Open **Settings → Keyboard → Custom Shortcuts** (wording may differ slightly by desktop).
-2. Create a new shortcut that runs Typo with selection capture, for example:
-
-   ```bash
-   typo --selection
-   ```
-
-   Use the full path to the Typo binary or AppImage if `typo` is not on your `PATH`.
-
 ## FAQ
 
 ### macOS
@@ -57,7 +46,7 @@ On Wayland, the built-in global shortcut is not registered for you. Add a shortc
 - Run: `xattr -cr /Applications/typo.app`
 - Enable accessibility permission for the app
 
-### Linux
+### Linux Auto-updates
 
 For installation and auto-updates, we recommend using the AppImage version:
 
@@ -92,17 +81,11 @@ Categories=Utility;TextEditor;
 Terminal=false
 ```
 
-#### Wayland Compatibility (e.g., VS Code)
-
-This section applies to **Linux Wayland only**.
-
-Set up a system shortcut:
-
-1. Open `Settings -> Keyboard -> Custom Shortcuts`
-2. Add a shortcut command: `typo --selection`
-3. Set keys to: `Ctrl + Shift + X`
+### Linux Wayland Compatibility (e.g., VS Code)
 
 In Linux Wayland sessions, use this system shortcut instead of relying on app-level global shortcuts.
+
+#### Run app in X11 (XWayland)
 
 If selection capture still fails in specific apps (for example some Electron apps), running that app in X11 (XWayland) can be an optional workaround.
 
@@ -132,17 +115,15 @@ vim ~/.local/share/applications/code.desktop
 Exec=/usr/share/code/code %F --ozone-platform=x11
 ```
 
-### Ollma
+#### Typo global shortcuts
 
-- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
+On Wayland, the built-in global shortcut is not registered for you. Add a shortcut manually:
 
-https://copyq.readthedocs.io/en/stable/known-issues.html#on-linux-global-shortcuts-pasting-or-clipboard-monitoring-does-not-work
-
-https://copyq.readthedocs.io/en/stable/known-issues.html#on-linux-global-shortcuts-pasting-or-clipboard-monitoring-does-not-work
-
-### wayland
-
-My solution that works.
+1. Open `Settings -> Keyboard -> Custom Shortcuts`
+2. Add a shortcut command: `typo --selection`, Use the full path to the Typo binary or AppImage if `typo` is not on your `PATH`.
+3. Set keys to: `Ctrl + Shift + X`
+4. <details>
+   <summary>Setup ydotool (Highly recommended for Wayland users)</summary>
 
 **Add your user to group input**
 
@@ -176,3 +157,9 @@ Categories=GNOME;GTK;System;
 sudo apt install dex
 dex ~/.config/autostart/ydotoold.desktop
 ```
+
+</details>
+
+### Ollma
+
+- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
