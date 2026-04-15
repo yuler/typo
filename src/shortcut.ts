@@ -1,6 +1,5 @@
 import type { SessionInfo } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isRegistered, register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { useGlobalState } from '@/composables/useGlobalState'
 import store from './store'
@@ -26,9 +25,6 @@ export async function setupGlobalShortcut(sessionInfo?: SessionInfo) {
         }
 
         const selectedText = await invoke('get_selected_text')
-
-        const appWindow = WebviewWindow.getCurrent()
-        await appWindow?.setVisibleOnAllWorkspaces(true)
 
         if (selectedText) {
           await appWindow?.emit('set-input', { text: selectedText, mode: 'selected' })

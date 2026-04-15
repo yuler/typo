@@ -7,6 +7,7 @@ import { nextTick, onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
 import { initializeStore } from '@/store'
@@ -48,6 +49,9 @@ watch(() => currentWindow.value, async () => {
 })
 
 onMounted(async () => {
+  const appWindow = WebviewWindow.getCurrent()
+  await appWindow?.setVisibleOnAllWorkspaces(true)
+
   checkUpgrade()
   try {
     const sessionInfo = await invoke<SessionInfo>('get_session_info')

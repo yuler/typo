@@ -1,10 +1,11 @@
 use serde::Serialize;
 use tauri::Emitter;
-use tauri_plugin_notification::NotificationExt;
+use tauri_plugin_clipboard_manager::ClipboardExt;
 use std::sync::{Mutex, OnceLock};
 
 mod cli;
 mod keyboard;
+mod wl_clipboard;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
@@ -35,7 +36,7 @@ fn get_session_info() -> SessionInfo {
     }
 }
 
-fn in_linux_wayland() -> bool {
+pub(crate) fn in_linux_wayland() -> bool {
     if !cfg!(target_os = "linux") {
         return false;
     }
@@ -43,18 +44,6 @@ fn in_linux_wayland() -> bool {
     let wayland_display = std::env::var_os("WAYLAND_DISPLAY").is_some();
     let session_type = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
     wayland_display || session_type.eq_ignore_ascii_case("wayland")
-}
-
-fn notify_selection_capture_failure(app: &tauri::AppHandle, message: &str) {
-    if let Err(error) = app
-        .notification()
-        .builder()
-        .title("Typo")
-        .body(message)
-        .show()
-    {
-        eprintln!("Failed to show selection capture notification: {}", error);
-    }
 }
 
 #[derive(Clone, Serialize)]
@@ -69,41 +58,55 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
 }
 
 fn handle_selection_trigger(app: &tauri::AppHandle) {
-    match get_selected_text::get_selected_text() {
-        Ok(text) => {
-            let payload = SetInputPayload {
-                text,
-                mode: "selected".to_string(),
-            };
-            if let Err(error) = app.emit("set-input", payload) {
-                eprintln!("Failed to emit set-input event: {}", error);
-            }
-        }
-        Err(error) => {
-            let message = error.to_string();
-            notify_selection_capture_failure(app, &message);
-            eprintln!("Failed to get selected text: {}", message);
-        }
+    println!("handle_selection_trigger");
+
+    let text = if in_linux_wayland() {
+        get_selected_text_wayland(app)
+    } else {
+        get_selected_text_enigo(app)
+    };
+
+    let Some(text) = text else { return };
+
+    println!("text: {}", text);
+    let payload = SetInputPayload {
+        text,
+        mode: "selected".to_string(),
+    };
+    if let Err(error) = app.emit("set-input", payload) {
+        eprintln!("Failed to emit set-input event: {}", error);
     }
 }
 
-fn handle_startup_selection_trigger(app: &tauri::AppHandle) {
-    match get_selected_text::get_selected_text() {
-        Ok(text) => {
-            let payload = SetInputPayload {
-                text,
-                mode: "selected".to_string(),
-            };
-            if let Ok(mut pending) = pending_selection_payload().lock() {
-                *pending = Some(payload);
-            }
-        }
-        Err(error) => {
-            let message = error.to_string();
-            notify_selection_capture_failure(app, &message);
-            eprintln!("Failed to get startup selected text: {}", message);
-        }
+fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
+    // TODO: Try native shortcut first. If compositor blocks it, fallback to ydotool.
+    // let _ = keyboard::send_copy_shortcut_sync();
+    // std::thread::sleep(std::time::Duration::from_millis(80));
+    // if let Some(text) = wl_clipboard::copyq_selection() {
+    //     return Some(text);
+    // }
+
+    if wl_clipboard::ydotool_copy_shortcut() {
+        std::thread::sleep(std::time::Duration::from_millis(80));
+        let text = app.clipboard().read_text().unwrap_or_default();
+        if text.is_empty() { return None }
+        return Some(text);
     }
+
+    None
+}
+
+fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
+    keyboard::send_copy_shortcut_sync().ok()?;
+
+    std::thread::sleep(std::time::Duration::from_millis(100));
+
+    let text = app.clipboard().read_text().unwrap_or_default();
+    if text.is_empty() { None } else { Some(text) }
+}
+
+fn handle_startup_selection_trigger(_app: &tauri::AppHandle) {
+    
 }
 
 #[tauri::command]

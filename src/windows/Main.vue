@@ -34,7 +34,17 @@ async function processSetInputPayload(payload: SetInputPayload) {
   const { text, mode } = payload
 
   // eslint-disable-next-line no-console
-  console.debug({ mode })
+  console.debug({ text, mode })
+
+  if (!text.trim().length) {
+    errorText.value = 'No text to improve'
+    state.value = 'error'
+    setTimeout(() => {
+      state.value = 'idle'
+      errorText.value = ''
+    }, 3000)
+    return
+  }
 
   try {
     state.value = 'processing'

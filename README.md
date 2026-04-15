@@ -23,7 +23,7 @@ pnpm dev
 ## Usage
 
 1. Select any text you want to improve
-2. Press `Ctrl/Cmd + Shift + X` to activate the application (default for macOS, Windows, and Linux X11)
+2. Press `Ctrl/Cmd + Shift + X` to activate the application
 3. Wait for the response and replace the selected content
 
 ## How it works
@@ -36,6 +36,19 @@ pnpm dev
 
 - Support for DeepSeek & Ollama AI models
 - Global `Ctrl/Cmd + Shift + X` hotkey activation
+
+## Linux Wayland: Typo global shortcuts
+
+On Wayland, the built-in global shortcut is not registered for you. Add a shortcut manually:
+
+1. Open **Settings → Keyboard → Custom Shortcuts** (wording may differ slightly by desktop).
+2. Create a new shortcut that runs Typo with selection capture, for example:
+
+   ```bash
+   typo --selection
+   ```
+
+   Use the full path to the Typo binary or AppImage if `typo` is not on your `PATH`.
 
 ## FAQ
 
@@ -79,7 +92,7 @@ Categories=Utility;TextEditor;
 Terminal=false
 ```
 
-#### Wayland Compatibility (Linux only, e.g., VS Code)
+#### Wayland Compatibility (e.g., VS Code)
 
 This section applies to **Linux Wayland only**.
 
@@ -119,11 +132,47 @@ vim ~/.local/share/applications/code.desktop
 Exec=/usr/share/code/code %F --ozone-platform=x11
 ```
 
-**Troubleshooting (Wayland):**
-
-- Empty selection: some apps block synthetic `Ctrl+C`, so Typo may not receive selected text. Re-select and retry, or use the app's X11 mode as a workaround when available.
-- Clipboard issues: failures are often related to clipboard read restrictions, portal behavior, or desktop permission policy. Retry once and check clipboard managers/history tools or sandbox permissions.
-
 ### Ollma
 
 - [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
+
+https://copyq.readthedocs.io/en/stable/known-issues.html#on-linux-global-shortcuts-pasting-or-clipboard-monitoring-does-not-work
+
+你好
+
+### wayland
+
+My solution that works.
+
+**Add your user to group input**
+
+```
+usermod -aG input <USER>
+```
+
+**Add udev rule for `uinput`**
+
+```
+echo '## ydotoold fix
+##     https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993
+KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null
+```
+
+**Autostart ydotool**
+`/home/<USER>/.config/autostart/ydotoold.desktop`
+
+```
+[Desktop Entry]
+Type=Application
+Terminal=false
+Name=ydotool deamon
+Exec=/usr/bin/ydotoold
+Comment=Generic Linux command-line automation tool (no X!).
+Categories=GNOME;GTK;System;
+```
+
+```bash
+sudo apt install dex
+dex ~/.config/autostart/ydotoold.desktop
+```
