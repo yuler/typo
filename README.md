@@ -11,7 +11,7 @@
 
 ## Screenshots
 
-<!-- TODO: need updated -->
+<!-- TODO: need updated screenshots -->
 
 - ![Screenshot](https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e)
 
@@ -24,29 +24,31 @@ pnpm dev
 
 ## Usage
 
-1. Select any text you want to improve
-2. Press `Ctrl/Cmd + Shift + X` to activate the application
-3. Wait for the response and replace the selected content
+1. **Select** any text you want to improve.
+2. **Press** `Ctrl/Cmd + Shift + X` to activate the application.
+3. **Wait** for the AI response and let it replace the selected content automatically.
 
 ## How it works
 
-- Get the selected text
-- Send it to AI with a custom prompt(your can custom it in settings)
-- Copy the AI's response to the clipboard, then paste it at the current cursor position (using the clipboard helps avoid input method issues).
+1. **Capture**: Gets the currently selected text.
+2. **AI processing**: Sends it to AI with a custom prompt (configurable in settings).
+3. **Replacement**: Copies the AI's response to the clipboard, then pastes it at the current cursor position (using the clipboard helps avoid input method issues).
 
 ## Features
 
-- Support for DeepSeek & Ollama AI models
-- Global `Ctrl/Cmd + Shift + X` hotkey activation
+- **Multi-Model Support**: Works with DeepSeek and local Ollama models.
+- **Global Hotkeys**: Quick activation with `Ctrl/Cmd + Shift + X`.
+- **Intelligent Pasting**: Uses clipboard-based replacement for maximum compatibility.
+- **Customizable**: Tailor the AI behavior via system prompts.
 
 ## FAQ
 
 ### macOS
 
 - Run: `xattr -cr /Applications/typo.app`
-- Enable accessibility permission for the app
+- Enable **Accessibility Permission** for the app in System Settings.
 
-### Linux Auto-updates
+### Linux Installation (AppImage)
 
 For installation and auto-updates, we recommend using the AppImage version:
 
@@ -63,14 +65,9 @@ Create a desktop entry for easy access:
 sudo vim /usr/share/applications/typo.desktop
 ```
 
-Add the following content:
+Add the following content (replace `<$USER>` with your username):
 
-```bash
-# Download icon for the desktop entry (Icon=typo)
-sudo curl -L -o /usr/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
-```
-
-```text
+```ini
 [Desktop Entry]
 Name=Typo
 Comment=AI-powered text improvement tool
@@ -81,85 +78,71 @@ Categories=Utility;TextEditor;
 Terminal=false
 ```
 
-### Linux Wayland Compatibility (e.g., VS Code)
-
-In Linux Wayland sessions, use this system shortcut instead of relying on app-level global shortcuts.
-
-#### Run app in X11 (XWayland)
-
-If selection capture still fails in specific apps (for example some Electron apps), running that app in X11 (XWayland) can be an optional workaround.
-
-**Verify if an app is using X11:**
+Download the icon:
 
 ```bash
-sudo apt install x11-apps
-xeyes
+sudo curl -L -o /usr/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
 ```
 
-Hover your cursor over the app window. If the eyes follow your mouse, it's X11; if they freeze, it's Wayland.
+### Linux Wayland Compatibility
 
-**Force VS Code to use X11:**
+Wayland restricts global hotkey listeners for security. Use a **System Shortcut** instead of the app-level internal hotkey.
 
-Temporary via CLI:
+#### 1. Add a Custom Shortcut
+
+1. Open `Settings -> Keyboard -> Custom Shortcuts`.
+2. Add a command: `typo --selection` (or the full path to your AppImage).
+3. Set keys to: `Ctrl + Shift + X`.
+
+#### 2. Enhanced Clipboard Support (Recommended)
+
+To ensure reliable selection capture and pasting on Wayland, we highly recommend using **ydotool** for keyboard simulation:
+
+- **ydotool**: Fast keyboard simulation but requires manual setup.
+  <details open>
+  <summary>Setup ydotool</summary>
+
+  **Add your user to group input**
+
+  ```bash
+  sudo usermod -aG input $USER
+  ```
+
+  **Add udev rule for `uinput`**
+
+  ```bash
+  echo '## ydotoold fix
+  ```
+
+## https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993
+
+KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null
+
+````
+
+**Autostart ydotool daemon**
+Create `~/.config/autostart/ydotoold.desktop`:
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=ydotool daemon
+Exec=/usr/bin/ydotoold
+````
+
+  </details>
+
+#### 3. XWayland Workaround (Optional)
+
+If selection capture still fails in specific apps (like some Electron apps), running them in X11 mode can help:
 
 ```bash
+# Force VS Code to use X11
 code --ozone-platform=x11
 ```
 
-Permanent via Desktop Shortcut:
+### Ollama
 
-```bash
-cp /usr/share/applications/code.desktop ~/.local/share/applications/
-vim ~/.local/share/applications/code.desktop
-# Modify the Exec line to append the flag:
-Exec=/usr/share/code/code %F --ozone-platform=x11
-```
-
-#### Typo global shortcuts
-
-On Wayland, the built-in global shortcut is not registered for you. Add a shortcut manually:
-
-1. Open `Settings -> Keyboard -> Custom Shortcuts`
-2. Add a shortcut command: `typo --selection`, Use the full path to the Typo binary or AppImage if `typo` is not on your `PATH`.
-3. Set keys to: `Ctrl + Shift + X`
-4. <details>
-   <summary>Setup ydotool (Highly recommended for Wayland users)</summary>
-
-**Add your user to group input**
-
-```
-usermod -aG input <USER>
-```
-
-**Add udev rule for `uinput`**
-
-```
-echo '## ydotoold fix
-##     https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993
-KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
-' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null
-```
-
-**Autostart ydotool**
-`/home/<USER>/.config/autostart/ydotoold.desktop`
-
-```
-[Desktop Entry]
-Type=Application
-Terminal=false
-Name=ydotool deamon
-Exec=/usr/bin/ydotoold
-Comment=Generic Linux command-line automation tool (no X!).
-Categories=GNOME;GTK;System;
-```
-
-```bash
-sudo apt install dex
-dex ~/.config/autostart/ydotoold.desktop
-```
-
-</details>
-
-### Ollma
-
-- [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md)
+- Ensure Ollama is running (`ollama serve`).
+- See the [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) for more details.
