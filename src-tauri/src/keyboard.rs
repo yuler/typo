@@ -23,7 +23,7 @@ fn new_enigo() -> Result<(enigo::Enigo, enigo::Key), String> {
 }
 
 /// Sends `Ctrl + c` (Linux/Windows) or `Cmd + c` (macOS) to copy the current selection.
-pub(crate) fn engio_copy() -> Result<(), String> {
+pub(crate) fn enigo_copy() -> Result<(), String> {
     let (mut enigo, modifier) = new_enigo()?;
 
     let _ = enigo.key(modifier, enigo::Direction::Press);
@@ -34,7 +34,7 @@ pub(crate) fn engio_copy() -> Result<(), String> {
 }
 
 /// Sends `Ctrl + v` (Linux/Windows) or `Cmd + v` (macOS) to paste from the clipboard.
-pub(crate) fn engio_paste() -> Result<(), String> {
+pub(crate) fn enigo_paste() -> Result<(), String> {
     let (mut enigo, modifier) = new_enigo()?;
 
     let _ = enigo.key(modifier, enigo::Direction::Press);
@@ -45,7 +45,7 @@ pub(crate) fn engio_paste() -> Result<(), String> {
 }
 
 /// Sends `Ctrl + a` (Linux/Windows) or `Cmd + a` (macOS) to select all.
-pub fn engio_select_all() -> Result<(), String> {
+pub fn enigo_select_all() -> Result<(), String> {
     let (mut enigo, modifier) = new_enigo()?;
 
     let _ = enigo.key(modifier, enigo::Direction::Press);
@@ -69,7 +69,7 @@ pub fn enigo_paste_text(text: String, window: tauri::Window) -> Result<(), Strin
 
     std::thread::sleep(std::time::Duration::from_millis(50));
 
-    engio_paste().map_err(|e| e.to_string())?;
+    enigo_paste().map_err(|e| e.to_string())?;
 
     std::thread::sleep(std::time::Duration::from_millis(50));
 
@@ -165,7 +165,7 @@ fn keyboard_paste_text_wayland(text: String, window: tauri::Window) -> Result<()
     if !paste_ok {
         let ydotool_ok = ydotool_paste_shortcut();
         if !ydotool_ok {
-            engio_paste()
+            enigo_paste()
                 .map_err(|e| format!("Failed to paste from clipboard (copyq+ydotool+enigo): {}", e))?;
         }
     }
@@ -185,7 +185,7 @@ pub async fn keyboard_select_all(app: tauri::AppHandle) -> Result<(), String> {
     {
         let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
         app.run_on_main_thread(move || {
-            let _ = tx.send(engio_select_all());
+            let _ = tx.send(enigo_select_all());
         })
         .map_err(|e| e.to_string())?;
         tauri::async_runtime::spawn_blocking(move || match rx.recv() {
@@ -198,33 +198,57 @@ pub async fn keyboard_select_all(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(not(target_os = "macos"))]
     {
         let _ = app;
-        engio_select_all()
+        tauri::async_runtime::spawn_blocking(move || enigo_select_all())
+            .await
+            .map_err(|e| e.to_string())?
     }
 }
 
 #[tauri::command]
 pub async fn keyboard_paste_text(text: String, window: tauri::Window) -> Result<(), String> {
+    if crate::in_linux_wayland() {
+        return keyboard_paste_text_wayland(text, window);
+    }
+
+    let previous_clipboard = window.clipboard().read_text().unwrap_or_default();
+
+    window
+        .clipboard()
+        .write_text(text.clone())
+        .map_err(|e| e.to_string())?;
+
+    // On macOS, enigo MUST run on the main thread.
+    // We use async sleep and only dispatch the actual enigo call to the main thread
+    // to avoid stuttering.
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+
     #[cfg(target_os = "macos")]
     {
         let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
-        let window_for_task = window.clone();
         window
             .run_on_main_thread(move || {
-                let _ = tx.send(enigo_paste_text(text, window_for_task));
+                let _ = tx.send(enigo_paste());
             })
             .map_err(|e| e.to_string())?;
-        tauri::async_runtime::spawn_blocking(move || match rx.recv() {
-            Ok(r) => r,
-            Err(_) => Err("keyboard_paste_text was cancelled".to_string()),
-        })
-        .await
-        .map_err(|e| e.to_string())?
+
+        tauri::async_runtime::spawn_blocking(move || rx.recv().unwrap_or(Err("Paste failed".into())))
+            .await
+            .map_err(|e| e.to_string())??;
     }
+
     #[cfg(not(target_os = "macos"))]
     {
-        tauri::async_runtime::spawn_blocking(move || enigo_paste_text(text, window))
+        tauri::async_runtime::spawn_blocking(move || enigo_paste())
             .await
-            .map_err(|e| e.to_string())?
+            .map_err(|e| e.to_string())??;
     }
+
+    tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+
+    if !previous_clipboard.is_empty() {
+        let _ = window.clipboard().write_text(previous_clipboard);
+    }
+
+    Ok(())
 }
 

@@ -92,12 +92,17 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
 }
 
 fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
-    // TODO: Try ydotool first, then copyq, then native shortcut.
-    // Inject flag to clipboard?
+    // 1. Try ydotool first
     if keyboard::ydotool_copy_shortcut() {
         std::thread::sleep(std::time::Duration::from_millis(80));
         let text = app.clipboard().read_text().unwrap_or_default();
-        if text.is_empty() { return None }
+        if !text.is_empty() {
+            return Some(text);
+        }
+    }
+
+    // 2. Fallback to copyq selection
+    if let Some(text) = keyboard::copyq_selection() {
         return Some(text);
     }
 
@@ -105,7 +110,7 @@ fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
 }
 
 fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
-    keyboard::engio_copy().ok()?;
+    keyboard::enigo_copy().ok()?;
 
     std::thread::sleep(std::time::Duration::from_millis(100));
 
