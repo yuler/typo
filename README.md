@@ -138,7 +138,7 @@ Exec=/usr/share/code/code %F --ozone-platform=x11
 
 https://copyq.readthedocs.io/en/stable/known-issues.html#on-linux-global-shortcuts-pasting-or-clipboard-monitoring-does-not-work
 
-你好
+https://copyq.readthedocs.io/en/stable/known-issues.html#on-linux-global-shortcuts-pasting-or-clipboard-monitoring-does-not-work
 
 ### wayland
 

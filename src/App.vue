@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { CurrentWindow } from '@/composables/useGlobalState'
-import type { SessionInfo } from '@/types'
+import type { SystemInfo } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { check } from '@tauri-apps/plugin-updater'
 import { nextTick, onMounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { setupGlobalShortcut } from '@/shortcut'
 import { initializeStore } from '@/store'
@@ -53,14 +53,13 @@ onMounted(async () => {
   await appWindow?.setVisibleOnAllWorkspaces(true)
 
   checkUpgrade()
-  try {
-    const sessionInfo = await invoke<SessionInfo>('get_session_info')
-    await setupGlobalShortcut(sessionInfo)
-  }
-  catch (err) {
-    console.error('Failed to get session info, falling back to default shortcut setup:', err)
+  const systemInfo = await invoke<SystemInfo>('get_system_info')
+
+  const isLinuxWayland = systemInfo.os === 'linux' && systemInfo.is_wayland
+  if (!isLinuxWayland) {
     await setupGlobalShortcut()
   }
+
   initializeStore()
   initializeWindow()
 })

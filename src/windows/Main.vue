@@ -57,7 +57,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     state.value = 'result'
 
     await sleep(500)
-    await invoke('type_text', { text: output })
+    await invoke('keyboard_paste_text', { text: output })
 
     await sleep(1500)
     state.value = 'idle'
@@ -82,8 +82,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
 }
 
 onMounted(async () => {
-  const platform = await invoke('get_platform_info')
-  isMacOS.value = platform === 'macos'
+  const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  isMacOS.value = systemInfo.os === 'macos'
 
   if (isMacOS.value) {
     try {

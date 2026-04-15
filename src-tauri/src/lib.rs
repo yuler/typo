@@ -5,35 +5,48 @@ use std::sync::{Mutex, OnceLock};
 
 mod cli;
 mod keyboard;
-mod wl_clipboard;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-async fn get_selected_text() -> Result<String, String> {
-    let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
-    Ok(text)
-}
+fn request_mac_accessibility_permissions() -> Result<bool, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let trusted =
+            macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+        if trusted {
+            print!("Application is totally trusted!");
+        } else {
+            print!("Application isn't trusted :(");
+        }
+        Ok(trusted)
+    }
 
-#[tauri::command]
-async fn get_platform_info() -> Result<String, String> {
-    Ok(std::env::consts::OS.to_string())
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(true)
+    }
 }
 
 #[derive(Serialize)]
-struct SessionInfo {
+struct SystemInfo {
     os: String,
     is_wayland: bool,
 }
 
 #[tauri::command]
-fn get_session_info() -> SessionInfo {
-    SessionInfo {
+fn get_system_info() -> SystemInfo {
+    SystemInfo {
         os: std::env::consts::OS.to_string(),
         is_wayland: in_linux_wayland(),
     }
+}
+
+#[tauri::command]
+async fn get_selected_text() -> Result<String, String> {
+    let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
+    Ok(text)
 }
 
 pub(crate) fn in_linux_wayland() -> bool {
@@ -57,8 +70,8 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
     PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
 }
 
-fn handle_selection_trigger(app: &tauri::AppHandle) {
-    println!("handle_selection_trigger");
+fn app_cli_selection_trigger(app: &tauri::AppHandle) {
+    println!("app_cli_selection_trigger");
 
     let text = if in_linux_wayland() {
         get_selected_text_wayland(app)
@@ -79,14 +92,9 @@ fn handle_selection_trigger(app: &tauri::AppHandle) {
 }
 
 fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
-    // TODO: Try native shortcut first. If compositor blocks it, fallback to ydotool.
-    // let _ = keyboard::send_copy_shortcut_sync();
-    // std::thread::sleep(std::time::Duration::from_millis(80));
-    // if let Some(text) = wl_clipboard::copyq_selection() {
-    //     return Some(text);
-    // }
-
-    if wl_clipboard::ydotool_copy_shortcut() {
+    // TODO: Try ydotool first, then copyq, then native shortcut.
+    // Inject flag to clipboard?
+    if keyboard::ydotool_copy_shortcut() {
         std::thread::sleep(std::time::Duration::from_millis(80));
         let text = app.clipboard().read_text().unwrap_or_default();
         if text.is_empty() { return None }
@@ -97,7 +105,7 @@ fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
 }
 
 fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
-    keyboard::send_copy_shortcut_sync().ok()?;
+    keyboard::engio_copy().ok()?;
 
     std::thread::sleep(std::time::Duration::from_millis(100));
 
@@ -105,8 +113,21 @@ fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
     if text.is_empty() { None } else { Some(text) }
 }
 
-fn handle_startup_selection_trigger(_app: &tauri::AppHandle) {
-    
+fn app_cli_startup_selection_trigger(app: &tauri::AppHandle) {
+    let text = if in_linux_wayland() {
+        get_selected_text_wayland(app)
+    } else {
+        get_selected_text_enigo(app)
+    };
+
+    if let Some(text) = text {
+        if let Ok(mut pending) = pending_selection_payload().lock() {
+            *pending = Some(SetInputPayload {
+                text,
+                mode: "selected".to_string(),
+            });
+        }
+    }
 }
 
 #[tauri::command]
@@ -117,26 +138,6 @@ fn consume_pending_selection_input() -> Option<SetInputPayload> {
             eprintln!("Failed to access pending selection payload: {}", error);
             None
         }
-    }
-}
-
-#[tauri::command]
-fn request_mac_accessibility_permissions() -> Result<bool, String> {
-    #[cfg(target_os = "macos")]
-    {
-        let trusted =
-            macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
-        if trusted {
-            print!("Application is totally trusted!");
-        } else {
-            print!("Application isn't trusted :(");
-        }
-        Ok(trusted)
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        Ok(true)
     }
 }
 
@@ -162,23 +163,22 @@ pub fn run() {
                 app,
                 &argv,
                 in_linux_wayland(),
-                handle_selection_trigger,
+                app_cli_selection_trigger,
             );
         }))
         .setup(move |app| {
             if startup_selection && in_linux_wayland() {
-                handle_startup_selection_trigger(&app.handle());
+                app_cli_startup_selection_trigger(&app.handle());
             }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            get_selected_text,
-            keyboard::select_all,
-            keyboard::type_text,
-            get_platform_info,
-            get_session_info,
-            consume_pending_selection_input,
             request_mac_accessibility_permissions,
+            get_system_info,
+            get_selected_text,
+            keyboard::keyboard_select_all,
+            keyboard::keyboard_paste_text,
+            consume_pending_selection_input,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

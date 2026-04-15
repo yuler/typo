@@ -1,4 +1,4 @@
-export interface SessionInfo {
+export interface SystemInfo {
   os: string
   is_wayland: boolean
 }
