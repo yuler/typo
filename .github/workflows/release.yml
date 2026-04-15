@@ -35,6 +35,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: setup node
         uses: actions/setup-node@v6
         with:
@@ -67,9 +72,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: install frontend dependencies
-        run: |
-          corepack enable
-          pnpm install
+        run: pnpm install
 
       - uses: oNaiPs/secrets-to-env-action@v1
         with:
