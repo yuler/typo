@@ -114,12 +114,10 @@ To ensure reliable selection capture and pasting on Wayland, we highly recommend
   echo '## ydotoold fix
   ```
 
-## https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993
+## <https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993>
 
-KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
-' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null
-
-````
+`KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"
+' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null`
 
 **Autostart ydotool daemon**
 Create `~/.config/autostart/ydotoold.desktop`:
@@ -129,7 +127,7 @@ Create `~/.config/autostart/ydotoold.desktop`:
 Type=Application
 Name=ydotool daemon
 Exec=/usr/bin/ydotoold
-````
+```
 
   </details>
 

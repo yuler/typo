@@ -55,7 +55,7 @@ pub fn enigo_select_all() -> Result<(), String> {
     Ok(())
 }
 
-pub fn enigo_paste_text(text: String, window: tauri::Window) -> Result<(), String> {
+pub fn _enigo_paste_text(text: String, window: tauri::Window) -> Result<(), String> {
     if crate::in_linux_wayland() {
         return keyboard_paste_text_wayland(text, window);
     }
@@ -151,7 +151,6 @@ pub fn ydotool_paste_shortcut() -> bool {
     ctrl_v_output.status.success()
 }
 
-
 fn keyboard_paste_text_wayland(text: String, window: tauri::Window) -> Result<(), String> {
     let previous_clipboard = window.clipboard().read_text().unwrap_or_default();
     window
@@ -165,8 +164,12 @@ fn keyboard_paste_text_wayland(text: String, window: tauri::Window) -> Result<()
     if !paste_ok {
         let ydotool_ok = ydotool_paste_shortcut();
         if !ydotool_ok {
-            enigo_paste()
-                .map_err(|e| format!("Failed to paste from clipboard (copyq+ydotool+enigo): {}", e))?;
+            enigo_paste().map_err(|e| {
+                format!(
+                    "Failed to paste from clipboard (copyq+ydotool+enigo): {}",
+                    e
+                )
+            })?;
         }
     }
 
@@ -207,7 +210,11 @@ pub async fn keyboard_select_all(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub async fn keyboard_paste_text(text: String, window: tauri::Window) -> Result<(), String> {
     if crate::in_linux_wayland() {
-        return keyboard_paste_text_wayland(text, window);
+        return tauri::async_runtime::spawn_blocking(move || {
+            keyboard_paste_text_wayland(text, window)
+        })
+        .await
+        .map_err(|e| e.to_string())?;
     }
 
     let previous_clipboard = window.clipboard().read_text().unwrap_or_default();
@@ -231,9 +238,11 @@ pub async fn keyboard_paste_text(text: String, window: tauri::Window) -> Result<
             })
             .map_err(|e| e.to_string())?;
 
-        tauri::async_runtime::spawn_blocking(move || rx.recv().unwrap_or(Err("Paste failed".into())))
-            .await
-            .map_err(|e| e.to_string())??;
+        tauri::async_runtime::spawn_blocking(move || {
+            rx.recv().unwrap_or(Err("Paste failed".into()))
+        })
+        .await
+        .map_err(|e| e.to_string())??;
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -251,4 +260,3 @@ pub async fn keyboard_paste_text(text: String, window: tauri::Window) -> Result<
 
     Ok(())
 }
-
