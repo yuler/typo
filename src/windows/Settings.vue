@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { setupGlobalShortcut } from '@/shortcut'
 import * as store from '@/store'
 
 const { setCurrentWindow } = useGlobalState()
@@ -24,6 +25,7 @@ const form = ref({
   ollama_model: '',
   system_prompt: '',
   slash_commands: [] as store.SlashCommand[],
+  global_shortcut: '',
 })
 
 const ollamaModels = ref<any[]>([])
@@ -38,7 +40,8 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
-  
+  form.value.global_shortcut = await store.get('global_shortcut')
+
   const shortcuts = await store.get('slash_commands')
   form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
 
@@ -79,6 +82,10 @@ async function onSubmit() {
     .filter(item => item.key && item.value)
     .slice(0, 5)
 
+  // Register shortcut first to see if it succeeds or falls back
+  const actualShortcut = await setupGlobalShortcut(form.value.global_shortcut)
+  form.value.global_shortcut = actualShortcut
+
   await Promise.all([
     store.set('autoselect', form.value.autoselect),
     store.set('ai_provider', form.value.ai_provider),
@@ -86,6 +93,7 @@ async function onSubmit() {
     store.set('ollama_model', form.value.ollama_model),
     store.set('ai_system_prompt', form.value.system_prompt),
     store.set('slash_commands', slashCommands),
+    store.set('global_shortcut', actualShortcut),
   ])
   await store.save()
   setCurrentWindow('Main')
@@ -126,6 +134,12 @@ async function onSubmit() {
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
                 <Label for="autoselect">Auto Select</Label>
+              </div>
+
+              <div class="grid w-full items-center gap-2 mt-2">
+                <Label for="global_shortcut">Global Shortcut</Label>
+                <Input id="global_shortcut" v-model="form.global_shortcut" placeholder="CommandOrControl+Shift+X" />
+                <p class="text-xs text-muted-foreground">Example: <code>Alt+Space</code>, <code>Control+Shift+X</code>. Will fallback to default if invalid or conflicted.</p>
               </div>
 
               <Label for="ai_provider">AI Provider</Label>
