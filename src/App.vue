@@ -60,7 +60,7 @@ onMounted(async () => {
     await setupGlobalShortcut()
   }
 
-  initializeStore()
+  await initializeStore()
   initializeWindow()
 })
 </script>

@@ -7,10 +7,10 @@ import { get } from './store'
 async function aiProcess(model: LanguageModelV1, text: string, abortSignal?: AbortSignal): Promise<string> {
   const [systemPrompt, shortcuts] = await Promise.all([
     get('ai_system_prompt'),
-    get('prompt_shortcuts'),
+    get('slash_commands'),
   ])
 
-  const { text: inputText, systemPrompt: finalSystemPrompt } = resolveSlashCommand(
+  const { text: inputText, systemPrompt: finalSystemPrompt, command } = resolveSlashCommand(
     text,
     systemPrompt,
     parseSlashCommands(shortcuts),
@@ -22,7 +22,9 @@ async function aiProcess(model: LanguageModelV1, text: string, abortSignal?: Abo
     messages: [
       {
         role: 'user',
-        content: `### Input\n${inputText}\n###`,
+        // If a slash command is used, we send the raw text to be more compatible with the custom instructions
+        // If not, we use our standard wrapper
+        content: command ? inputText : `### Input\n${inputText}\n###`,
       },
     ],
     abortSignal,

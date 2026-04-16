@@ -22,7 +22,7 @@ const form = ref({
   deepseek_api_key: '',
   ollama_model: '',
   system_prompt: '',
-  prompt_shortcuts: [] as store.PromptShortcut[],
+  slash_commands: [] as store.SlashCommand[],
 })
 
 const ollamaModels = ref<any[]>([])
@@ -38,8 +38,8 @@ onMounted(async () => {
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
   
-  const shortcuts = await store.get('prompt_shortcuts')
-  form.value.prompt_shortcuts = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
+  const shortcuts = await store.get('slash_commands')
+  form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
 
   if (form.value.ai_provider === 'ollama') {
     await loadOllamaModels()
@@ -61,19 +61,19 @@ watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
 })
 
 function addPromptShortcut() {
-  if (form.value.prompt_shortcuts.length >= 5) {
+  if (form.value.slash_commands.length >= 5) {
     return
   }
 
-  form.value.prompt_shortcuts.push({ id: crypto.randomUUID(), key: '', value: '' })
+  form.value.slash_commands.push({ id: crypto.randomUUID(), key: '', value: '' })
 }
 
 function removePromptShortcut(index: number) {
-  form.value.prompt_shortcuts.splice(index, 1)
+  form.value.slash_commands.splice(index, 1)
 }
 
 async function onSubmit() {
-  const promptShortcuts = form.value.prompt_shortcuts
+  const slashCommands = form.value.slash_commands
     .map(item => ({ id: item.id, key: item.key.trim(), value: item.value.trim() }))
     .filter(item => item.key && item.value)
     .slice(0, 5)
@@ -84,7 +84,7 @@ async function onSubmit() {
     store.set('deepseek_api_key', form.value.deepseek_api_key),
     store.set('ollama_model', form.value.ollama_model),
     store.set('ai_system_prompt', form.value.system_prompt),
-    store.set('prompt_shortcuts', promptShortcuts),
+    store.set('slash_commands', slashCommands),
   ])
   await store.save()
   setCurrentWindow('Main')
@@ -178,14 +178,14 @@ async function onSubmit() {
             <div class="grid w-full gap-3">
               <div class="flex items-center justify-between">
                 <Label>Prompt Shortcuts (Max 5)</Label>
-                <Button type="button" variant="outline" :disabled="form.prompt_shortcuts.length >= 5" @click="addPromptShortcut">
+                <Button type="button" variant="outline" :disabled="form.slash_commands.length >= 5" @click="addPromptShortcut">
                   <PlusIcon class="w-4 h-4" />
                   Add Prompt
                 </Button>
               </div>
 
               <div
-                v-for="(item, index) in form.prompt_shortcuts"
+                v-for="(item, index) in form.slash_commands"
                 :key="item.id"
                 class="rounded-lg border p-3 grid gap-2"
               >
