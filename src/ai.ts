@@ -1,17 +1,30 @@
 import { createDeepSeek } from '@ai-sdk/deepseek'
-import { generateText } from 'ai'
+import { generateText, type LanguageModelV1 } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
-import { get, SYSTEM_PROMPT } from './store'
+import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
+import { get } from './store'
 
-export async function deepSeekCorrect(text: string, abortSignal?: AbortSignal): Promise<string> {
-  const apiKey = await get('deepseek_api_key')
+async function aiProcess(model: LanguageModelV1, text: string, abortSignal?: AbortSignal): Promise<string> {
+  const [systemPrompt, shortcuts] = await Promise.all([
+    get('ai_system_prompt'),
+    get('slash_commands'),
+  ])
+
+  const { text: inputText, systemPrompt: finalSystemPrompt, command } = resolveSlashCommand(
+    text,
+    systemPrompt,
+    parseSlashCommands(shortcuts),
+  )
+
   const { text: result } = await generateText({
-    model: createDeepSeek({ apiKey }).chat('deepseek-chat'),
-    system: SYSTEM_PROMPT,
+    model,
+    system: finalSystemPrompt,
     messages: [
       {
         role: 'user',
-        content: `### Input\n${text}\n###`,
+        // If a slash command is used, we send the raw text to be more compatible with the custom instructions
+        // If not, we use our standard wrapper
+        content: command ? inputText : `### Input\n${inputText}\n###`,
       },
     ],
     abortSignal,
@@ -19,18 +32,12 @@ export async function deepSeekCorrect(text: string, abortSignal?: AbortSignal): 
   return result
 }
 
-export async function ollamaCorrect(text: string, abortSignal?: AbortSignal): Promise<string> {
+export async function deepSeekProcess(text: string, abortSignal?: AbortSignal): Promise<string> {
+  const apiKey = await get('deepseek_api_key')
+  return aiProcess(createDeepSeek({ apiKey }).chat('deepseek-chat'), text, abortSignal)
+}
+
+export async function ollamaProcess(text: string, abortSignal?: AbortSignal): Promise<string> {
   const model = await get('ollama_model')
-  const { text: result } = await generateText({
-    model: createOllama().chat(model),
-    system: SYSTEM_PROMPT,
-    messages: [
-      {
-        role: 'user',
-        content: `### Input\n${text}\n###`,
-      },
-    ],
-    abortSignal,
-  })
-  return result
+  return aiProcess(createOllama().chat(model), text, abortSignal)
 }

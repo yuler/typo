@@ -5,6 +5,10 @@
 
 # typo
 
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh.md">简体中文</a>
+</p>
+
 > An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
 
 [Download](https://github.com/yuler/typo/releases)
@@ -40,6 +44,27 @@ pnpm dev
 - **Global Hotkeys**: Quick activation with `Ctrl/Cmd + Shift + X`.
 - **Intelligent Pasting**: Uses clipboard-based replacement for maximum compatibility.
 - **Customizable**: Tailor the AI behavior via system prompts.
+
+
+## Prompt shortcuts
+
+You can define up to **5** custom prompt shortcuts in **Settings -> Prompts**.
+
+- Each shortcut has a `key` (for example `/tr:zh` or `/prompt`) and an instruction `value`.
+- Trigger it from selected text with one of these forms:
+  - **Leading**: first line starts with `/command`
+  - **Trailing**: last line starts with `/command`
+- Template placeholders in shortcut values:
+  - `{{args}}`: arguments after the command on the same line, e.g. `/prompt xxx`
+  - `{{text}}`: cleaned selected text after command line is removed
+
+Example:
+
+```text
+/prompt Translate to Japanese in polite style
+
+你好啊
+```
 
 ## FAQ
 
