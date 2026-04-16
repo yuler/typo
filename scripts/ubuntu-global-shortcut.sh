@@ -14,6 +14,16 @@ while [[ "$#" -gt 0 ]]; do
         --local) MODE="local"; shift ;;
         --global) MODE="global"; shift ;;
         --binding|-b) BINDING="$2"; shift 2 ;;
+        --help|-h)
+            echo "Usage: $0 [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --local          Set the shortcut command for local debug build"
+            echo "  --global         Set the shortcut command for global installation (default)"
+            echo "  --binding, -b    Specify the shortcut binding (default: <Control><Shift>x)"
+            echo "  --help, -h       Show this help message and exit"
+            exit 0
+            ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
 done
@@ -57,7 +67,7 @@ if [ -z "$NEW_KEY_PATH" ]; then
             fi
         done < <(echo "$current_bindings" | grep -o "'[^']*'")
         new_bindings+="'$NEW_KEY_PATH']"
-        
+
         gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "$new_bindings"
     fi
 fi
