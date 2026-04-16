@@ -35,16 +35,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: setup node
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          cache: true
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
