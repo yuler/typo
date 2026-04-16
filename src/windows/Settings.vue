@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
+import { EyeIcon, EyeOffIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ const { setCurrentWindow } = useGlobalState()
 type SettingsTab = 'basic' | 'prompts'
 
 const activeTab = ref<SettingsTab>('basic')
+const showApiKey = ref(false)
 
 const form = ref({
   autoselect: false,
@@ -161,7 +162,24 @@ async function onSubmit() {
 
             <div v-if="form.ai_provider === 'deepseek'" class="grid w-full items-center gap-2">
               <Label for="deepseek_api_key">DeepSeek API Key</Label>
-              <Input id="deepseek_api_key" v-model="form.deepseek_api_key" type="password" autocomplete="off" placeholder="Enter your DeepSeek API Key" />
+              <div class="relative w-full">
+                <Input
+                  id="deepseek_api_key"
+                  v-model="form.deepseek_api_key"
+                  :type="showApiKey ? 'text' : 'password'"
+                  autocomplete="off"
+                  placeholder="Enter your DeepSeek API Key"
+                  class="pr-10"
+                />
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground cursor-pointer"
+                  @click="showApiKey = !showApiKey"
+                >
+                  <EyeIcon v-if="!showApiKey" class="h-4 w-4" />
+                  <EyeOffIcon v-else class="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </template>
 
