@@ -1,19 +1,14 @@
 import { invoke } from '@tauri-apps/api/core'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isRegistered, register, unregister } from '@tauri-apps/plugin-global-shortcut'
-import { useGlobalState } from '@/composables/useGlobalState'
 import store from './store'
 
 const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+X'
-const SETTING_SHORTCUT = 'CommandOrControl+,'
 
 export async function setupGlobalShortcut() {
   try {
     if (await isRegistered(DEFAULT_SHORTCUT)) {
       await unregister(DEFAULT_SHORTCUT)
-    }
-    if (await isRegistered(SETTING_SHORTCUT)) {
-      await unregister(SETTING_SHORTCUT)
     }
 
     await register(DEFAULT_SHORTCUT, async (event) => {
@@ -32,15 +27,6 @@ export async function setupGlobalShortcut() {
         const autoSelectedText = await invoke('get_selected_text')
         await appWindow?.emit('set-input', { text: autoSelectedText, mode: 'autoselect' })
       }
-    })
-
-    await register(SETTING_SHORTCUT, async (event) => {
-      if (event.state !== 'Released') {
-        return
-      }
-
-      const { setCurrentWindow } = useGlobalState()
-      setCurrentWindow('Settings')
     })
   }
   catch (error) {
