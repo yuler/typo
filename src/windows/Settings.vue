@@ -30,6 +30,49 @@ const form = ref({
 
 const ollamaModels = ref<any[]>([])
 
+const isCapturingShortcut = ref(false)
+const shortcutConflictError = ref('')
+
+function startCapture() {
+  isCapturingShortcut.value = true
+  shortcutConflictError.value = ''
+  window.addEventListener('keydown', handleShortcutKeyDown)
+}
+
+function stopCapture() {
+  isCapturingShortcut.value = false
+  window.removeEventListener('keydown', handleShortcutKeyDown)
+}
+
+function handleShortcutKeyDown(e: KeyboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+
+  // Handle Escape to cancel
+  if (e.key === 'Escape') {
+    stopCapture()
+    return
+  }
+
+  // Define modifiers
+  const modifiers: string[] = []
+  if (e.ctrlKey || e.metaKey) modifiers.push('CommandOrControl')
+  if (e.altKey) modifiers.push('Alt')
+  if (e.shiftKey) modifiers.push('Shift')
+
+  // Ignore if only modifiers are pressed
+  if (['Control', 'Alt', 'Shift', 'Meta', 'CapsLock'].includes(e.key)) return
+
+  // Format the key (Tauri expects capitalized keys like 'A' or named keys like 'Space')
+  let key = e.key
+  if (key === ' ') key = 'Space'
+  if (key.length === 1) key = key.toUpperCase()
+
+  const captured = [...modifiers, key].join('+')
+  form.value.global_shortcut = captured
+  stopCapture()
+}
+
 async function loadOllamaModels() {
   ollamaModels.value = await store.getOllamaModels()
 }
@@ -83,8 +126,13 @@ async function onSubmit() {
     .slice(0, 5)
 
   // Register shortcut first to see if it succeeds or falls back
-  const actualShortcut = await setupGlobalShortcut(form.value.global_shortcut)
-  form.value.global_shortcut = actualShortcut
+  const requestedShortcut = form.value.global_shortcut
+  const actualShortcut = await setupGlobalShortcut(requestedShortcut)
+
+  if (requestedShortcut && actualShortcut !== requestedShortcut) {
+    shortcutConflictError.value = `Conflict detected! Fallback to default: ${actualShortcut}`
+    form.value.global_shortcut = actualShortcut
+  }
 
   await Promise.all([
     store.set('autoselect', form.value.autoselect),
@@ -96,7 +144,10 @@ async function onSubmit() {
     store.set('global_shortcut', actualShortcut),
   ])
   await store.save()
-  setCurrentWindow('Main')
+
+  if (!shortcutConflictError.value) {
+    setCurrentWindow('Main')
+  }
 }
 </script>
 
