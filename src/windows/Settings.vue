@@ -187,11 +187,37 @@ async function onSubmit() {
                 <Label for="autoselect">Auto Select</Label>
               </div>
 
-              <div class="grid w-full items-center gap-2 mt-2">
-                <Label for="global_shortcut">Global Shortcut</Label>
-                <Input id="global_shortcut" v-model="form.global_shortcut" placeholder="CommandOrControl+Shift+X" />
-                <p class="text-xs text-muted-foreground">Example: <code>Alt+Space</code>, <code>Control+Shift+X</code>. Will fallback to default if invalid or conflicted.</p>
+            <div class="grid w-full items-center gap-2 mt-2">
+              <Label for="global_shortcut">Global Shortcut</Label>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    class="w-full justify-start font-mono"
+                    :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
+                    @click="isCapturingShortcut ? stopCapture() : startCapture()"
+                  >
+                    {{ isCapturingShortcut ? 'Listening... (Press any key or Esc to cancel)' : form.global_shortcut || 'Click to set shortcut' }}
+                  </Button>
+                  <Button
+                    v-if="!isCapturingShortcut && form.global_shortcut"
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    @click="form.global_shortcut = 'CommandOrControl+Shift+X'"
+                  >
+                    <Trash2Icon class="h-4 w-4" />
+                  </Button>
+                </div>
+                <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
+                  {{ shortcutConflictError }}
+                </p>
+                <p class="text-xs text-muted-foreground">
+                  Click the button then press your desired key combination.
+                </p>
               </div>
+            </div>
 
               <Label for="ai_provider">AI Provider</Label>
               <Select id="ai_provider" v-model="form.ai_provider">
