@@ -5,7 +5,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { check } from '@tauri-apps/plugin-updater'
 import { Loader2Icon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { deepSeekCorrect, ollamaCorrect } from '@/ai'
+import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import * as store from '@/store'
@@ -125,18 +125,18 @@ let abortController: AbortController | null = null
 async function fetchCorrection(text: string): Promise<string> {
   abortController = new AbortController()
   const aiProvider = await store.get('ai_provider')
-  let correct: (text: string, abortSignal?: AbortSignal) => Promise<string>
+  let process: (text: string, abortSignal?: AbortSignal) => Promise<string>
   switch (aiProvider) {
     case 'deepseek':
-      correct = deepSeekCorrect
+      process = deepSeekProcess
       break
     case 'ollama':
-      correct = ollamaCorrect
+      process = ollamaProcess
       break
     default:
       throw new Error('Invalid AI provider')
   }
-  return correct(text, abortController.signal)
+  return process(text, abortController.signal)
 }
 
 async function checkUpgrade() {

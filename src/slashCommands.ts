@@ -2,7 +2,10 @@ import type { PromptShortcut } from './store'
 
 export type SlashCommandMap = Record<string, string>
 
-export function parsePromptShortcuts(shortcuts: PromptShortcut[]): SlashCommandMap {
+/**
+ * Parses raw prompt shortcuts into a map of slash commands.
+ */
+export function parseSlashCommands(shortcuts: PromptShortcut[]): SlashCommandMap {
   return Object.fromEntries(
     shortcuts
       .filter(item => item.key.trim().startsWith('/') && item.value.trim())
@@ -16,14 +19,17 @@ interface ResolvedPrompt {
   command?: string
 }
 
-export function resolveSlashPrompt(text: string, baseSystemPrompt: string, commands: SlashCommandMap): ResolvedPrompt {
+/**
+ * Resolves slash commands from the input text (only leading or trailing).
+ */
+export function resolveSlashCommand(text: string, baseSystemPrompt: string, commands: SlashCommandMap): ResolvedPrompt {
   const lines = text.split(/\r?\n/)
   const nonEmptyLines = lines.filter(l => l.trim())
   if (!nonEmptyLines.length) {
     return { text, systemPrompt: baseSystemPrompt }
   }
 
-  // 1. Check first line for full line command
+  // 1. Check first line for leading command (e.g. "/command args")
   const firstLine = lines[0].trim()
   if (firstLine.startsWith('/')) {
     const res = matchCommand(firstLine, commands)
@@ -33,7 +39,7 @@ export function resolveSlashPrompt(text: string, baseSystemPrompt: string, comma
     }
   }
 
-  // 2. Check last line for full line command or trailing command
+  // 2. Check last line for trailing command (e.g. "/command args")
   const lastLineIdx = lines.length - 1
   const lastLine = lines[lastLineIdx].trim()
   if (lastLine.startsWith('/')) {
@@ -41,20 +47,6 @@ export function resolveSlashPrompt(text: string, baseSystemPrompt: string, comma
     if (res) {
       const cleanText = lines.slice(0, lastLineIdx).join('\n').trim()
       return finalize(res.command, res.template, res.args, cleanText, baseSystemPrompt)
-    }
-  }
-
-  // 3. Trailing command on last line (e.g. "some text /command")
-  const lastLineParts = lastLine.split(/\s+/)
-  if (lastLineParts.length > 1) {
-    const lastPart = lastLineParts[lastLineParts.length - 1]
-    if (lastPart.startsWith('/')) {
-      const template = commands[lastPart]
-      if (template) {
-        const contentLine = lines[lastLineIdx].slice(0, lines[lastLineIdx].lastIndexOf(lastPart)).trim()
-        const cleanText = [...lines.slice(0, lastLineIdx), contentLine].join('\n').trim()
-        return finalize(lastPart, template, '', cleanText, baseSystemPrompt)
-      }
     }
   }
 

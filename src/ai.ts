@@ -1,19 +1,19 @@
 import { createDeepSeek } from '@ai-sdk/deepseek'
 import { generateText, type LanguageModelV1 } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
-import { parsePromptShortcuts, resolveSlashPrompt } from './slashCommands'
+import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
 import { get } from './store'
 
-async function aiCorrect(model: LanguageModelV1, text: string, abortSignal?: AbortSignal): Promise<string> {
-  const [systemPrompt, slashCommandsRaw] = await Promise.all([
+async function aiProcess(model: LanguageModelV1, text: string, abortSignal?: AbortSignal): Promise<string> {
+  const [systemPrompt, shortcuts] = await Promise.all([
     get('ai_system_prompt'),
     get('prompt_shortcuts'),
   ])
 
-  const { text: inputText, systemPrompt: finalSystemPrompt } = resolveSlashPrompt(
+  const { text: inputText, systemPrompt: finalSystemPrompt } = resolveSlashCommand(
     text,
     systemPrompt,
-    parsePromptShortcuts(slashCommandsRaw),
+    parseSlashCommands(shortcuts),
   )
 
   const { text: result } = await generateText({
@@ -30,12 +30,12 @@ async function aiCorrect(model: LanguageModelV1, text: string, abortSignal?: Abo
   return result
 }
 
-export async function deepSeekCorrect(text: string, abortSignal?: AbortSignal): Promise<string> {
+export async function deepSeekProcess(text: string, abortSignal?: AbortSignal): Promise<string> {
   const apiKey = await get('deepseek_api_key')
-  return aiCorrect(createDeepSeek({ apiKey }).chat('deepseek-chat'), text, abortSignal)
+  return aiProcess(createDeepSeek({ apiKey }).chat('deepseek-chat'), text, abortSignal)
 }
 
-export async function ollamaCorrect(text: string, abortSignal?: AbortSignal): Promise<string> {
+export async function ollamaProcess(text: string, abortSignal?: AbortSignal): Promise<string> {
   const model = await get('ollama_model')
-  return aiCorrect(createOllama().chat(model), text, abortSignal)
+  return aiProcess(createOllama().chat(model), text, abortSignal)
 }
