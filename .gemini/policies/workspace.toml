@@ -1,0 +1,37 @@
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = ["git", "gh", "rtk"]
+decision = "allow"
+priority = 100
+modes = ["autoEdit", "default"]
+
+[[rule]]
+toolName = ["webfetch", "mcp_*_webfetch"]
+decision = "allow"
+priority = 100
+modes = ["autoEdit", "default"]
+
+[[rule]]
+mcpName = "superpower"
+decision = "allow"
+priority = 100
+modes = ["autoEdit", "default"]
+
+[[rule]]
+toolName = "*"
+subagent = "superpower"
+decision = "allow"
+priority = 100
+modes = ["autoEdit", "default"]
+
+[[rule]]
+extensionName = "superpower"
+decision = "allow"
+priority = 100
+modes = ["autoEdit", "default"]
+
+[[rule]]
+toolName = "superpower:*"
+decision = "allow"
+priority = 100
+modes = ["autoEdit", "default"]
