@@ -74,7 +74,7 @@ function removePromptShortcut(index: number) {
 
 async function onSubmit() {
   const slashCommands = form.value.slash_commands
-    .map(item => ({ id: item.id, key: item.key.trim(), value: item.value.trim() }))
+    .map(item => ({ ...item, key: item.key.trim(), value: item.value.trim() }))
     .filter(item => item.key && item.value)
     .slice(0, 5)
 
