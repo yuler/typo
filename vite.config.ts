@@ -31,10 +31,6 @@ export default defineConfig(async () => ({
           port: 1421,
         }
       : undefined,
-    watch: {
-      // 3. tell vite only watch `src`
-      ignored: ['**/*', '!**/src/**'],
-    },
   },
 
   resolve: {
