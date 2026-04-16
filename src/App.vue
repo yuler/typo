@@ -55,13 +55,13 @@ onMounted(async () => {
   checkUpgrade()
   const systemInfo = await invoke<SystemInfo>('get_system_info')
 
+  await initializeStore()
+  initializeWindow()
+
   const isLinuxWayland = systemInfo.os === 'linux' && systemInfo.is_wayland
   if (!isLinuxWayland) {
     await setupGlobalShortcut()
   }
-
-  await initializeStore()
-  initializeWindow()
 })
 </script>
 
