@@ -1,16 +1,19 @@
 #!/bin/bash
+set -euo pipefail
 
 # Settings -> Keyboard -> Custom Shortcuts
 
 # Default values
 MODE="global"
 CMD="typo --selection"
+BINDING="<Control><Shift>x"
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --local) MODE="local"; shift ;;
         --global) MODE="global"; shift ;;
+        --binding|-b) BINDING="$2"; shift 2 ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
 done
@@ -26,20 +29,18 @@ fi
 current_bindings=$(gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings)
 NEW_KEY_PATH=""
 
-# Convert ['path1', 'path2'] to a space-separated list of paths
-paths=$(echo "$current_bindings" | tr -d "[]'," | sed "s/@as //g")
-
-for p in $paths; do
-    # Remove potential single quotes
+# Extract the quoted strings and iterate over them safely using a while loop
+while read -r p; do
+    # Remove single quotes
     p=$(echo "$p" | tr -d "'")
     if [ -n "$p" ]; then
-        name=$(gsettings get org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$p name 2>/dev/null)
+        name=$(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$p" name 2>/dev/null || true)
         if [[ "$name" == "'Typo'" ]]; then
             NEW_KEY_PATH=$p
             break
         fi
     fi
-done
+done < <(echo "$current_bindings" | grep -o "'[^']*'")
 
 # If not found, use default path and add it to the list
 if [ -z "$NEW_KEY_PATH" ]; then
@@ -47,20 +48,25 @@ if [ -z "$NEW_KEY_PATH" ]; then
 
     # Add the new path to the system "master list"
     if [[ "$current_bindings" != *"$NEW_KEY_PATH"* ]]; then
-        if [[ "$current_bindings" == "[]" || "$current_bindings" == "@as []" ]]; then
-            new_bindings="['$NEW_KEY_PATH']"
-        else
-            new_bindings="${current_bindings%]*}, '$NEW_KEY_PATH']"
-        fi
+        # Reconstruct the bindings list safely
+        new_bindings="["
+        while read -r p; do
+            p=$(echo "$p" | tr -d "'")
+            if [ -n "$p" ]; then
+                new_bindings+="'$p', "
+            fi
+        done < <(echo "$current_bindings" | grep -o "'[^']*'")
+        new_bindings+="'$NEW_KEY_PATH']"
+        
         gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "$new_bindings"
     fi
 fi
 
 # 2. Set/Update the specific properties of the shortcut
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$NEW_KEY_PATH name "'Typo'"
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$NEW_KEY_PATH command "'$CMD'"
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$NEW_KEY_PATH binding "'<Control><Shift>x'"
+gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$NEW_KEY_PATH" name "'Typo'"
+gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$NEW_KEY_PATH" command "\"$CMD\""
+gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$NEW_KEY_PATH" binding "'$BINDING'"
 
 echo "Shortcut setup successfully ($NEW_KEY_PATH) [$MODE mode]:"
-echo "  Binding: Ctrl + Shift + X"
+echo "  Binding: $BINDING"
 echo "  Command: $CMD"
