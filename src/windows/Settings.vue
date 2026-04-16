@@ -16,6 +16,7 @@ type SettingsTab = 'basic' | 'prompts'
 
 const activeTab = ref<SettingsTab>('basic')
 const showApiKey = ref(false)
+const mainRef = ref<HTMLElement | null>(null)
 
 const form = ref({
   autoselect: false,
@@ -32,6 +33,16 @@ async function loadOllamaModels() {
   ollamaModels.value = await store.getOllamaModels()
 }
 
+function focusPrompt() {
+  nextTick(() => {
+    const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
+    if (textarea) {
+      textarea.focus()
+      textarea.setSelectionRange(0, 0)
+    }
+  })
+}
+
 onMounted(async () => {
   form.value.autoselect = await store.get('autoselect')
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
@@ -46,13 +57,18 @@ onMounted(async () => {
     await loadOllamaModels()
   }
 
-  nextTick(() => {
-    const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
-    if (textarea) {
-      textarea.focus()
-      textarea.setSelectionRange(0, 0)
-    }
-  })
+  if (activeTab.value === 'prompts') {
+    focusPrompt()
+  }
+})
+
+watch(activeTab, (val) => {
+  if (mainRef.value) {
+    mainRef.value.scrollTop = 0
+  }
+  if (val === 'prompts') {
+    focusPrompt()
+  }
 })
 
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
@@ -115,13 +131,13 @@ async function onSubmit() {
         </button>
       </aside>
 
-      <main class="flex-1 overflow-y-auto px-8 py-6">
-        <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
-          <template v-if="activeTab === 'basic'">
-            <h1 class="text-2xl font-bold">
-              Basic Settings
-            </h1>
+      <main ref="mainRef" class="flex-1 overflow-y-auto px-8 py-6 relative">
+        <h1 class="text-2xl font-bold mb-6">
+          {{ activeTab === 'basic' ? 'Basic Settings' : 'Prompt Settings' }}
+        </h1>
 
+        <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
+          <div v-show="activeTab === 'basic'" class="flex flex-col gap-5">
             <div class="grid w-full items-center gap-2">
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
@@ -181,16 +197,12 @@ async function onSubmit() {
                 </button>
               </div>
             </div>
-          </template>
+          </div>
 
-          <template v-else>
-            <h1 class="text-2xl font-bold">
-              Prompt Settings
-            </h1>
-
+          <div v-show="activeTab === 'prompts'" class="flex flex-col gap-5">
             <div class="grid w-full items-center gap-2">
-              <Label for="system_prompt">System Prompt</Label>
-              <Textarea id="system_prompt" v-model="form.system_prompt" autofocus :rows="12" placeholder="Enter your system prompt" />
+              <Label for="system_prompt">Default Prompt</Label>
+              <Textarea id="system_prompt" v-model="form.system_prompt" :rows="12" placeholder="Enter your default prompt" />
             </div>
 
             <div class="grid w-full gap-3">
@@ -236,7 +248,7 @@ async function onSubmit() {
                 Example: input ends with <code>/tr:zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.
               </p>
             </div>
-          </template>
+          </div>
 
           <div class="fixed bottom-4 right-8 flex justify-end">
             <Button variant="secondary" type="submit">
