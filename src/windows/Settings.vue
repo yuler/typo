@@ -37,7 +37,9 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
-  form.value.prompt_shortcuts = await store.get('prompt_shortcuts')
+  
+  const shortcuts = await store.get('prompt_shortcuts')
+  form.value.prompt_shortcuts = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
 
   if (form.value.ai_provider === 'ollama') {
     await loadOllamaModels()
@@ -63,7 +65,7 @@ function addPromptShortcut() {
     return
   }
 
-  form.value.prompt_shortcuts.push({ key: '', value: '' })
+  form.value.prompt_shortcuts.push({ id: crypto.randomUUID(), key: '', value: '' })
 }
 
 function removePromptShortcut(index: number) {
@@ -72,7 +74,7 @@ function removePromptShortcut(index: number) {
 
 async function onSubmit() {
   const promptShortcuts = form.value.prompt_shortcuts
-    .map(item => ({ key: item.key.trim(), value: item.value.trim() }))
+    .map(item => ({ id: item.id, key: item.key.trim(), value: item.value.trim() }))
     .filter(item => item.key && item.value)
     .slice(0, 5)
 
@@ -184,7 +186,7 @@ async function onSubmit() {
 
               <div
                 v-for="(item, index) in form.prompt_shortcuts"
-                :key="index"
+                :key="item.id"
                 class="rounded-lg border p-3 grid gap-2"
               >
                 <div class="grid gap-1">
