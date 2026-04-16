@@ -209,7 +209,16 @@ async function onSubmit() {
               >
                 <div class="grid gap-1">
                   <Label :for="`prompt-key-${index}`">Key</Label>
-                  <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh or /prompt" />
+                  <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" />
+                </div>
+                <div class="grid gap-1">
+                  <Label :for="`prompt-aliases-${index}`">Aliases (Comma separated)</Label>
+                  <Input
+                    :id="`prompt-aliases-${index}`"
+                    :model-value="item.aliases?.join(', ')"
+                    placeholder="/tr, /zh"
+                    @update:model-value="(val) => item.aliases = String(val).split(',').map(s => s.trim()).filter(Boolean)"
+                  />
                 </div>
                 <div class="grid gap-1">
                   <Label :for="`prompt-value-${index}`">Instruction</Label>
