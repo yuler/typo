@@ -33,12 +33,17 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: lts/*
+          node-version-file: .nvmrc
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          cache: true
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -66,9 +71,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: install frontend dependencies
-        run: |
-          corepack enable
-          pnpm install
+        run: pnpm install
 
       - uses: oNaiPs/secrets-to-env-action@v1
         with:

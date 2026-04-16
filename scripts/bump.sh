@@ -51,7 +51,7 @@ last_tag=$(git tag --sort=version:refname | tail -n 1)
 notes=$(git log --pretty="%s" $last_tag..HEAD)
 
 git add -A
-git commit --message "Release v$package_version"
+git commit --message "🚀 Release v$package_version"
 
 git tag v$package_version -m "$notes"
 git push origin

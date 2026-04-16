@@ -1,35 +1,13 @@
-use enigo::Keyboard;
+use serde::Serialize;
+use tauri::Emitter;
 use tauri_plugin_clipboard_manager::ClipboardExt;
-use tauri_plugin_notification::NotificationExt;
+use std::sync::{Mutex, OnceLock};
+
+mod cli;
+mod keyboard;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-async fn get_selected_text() -> Result<String, String> {
-    let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
-    Ok(text)
-}
-
-#[tauri::command]
-async fn select_all() -> Result<(), String> {
-    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).map_err(|e| e.to_string())?;
-    let modifier = if cfg!(target_os = "macos") {
-        enigo::Key::Meta
-    } else {
-        enigo::Key::Control
-    };
-    enigo.key(modifier, enigo::Direction::Press).map_err(|e| e.to_string())?;
-    enigo.key(enigo::Key::Unicode('a'), enigo::Direction::Click).map_err(|e| e.to_string())?;
-    enigo.key(modifier, enigo::Direction::Release).map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-#[tauri::command]
-async fn get_platform_info() -> Result<String, String> {
-    Ok(std::env::consts::OS.to_string())
-}
 
 #[tauri::command]
 fn request_mac_accessibility_permissions() -> Result<bool, String> {
@@ -51,54 +29,132 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
     }
 }
 
+#[derive(Serialize)]
+struct SystemInfo {
+    os: String,
+    is_wayland: bool,
+}
+
 #[tauri::command]
-async fn type_text(text: String, window: tauri::Window) -> Result<(), String> {
-    let mut enigo = enigo::Enigo::new(&enigo::Settings::default()).unwrap();
+fn get_system_info() -> SystemInfo {
+    SystemInfo {
+        os: std::env::consts::OS.to_string(),
+        is_wayland: in_linux_wayland(),
+    }
+}
 
-    // log text
-    println!("Typing text: {}", text);
+#[tauri::command]
+async fn get_selected_text() -> Result<String, String> {
+    let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
+    Ok(text)
+}
 
-    // 1. Save current clipboard content to restore later
-    let previous_clipboard = window.clipboard().read_text().unwrap_or_default();
-
-    // 2. Write the new text to the clipboard
-    window
-        .clipboard()
-        .write_text(text.clone())
-        .map_err(|e| e.to_string())?;
-
-    // Small delay to ensure clipboard is updated
-    std::thread::sleep(std::time::Duration::from_millis(50));
-
-    // 3. Ctrl/Cmd + V to paste text
-    let control_or_command = if cfg!(target_os = "macos") {
-        enigo::Key::Meta
-    } else {
-        enigo::Key::Control
-    };
-    enigo
-        .key(control_or_command, enigo::Direction::Press)
-        .map_err(|e| e.to_string())?;
-    enigo
-        .key(enigo::Key::Unicode('v'), enigo::Direction::Click)
-        .map_err(|e| e.to_string())?;
-    enigo
-        .key(control_or_command, enigo::Direction::Release)
-        .map_err(|e| e.to_string())?;
-
-    // 4. Small delay to ensure paste is completed before restoring clipboard
-    std::thread::sleep(std::time::Duration::from_millis(50));
-
-    // 5. Restore previous clipboard
-    if !previous_clipboard.is_empty() {
-        let _ = window.clipboard().write_text(previous_clipboard);
+pub(crate) fn in_linux_wayland() -> bool {
+    if !cfg!(target_os = "linux") {
+        return false;
     }
 
-    Ok(())
+    let wayland_display = std::env::var_os("WAYLAND_DISPLAY").is_some();
+    let session_type = std::env::var("XDG_SESSION_TYPE").unwrap_or_default();
+    wayland_display || session_type.eq_ignore_ascii_case("wayland")
+}
+
+#[derive(Clone, Serialize)]
+struct SetInputPayload {
+    text: String,
+    mode: String,
+}
+
+fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
+    static PENDING_SELECTION_PAYLOAD: OnceLock<Mutex<Option<SetInputPayload>>> = OnceLock::new();
+    PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
+}
+
+fn app_cli_selection_trigger(app: &tauri::AppHandle) {
+    println!("app_cli_selection_trigger");
+
+    let text = if in_linux_wayland() {
+        get_selected_text_wayland(app)
+    } else {
+        get_selected_text_enigo(app)
+    };
+
+    let Some(text) = text else { return };
+
+    println!("text: {}", text);
+    let payload = SetInputPayload {
+        text,
+        mode: "selected".to_string(),
+    };
+    if let Err(error) = app.emit("set-input", payload) {
+        eprintln!("Failed to emit set-input event: {}", error);
+    }
+}
+
+fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
+    // 1. Try ydotool first
+    if keyboard::ydotool_copy_shortcut() {
+        std::thread::sleep(std::time::Duration::from_millis(80));
+        let text = app.clipboard().read_text().unwrap_or_default();
+        if !text.is_empty() {
+            return Some(text);
+        }
+    }
+
+    // 2. Fallback to copyq selection
+    if let Some(text) = keyboard::copyq_selection() {
+        return Some(text);
+    }
+
+    None
+}
+
+fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
+    keyboard::enigo_copy().ok()?;
+
+    std::thread::sleep(std::time::Duration::from_millis(100));
+
+    let text = app.clipboard().read_text().unwrap_or_default();
+    if text.is_empty() { None } else { Some(text) }
+}
+
+fn app_cli_startup_selection_trigger(app: &tauri::AppHandle) {
+    let text = if in_linux_wayland() {
+        get_selected_text_wayland(app)
+    } else {
+        get_selected_text_enigo(app)
+    };
+
+    if let Some(text) = text {
+        if let Ok(mut pending) = pending_selection_payload().lock() {
+            *pending = Some(SetInputPayload {
+                text,
+                mode: "selected".to_string(),
+            });
+        }
+    }
+}
+
+#[tauri::command]
+fn consume_pending_selection_input() -> Option<SetInputPayload> {
+    match pending_selection_payload().lock() {
+        Ok(mut pending) => pending.take(),
+        Err(error) => {
+            eprintln!("Failed to access pending selection payload: {}", error);
+            None
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let startup_selection = cli::has_selection_flag(std::env::args());
+
+    println!(
+        "in_linux_wayland={}",
+        in_linux_wayland()
+    );
+
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
@@ -107,21 +163,27 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
-            println!("{}, {argv:?}, {cwd}", app.package_info().name);
-            app.notification()
-                .builder()
-                .title("This app is already running!")
-                .body("You can find it in the tray menu.")
-                .show()
-                .unwrap();
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            cli::handle_single_instance_event(
+                app,
+                &argv,
+                in_linux_wayland(),
+                app_cli_selection_trigger,
+            );
         }))
+        .setup(move |app| {
+            if startup_selection && in_linux_wayland() {
+                app_cli_startup_selection_trigger(&app.handle());
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
-            get_selected_text,
-            select_all,
-            type_text,
-            get_platform_info,
             request_mac_accessibility_permissions,
+            get_system_info,
+            get_selected_text,
+            keyboard::keyboard_select_all,
+            keyboard::keyboard_paste_text,
+            consume_pending_selection_input,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
