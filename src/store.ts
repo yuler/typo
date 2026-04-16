@@ -56,6 +56,7 @@ const DEFAULT_STORE = {
   deepseek_api_key: '',
   ollama_model: '',
   slash_commands: DEFAULT_SLASH_COMMANDS,
+  global_shortcut: 'CommandOrControl+Shift+X',
 }
 
 // only set default when key not exists
