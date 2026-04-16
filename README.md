@@ -5,6 +5,10 @@
 
 # typo
 
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh.md">简体中文</a>
+</p>
+
 > An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
 
 [Download](https://github.com/yuler/typo/releases)
