@@ -56,17 +56,23 @@ function handleShortcutKeyDown(e: KeyboardEvent) {
 
   // Define modifiers
   const modifiers: string[] = []
-  if (e.ctrlKey || e.metaKey) modifiers.push('CommandOrControl')
-  if (e.altKey) modifiers.push('Alt')
-  if (e.shiftKey) modifiers.push('Shift')
+  if (e.ctrlKey || e.metaKey)
+    modifiers.push('CommandOrControl')
+  if (e.altKey)
+    modifiers.push('Alt')
+  if (e.shiftKey)
+    modifiers.push('Shift')
 
   // Ignore if only modifiers are pressed
-  if (['Control', 'Alt', 'Shift', 'Meta', 'CapsLock'].includes(e.key)) return
+  if (['Control', 'Alt', 'Shift', 'Meta', 'CapsLock'].includes(e.key))
+    return
 
   // Format the key (Tauri expects capitalized keys like 'A' or named keys like 'Space')
   let key = e.key
-  if (key === ' ') key = 'Space'
-  if (key.length === 1) key = key.toUpperCase()
+  if (key === ' ')
+    key = 'Space'
+  if (key.length === 1)
+    key = key.toUpperCase()
 
   const captured = [...modifiers, key].join('+')
   form.value.global_shortcut = captured
@@ -187,37 +193,37 @@ async function onSubmit() {
                 <Label for="autoselect">Auto Select</Label>
               </div>
 
-            <div class="grid w-full items-center gap-2 mt-2">
-              <Label for="global_shortcut">Global Shortcut</Label>
-              <div class="flex flex-col gap-2">
-                <div class="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    class="w-full justify-start font-mono"
-                    :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
-                    @click="isCapturingShortcut ? stopCapture() : startCapture()"
-                  >
-                    {{ isCapturingShortcut ? 'Listening... (Press any key or Esc to cancel)' : form.global_shortcut || 'Click to set shortcut' }}
-                  </Button>
-                  <Button
-                    v-if="!isCapturingShortcut && form.global_shortcut"
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    @click="form.global_shortcut = 'CommandOrControl+Shift+X'"
-                  >
-                    <Trash2Icon class="h-4 w-4" />
-                  </Button>
+              <div class="grid w-full items-center gap-2 mt-2">
+                <Label for="global_shortcut">Global Shortcut</Label>
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      class="w-full justify-start font-mono"
+                      :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
+                      @click="isCapturingShortcut ? stopCapture() : startCapture()"
+                    >
+                      {{ isCapturingShortcut ? 'Listening... (Press any key or Esc to cancel)' : form.global_shortcut || 'Click to set shortcut' }}
+                    </Button>
+                    <Button
+                      v-if="!isCapturingShortcut && form.global_shortcut"
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      @click="form.global_shortcut = 'CommandOrControl+Shift+X'"
+                    >
+                      <Trash2Icon class="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
+                    {{ shortcutConflictError }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    Click the button then press your desired key combination.
+                  </p>
                 </div>
-                <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
-                  {{ shortcutConflictError }}
-                </p>
-                <p class="text-xs text-muted-foreground">
-                  Click the button then press your desired key combination.
-                </p>
               </div>
-            </div>
 
               <Label for="ai_provider">AI Provider</Label>
               <Select id="ai_provider" v-model="form.ai_provider">
