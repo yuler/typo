@@ -69,6 +69,12 @@ function handleShortcutKeyDown(e: KeyboardEvent) {
   if (['Control', 'Alt', 'Shift', 'Meta', 'CapsLock'].includes(e.key))
     return
 
+  // Require at least one modifier key (Cmd/Ctrl, Alt, or Shift)
+  if (modifiers.length === 0) {
+    shortcutConflictError.value = 'At least one modifier key (⌘/Ctrl, Alt, or Shift) is required'
+    return
+  }
+
   // Format the key (Tauri expects capitalized keys like 'A' or named keys like 'Space')
   let key = e.key
   if (key === ' ')
@@ -77,6 +83,7 @@ function handleShortcutKeyDown(e: KeyboardEvent) {
     key = key.toUpperCase()
 
   const captured = [...modifiers, key].join('+')
+  shortcutConflictError.value = ''
   form.value.global_shortcut = captured
   stopCapture()
 }
@@ -225,7 +232,7 @@ async function onSubmit() {
                     {{ shortcutConflictError }}
                   </p>
                   <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
-                    {{ isCapturingShortcut ? 'Listening... (Press any key or Esc to cancel)' : 'Click the button then press your desired key combination.' }}
+                    {{ isCapturingShortcut ? 'Listening... (Press modifier + key, or Esc to cancel)' : 'Click the button then press modifier + key combination (⌘/Ctrl, Alt, or Shift required).' }}
                   </p>
                 </div>
               </div>
