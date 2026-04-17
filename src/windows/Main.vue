@@ -35,6 +35,9 @@ interface SetInputPayload {
 }
 
 async function processSetInputPayload(payload: SetInputPayload) {
+  if (processing.value)
+    return
+
   const { text, mode } = payload
 
   // eslint-disable-next-line no-console
