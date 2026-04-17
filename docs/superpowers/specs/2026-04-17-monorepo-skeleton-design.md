@@ -44,15 +44,15 @@ Migrate the existing desktop app into the `apps/desktop/` position and set up mi
 
 ### 1.4 Decisions baked in (from brainstorm)
 
-| Decision | Choice |
-|---|---|
-| What gets built | Monorepo skeleton + migrate existing desktop app only |
-| Physical placeholders | **Minimal** — only what exists today gets moved |
-| Task runner | **pnpm workspaces only** — no Turbo/Nx |
-| Workspace naming | **Scoped** — `@typo/*` (desktop package is `@typo/desktop`) |
-| Root `clean` script | Keep as proxy to desktop |
-| `pnpm version` in bump.sh | Use `pnpm --filter @typo/desktop exec pnpm version …` |
-| Lockfile | Delete + regenerate during migration |
+| Decision                  | Choice                                                      |
+| ------------------------- | ----------------------------------------------------------- |
+| What gets built           | Monorepo skeleton + migrate existing desktop app only       |
+| Physical placeholders     | **Minimal** — only what exists today gets moved             |
+| Task runner               | **pnpm workspaces only** — no Turbo/Nx                      |
+| Workspace naming          | **Scoped** — `@typo/*` (desktop package is `@typo/desktop`) |
+| Root `clean` script       | Keep as proxy to desktop                                    |
+| `pnpm version` in bump.sh | Use `pnpm --filter @typo/desktop exec pnpm version …`       |
+| Lockfile                  | Delete + regenerate during migration                        |
 
 ---
 
@@ -209,28 +209,28 @@ Every path reference in the desktop app's configs was audited. **All existing pa
 
 ### 4.1 `src-tauri/tauri.conf.json`
 
-| Field | Value | Action |
-|---|---|---|
-| `$schema` | `"../node_modules/@tauri-apps/cli/config.schema.json"` | No change — pnpm creates per-package `node_modules` in `apps/desktop/`, path resolves |
-| `build.beforeDevCommand` | `"pnpm dev:frontend"` | No change — `pnpm <script>` walks up from the hook's cwd and finds `dev:frontend` in `apps/desktop/package.json` |
-| `build.beforeBuildCommand` | `"pnpm build:frontend"` | No change — same mechanism as above |
-| `build.frontendDist` | `"../dist"` | No change — resolves to `apps/desktop/dist/` |
-| `bundle.resources` | `["resources/*"]` | No change — relative to `src-tauri/` |
-| `bundle.icon` | `["icons/32x32.png", ...]` | No change — relative to `src-tauri/` |
+| Field                      | Value                                                  | Action                                                                                                           |
+| -------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `$schema`                  | `"../node_modules/@tauri-apps/cli/config.schema.json"` | No change — pnpm creates per-package `node_modules` in `apps/desktop/`, path resolves                            |
+| `build.beforeDevCommand`   | `"pnpm dev:frontend"`                                  | No change — `pnpm <script>` walks up from the hook's cwd and finds `dev:frontend` in `apps/desktop/package.json` |
+| `build.beforeBuildCommand` | `"pnpm build:frontend"`                                | No change — same mechanism as above                                                                              |
+| `build.frontendDist`       | `"../dist"`                                            | No change — resolves to `apps/desktop/dist/`                                                                     |
+| `bundle.resources`         | `["resources/*"]`                                      | No change — relative to `src-tauri/`                                                                             |
+| `bundle.icon`              | `["icons/32x32.png", ...]`                             | No change — relative to `src-tauri/`                                                                             |
 
 ### 4.2 `vite.config.ts`
 
-| Reference | Action |
-|---|---|
-| `import packageJson from './package.json'` | No change — still resolves to the desktop `package.json` where the version now lives |
-| `'@': fileURLToPath(new URL('./src', import.meta.url))` | No change |
+| Reference                                               | Action                                                                               |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `import packageJson from './package.json'`              | No change — still resolves to the desktop `package.json` where the version now lives |
+| `'@': fileURLToPath(new URL('./src', import.meta.url))` | No change                                                                            |
 
 ### 4.3 `tsconfig.json`
 
-| Reference | Action |
-|---|---|
+| Reference                                            | Action    |
+| ---------------------------------------------------- | --------- |
 | `"baseUrl": "."` + `"paths": { "@/*": ["./src/*"] }` | No change |
-| `"include": ["src/**/*.ts", ...]` | No change |
+| `"include": ["src/**/*.ts", ...]`                    | No change |
 | `"references": [{ "path": "./tsconfig.node.json" }]` | No change |
 
 ### 4.4 `src-tauri/Cargo.toml`, `build.rs`, `capabilities/`, `gen/`, `src/`
@@ -248,13 +248,13 @@ No parent-directory references. No changes.
 One line added:
 
 ```yaml
-      - name: build tauri app
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: apps/desktop
-          args: ${{ matrix.args }} --no-bundle
+- name: build tauri app
+  uses: tauri-apps/tauri-action@v0
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    projectPath: apps/desktop
+    args: ${{ matrix.args }} --no-bundle
 ```
 
 `pnpm install` at repo root continues to hydrate the whole workspace.
@@ -264,17 +264,17 @@ One line added:
 Same one-line addition:
 
 ```yaml
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: apps/desktop
-          tagName: v__VERSION__
-          releaseName: App v__VERSION__
-          releaseBody: ${{ steps.tag.outputs.message }}
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+- uses: tauri-apps/tauri-action@v0
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    projectPath: apps/desktop
+    tagName: v__VERSION__
+    releaseName: App v__VERSION__
+    releaseBody: ${{ steps.tag.outputs.message }}
+    releaseDraft: false
+    prerelease: false
+    args: ${{ matrix.args }}
 ```
 
 `tauri-action` continues to discover the version from `apps/desktop/src-tauri/tauri.conf.json` / `Cargo.toml`.
@@ -320,6 +320,7 @@ Three path edits (no logic change):
 **Why one commit**: this is a mechanical rename; splitting into phased PRs creates temporarily broken build/CI states for no review benefit.
 
 **Alternatives considered and rejected**:
+
 - Phased PRs (scaffold → move → delete) — rejected; no benefit over an atomic commit on a review branch.
 - `git filter-repo` / subtree — rejected; overkill. Rename detection is sufficient.
 
@@ -391,22 +392,22 @@ pnpm install
 
 Every item must pass, in order:
 
-| # | Command / check | Expected |
-|---|---|---|
-| 1 | `pnpm install` (at repo root) | Clean install; `apps/desktop/node_modules` populated; no peer-dep warnings beyond pre-migration baseline |
-| 2 | `pnpm lint` | Same results as pre-migration |
-| 3 | `pnpm --filter @typo/desktop build:frontend` | `vue-tsc` passes; `apps/desktop/dist/` produced |
-| 4 | `pnpm dev` (from root) | Tauri dev window opens; HMR works |
-| 5 | Smoke test | Global shortcut `Ctrl/Cmd+Shift+X` triggers; DeepSeek/Ollama round-trip returns; clipboard paste replaces selection |
-| 6 | `pnpm build` (from root) | Tauri bundles produced under `apps/desktop/src-tauri/target/.../bundle/` |
-| 7 | `git log --follow apps/desktop/src/App.vue` | Shows history predating the migration |
+| #   | Command / check                              | Expected                                                                                                            |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 1   | `pnpm install` (at repo root)                | Clean install; `apps/desktop/node_modules` populated; no peer-dep warnings beyond pre-migration baseline            |
+| 2   | `pnpm lint`                                  | Same results as pre-migration                                                                                       |
+| 3   | `pnpm --filter @typo/desktop build:frontend` | `vue-tsc` passes; `apps/desktop/dist/` produced                                                                     |
+| 4   | `pnpm dev` (from root)                       | Tauri dev window opens; HMR works                                                                                   |
+| 5   | Smoke test                                   | Global shortcut `Ctrl/Cmd+Shift+X` triggers; DeepSeek/Ollama round-trip returns; clipboard paste replaces selection |
+| 6   | `pnpm build` (from root)                     | Tauri bundles produced under `apps/desktop/src-tauri/target/.../bundle/`                                            |
+| 7   | `git log --follow apps/desktop/src/App.vue`  | Shows history predating the migration                                                                               |
 
 ### 7.2 Remote verification (gate for merging the PR)
 
-| # | Check | Expected |
-|---|---|---|
-| 8 | CI workflow on the PR | All four matrix platforms (macOS arm64, macOS x64, ubuntu-22.04, windows) green with `--no-bundle` build |
-| 9 | `pr-format-fix.yml` | Runs and no-ops |
+| #   | Check                 | Expected                                                                                                 |
+| --- | --------------------- | -------------------------------------------------------------------------------------------------------- |
+| 8   | CI workflow on the PR | All four matrix platforms (macOS arm64, macOS x64, ubuntu-22.04, windows) green with `--no-bundle` build |
+| 9   | `pr-format-fix.yml`   | Runs and no-ops                                                                                          |
 
 ### 7.3 Release path validation
 

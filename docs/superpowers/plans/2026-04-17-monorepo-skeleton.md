@@ -98,6 +98,7 @@ Expected: no error.
 ## Task 2: Move filesystem contents via `git mv`
 
 **Files:**
+
 - Create: `apps/desktop/` (directory)
 - Modify: none directly (renames only)
 
@@ -172,6 +173,7 @@ Expected: commit succeeds. `git log --stat -1` shows rename lines only, no conte
 ## Task 3: Rewrite root `package.json` as workspace proxy
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Replace root `package.json` with the proxy version**
@@ -233,6 +235,7 @@ git commit -m "🔧 Rewrite root package.json as workspace proxy"
 ## Task 4: Create `apps/desktop/package.json`
 
 **Files:**
+
 - Create: `apps/desktop/package.json`
 
 - [ ] **Step 1: Write the desktop package manifest**
@@ -317,6 +320,7 @@ git commit -m "📦 Add apps/desktop/package.json (@typo/desktop)"
 ## Task 5: Extend `pnpm-workspace.yaml` with `apps/*`
 
 **Files:**
+
 - Modify: `pnpm-workspace.yaml`
 
 - [ ] **Step 1: Rewrite the workspace manifest**
@@ -353,6 +357,7 @@ git commit -m "🔧 Register apps/* as pnpm workspace packages"
 ## Task 6: Regenerate `pnpm-lock.yaml` under the new layout
 
 **Files:**
+
 - Delete: `pnpm-lock.yaml`
 - Regenerated: `pnpm-lock.yaml`, `node_modules/`, `apps/desktop/node_modules/`
 
@@ -394,6 +399,7 @@ git commit -m "🔒 Regenerate pnpm-lock.yaml under workspace layout"
 ## Task 7: Update `.github/workflows/ci.yml`
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml`
 
 - [ ] **Step 1: Add `projectPath` to the `tauri-action` step**
@@ -401,24 +407,24 @@ git commit -m "🔒 Regenerate pnpm-lock.yaml under workspace layout"
 Edit `.github/workflows/ci.yml`. Find this block:
 
 ```yaml
-      - name: build tauri app
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: ${{ matrix.args }} --no-bundle
+- name: build tauri app
+  uses: tauri-apps/tauri-action@v0
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    args: ${{ matrix.args }} --no-bundle
 ```
 
 Replace it with:
 
 ```yaml
-      - name: build tauri app
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: apps/desktop
-          args: ${{ matrix.args }} --no-bundle
+- name: build tauri app
+  uses: tauri-apps/tauri-action@v0
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    projectPath: apps/desktop
+    args: ${{ matrix.args }} --no-bundle
 ```
 
 - [ ] **Step 2: Shape check**
@@ -441,6 +447,7 @@ git commit -m "👷 Point CI tauri-action at apps/desktop"
 ## Task 8: Update `.github/workflows/release.yml`
 
 **Files:**
+
 - Modify: `.github/workflows/release.yml`
 
 - [ ] **Step 1: Add `projectPath` to the `tauri-action` step**
@@ -448,34 +455,34 @@ git commit -m "👷 Point CI tauri-action at apps/desktop"
 Edit `.github/workflows/release.yml`. Find this block:
 
 ```yaml
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: App v__VERSION__
-          releaseBody: ${{ steps.tag.outputs.message }}
-          releaseDraft: false
-          prerelease: false
-          # includeDebug: true
-          args: ${{ matrix.args }}
+- uses: tauri-apps/tauri-action@v0
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+    releaseName: App v__VERSION__
+    releaseBody: ${{ steps.tag.outputs.message }}
+    releaseDraft: false
+    prerelease: false
+    # includeDebug: true
+    args: ${{ matrix.args }}
 ```
 
 Replace it with:
 
 ```yaml
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: apps/desktop
-          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: App v__VERSION__
-          releaseBody: ${{ steps.tag.outputs.message }}
-          releaseDraft: false
-          prerelease: false
-          # includeDebug: true
-          args: ${{ matrix.args }}
+- uses: tauri-apps/tauri-action@v0
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    projectPath: apps/desktop
+    tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+    releaseName: App v__VERSION__
+    releaseBody: ${{ steps.tag.outputs.message }}
+    releaseDraft: false
+    prerelease: false
+    # includeDebug: true
+    args: ${{ matrix.args }}
 ```
 
 - [ ] **Step 2: Shape check**
@@ -498,6 +505,7 @@ git commit -m "👷 Point release tauri-action at apps/desktop"
 ## Task 9: Update `scripts/bump.sh`
 
 **Files:**
+
 - Modify: `scripts/bump.sh`
 
 - [ ] **Step 1: Apply the three path edits**
@@ -585,6 +593,7 @@ Expected: exits 0. `vue-tsc` reports no errors. `ls apps/desktop/dist/index.html
 
 Run: `pnpm dev`
 Expected:
+
 1. Tauri compiles (first run may take minutes).
 2. A Tauri window appears.
 3. In another terminal / UI: select text in any app, press `Ctrl/Cmd+Shift+X`.
@@ -709,6 +718,7 @@ Run: `gh pr checks --watch`
 Expected: all four matrix jobs eventually pass.
 
 If any job fails, investigate from the failing job's logs. Common issues:
+
 - Missing `projectPath` in a workflow step → add it and re-push.
 - Cache mismatch with the new lockfile → invalidate the pnpm action cache in the workflow.
 - Platform-specific Rust / system dep issues → these are pre-existing and unrelated to the migration; check `main` for the same job status.
