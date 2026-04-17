@@ -33,10 +33,13 @@ fi
 # Build first, if failed, exit
 pnpm --filter @typo/desktop run build:frontend || exit 1
 
-# Update package.json version, without tag
-pnpm --filter @typo/desktop exec pnpm version $version --no-git-tag-version
-package_version=$(jq -r '.version' apps/desktop/package.json)
-
+# Update root package.json version, without tag
+pnpm version $version --no-git-tag-version
+package_version=$(jq -r '.version' package.json)
+# Sync apps/**/package.json "version" to match root (same release line)
+while IFS= read -r -d '' pkg; do
+    sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$package_version\"/" "$pkg"
+done < <(find apps -name package.json -print0)
 echo "package.json version: $package_version"
 
 # Update src-tauri version
