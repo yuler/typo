@@ -24,9 +24,11 @@ const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_SHORTCUT)
+// Track timeout ID for clearing the result state — allows cancelling pending UI resets
+// if a new request is started, preventing race conditions
+let stateTimeout: ReturnType<typeof setTimeout> | null = null
 
 let unlistenSetInput: UnlistenFn
-let stateTimeout: ReturnType<typeof setTimeout> | null = null
 
 interface SetInputPayload {
   text: string
