@@ -1,0 +1,11 @@
+{
+  "general": {
+    "defaultApprovalMode": "auto_edit"
+  },
+  "security": {
+    "allowedExtensions": [
+      "superpowers*",
+      "*superpowers*"
+    ]
+  }
+}
