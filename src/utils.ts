@@ -27,3 +27,7 @@ export function noop() {}
 export function isUndefined(val: any): val is undefined {
   return val === undefined
 }
+
+export function formatShortcut(shortcut: string, mac: boolean): string {
+  return shortcut.replace('CommandOrControl', mac ? 'Command' : 'Ctrl')
+}

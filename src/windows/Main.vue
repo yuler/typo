@@ -2,14 +2,16 @@
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { check } from '@tauri-apps/plugin-updater'
-import { Loader2Icon, SettingsIcon } from 'lucide-vue-next'
+import { ClipboardCheckIcon, Loader2Icon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
-import { sleep } from '@/utils'
+import { formatShortcut, sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
 const { setCurrentWindow } = useGlobalState()
@@ -22,6 +24,8 @@ const resultText = ref('')
 const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
+const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
+const STATUS_DISPLAY_DURATION_MS = 3000
 
 let unlistenSetInput: UnlistenFn
 
@@ -31,6 +35,9 @@ interface SetInputPayload {
 }
 
 async function processSetInputPayload(payload: SetInputPayload) {
+  if (processing.value)
+    return
+
   const { text, mode } = payload
 
   // eslint-disable-next-line no-console
@@ -39,10 +46,10 @@ async function processSetInputPayload(payload: SetInputPayload) {
   if (!text.trim().length) {
     errorText.value = 'No text to improve'
     state.value = 'error'
-    setTimeout(() => {
-      state.value = 'idle'
-      errorText.value = ''
-    }, 3000)
+
+    await sleep(STATUS_DISPLAY_DURATION_MS)
+    state.value = 'idle'
+    errorText.value = ''
     return
   }
 
@@ -56,13 +63,18 @@ async function processSetInputPayload(payload: SetInputPayload) {
     resultText.value = output
     state.value = 'result'
 
-    await sleep(500)
+    // Paste the corrected text back into the original input area
     await invoke('keyboard_paste_text', { text: output })
 
-    await sleep(1500)
-    state.value = 'idle'
-    inputText.value = ''
-    resultText.value = ''
+    // TODO: add option for this， Copy result to clipboard
+    await writeText(output)
+
+    await sleep(STATUS_DISPLAY_DURATION_MS)
+    if (state.value === 'result') {
+      state.value = 'idle'
+      inputText.value = ''
+      resultText.value = ''
+    }
   }
   catch (err: any) {
     if (err.name === 'AbortError') {
@@ -71,10 +83,9 @@ async function processSetInputPayload(payload: SetInputPayload) {
     }
     errorText.value = err.message || 'Something went wrong'
     state.value = 'error'
-    setTimeout(() => {
-      state.value = 'idle'
-      errorText.value = ''
-    }, 3000)
+    await sleep(STATUS_DISPLAY_DURATION_MS)
+    state.value = 'idle'
+    errorText.value = ''
   }
   finally {
     processing.value = false
@@ -97,6 +108,8 @@ onMounted(async () => {
       console.error(err)
     }
   }
+
+  globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
 
   const aiProvider = await store.get('ai_provider')
   if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
@@ -185,16 +198,19 @@ function gotoSettings() {
         <span class="text-[10px] text-blue-400/40 font-mono shrink-0">{{ inputText?.length }}</span>
       </div>
 
-      <p v-else-if="state === 'result'" class="truncate text-sm text-green-400 px-2">
-        {{ resultText }}
-      </p>
+      <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
+        <span class="truncate text-sm text-green-400">{{ resultText }}</span>
+        <!-- TODO: Add option for this -->
+        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
+        <span class="text-[10px] text-green-400/50 font-mono shrink-0">Copied</span>
+      </div>
 
       <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">
         {{ errorText }}
       </p>
 
       <kbd v-else class="px-1.5 py-0.5 rounded border border-border/50 bg-muted/30 font-mono text-[10px] text-muted-foreground/60">
-        {{ isMacOS ? '⌘' : 'Ctrl' }}+Shift+X
+        {{ formatShortcut(globalShortcut, isMacOS) }}
       </kbd>
     </div>
 

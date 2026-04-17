@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { EyeIcon, EyeOffIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
+import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,7 +9,10 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
+import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
+import { formatShortcut } from '@/utils'
 
 const { setCurrentWindow } = useGlobalState()
 
@@ -24,9 +28,152 @@ const form = ref({
   ollama_model: '',
   system_prompt: '',
   slash_commands: [] as store.SlashCommand[],
+  global_shortcut: '',
 })
 
 const ollamaModels = ref<any[]>([])
+
+const isCapturingShortcut = ref(false)
+const shortcutConflictError = ref('')
+const isMacOS = ref(false)
+const captureButtonEl = ref<HTMLElement | null>(null)
+const pressedCaptureKeys = new Set<string>()
+const recordedCaptureKeys = new Set<string>()
+
+function normalizeCaptureKey(e: KeyboardEvent): string {
+  const code = e.code
+  if (/^Key[A-Z]$/.test(code))
+    return code.slice(3).toUpperCase()
+  if (/^Digit\d$/.test(code))
+    return code.slice(5)
+  if (/^F\d+$/.test(code))
+    return code
+
+  const keyByCode: Record<string, string> = {
+    Space: 'Space',
+    Escape: 'Escape',
+    Enter: 'Enter',
+    Tab: 'Tab',
+    Backspace: 'Backspace',
+    Delete: 'Delete',
+    ArrowUp: 'Up',
+    ArrowDown: 'Down',
+    ArrowLeft: 'Left',
+    ArrowRight: 'Right',
+  }
+  if (keyByCode[code])
+    return keyByCode[code]
+
+  if (e.key === ' ')
+    return 'Space'
+  if (e.key.length === 1)
+    return e.key.toUpperCase()
+  return e.key
+}
+
+function buildCapturedShortcut(keys: Set<string>): string {
+  const keyList = [...keys]
+  const hasCtrlOrMeta = keyList.includes('Control') || keyList.includes('Meta')
+  const hasAlt = keyList.includes('Alt')
+  const hasShift = keyList.includes('Shift')
+
+  const mainKey = keyList.find(k => !['Control', 'Meta', 'Alt', 'Shift', 'CapsLock'].includes(k))
+  if (!mainKey)
+    return ''
+
+  const modifiers: string[] = []
+  if (hasCtrlOrMeta)
+    modifiers.push('CommandOrControl')
+  if (hasAlt)
+    modifiers.push('Alt')
+  if (hasShift)
+    modifiers.push('Shift')
+
+  if (modifiers.length === 0)
+    return ''
+
+  return [...modifiers, mainKey].join('+')
+}
+
+async function startCapture() {
+  await unregisterCurrentGlobalShortcut()
+  isCapturingShortcut.value = true
+  shortcutConflictError.value = ''
+  pressedCaptureKeys.clear()
+  recordedCaptureKeys.clear()
+  window.addEventListener('keydown', handleShortcutKeyDown)
+  window.addEventListener('keyup', handleShortcutKeyUp)
+  window.addEventListener('blur', handleCaptureWindowBlur)
+  window.addEventListener('pointerdown', handleCapturePointerDown, true)
+}
+
+function stopCapture() {
+  if (!isCapturingShortcut.value)
+    return
+
+  isCapturingShortcut.value = false
+  window.removeEventListener('keydown', handleShortcutKeyDown)
+  window.removeEventListener('keyup', handleShortcutKeyUp)
+  window.removeEventListener('blur', handleCaptureWindowBlur)
+  window.removeEventListener('pointerdown', handleCapturePointerDown, true)
+  pressedCaptureKeys.clear()
+  recordedCaptureKeys.clear()
+}
+
+function handleCaptureWindowBlur() {
+  stopCapture()
+}
+
+function handleCapturePointerDown(e: PointerEvent) {
+  const target = e.target
+  if (!(target instanceof Node))
+    return
+
+  if (captureButtonEl.value?.contains(target))
+    return
+
+  stopCapture()
+}
+
+function handleShortcutKeyDown(e: KeyboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  if (e.repeat)
+    return
+
+  // Handle Escape to cancel
+  if (e.key === 'Escape') {
+    stopCapture()
+    return
+  }
+  const normalizedKey = normalizeCaptureKey(e)
+  pressedCaptureKeys.add(normalizedKey)
+  recordedCaptureKeys.add(normalizedKey)
+}
+
+function handleShortcutKeyUp(e: KeyboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  const normalizedKey = normalizeCaptureKey(e)
+  pressedCaptureKeys.delete(normalizedKey)
+
+  // Commit only after all keys are released (Handy-style behavior).
+  if (pressedCaptureKeys.size !== 0 || recordedCaptureKeys.size === 0)
+    return
+
+  const captured = buildCapturedShortcut(recordedCaptureKeys)
+  // Require at least one modifier key (Cmd/Ctrl, Alt, or Shift) is present
+  // This prevents single-key global shortcuts that would intercept that key system-wide
+  if (!captured) {
+    shortcutConflictError.value = 'At least one modifier key (⌘/Ctrl, Alt, or Shift) is required'
+    recordedCaptureKeys.clear()
+    return
+  }
+
+  shortcutConflictError.value = ''
+  form.value.global_shortcut = captured
+  stopCapture()
+}
 
 async function loadOllamaModels() {
   ollamaModels.value = await store.getOllamaModels()
@@ -38,7 +185,11 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
-  
+  form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_GLOBAL_SHORTCUT
+
+  const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  isMacOS.value = systemInfo.os === 'macos'
+
   const shortcuts = await store.get('slash_commands')
   form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
 
@@ -53,6 +204,13 @@ onMounted(async () => {
       textarea.setSelectionRange(0, 0)
     }
   })
+})
+
+onUnmounted(() => {
+  // Clean up keydown listener if component is unmounted while capturing shortcut
+  if (isCapturingShortcut.value) {
+    stopCapture()
+  }
 })
 
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
@@ -79,6 +237,15 @@ async function onSubmit() {
     .filter(item => item.key && item.value)
     .slice(0, 5)
 
+  // Register shortcut first to see if it succeeds or falls back
+  const requestedShortcut = form.value.global_shortcut
+  const actualShortcut = await setupGlobalShortcut(requestedShortcut)
+
+  if (requestedShortcut && actualShortcut !== requestedShortcut) {
+    shortcutConflictError.value = `Conflict detected! Fallback to default: ${actualShortcut}`
+    form.value.global_shortcut = actualShortcut
+  }
+
   await Promise.all([
     store.set('autoselect', form.value.autoselect),
     store.set('ai_provider', form.value.ai_provider),
@@ -86,9 +253,13 @@ async function onSubmit() {
     store.set('ollama_model', form.value.ollama_model),
     store.set('ai_system_prompt', form.value.system_prompt),
     store.set('slash_commands', slashCommands),
+    store.set('global_shortcut', actualShortcut),
   ])
   await store.save()
-  setCurrentWindow('Main')
+
+  if (!shortcutConflictError.value) {
+    setCurrentWindow('Main')
+  }
 }
 </script>
 
@@ -122,10 +293,49 @@ async function onSubmit() {
               Basic Settings
             </h1>
 
-            <div class="grid w-full items-center gap-2">
+            <div class="grid w-full items-center gap-4">
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
                 <Label for="autoselect">Auto Select</Label>
+              </div>
+              <p class="text-xs text-muted-foreground">
+                If nothing is selected, enabling this will trigger <code>{{ isMacOS ? '⌘ + A' : 'Ctrl + A' }}</code> first.
+              </p>
+              <div class="grid w-full items-center gap-2 mt-2">
+                <Label for="global_shortcut">Global Shortcut</Label>
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <Button
+                      ref="captureButtonEl"
+                      type="button"
+                      variant="outline"
+                      class="flex-1 justify-start font-mono"
+                      :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
+                      @click="isCapturingShortcut ? stopCapture() : startCapture()"
+                    >
+                      {{
+                        isCapturingShortcut
+                          ? 'Listening...'
+                          : formatShortcut(form.global_shortcut, isMacOS)
+                      }}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      class="gap-1"
+                      @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
+                    >
+                      <RotateCcwIcon class="h-4 w-4" />
+                      Reset
+                    </Button>
+                  </div>
+                  <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
+                    {{ shortcutConflictError }}
+                  </p>
+                  <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
+                    {{ isCapturingShortcut ? 'Listening... (Press modifier + key, or Esc to cancel)' : 'Click the button then press modifier + key combination (⌘/Ctrl, Alt, or Shift required).' }}
+                  </p>
+                </div>
               </div>
 
               <Label for="ai_provider">AI Provider</Label>

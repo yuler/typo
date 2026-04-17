@@ -45,7 +45,6 @@ pnpm dev
 - **Intelligent Pasting**: Uses clipboard-based replacement for maximum compatibility.
 - **Customizable**: Tailor the AI behavior via system prompts.
 
-
 ## Prompt shortcuts
 
 You can define up to **5** custom prompt shortcuts in **Settings -> Prompts**.
