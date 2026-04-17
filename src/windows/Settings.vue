@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { invoke } from '@tauri-apps/api/core'
 import { EyeIcon, EyeOffIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
-import { setupGlobalShortcut } from '@/shortcut'
+import { DEFAULT_SHORTCUT, formatShortcut, setupGlobalShortcut } from '@/shortcut'
 import * as store from '@/store'
 
 const { setCurrentWindow } = useGlobalState()
@@ -32,6 +33,7 @@ const ollamaModels = ref<any[]>([])
 
 const isCapturingShortcut = ref(false)
 const shortcutConflictError = ref('')
+const isMacOS = ref(false)
 
 function startCapture() {
   isCapturingShortcut.value = true
@@ -89,7 +91,10 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
-  form.value.global_shortcut = await store.get('global_shortcut')
+  form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_SHORTCUT
+
+  const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  isMacOS.value = systemInfo.os === 'macos'
 
   const shortcuts = await store.get('slash_commands')
   form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
@@ -204,14 +209,14 @@ async function onSubmit() {
                       :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
                       @click="isCapturingShortcut ? stopCapture() : startCapture()"
                     >
-                      {{ form.global_shortcut || 'Click to set shortcut' }}
+                      {{ form.global_shortcut ? formatShortcut(form.global_shortcut, isMacOS) : 'Click to set shortcut' }}
                     </Button>
                     <Button
                       v-if="!isCapturingShortcut && form.global_shortcut"
                       type="button"
                       variant="ghost"
                       size="icon"
-                      @click="form.global_shortcut = 'CommandOrControl+Shift+X'"
+                      @click="form.global_shortcut = DEFAULT_SHORTCUT"
                     >
                       <Trash2Icon class="h-4 w-4" />
                     </Button>

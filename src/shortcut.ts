@@ -1,9 +1,16 @@
 import { invoke } from '@tauri-apps/api/core'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { register, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
+import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
 import { get } from './store'
 
 export const DEFAULT_SHORTCUT = 'CommandOrControl+Shift+X'
+
+export function formatShortcut(shortcut: string, mac: boolean): string {
+  return shortcut
+    .replace('CommandOrControl', mac ? '⌘' : 'Ctrl')
+    .replace('Shift', mac ? '⇧' : 'Shift')
+    .replace('Alt', mac ? '⌥' : 'Alt')
+}
 
 async function handleShortcut() {
   const selectedText = await invoke('get_selected_text')
@@ -20,12 +27,19 @@ async function handleShortcut() {
 }
 
 export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
-  // 1. Unregister all first
+  // 1. Unregister all existing shortcuts first
   try {
     await unregisterAll()
   }
   catch (e) {
-    console.error('Failed to unregister', e)
+    console.error('Failed to unregisterAll', e)
+    // Fallback: explicitly unregister known shortcuts
+    const storedShortcut = await get('global_shortcut')
+    for (const s of [DEFAULT_SHORTCUT, storedShortcut]) {
+      if (s) {
+        try { await unregister(s) } catch (_) {}
+      }
+    }
   }
 
   // 2. Determine shortcut to register

@@ -2,14 +2,15 @@
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { check } from '@tauri-apps/plugin-updater'
-import { Loader2Icon, SettingsIcon } from 'lucide-vue-next'
+import { ClipboardCheckIcon, Loader2Icon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { DEFAULT_SHORTCUT, formatShortcut } from '@/shortcut'
 import * as store from '@/store'
-import { sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
 const { setCurrentWindow } = useGlobalState()
@@ -22,6 +23,7 @@ const resultText = ref('')
 const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
+const globalShortcut = ref(DEFAULT_SHORTCUT)
 
 let unlistenSetInput: UnlistenFn
 
@@ -56,13 +58,16 @@ async function processSetInputPayload(payload: SetInputPayload) {
     resultText.value = output
     state.value = 'result'
 
-    await sleep(500)
-    await invoke('keyboard_paste_text', { text: output })
+    // Copy result to clipboard for manual paste
+    await writeText(output)
 
-    await sleep(1500)
-    state.value = 'idle'
-    inputText.value = ''
-    resultText.value = ''
+    // Stay in result state so user can see and manually paste
+    // Will auto-clear after 3 seconds or on ESC
+    setTimeout(() => {
+      state.value = 'idle'
+      inputText.value = ''
+      resultText.value = ''
+    }, 3000)
   }
   catch (err: any) {
     if (err.name === 'AbortError') {
@@ -97,6 +102,8 @@ onMounted(async () => {
       console.error(err)
     }
   }
+
+  globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_SHORTCUT
 
   const aiProvider = await store.get('ai_provider')
   if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
@@ -162,6 +169,7 @@ async function onESC() {
 function gotoSettings() {
   setCurrentWindow('Settings')
 }
+
 </script>
 
 <template>
@@ -185,16 +193,18 @@ function gotoSettings() {
         <span class="text-[10px] text-blue-400/40 font-mono shrink-0">{{ inputText?.length }}</span>
       </div>
 
-      <p v-else-if="state === 'result'" class="truncate text-sm text-green-400 px-2">
-        {{ resultText }}
-      </p>
+      <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
+        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
+        <span class="truncate text-sm text-green-400">{{ resultText }}</span>
+        <span class="text-[10px] text-green-400/50 font-mono shrink-0">已复制</span>
+      </div>
 
       <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">
         {{ errorText }}
       </p>
 
       <kbd v-else class="px-1.5 py-0.5 rounded border border-border/50 bg-muted/30 font-mono text-[10px] text-muted-foreground/60">
-        {{ isMacOS ? '⌘' : 'Ctrl' }}+Shift+X
+        {{ formatShortcut(globalShortcut, isMacOS) }}
       </kbd>
     </div>
 
