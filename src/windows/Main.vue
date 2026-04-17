@@ -11,7 +11,7 @@ import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
-import { formatShortcut } from '@/utils'
+import { formatShortcut, sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
 const { setCurrentWindow } = useGlobalState()
@@ -25,9 +25,7 @@ const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
-// Track timeout ID for clearing the result state — allows cancelling pending UI resets
-// if a new request is started, preventing race conditions
-let stateTimeout: ReturnType<typeof setTimeout> | null = null
+const STATUS_DISPLAY_DURATION_MS = 3000
 
 let unlistenSetInput: UnlistenFn
 
@@ -45,18 +43,11 @@ async function processSetInputPayload(payload: SetInputPayload) {
   if (!text.trim().length) {
     errorText.value = 'No text to improve'
     state.value = 'error'
-    stateTimeout = setTimeout(() => {
-      state.value = 'idle'
-      errorText.value = ''
-      stateTimeout = null
-    }, 3000)
-    return
-  }
 
-  // Clear any pending state timeout to avoid race condition
-  if (stateTimeout) {
-    clearTimeout(stateTimeout)
-    stateTimeout = null
+    await sleep(STATUS_DISPLAY_DURATION_MS)
+    state.value = 'idle'
+    errorText.value = ''
+    return
   }
 
   try {
@@ -69,21 +60,16 @@ async function processSetInputPayload(payload: SetInputPayload) {
     resultText.value = output
     state.value = 'result'
 
-    // Copy result to clipboard
-    await writeText(output)
-
     // Paste the corrected text back into the original input area
     await invoke('keyboard_paste_text', { text: output })
 
-    // Stay in result state so user can see the result
-    // Will auto-clear after 3 seconds or on ESC
-    // Store timeout ID so it can be cancelled if a new process starts
-    stateTimeout = setTimeout(() => {
-      state.value = 'idle'
-      inputText.value = ''
-      resultText.value = ''
-      stateTimeout = null
-    }, 3000)
+    // TODO: add option for this， Copy result to clipboard
+    await writeText(output)
+
+    await sleep(STATUS_DISPLAY_DURATION_MS)
+    state.value = 'idle'
+    inputText.value = ''
+    resultText.value = ''
   }
   catch (err: any) {
     if (err.name === 'AbortError') {
@@ -92,11 +78,9 @@ async function processSetInputPayload(payload: SetInputPayload) {
     }
     errorText.value = err.message || 'Something went wrong'
     state.value = 'error'
-    stateTimeout = setTimeout(() => {
-      state.value = 'idle'
-      errorText.value = ''
-      stateTimeout = null
-    }, 3000)
+    await sleep(STATUS_DISPLAY_DURATION_MS)
+    state.value = 'idle'
+    errorText.value = ''
   }
   finally {
     processing.value = false
@@ -173,10 +157,6 @@ async function checkUpgrade() {
 }
 
 async function onESC() {
-  if (stateTimeout) {
-    clearTimeout(stateTimeout)
-    stateTimeout = null
-  }
   if (processing.value) {
     abortController?.abort()
     state.value = 'idle'
@@ -214,8 +194,9 @@ function gotoSettings() {
       </div>
 
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
-        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
         <span class="truncate text-sm text-green-400">{{ resultText }}</span>
+        <!-- TODO: Add option for this -->
+        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
         <span class="text-[10px] text-green-400/50 font-mono shrink-0">Copied</span>
       </div>
 
