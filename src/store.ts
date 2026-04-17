@@ -49,6 +49,8 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
   { id: '5', key: '/prompt', aliases: ['/p'], value: 'Apply this extra instruction on top of the saved System Prompt: {{args}}' },
 ]
 
+export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
+
 const DEFAULT_STORE = {
   autoselect: false,
   ai_provider: 'deepseek' as AI_PROVIDER,
@@ -56,7 +58,7 @@ const DEFAULT_STORE = {
   deepseek_api_key: '',
   ollama_model: '',
   slash_commands: DEFAULT_SLASH_COMMANDS,
-  global_shortcut: 'CommandOrControl+Shift+X',
+  global_shortcut: DEFAULT_GLOBAL_SHORTCUT,
 }
 
 // only set default when key not exists
