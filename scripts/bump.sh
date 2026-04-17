@@ -38,14 +38,14 @@ pnpm version $version --no-git-tag-version
 package_version=$(jq -r '.version' package.json)
 # Sync apps/**/package.json "version" to match root (same release line)
 while IFS= read -r -d '' pkg; do
-    sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$package_version\"/" "$pkg"
+    perl -i -pe "s/\"version\": \"[^\"]*\"/\"version\": \"$package_version\"/" "$pkg"
 done < <(find apps -name package.json -print0)
 echo "package.json version: $package_version"
 
 # Update src-tauri version
 cd apps/desktop/src-tauri
 # Update Cargo.toml version
-sed -i "s/^version = \".*\"/version = \"$package_version\"/g" Cargo.toml
+perl -i -pe "s/^version = \".*\"/version = \"$package_version\"/g" Cargo.toml
 # Update Cargo.lock version
 cargo update --package typo --precise $package_version
 
