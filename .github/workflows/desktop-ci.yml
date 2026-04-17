@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: setup node
+      - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -45,21 +45,21 @@ jobs:
         with:
           cache: true
 
-      - name: install Rust stable
+      - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: install dependencies (ubuntu only)
+      - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxdo-dev
 
-      - name: install frontend dependencies
+      - name: Install frontend dependencies
         run: pnpm install
 
-      - name: build tauri app
+      - name: Build tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
