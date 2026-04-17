@@ -10,7 +10,7 @@
     "desktop:build": "pnpm --filter @typo/desktop build",
     "desktop:preview": "pnpm --filter @typo/desktop preview",
     "desktop:tauri": "pnpm --filter @typo/desktop tauri",
-    "desktop:bump": "./scripts/bump.sh",
+    "bump": "./scripts/bump.sh",
     "clean": "pnpm --filter @typo/desktop clean",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
