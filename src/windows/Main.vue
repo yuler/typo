@@ -9,8 +9,9 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
-import { DEFAULT_SHORTCUT, formatShortcut } from '@/shortcut'
+import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
+import { formatShortcut } from '@/utils'
 
 const appWindow = getCurrentWindow()
 const { setCurrentWindow } = useGlobalState()
@@ -23,7 +24,7 @@ const resultText = ref('')
 const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
-const globalShortcut = ref(DEFAULT_SHORTCUT)
+const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 // Track timeout ID for clearing the result state — allows cancelling pending UI resets
 // if a new request is started, preventing race conditions
 let stateTimeout: ReturnType<typeof setTimeout> | null = null
@@ -119,7 +120,7 @@ onMounted(async () => {
     }
   }
 
-  globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_SHORTCUT
+  globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
 
   const aiProvider = await store.get('ai_provider')
   if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
@@ -189,7 +190,6 @@ async function onESC() {
 function gotoSettings() {
   setCurrentWindow('Settings')
 }
-
 </script>
 
 <template>
@@ -216,7 +216,7 @@ function gotoSettings() {
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
         <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
         <span class="truncate text-sm text-green-400">{{ resultText }}</span>
-                <span class="text-[10px] text-green-400/50 font-mono shrink-0">Copied</span>
+        <span class="text-[10px] text-green-400/50 font-mono shrink-0">Copied</span>
       </div>
 
       <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">

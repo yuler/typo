@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
-import { EyeIcon, EyeOffIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
+import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
-import { DEFAULT_SHORTCUT, formatShortcut, setupGlobalShortcut } from '@/shortcut'
+import { setupGlobalShortcut } from '@/shortcut'
+import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
+import { formatShortcut } from '@/utils'
 
 const { setCurrentWindow } = useGlobalState()
 
@@ -99,7 +101,7 @@ onMounted(async () => {
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
-  form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_SHORTCUT
+  form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_GLOBAL_SHORTCUT
 
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
   isMacOS.value = systemInfo.os === 'macos'
@@ -207,12 +209,14 @@ async function onSubmit() {
               Basic Settings
             </h1>
 
-            <div class="grid w-full items-center gap-2">
+            <div class="grid w-full items-center gap-4">
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
                 <Label for="autoselect">Auto Select</Label>
               </div>
-
+              <p class="text-xs text-muted-foreground">
+                If nothing is selected, enabling this will trigger <code>{{ isMacOS ? '⌘ + A' : 'Ctrl + A' }}</code> first.
+              </p>
               <div class="grid w-full items-center gap-2 mt-2">
                 <Label for="global_shortcut">Global Shortcut</Label>
                 <div class="flex flex-col gap-2">
@@ -220,20 +224,24 @@ async function onSubmit() {
                     <Button
                       type="button"
                       variant="outline"
-                      class="w-full justify-start font-mono"
+                      class="flex-1 justify-start font-mono"
                       :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
                       @click="isCapturingShortcut ? stopCapture() : startCapture()"
                     >
-                      {{ form.global_shortcut ? formatShortcut(form.global_shortcut, isMacOS) : 'Click to set shortcut' }}
+                      {{
+                        isCapturingShortcut
+                          ? 'Listening...'
+                          : formatShortcut(form.global_shortcut, isMacOS)
+                      }}
                     </Button>
                     <Button
-                      v-if="!isCapturingShortcut && form.global_shortcut"
                       type="button"
                       variant="ghost"
-                      size="icon"
-                      @click="form.global_shortcut = DEFAULT_SHORTCUT"
+                      class="gap-1"
+                      @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
                     >
-                      <Trash2Icon class="h-4 w-4" />
+                      <RotateCcwIcon class="h-4 w-4" />
+                      Reset
                     </Button>
                   </div>
                   <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">

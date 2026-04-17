@@ -26,10 +26,10 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
     console.error('Failed to unregisterAll', e)
     // Fallback: explicitly unregister known shortcuts
     const storedShortcut = await get('global_shortcut')
-    for (const s of [DEFAULT_GLOBAL_SHORTCUT, storedShortcut]) {
-      if (s) {
+    for (const shortcut of [DEFAULT_GLOBAL_SHORTCUT, storedShortcut]) {
+      if (shortcut) {
         try {
-          await unregister(s)
+          await unregister(shortcut)
         }
         catch {}
       }

@@ -29,8 +29,5 @@ export function isUndefined(val: any): val is undefined {
 }
 
 export function formatShortcut(shortcut: string, mac: boolean): string {
-  return shortcut
-    .replace('CommandOrControl', mac ? '⌘' : 'Ctrl')
-    .replace('Shift', mac ? '⇧' : 'Shift')
-    .replace('Alt', mac ? '⌥' : 'Alt')
+  return shortcut.replace('CommandOrControl', mac ? 'Command' : 'Ctrl')
 }
