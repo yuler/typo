@@ -1,7 +1,5 @@
 import { LazyStore } from '@tauri-apps/plugin-store'
 
-const store = new LazyStore('store.json', { autoSave: false })
-
 export const SYSTEM_PROMPT = `
 You are an expert English writing and translation assistant with native-level proficiency.
 Your task is to improve and polish English text, including translating Chinese content and fixing errors.
@@ -60,6 +58,11 @@ const DEFAULT_STORE = {
   slash_commands: DEFAULT_SLASH_COMMANDS,
   global_shortcut: DEFAULT_GLOBAL_SHORTCUT,
 }
+
+const store = new LazyStore('store.json', {
+  autoSave: false,
+  defaults: DEFAULT_STORE,
+})
 
 // only set default when key not exists
 export async function initializeStore() {
