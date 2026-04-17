@@ -36,6 +36,7 @@ const ollamaModels = ref<any[]>([])
 const isCapturingShortcut = ref(false)
 const shortcutConflictError = ref('')
 const isMacOS = ref(false)
+const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
 const recordedCaptureKeys = new Set<string>()
 
@@ -102,14 +103,36 @@ async function startCapture() {
   recordedCaptureKeys.clear()
   window.addEventListener('keydown', handleShortcutKeyDown)
   window.addEventListener('keyup', handleShortcutKeyUp)
+  window.addEventListener('blur', handleCaptureWindowBlur)
+  window.addEventListener('pointerdown', handleCapturePointerDown, true)
 }
 
 function stopCapture() {
+  if (!isCapturingShortcut.value)
+    return
+
   isCapturingShortcut.value = false
   window.removeEventListener('keydown', handleShortcutKeyDown)
   window.removeEventListener('keyup', handleShortcutKeyUp)
+  window.removeEventListener('blur', handleCaptureWindowBlur)
+  window.removeEventListener('pointerdown', handleCapturePointerDown, true)
   pressedCaptureKeys.clear()
   recordedCaptureKeys.clear()
+}
+
+function handleCaptureWindowBlur() {
+  stopCapture()
+}
+
+function handleCapturePointerDown(e: PointerEvent) {
+  const target = e.target
+  if (!(target instanceof Node))
+    return
+
+  if (captureButtonEl.value?.contains(target))
+    return
+
+  stopCapture()
 }
 
 function handleShortcutKeyDown(e: KeyboardEvent) {
@@ -283,6 +306,7 @@ async function onSubmit() {
                 <div class="flex flex-col gap-2">
                   <div class="flex items-center gap-2">
                     <Button
+                      ref="captureButtonEl"
                       type="button"
                       variant="outline"
                       class="flex-1 justify-start font-mono"

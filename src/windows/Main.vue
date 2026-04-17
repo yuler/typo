@@ -67,9 +67,11 @@ async function processSetInputPayload(payload: SetInputPayload) {
     await writeText(output)
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
-    state.value = 'idle'
-    inputText.value = ''
-    resultText.value = ''
+    if (state.value === 'result') {
+      state.value = 'idle'
+      inputText.value = ''
+      resultText.value = ''
+    }
   }
   catch (err: any) {
     if (err.name === 'AbortError') {
