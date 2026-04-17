@@ -6,10 +6,12 @@
 # typo
 
 <p align="center">
+  <img src="https://img.shields.io/badge/alpha-内测中-orange" alt="Alpha: 内测中" />
+  <br />
   <a href="README.md">English</a> | <a href="README.zh.md">简体中文</a>
 </p>
 
-> 一款人工智能驱动的桌面工具，通过智能建议和纠正帮助您写出更好的英语。
+> 一款人工智能驱动的桌面工具，通过智能建议和纠正帮助您润色所选文本。
 
 [下载](https://github.com/yuler/typo/releases)
 
@@ -17,7 +19,7 @@
 
 <!-- TODO: 需要更新屏幕截图 -->
 
-- ![Screenshot](https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e)
+<video src="https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e" controls playsinline width="720"></video>
 
 ## 开发
 

@@ -1,15 +1,12 @@
-> [!WARNING]
-> Still in early development
-
----
-
 # typo
 
 <p align="center">
+  <img src="https://img.shields.io/badge/alpha-内测中-orange" alt="Alpha: 内测中" />
+  <br />
   <a href="README.md">English</a> | <a href="README.zh.md">简体中文</a>
 </p>
 
-> An AI-powered desktop tool that helps you write better English with smart suggestions and corrections.
+> An AI-powered desktop tool that refines your selected text with smart suggestions and corrections.
 
 [Download](https://github.com/yuler/typo/releases)
 
@@ -17,7 +14,7 @@
 
 <!-- TODO: need updated screenshots -->
 
-- ![Screenshot](https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e)
+<video src="https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e" controls playsinline width="720"></video>
 
 ## Development
 
