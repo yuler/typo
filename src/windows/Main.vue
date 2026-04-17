@@ -216,7 +216,7 @@ function gotoSettings() {
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
         <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
         <span class="truncate text-sm text-green-400">{{ resultText }}</span>
-                <span class="text-[10px] text-green-400/50 font-mono shrink-0">已替换</span>
+                <span class="text-[10px] text-green-400/50 font-mono shrink-0">Copied</span>
       </div>
 
       <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">
