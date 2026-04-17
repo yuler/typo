@@ -3,7 +3,13 @@
 
 # Default auto-accept edits
 [[rule]]
-toolName = ["write_to_file", "replace_file_content", "multi_replace_file_content", "run_command", "send_command_input"]
+toolName = [
+  "write_to_file",
+  "replace_file_content",
+  "multi_replace_file_content",
+  "run_command",
+  "send_command_input"
+]
 decision = "allow"
 priority = 100
 
@@ -11,7 +17,14 @@ priority = 100
 [[rule]]
 toolName = "run_shell_command"
 # commandPrefix accepts an array of strings that the command must start with
-commandPrefix = ["rtk", "git", "gh", "mkdir", "cd", "cp", "pnpm"]
+commandPrefix = [
+  "rtk",
+  "git",
+  "gh",
+  "mkdir",
+  "cd",
+  "cp",
+  "pnpm"
+]
 decision = "allow"
 priority = 100
-
