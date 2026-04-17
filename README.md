@@ -16,6 +16,25 @@
 
 <video src="https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e" controls playsinline width="720"></video>
 
+## Construct
+
+```
+.
+├── core/                # Former server; renamed core to stress the monolith "brain". **TODO**
+├── apps/                # All client-facing apps
+│   ├── www/             # Astro (Marketing / SEO)
+│   ├── web/             # Nuxt (Main Product) *Note: TODO
+│   ├── admin/           # Vite + Vue3 (Dashboard) *Note: TODO
+│   └── desktop/         # Tauri / Electron
+├── packages/            # Shared code across apps
+│   ├── api-client/      # Generated Rails API client
+│   ├── shared-utils/    # Shared helpers and constants
+│   └── ui-kit/          # (Optional) Shared UI components
+├── scripts/             # Repo-wide automation scripts
+├── package.json         # Root package: workspaces and top-level scripts
+└── README.md
+```
+
 ## Development
 
 ```bash
