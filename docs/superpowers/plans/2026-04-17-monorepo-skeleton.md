@@ -43,8 +43,8 @@
 
 **Files edited in place at the root:**
 
-- `.github/workflows/ci.yml` (add `projectPath: apps/desktop` to `tauri-action` step)
-- `.github/workflows/release.yml` (same)
+- `.github/workflows/desktop-ci.yml` (add `projectPath: apps/desktop` to `tauri-action` step)
+- `.github/workflows/desktop-release.yml` (same)
 - `scripts/bump.sh` (3 path edits in version-bump + `cd src-tauri`)
 
 **Files explicitly untouched:**
@@ -396,15 +396,15 @@ git commit -m "🔒 Regenerate pnpm-lock.yaml under workspace layout"
 
 ---
 
-## Task 7: Update `.github/workflows/ci.yml`
+## Task 7: Update `.github/workflows/desktop-ci.yml`
 
 **Files:**
 
-- Modify: `.github/workflows/ci.yml`
+- Modify: `.github/workflows/desktop-ci.yml`
 
 - [ ] **Step 1: Add `projectPath` to the `tauri-action` step**
 
-Edit `.github/workflows/ci.yml`. Find this block:
+Edit `.github/workflows/desktop-ci.yml`. Find this block:
 
 ```yaml
 - name: build tauri app
@@ -429,30 +429,30 @@ Replace it with:
 
 - [ ] **Step 2: Shape check**
 
-Run: `rg "projectPath: apps/desktop" .github/workflows/ci.yml`
+Run: `rg "projectPath: apps/desktop" .github/workflows/desktop-ci.yml`
 Expected: one match.
 
-Run: `rg -c "tauri-apps/tauri-action@v0" .github/workflows/ci.yml`
+Run: `rg -c "tauri-apps/tauri-action@v0" .github/workflows/desktop-ci.yml`
 Expected: `1` (the action step still exists exactly once; indentation didn't accidentally duplicate it).
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add .github/workflows/ci.yml
+git add .github/workflows/desktop-ci.yml
 git commit -m "👷 Point CI tauri-action at apps/desktop"
 ```
 
 ---
 
-## Task 8: Update `.github/workflows/release.yml`
+## Task 8: Update `.github/workflows/desktop-release.yml`
 
 **Files:**
 
-- Modify: `.github/workflows/release.yml`
+- Modify: `.github/workflows/desktop-release.yml`
 
 - [ ] **Step 1: Add `projectPath` to the `tauri-action` step**
 
-Edit `.github/workflows/release.yml`. Find this block:
+Edit `.github/workflows/desktop-release.yml`. Find this block:
 
 ```yaml
 - uses: tauri-apps/tauri-action@v0
@@ -487,16 +487,16 @@ Replace it with:
 
 - [ ] **Step 2: Shape check**
 
-Run: `rg "projectPath: apps/desktop" .github/workflows/release.yml`
+Run: `rg "projectPath: apps/desktop" .github/workflows/desktop-release.yml`
 Expected: one match.
 
-Run: `rg -c "tauri-apps/tauri-action@v0" .github/workflows/release.yml`
+Run: `rg -c "tauri-apps/tauri-action@v0" .github/workflows/desktop-release.yml`
 Expected: `1`.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add .github/workflows/release.yml
+git add .github/workflows/desktop-release.yml
 git commit -m "👷 Point release tauri-action at apps/desktop"
 ```
 
@@ -687,7 +687,7 @@ gh pr create --title "♻️ Refactor: migrate to pnpm monorepo (apps/desktop)" 
 - Moves the existing Tauri desktop app from the repo root into `apps/desktop/`.
 - Sets up pnpm workspace tooling at the root (no task runner, no packages, no placeholder apps).
 - Renames root package to `typo-monorepo`; desktop package becomes `@typo/desktop`.
-- Updates `ci.yml`, `release.yml`, and `scripts/bump.sh` to target the new path.
+- Updates `desktop-ci.yml`, `desktop-release.yml`, and `scripts/bump.sh` to target the new path.
 
 Spec: `docs/superpowers/specs/2026-04-17-monorepo-skeleton-design.md`
 

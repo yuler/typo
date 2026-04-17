@@ -1,4 +1,4 @@
-name: release
+name: desktop-release
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
 # On each push to the `release` branch it will create or update a GitHub release, build your app, and upload the artifacts to the release.
 
 jobs:
-  release-tauri:
+  desktop-release-tauri:
     permissions:
       contents: write
     strategy:

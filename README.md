@@ -20,7 +20,7 @@
 
 ```bash
 pnpm install
-pnpm dev
+pnpm desktop:dev
 ```
 
 ## Usage

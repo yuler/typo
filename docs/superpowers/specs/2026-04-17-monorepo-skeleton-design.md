@@ -78,7 +78,7 @@ typo/
 │   ├── bump.sh                     ← path edits
 │   └── ubuntu-global-shortcut.sh   ← unchanged (Linux install helper)
 │
-├── .github/workflows/              ← path edits in ci.yml + release.yml
+├── .github/workflows/              ← path edits in desktop-ci.yml + desktop-release.yml
 ├── shots/                          ← unchanged (README screenshots)
 ├── logo.png                        ← unchanged (README/icon source)
 │
@@ -243,7 +243,7 @@ No parent-directory references. No changes.
 
 ## 5. CI / Release / bump.sh Updates
 
-### 5.1 `.github/workflows/ci.yml`
+### 5.1 `.github/workflows/desktop-ci.yml`
 
 One line added:
 
@@ -259,7 +259,7 @@ One line added:
 
 `pnpm install` at repo root continues to hydrate the whole workspace.
 
-### 5.2 `.github/workflows/release.yml`
+### 5.2 `.github/workflows/desktop-release.yml`
 
 Same one-line addition:
 
@@ -351,8 +351,8 @@ git mv .env.example apps/desktop/.env.example
 # 5. Rewrite root package.json → "typo-monorepo" proxy (Section 3.2)
 # 6. Create apps/desktop/package.json → "@typo/desktop" (Section 3.3)
 # 7. Rewrite pnpm-workspace.yaml (Section 3.1)
-# 8. Edit .github/workflows/ci.yml        (+ projectPath: apps/desktop)
-# 9. Edit .github/workflows/release.yml   (+ projectPath: apps/desktop)
+# 8. Edit .github/workflows/desktop-ci.yml        (+ projectPath: apps/desktop)
+# 9. Edit .github/workflows/desktop-release.yml   (+ projectPath: apps/desktop)
 # 10. Edit scripts/bump.sh                (3 path edits; Section 5.4)
 
 # 11. Regenerate lockfile under the new workspace layout
