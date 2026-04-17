@@ -81,6 +81,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          projectPath: apps/desktop
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: App v__VERSION__
           releaseBody: ${{ steps.tag.outputs.message }}
