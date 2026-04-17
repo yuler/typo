@@ -69,18 +69,19 @@ function handleShortcutKeyDown(e: KeyboardEvent) {
   if (['Control', 'Alt', 'Shift', 'Meta', 'CapsLock'].includes(e.key))
     return
 
-  // Require at least one modifier key (Cmd/Ctrl, Alt, or Shift)
-  if (modifiers.length === 0) {
-    shortcutConflictError.value = 'At least one modifier key (⌘/Ctrl, Alt, or Shift) is required'
-    return
-  }
-
   // Format the key (Tauri expects capitalized keys like 'A' or named keys like 'Space')
   let key = e.key
   if (key === ' ')
     key = 'Space'
   if (key.length === 1)
     key = key.toUpperCase()
+
+  // Require at least one modifier key (Cmd/Ctrl, Alt, or Shift) is present
+  // This prevents single-key global shortcuts that would intercept that key system-wide
+  if (modifiers.length === 0) {
+    shortcutConflictError.value = 'At least one modifier key (⌘/Ctrl, Alt, or Shift) is required'
+    return
+  }
 
   const captured = [...modifiers, key].join('+')
   shortcutConflictError.value = ''
