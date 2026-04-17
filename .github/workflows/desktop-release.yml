@@ -83,7 +83,7 @@ jobs:
         with:
           projectPath: apps/desktop
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: App v__VERSION__
+          releaseName: v__VERSION__
           releaseBody: ${{ steps.tag.outputs.message }}
           releaseDraft: false
           prerelease: false
