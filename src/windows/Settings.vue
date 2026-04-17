@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
-import { setupGlobalShortcut } from '@/shortcut'
+import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
 import { formatShortcut } from '@/utils'
@@ -36,56 +36,117 @@ const ollamaModels = ref<any[]>([])
 const isCapturingShortcut = ref(false)
 const shortcutConflictError = ref('')
 const isMacOS = ref(false)
+const pressedCaptureKeys = new Set<string>()
+const recordedCaptureKeys = new Set<string>()
 
-function startCapture() {
+function normalizeCaptureKey(e: KeyboardEvent): string {
+  const code = e.code
+  if (/^Key[A-Z]$/.test(code))
+    return code.slice(3).toUpperCase()
+  if (/^Digit\d$/.test(code))
+    return code.slice(5)
+  if (/^F\d+$/.test(code))
+    return code
+
+  const keyByCode: Record<string, string> = {
+    Space: 'Space',
+    Escape: 'Escape',
+    Enter: 'Enter',
+    Tab: 'Tab',
+    Backspace: 'Backspace',
+    Delete: 'Delete',
+    ArrowUp: 'Up',
+    ArrowDown: 'Down',
+    ArrowLeft: 'Left',
+    ArrowRight: 'Right',
+  }
+  if (keyByCode[code])
+    return keyByCode[code]
+
+  if (e.key === ' ')
+    return 'Space'
+  if (e.key.length === 1)
+    return e.key.toUpperCase()
+  return e.key
+}
+
+function buildCapturedShortcut(keys: Set<string>): string {
+  const keyList = [...keys]
+  const hasCtrlOrMeta = keyList.includes('Control') || keyList.includes('Meta')
+  const hasAlt = keyList.includes('Alt')
+  const hasShift = keyList.includes('Shift')
+
+  const mainKey = keyList.find(k => !['Control', 'Meta', 'Alt', 'Shift', 'CapsLock'].includes(k))
+  if (!mainKey)
+    return ''
+
+  const modifiers: string[] = []
+  if (hasCtrlOrMeta)
+    modifiers.push('CommandOrControl')
+  if (hasAlt)
+    modifiers.push('Alt')
+  if (hasShift)
+    modifiers.push('Shift')
+
+  if (modifiers.length === 0)
+    return ''
+
+  return [...modifiers, mainKey].join('+')
+}
+
+async function startCapture() {
+  await unregisterCurrentGlobalShortcut()
   isCapturingShortcut.value = true
   shortcutConflictError.value = ''
+  pressedCaptureKeys.clear()
+  recordedCaptureKeys.clear()
   window.addEventListener('keydown', handleShortcutKeyDown)
+  window.addEventListener('keyup', handleShortcutKeyUp)
 }
 
 function stopCapture() {
   isCapturingShortcut.value = false
   window.removeEventListener('keydown', handleShortcutKeyDown)
+  window.removeEventListener('keyup', handleShortcutKeyUp)
+  pressedCaptureKeys.clear()
+  recordedCaptureKeys.clear()
 }
 
 function handleShortcutKeyDown(e: KeyboardEvent) {
   e.preventDefault()
   e.stopPropagation()
+  if (e.repeat)
+    return
 
   // Handle Escape to cancel
   if (e.key === 'Escape') {
     stopCapture()
     return
   }
+  const normalizedKey = normalizeCaptureKey(e)
+  pressedCaptureKeys.add(normalizedKey)
+  recordedCaptureKeys.add(normalizedKey)
+}
 
-  // Define modifiers
-  const modifiers: string[] = []
-  if (e.ctrlKey || e.metaKey)
-    modifiers.push('CommandOrControl')
-  if (e.altKey)
-    modifiers.push('Alt')
-  if (e.shiftKey)
-    modifiers.push('Shift')
+function handleShortcutKeyUp(e: KeyboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  const normalizedKey = normalizeCaptureKey(e)
+  pressedCaptureKeys.delete(normalizedKey)
 
-  // Ignore if only modifiers are pressed
-  if (['Control', 'Alt', 'Shift', 'Meta', 'CapsLock'].includes(e.key))
+  // Commit only after all keys are released (Handy-style behavior).
+  if (pressedCaptureKeys.size !== 0 || recordedCaptureKeys.size === 0)
     return
 
-  // Format the key (Tauri expects capitalized keys like 'A' or named keys like 'Space')
-  let key = e.key
-  if (key === ' ')
-    key = 'Space'
-  if (key.length === 1)
-    key = key.toUpperCase()
-
+  const captured = buildCapturedShortcut(recordedCaptureKeys)
   // Require at least one modifier key (Cmd/Ctrl, Alt, or Shift) is present
   // This prevents single-key global shortcuts that would intercept that key system-wide
-  if (modifiers.length === 0) {
+  if (!captured) {
     shortcutConflictError.value = 'At least one modifier key (⌘/Ctrl, Alt, or Shift) is required'
+    recordedCaptureKeys.clear()
     return
   }
 
-  const captured = [...modifiers, key].join('+')
   shortcutConflictError.value = ''
   form.value.global_shortcut = captured
   stopCapture()

@@ -17,14 +17,12 @@ async function handleShortcut() {
   }
 }
 
-export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
-  // 1. Unregister all existing shortcuts first
+export async function unregisterCurrentGlobalShortcut(): Promise<void> {
   try {
     await unregisterAll()
   }
   catch (e) {
     console.error('Failed to unregisterAll', e)
-    // Fallback: explicitly unregister known shortcuts
     const storedShortcut = await get('global_shortcut')
     for (const shortcut of [DEFAULT_GLOBAL_SHORTCUT, storedShortcut]) {
       if (shortcut) {
@@ -35,6 +33,11 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
       }
     }
   }
+}
+
+export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
+  // 1. Unregister all existing shortcuts first
+  await unregisterCurrentGlobalShortcut()
 
   // 2. Determine shortcut to register
   const shortcutToRegister = shortcut || (await get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
