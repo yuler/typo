@@ -15,6 +15,7 @@
     "bump": "./scripts/bump.sh",
     "clean": "rm -rf dist && cd src-tauri && cargo clean",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
     "format:fix": "eslint --fix",
     "app:icon:update": "tauri icon ./resources/logo.png"
   },
