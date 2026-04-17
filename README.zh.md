@@ -25,7 +25,7 @@
 
 ```bash
 pnpm install
-pnpm dev
+pnpm desktop:dev
 ```
 
 ## 使用方法

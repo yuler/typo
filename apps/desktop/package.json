@@ -1,0 +1,49 @@
+{
+  "name": "@typo/desktop",
+  "type": "module",
+  "version": "1.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev",
+    "dev:x11": "GDK_BACKEND=x11 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
+    "dev:frontend": "vite",
+    "build:frontend": "vue-tsc --noEmit && vite build",
+    "build": "tauri build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "clean": "rm -rf dist && cd src-tauri && cargo clean",
+    "app:icon:update": "tauri icon ./resources/logo.png"
+  },
+  "dependencies": {
+    "@ai-sdk/deepseek": "^0.2.14",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-clipboard-manager": "~2.3.2",
+    "@tauri-apps/plugin-global-shortcut": "~2.3.1",
+    "@tauri-apps/plugin-notification": "~2.3.3",
+    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-process": "~2.3.1",
+    "@tauri-apps/plugin-shell": "~2.3.0",
+    "@tauri-apps/plugin-store": "~2.4.2",
+    "@tauri-apps/plugin-updater": "~2.10.1",
+    "@vueuse/core": "^13.3.0",
+    "ai": "^4.3.16",
+    "lucide-vue-next": "^0.516.0",
+    "ollama-ai-provider": "^1.2.0",
+    "reka-ui": "^2.3.1",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.10",
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^24.0.3",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.10",
+    "tw-animate-css": "^1.3.4",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vue-tsc": "^2.1.10"
+  }
+}

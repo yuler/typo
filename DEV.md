@@ -9,7 +9,7 @@ To enable automatic updates, the application must be signed. If you lose your ke
 Run the following command to generate a new signing key:
 
 ```bash
-pnpm tauri signer generate -w ~/.tauri/typo.key
+pnpm desktop:tauri signer generate -w ~/.tauri/typo.key
 ```
 
 This will create:

@@ -4,6 +4,6 @@ export default antfu({
   formatters: true,
   vue: true,
   ignores: [
-    'src-tauri/**/*',
+    '**/src-tauri/**',
   ],
 })
