@@ -68,10 +68,13 @@ async function processSetInputPayload(payload: SetInputPayload) {
     resultText.value = output
     state.value = 'result'
 
-    // Copy result to clipboard for manual paste
+    // Copy result to clipboard
     await writeText(output)
 
-    // Stay in result state so user can see and manually paste
+    // Paste the corrected text back into the original input area
+    await invoke('keyboard_paste_text', { text: output })
+
+    // Stay in result state so user can see the result
     // Will auto-clear after 3 seconds or on ESC
     // Store timeout ID so it can be cancelled if a new process starts
     stateTimeout = setTimeout(() => {
@@ -213,7 +216,7 @@ function gotoSettings() {
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
         <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
         <span class="truncate text-sm text-green-400">{{ resultText }}</span>
-                <span class="text-[10px] text-green-400/50 font-mono shrink-0">Copied</span>
+                <span class="text-[10px] text-green-400/50 font-mono shrink-0">已替换</span>
       </div>
 
       <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">
