@@ -1,0 +1,56 @@
+name: PR Format Fix
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: format-fix-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  format-fix:
+    runs-on: ubuntu-latest
+    # Fork PRs cannot receive pushes from GITHUB_TOKEN on the contributor branch.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout PR head branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          cache: true
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format fix
+        env:
+          CI: '1'
+        run: |
+          pnpm run format:fix
+
+      - name: Commit and push fixes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No format changes to commit."
+            exit 0
+          fi
+          git commit -m "💄 Apply format:fix"
+          git push origin "HEAD:${{ github.head_ref }}"
