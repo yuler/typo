@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
 import { EyeIcon, EyeOffIcon, PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -117,6 +117,13 @@ onMounted(async () => {
       textarea.setSelectionRange(0, 0)
     }
   })
+})
+
+onUnmounted(() => {
+  // Clean up keydown listener if component is unmounted while capturing shortcut
+  if (isCapturingShortcut.value) {
+    stopCapture()
+  }
 })
 
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
