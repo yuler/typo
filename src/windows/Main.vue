@@ -26,7 +26,7 @@ const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_SHORTCUT)
 
 let unlistenSetInput: UnlistenFn
-let resultTimeoutId: ReturnType<typeof setTimeout> | null = null
+let stateTimeout: ReturnType<typeof setTimeout> | null = null
 
 interface SetInputPayload {
   text: string
@@ -42,18 +42,18 @@ async function processSetInputPayload(payload: SetInputPayload) {
   if (!text.trim().length) {
     errorText.value = 'No text to improve'
     state.value = 'error'
-    resultTimeoutId = setTimeout(() => {
+    stateTimeout = setTimeout(() => {
       state.value = 'idle'
       errorText.value = ''
-      resultTimeoutId = null
+      stateTimeout = null
     }, 3000)
     return
   }
 
-  // Clear any pending result timeout to avoid race condition
-  if (resultTimeoutId) {
-    clearTimeout(resultTimeoutId)
-    resultTimeoutId = null
+  // Clear any pending state timeout to avoid race condition
+  if (stateTimeout) {
+    clearTimeout(stateTimeout)
+    stateTimeout = null
   }
 
   try {
@@ -72,11 +72,11 @@ async function processSetInputPayload(payload: SetInputPayload) {
     // Stay in result state so user can see and manually paste
     // Will auto-clear after 3 seconds or on ESC
     // Store timeout ID so it can be cancelled if a new process starts
-    resultTimeoutId = setTimeout(() => {
+    stateTimeout = setTimeout(() => {
       state.value = 'idle'
       inputText.value = ''
       resultText.value = ''
-      resultTimeoutId = null
+      stateTimeout = null
     }, 3000)
   }
   catch (err: any) {
@@ -86,10 +86,10 @@ async function processSetInputPayload(payload: SetInputPayload) {
     }
     errorText.value = err.message || 'Something went wrong'
     state.value = 'error'
-    resultTimeoutId = setTimeout(() => {
+    stateTimeout = setTimeout(() => {
       state.value = 'idle'
       errorText.value = ''
-      resultTimeoutId = null
+      stateTimeout = null
     }, 3000)
   }
   finally {
@@ -167,9 +167,9 @@ async function checkUpgrade() {
 }
 
 async function onESC() {
-  if (resultTimeoutId) {
-    clearTimeout(resultTimeoutId)
-    resultTimeoutId = null
+  if (stateTimeout) {
+    clearTimeout(stateTimeout)
+    stateTimeout = null
   }
   if (processing.value) {
     abortController?.abort()
