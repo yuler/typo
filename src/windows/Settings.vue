@@ -204,7 +204,7 @@ async function onSubmit() {
                       :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
                       @click="isCapturingShortcut ? stopCapture() : startCapture()"
                     >
-                      {{ isCapturingShortcut ? 'Listening... (Press any key or Esc to cancel)' : form.global_shortcut || 'Click to set shortcut' }}
+                      {{ form.global_shortcut || 'Click to set shortcut' }}
                     </Button>
                     <Button
                       v-if="!isCapturingShortcut && form.global_shortcut"
@@ -219,8 +219,8 @@ async function onSubmit() {
                   <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
                     {{ shortcutConflictError }}
                   </p>
-                  <p class="text-xs text-muted-foreground">
-                    Click the button then press your desired key combination.
+                  <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
+                    {{ isCapturingShortcut ? 'Listening... (Press any key or Esc to cancel)' : 'Click the button then press your desired key combination.' }}
                   </p>
                 </div>
               </div>
