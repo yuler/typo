@@ -1,5 +1,6 @@
+import type { LanguageModelV1 } from 'ai'
 import { createDeepSeek } from '@ai-sdk/deepseek'
-import { generateText, type LanguageModelV1 } from 'ai'
+import { generateText } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
 import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
 import { get } from './store'

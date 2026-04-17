@@ -1,8 +1,8 @@
 {
   "name": "@typo/desktop",
-  "private": true,
-  "version": "1.2.0",
   "type": "module",
+  "version": "1.2.0",
+  "private": true,
   "scripts": {
     "dev": "tauri dev",
     "dev:x11": "GDK_BACKEND=x11 WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
