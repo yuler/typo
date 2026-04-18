@@ -21,6 +21,12 @@ const items: Testimonial[] = [
     role: 'Co-founder',
     image: '/testimonials/jianwu.png',
   },
+  {
+    quote: 'Amazing tool, I love this tiny thing.',
+    name: 'GongHui',
+    role: 'Co-founder',
+    image: '/testimonials/gonghui.png',
+  },
 ]
 ---
 
@@ -44,9 +50,9 @@ const items: Testimonial[] = [
     </p>
   </div>
 
-  <!-- Two quotes: single column on small screens, two-column grid from md up -->
-  <div class="mt-10 mx-auto max-w-5xl px-4 sm:mt-12 sm:px-6" role="region" aria-label="Testimonials">
-    <ul class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 md:items-stretch">
+  <!-- Quotes: one column on small screens, two columns on tablet, one row on large screens -->
+  <div class="mt-10 mx-auto max-w-6xl px-4 sm:mt-12 sm:px-6" role="region" aria-label="Testimonials">
+    <ul class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 md:items-stretch lg:grid-cols-3 lg:gap-6">
       {
         items.map(({ quote, name, role, image }) => (
           <li class="flex min-h-0 w-full">

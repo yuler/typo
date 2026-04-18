@@ -13,7 +13,7 @@
     "www:dev": "pnpm --filter @typo/www dev",
     "www:build": "pnpm --filter @typo/www build",
     "www:preview": "pnpm --filter @typo/www preview",
-    "www:deploy": "./scripts/www-deploy.sh",
+    "www:deploy": "pnpm www:build && ./scripts/www-deploy.sh",
     "bump": "./scripts/bump.sh",
     "clean": "pnpm --filter @typo/desktop clean",
     "lint": "eslint .",
