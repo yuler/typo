@@ -26,7 +26,7 @@ chmod +x ~/Applications/typo.appimage
 
 ### Desktop entry
 
-Create `/usr/share/applications/typo.desktop` (replace `<$USER>` with your username):
+Create `~/.local/share/applications/typo.desktop` (replace `<$USER>` with your username). A user-local path avoids `sudo` and scopes the launcher to your account:
 
 ```ini
 [Desktop Entry]
@@ -41,9 +41,14 @@ Terminal=false
 
 ### Application icon
 
+Install the icon under your user icon theme (no `sudo`):
+
 ```bash
-sudo curl -L -o /usr/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
+mkdir -p ~/.local/share/icons/hicolor/256x256/apps
+curl -L -o ~/.local/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
 ```
+
+If your desktop does not pick up `Icon=typo`, set `Icon` to the absolute path of that PNG in the `.desktop` file, or run `gtk-update-icon-cache ~/.local/share/icons/hicolor`.
 
 ## Linux Wayland compatibility
 
@@ -57,7 +62,36 @@ Wayland restricts global hotkey listeners for security. Use a **system shortcut*
 
 ### 2. Enhanced clipboard support (recommended)
 
-For reliable selection capture and pasting on Wayland, consider **ydotool** for keyboard simulation. See the [ydotool issue discussion](https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993) for udev and `uinput` setup, run `ydotoold`, and add your user to the `input` group where appropriate.
+For reliable selection capture and pasting on Wayland, consider **ydotool** for keyboard simulation. It is fast but needs a one-time system setup (based on the [ydotool uinput discussion](https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993)):
+
+**Add your user to the `input` group**
+
+```bash
+sudo usermod -aG input $USER
+```
+
+Log out and back in (or reboot) so the new group membership applies.
+
+**Add a udev rule for `uinput`**
+
+```bash
+echo 'KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+**Autostart the ydotool daemon**
+
+Create `~/.config/autostart/ydotoold.desktop`:
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=ydotool daemon
+Exec=/usr/bin/ydotoold
+```
+
+Adjust `Exec` if `ydotoold` is not installed as `/usr/bin/ydotoold` on your distro.
 
 ### 3. XWayland workaround (optional)
 
