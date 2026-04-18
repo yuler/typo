@@ -1,17 +1,10 @@
 ---
-import type { CollectionEntry } from 'astro:content'
 import { getCollection } from 'astro:content'
 import DocsLayout from '@/components/docs/DocsLayout.astro'
+import { sortDocsEntries } from '@/lib/docs-nav'
 
-const navOrder = ['getting-started', 'usage', 'prompt-shortcuts', 'faq']
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-const ordered = navOrder
-  .map(id => entries.find(e => e.id === id))
-  .filter((e): e is CollectionEntry<'docs'> => Boolean(e))
-const rest = entries
-  .filter(e => !navOrder.includes(e.id))
-  .sort((a, b) => a.data.title.localeCompare(b.data.title))
-const cards = [...ordered, ...rest]
+const cards = sortDocsEntries(entries)
 ---
 
 <DocsLayout title="Documentation — typo" description="Guides and reference for the typo desktop app.">

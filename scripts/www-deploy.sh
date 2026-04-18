@@ -8,7 +8,7 @@ if [[ -f "$ROOT/.env" ]]; then
   source "$ROOT/.env"
   set +a
 else
-  echo "Missing $ROOT/.env — set WWW_SERVER_HOST, WWW_SERVER_HOST_USERNAME, WWW_SERVER_HOST_PASSWORD, WWW_SERVER_HOST_TARGET" >&2
+  echo "Missing $ROOT/.env — set WWW_SERVER_HOST, WWW_SERVER_HOST_USERNAME, WWW_SERVER_HOST_TARGET (optional: WWW_SERVER_SSH_IDENTITY)" >&2
   exit 1
 fi
 
@@ -18,4 +18,11 @@ if [[ ! -d "$DIST" ]]; then
   exit 1
 fi
 
-sshpass -p "${WWW_SERVER_HOST_PASSWORD}" scp -r "${DIST}"/* "${WWW_SERVER_HOST_USERNAME}@${WWW_SERVER_HOST}:${WWW_SERVER_HOST_TARGET}"
+RSYNC_RSH=(ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+if [[ -n "${WWW_SERVER_SSH_IDENTITY:-}" ]]; then
+  RSYNC_RSH+=(-i "$WWW_SERVER_SSH_IDENTITY")
+fi
+
+REMOTE="${WWW_SERVER_HOST_USERNAME}@${WWW_SERVER_HOST}"
+# Trailing slash: sync dist/ *contents* into the remote directory.
+rsync -az "${DIST}/" "${REMOTE}:${WWW_SERVER_HOST_TARGET}/" -e "${RSYNC_RSH[*]}"

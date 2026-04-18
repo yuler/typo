@@ -1,9 +1,9 @@
 ---
-import type { CollectionEntry } from 'astro:content'
 import { getCollection } from 'astro:content'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
+import { sortDocsEntries } from '@/lib/docs-nav'
 
 interface Props {
   title: string
@@ -13,21 +13,14 @@ interface Props {
 const { title, description = 'Guides and reference for the typo desktop app.' } = Astro.props
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/'
 
-const navOrder = ['getting-started', 'usage', 'prompt-shortcuts', 'faq']
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-const ordered = navOrder
-  .map(id => entries.find(e => e.id === id))
-  .filter((e): e is CollectionEntry<'docs'> => Boolean(e))
-const rest = entries
-  .filter(e => !navOrder.includes(e.id))
-  .sort((a, b) => a.data.title.localeCompare(b.data.title))
-const sidebarDocs = [...ordered, ...rest]
+const sidebarDocs = sortDocsEntries(entries)
 
 const isIndex = pathname === '/docs'
 function linkActive(href: string) {
   const h = href.replace(/\/$/, '') || '/'
   if (h === '/docs')
-return isIndex
+    return isIndex
   return pathname === h || pathname.startsWith(`${h}/`)
 }
 ---
