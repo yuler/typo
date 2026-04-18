@@ -2,7 +2,7 @@
 import ThemeToggle from './ThemeToggle'
 
 const pathname = Astro.url.pathname
-const link = (href: string, label: string) => {
+function link(href: string, label: string) {
   const active = pathname === href || (href !== '/' && pathname.startsWith(href))
   return { href, label, active }
 }

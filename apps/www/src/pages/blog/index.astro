@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '@/layouts/BaseLayout.astro'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
 
 const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)
 const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
@@ -54,9 +54,11 @@ function formatDateLong(d: Date) {
     <div class="border-t border-zinc-200/90 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
       <div class="mx-auto max-w-3xl px-4 sm:px-6">
         {
-          sorted.length === 0 ? (
+          sorted.length === 0
+? (
             <p class="py-20 text-center text-zinc-600 dark:text-zinc-400">No posts yet.</p>
-          ) : (
+          )
+: (
             <ol class="divide-y divide-zinc-200/90 dark:divide-zinc-800/80">
               {sorted.map((post, i) => (
                 <li>

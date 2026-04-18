@@ -1,15 +1,15 @@
 ---
-import { getCollection } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
+import { getCollection } from 'astro:content'
 import DocsLayout from '@/components/docs/DocsLayout.astro'
 
 const navOrder = ['getting-started', 'usage', 'prompt-shortcuts', 'faq']
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
 const ordered = navOrder
-  .map((id) => entries.find((e) => e.id === id))
+  .map(id => entries.find(e => e.id === id))
   .filter((e): e is CollectionEntry<'docs'> => Boolean(e))
 const rest = entries
-  .filter((e) => !navOrder.includes(e.id))
+  .filter(e => !navOrder.includes(e.id))
   .sort((a, b) => a.data.title.localeCompare(b.data.title))
 const cards = [...ordered, ...rest]
 ---
@@ -24,7 +24,7 @@ const cards = [...ordered, ...rest]
 
   <div class="mt-10 grid gap-4 sm:grid-cols-2">
     {
-      cards.map((doc) => (
+      cards.map(doc => (
         <a
           href={`/docs/${doc.id}`}
           class="group flex flex-col rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 transition-colors hover:border-zinc-400 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"

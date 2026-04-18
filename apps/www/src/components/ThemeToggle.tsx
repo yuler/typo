@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 
 type Theme = 'light' | 'dark'
 
@@ -13,8 +13,10 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
-    setTheme(getInitial())
+    startTransition(() => {
+      setMounted(true)
+      setTheme(getInitial())
+    })
   }, [])
 
   function apply(next: Theme) {

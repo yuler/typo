@@ -1,9 +1,9 @@
 ---
-import { getCollection } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
-import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getCollection } from 'astro:content'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
 
 interface Props {
   title: string
@@ -16,17 +16,18 @@ const pathname = Astro.url.pathname.replace(/\/$/, '') || '/'
 const navOrder = ['getting-started', 'usage', 'prompt-shortcuts', 'faq']
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
 const ordered = navOrder
-  .map((id) => entries.find((e) => e.id === id))
+  .map(id => entries.find(e => e.id === id))
   .filter((e): e is CollectionEntry<'docs'> => Boolean(e))
 const rest = entries
-  .filter((e) => !navOrder.includes(e.id))
+  .filter(e => !navOrder.includes(e.id))
   .sort((a, b) => a.data.title.localeCompare(b.data.title))
 const sidebarDocs = [...ordered, ...rest]
 
 const isIndex = pathname === '/docs'
-const linkActive = (href: string) => {
+function linkActive(href: string) {
   const h = href.replace(/\/$/, '') || '/'
-  if (h === '/docs') return isIndex
+  if (h === '/docs')
+return isIndex
   return pathname === h || pathname.startsWith(`${h}/`)
 }
 ---
@@ -54,7 +55,7 @@ const linkActive = (href: string) => {
           Overview
         </a>
         {
-          sidebarDocs.map((doc) => (
+          sidebarDocs.map(doc => (
             <a
               href={`/docs/${doc.id}`}
               class:list={[
@@ -89,7 +90,7 @@ const linkActive = (href: string) => {
             </a>
           </li>
           {
-            sidebarDocs.map((doc) => (
+            sidebarDocs.map(doc => (
               <li>
                 <a
                   href={`/docs/${doc.id}`}
