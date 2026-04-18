@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import Footer from '@/components/Footer.astro'
+import Header from '@/components/Header.astro'
+
+const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
+const sorted = entries.sort((a, b) => a.data.title.localeCompare(b.data.title))
+---
+
+<BaseLayout title="Documentation — typo" description="Guides and reference for the typo desktop app.">
+  <Header />
+  <main class="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+    <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Documentation</h1>
+    <p class="mt-2 max-w-2xl text-zinc-600 dark:text-zinc-400">
+      Install typo, learn the workflow, prompt shortcuts, and platform-specific notes.
+    </p>
+    <ul class="mt-10 divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950/50">
+      {sorted.map((doc) => (
+        <li>
+          <a
+            href={`/docs/${doc.id}`}
+            class="flex flex-col gap-1 px-5 py-4 transition hover:bg-zinc-50 dark:hover:bg-zinc-900/80 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <span class="font-medium text-zinc-900 dark:text-zinc-50">{doc.data.title}</span>
+            <span class="text-sm text-zinc-500 dark:text-zinc-400">{doc.data.description}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,48 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* MDX / Markdown body (no @tailwindcss/typography) */
+.mdx-content :where(h1) {
+  @apply mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50;
+}
+
+.mdx-content :where(h2) {
+  @apply mt-10 mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-50;
+}
+
+.mdx-content :where(h3) {
+  @apply mt-6 mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50;
+}
+
+.mdx-content :where(p, li) {
+  @apply text-zinc-600 leading-relaxed dark:text-zinc-400;
+}
+
+.mdx-content :where(ul, ol) {
+  @apply my-3 pl-5;
+}
+
+.mdx-content :where(a) {
+  @apply font-medium text-zinc-900 underline underline-offset-2 dark:text-zinc-100;
+}
+
+.mdx-content :where(pre) {
+  @apply my-4 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900;
+}
+
+.mdx-content :where(code) {
+  @apply rounded bg-zinc-200 px-1 py-0.5 text-[0.875em] dark:bg-zinc-800;
+}
+
+.mdx-content :where(pre code) {
+  @apply bg-transparent p-0;
+}

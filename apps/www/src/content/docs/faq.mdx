@@ -1,0 +1,73 @@
+---
+title: FAQ
+description: Platform notes for macOS and Linux, Wayland hotkeys, and Ollama.
+---
+
+## macOS
+
+- After copying the app to `/Applications`, you may need to clear quarantine:
+
+  ```bash
+  xattr -cr /Applications/typo.app
+  ```
+
+- Enable **Accessibility** (and related permissions) for typo in **System Settings** so selection and paste automation work reliably.
+
+## Linux installation (AppImage)
+
+For installation and auto-updates, we recommend the **AppImage** build:
+
+```bash
+# Move the downloaded AppImage to a permanent location
+mv ~/Downloads/typo_*.AppImage ~/Applications/typo.appimage
+# Make it executable
+chmod +x ~/Applications/typo.appimage
+```
+
+### Desktop entry
+
+Create `/usr/share/applications/typo.desktop` (replace `<$USER>` with your username):
+
+```ini
+[Desktop Entry]
+Name=Typo
+Comment=AI-powered text improvement tool
+Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
+Icon=typo
+Type=Application
+Categories=Utility;TextEditor;
+Terminal=false
+```
+
+### Application icon
+
+```bash
+sudo curl -L -o /usr/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
+```
+
+## Linux Wayland compatibility
+
+Wayland restricts global hotkey listeners for security. Use a **system shortcut** instead of relying only on in-app hotkeys.
+
+### 1. Add a custom shortcut
+
+1. Open **Settings → Keyboard → Custom Shortcuts**.
+2. Add a command: `typo --selection` (or the full path to your AppImage).
+3. Assign **Ctrl + Shift + X** (or your preferred binding).
+
+### 2. Enhanced clipboard support (recommended)
+
+For reliable selection capture and pasting on Wayland, consider **ydotool** for keyboard simulation. See the [ydotool issue discussion](https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993) for udev and `uinput` setup, run `ydotoold`, and add your user to the `input` group where appropriate.
+
+### 3. XWayland workaround (optional)
+
+If selection capture fails in some Electron apps, try running them in X11 mode, e.g.:
+
+```bash
+code --ozone-platform=x11
+```
+
+## Ollama
+
+- Ensure Ollama is running: `ollama serve`.
+- See the [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) for request/response details and model management.

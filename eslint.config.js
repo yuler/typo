@@ -5,5 +5,6 @@ export default antfu({
   vue: true,
   ignores: [
     '**/src-tauri/**',
+    'apps/www/.astro/**',
   ],
 })

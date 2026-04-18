@@ -1,0 +1,39 @@
+---
+const features = [
+  {
+    title: 'Multi-model support',
+    body: 'Works with DeepSeek and local Ollama models so you can choose cloud or on-device AI.',
+  },
+  {
+    title: 'Global hotkeys',
+    body: 'Quick activation with Ctrl/Cmd + Shift + X (or your system shortcut on Wayland).',
+  },
+  {
+    title: 'Intelligent pasting',
+    body: 'Clipboard-based replacement for maximum compatibility across apps and input methods.',
+  },
+  {
+    title: 'Customizable',
+    body: 'Tailor AI behavior via system prompts and up to five prompt shortcuts in Settings.',
+  },
+]
+---
+
+<section class="border-y border-zinc-200 bg-white py-16 dark:border-zinc-800 dark:bg-zinc-900/30">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6">
+    <h2 class="text-center text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+      Built for fast text workflows
+    </h2>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-zinc-600 dark:text-zinc-400">
+      typo stays out of your way until you need it — then it captures selection, runs your prompt, and pastes the result.
+    </p>
+    <ul class="mt-12 grid gap-6 sm:grid-cols-2">
+      {features.map(f => (
+        <li class="rounded-xl border border-zinc-200 bg-zinc-50/80 p-6 dark:border-zinc-800 dark:bg-zinc-950/50">
+          <h3 class="font-semibold text-zinc-900 dark:text-zinc-50">{f.title}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{f.body}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
