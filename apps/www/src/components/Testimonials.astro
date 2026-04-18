@@ -9,15 +9,14 @@ type Testimonial = {
 
 const items: Testimonial[] = [
   {
-    quote:
-      'I current use typo for imporve my english garmma, and I wanted to share to you',
+    quote: 'I currently use Typo to improve my English grammar, and I wanted to share it with you.',
     name: 'Yuler',
     role: 'Creator of typo',
     image: '/testimonials/yuler.png',
   },
   {
     quote:
-      "I'm learn japan langue now, And I think this tool can help people like our wanted to learn forigner language",
+      "I'm learning Japanese now, and I think this tool can help people like us who want to learn a foreign language.",
     name: 'JianWu',
     role: 'Co-founder',
     image: '/testimonials/jianwu.png',
@@ -58,31 +57,29 @@ const items: Testimonial[] = [
                 </span>
                 <p class="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{quote}</p>
                 <footer class="mt-4 flex items-center gap-2.5 border-t border-zinc-200/80 pt-3 dark:border-zinc-800/80">
-                  {
-                    image ? (
-                      <img
-                        src={image}
-                        alt={name}
-                        width="36"
-                        height="36"
-                        loading="lazy"
-                        decoding="async"
-                        class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-zinc-200/90 dark:ring-zinc-700/90"
-                      />
-                    ) : (
-                      <span
-                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-zinc-200 to-zinc-300 text-[0.65rem] font-bold text-zinc-700 dark:from-zinc-700 dark:to-zinc-600 dark:text-zinc-100"
-                        aria-hidden="true"
-                      >
-                        {name
-                          .split(/\s+/)
-                          .map(w => w[0])
-                          .join('')
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </span>
-                    )
-                  }
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={name}
+                      width="36"
+                      height="36"
+                      loading="lazy"
+                      decoding="async"
+                      class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-zinc-200/90 dark:ring-zinc-700/90"
+                    />
+                  ) : (
+                    <span
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-zinc-200 to-zinc-300 text-[0.65rem] font-bold text-zinc-700 dark:from-zinc-700 dark:to-zinc-600 dark:text-zinc-100"
+                      aria-hidden="true"
+                    >
+                      {name
+                        .split(/\s+/)
+                        .map((w) => w[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </span>
+                  )}
                   <div>
                     <cite class="not-italic text-sm font-semibold text-zinc-900 dark:text-zinc-50">{name}</cite>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400">{role}</p>
