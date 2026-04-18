@@ -1,33 +1,46 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '@/layouts/BaseLayout.astro'
-import Footer from '@/components/Footer.astro'
-import Header from '@/components/Header.astro'
+import type { CollectionEntry } from 'astro:content'
+import DocsLayout from '@/components/docs/DocsLayout.astro'
 
+const navOrder = ['getting-started', 'usage', 'prompt-shortcuts', 'faq']
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-const sorted = entries.sort((a, b) => a.data.title.localeCompare(b.data.title))
+const ordered = navOrder
+  .map((id) => entries.find((e) => e.id === id))
+  .filter((e): e is CollectionEntry<'docs'> => Boolean(e))
+const rest = entries
+  .filter((e) => !navOrder.includes(e.id))
+  .sort((a, b) => a.data.title.localeCompare(b.data.title))
+const cards = [...ordered, ...rest]
 ---
 
-<BaseLayout title="Documentation — typo" description="Guides and reference for the typo desktop app.">
-  <Header />
-  <main class="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-    <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Documentation</h1>
-    <p class="mt-2 max-w-2xl text-zinc-600 dark:text-zinc-400">
-      Install typo, learn the workflow, prompt shortcuts, and platform-specific notes.
-    </p>
-    <ul class="mt-10 divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950/50">
-      {sorted.map((doc) => (
-        <li>
-          <a
-            href={`/docs/${doc.id}`}
-            class="flex flex-col gap-1 px-5 py-4 transition hover:bg-zinc-50 dark:hover:bg-zinc-900/80 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <span class="font-medium text-zinc-900 dark:text-zinc-50">{doc.data.title}</span>
-            <span class="text-sm text-zinc-500 dark:text-zinc-400">{doc.data.description}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </main>
-  <Footer />
-</BaseLayout>
+<DocsLayout title="Documentation — typo" description="Guides and reference for the typo desktop app.">
+  <h1 class="text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">
+    Documentation
+  </h1>
+  <p class="mt-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+    Install typo, learn the workflow, prompt shortcuts, and platform-specific notes. Use the sidebar to move between pages.
+  </p>
+
+  <div class="mt-10 grid gap-4 sm:grid-cols-2">
+    {
+      cards.map((doc) => (
+        <a
+          href={`/docs/${doc.id}`}
+          class="group flex flex-col rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 transition-colors hover:border-zinc-400 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
+        >
+          <span class="font-semibold text-zinc-900 group-hover:text-zinc-950 dark:text-zinc-100 dark:group-hover:text-white">
+            {doc.data.title}
+          </span>
+          <span class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{doc.data.description}</span>
+          <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-zinc-700 group-hover:text-zinc-950 dark:text-zinc-300 dark:group-hover:text-white">
+            Read
+            <span class="transition-transform group-hover:translate-x-0.5" aria-hidden>
+              →
+            </span>
+          </span>
+        </a>
+      ))
+    }
+  </div>
+</DocsLayout>

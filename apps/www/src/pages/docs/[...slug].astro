@@ -1,8 +1,6 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content'
-import BaseLayout from '@/layouts/BaseLayout.astro'
-import Footer from '@/components/Footer.astro'
-import Header from '@/components/Header.astro'
+import DocsLayout from '@/components/docs/DocsLayout.astro'
 
 export async function getStaticPaths() {
   const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
@@ -20,18 +18,18 @@ const { entry } = Astro.props
 const { Content } = await render(entry)
 ---
 
-<BaseLayout title={`${entry.data.title} — typo docs`} description={entry.data.description}>
-  <Header />
-  <main class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-    <nav class="text-sm text-zinc-500 dark:text-zinc-400">
-      <a href="/docs" class="font-medium text-zinc-700 hover:underline dark:text-zinc-300">Docs</a>
-      <span class="mx-2" aria-hidden>/</span>
-      <span class="text-zinc-600 dark:text-zinc-400">{entry.data.title}</span>
-    </nav>
-    <article class="mdx-content mt-8">
-      <h1>{entry.data.title}</h1>
-      <Content />
-    </article>
-  </main>
-  <Footer />
-</BaseLayout>
+<DocsLayout title={`${entry.data.title} — typo docs`} description={entry.data.description}>
+  <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500 dark:text-zinc-500" aria-label="Breadcrumb">
+    <a href="/docs" class="font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white">
+      Docs
+    </a>
+    <span aria-hidden class="text-zinc-400 dark:text-zinc-600">›</span>
+    <span class="text-zinc-700 dark:text-zinc-300">{entry.data.title}</span>
+  </nav>
+
+  <article class="mdx-content mt-8 lg:mt-10">
+    <h1>{entry.data.title}</h1>
+    <p class="not-prose -mt-2 mb-8 text-[15px] leading-7 text-zinc-500 dark:text-zinc-500">{entry.data.description}</p>
+    <Content />
+  </article>
+</DocsLayout>
