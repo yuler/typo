@@ -1,12 +1,20 @@
 ---
+import LanguageSwitcher from './LanguageSwitcher.astro'
 import ThemeToggle from './ThemeToggle'
+import { tr } from '@/lib/i18n'
+
+const t = tr(Astro, 'www')
+const tc = tr(Astro, 'common')
 
 const pathname = Astro.url.pathname
 function link(href: string, label: string) {
   const active = pathname === href || (href !== '/' && pathname.startsWith(href))
   return { href, label, active }
 }
-const nav = [link('/docs', 'Docs'), link('/blog', 'Blog')]
+const nav = [
+  link('/docs', t('header.nav.docs')),
+  link('/blog', t('header.nav.blog')),
+]
 ---
 
 <header
@@ -16,9 +24,9 @@ const nav = [link('/docs', 'Docs'), link('/blog', 'Blog')]
     <a
       href="/"
       class="flex size-14 shrink-0 items-center justify-center rounded-md outline-offset-2 transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-400 dark:focus-visible:outline-zinc-500"
-      aria-label="typo — home"
+      aria-label={t('header.brand_aria')}
     >
-      <img src="/logo.png" alt="" class="h-full w-full rounded-md object-contain" decoding="async" />
+      <img src="/logo.png" alt={tc('brand.name')} class="h-full w-full rounded-md object-contain" decoding="async" />
     </a>
     <nav class="flex items-center gap-1 text-sm">
       {
@@ -36,6 +44,7 @@ const nav = [link('/docs', 'Docs'), link('/blog', 'Blog')]
           </a>
         ))
       }
+      <LanguageSwitcher />
       <ThemeToggle client:load />
     </nav>
   </div>
