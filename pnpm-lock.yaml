@@ -71,6 +71,9 @@ importers:
       '@tauri-apps/plugin-updater':
         specifier: ~2.10.1
         version: 2.10.1
+      '@typo/languages':
+        specifier: workspace:*
+        version: link:../../packages/languages
       '@vueuse/core':
         specifier: ^13.3.0
         version: 13.9.0(vue@3.5.32(typescript@5.6.3))
