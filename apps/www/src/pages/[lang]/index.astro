@@ -1,0 +1,12 @@
+---
+import HomePage from '@/components/pages/HomePage.astro'
+import { locales } from '@typo/languages'
+
+export function getStaticPaths() {
+  return locales
+    .filter(l => l !== 'en')
+    .map(lang => ({ params: { lang } }))
+}
+---
+
+<HomePage />
