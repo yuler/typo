@@ -5,10 +5,10 @@ on:
     branches: [main]
     paths: &desktop_paths
       - 'apps/desktop/**'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'package.json'
-      - '.github/workflows/desktop-ci.yml'
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - package.json
+      - .github/workflows/desktop-ci.yml
   pull_request:
     branches: [main]
     paths: *desktop_paths

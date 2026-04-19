@@ -5,10 +5,10 @@ on:
     branches: [main]
     paths: &www_paths
       - 'apps/www/**'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'package.json'
-      - '.github/workflows/www-ci.yml'
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - package.json
+      - .github/workflows/www-ci.yml
   pull_request:
     branches: [main]
     paths: *www_paths
