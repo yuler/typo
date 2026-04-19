@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths: &www_paths
       - 'apps/www/**'
+      - 'packages/languages/**'
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
       - package.json
@@ -32,6 +33,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify translations
+        run: pnpm languages:check
+
+      - name: Test @typo/languages
+        run: pnpm languages:test
 
       - name: Astro check
         run: pnpm --filter @typo/www run check

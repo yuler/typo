@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths: &desktop_paths
       - 'apps/desktop/**'
+      - 'packages/languages/**'
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
       - package.json
@@ -63,6 +64,12 @@ jobs:
 
       - name: Install frontend dependencies
         run: pnpm install
+
+      - name: Verify translations
+        run: pnpm languages:check
+
+      - name: Test @typo/languages
+        run: pnpm languages:test
 
       - name: Build tauri app
         uses: tauri-apps/tauri-action@v0
