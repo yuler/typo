@@ -1,0 +1,40 @@
+name: www-ci
+
+on:
+  push:
+    branches: [main]
+    paths: &www_paths
+      - 'apps/www/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/www-ci.yml'
+  pull_request:
+    branches: [main]
+    paths: *www_paths
+
+jobs:
+  www:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          cache: true
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Astro check
+        run: pnpm --filter @typo/www run check
+
+      - name: Astro build
+        run: pnpm --filter @typo/www run build
