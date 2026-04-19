@@ -1,0 +1,37 @@
+---
+title: Prompt shortcuts
+description: Define up to five custom shortcuts and trigger them from selected text.
+---
+
+You can define up to **five** custom prompt shortcuts in **Settings → Prompts**.
+
+## Keys and values
+
+Each shortcut has:
+
+- A **key** — for example `/tr:zh` or `/prompt`
+- A **value** — the instruction sent to the model when the shortcut fires
+
+## Triggering from selection
+
+Trigger a shortcut from selected text in one of these forms:
+
+- **Leading**: first line starts with `/command`
+- **Trailing**: last line starts with `/command`
+
+## Template placeholders
+
+In shortcut values you can use:
+
+- `{{args}}` — arguments after the command on the same line, e.g. `/prompt translate lightly`
+- `{{text}}` — cleaned selected text after the command line is removed
+
+## Example
+
+```text
+/prompt Translate to Japanese in polite style
+
+你好啊
+```
+
+The model receives your shortcut **value** with placeholders expanded from the selection above.

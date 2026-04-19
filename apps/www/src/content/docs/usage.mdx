@@ -1,0 +1,25 @@
+---
+title: Usage
+description: How to improve selected text with typo in three quick steps.
+---
+
+typo is designed to sit behind a global shortcut so you can refine text without leaving your editor or browser.
+
+## Basic flow
+
+1. **Select** any text you want to improve.
+2. **Press** `Ctrl/Cmd + Shift + X` to activate the application.
+3. **Wait** for the AI response and let it replace the selected content automatically.
+
+## How it works
+
+1. **Capture**: Gets the currently selected text.
+2. **AI processing**: Sends it to AI with a custom prompt (configurable in settings).
+3. **Replacement**: Copies the AI's response to the clipboard, then pastes it at the current cursor position (using the clipboard helps avoid input method issues).
+
+## Models
+
+- Use **DeepSeek** or other configured cloud models where supported.
+- Use **Ollama** locally — ensure `ollama serve` is running and models are pulled.
+
+See [FAQ — Ollama](/docs/faq#ollama) for API links and tips.

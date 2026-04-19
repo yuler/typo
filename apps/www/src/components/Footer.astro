@@ -1,0 +1,25 @@
+---
+const year = new Date().getFullYear()
+---
+
+<footer class="border-t border-zinc-200 py-10 dark:border-zinc-800">
+  <div
+    class="mx-auto flex max-w-5xl flex-col gap-6 px-4 text-sm text-zinc-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:text-zinc-400"
+  >
+    <p>
+      © {year} typo. Open source on{' '}
+      <a
+        href="https://github.com/yuler/typo"
+        class="font-medium text-zinc-800 underline-offset-2 hover:underline dark:text-zinc-200"
+      >
+        GitHub
+      </a>
+      .
+    </p>
+    <div class="flex flex-wrap gap-4">
+      <a href="https://github.com/yuler/typo/releases" class="hover:text-zinc-900 dark:hover:text-zinc-100">Releases</a>
+      <a href="/docs/getting-started" class="hover:text-zinc-900 dark:hover:text-zinc-100">Docs</a>
+      <a href="/blog" class="hover:text-zinc-900 dark:hover:text-zinc-100">Blog</a>
+    </div>
+  </div>
+</footer>

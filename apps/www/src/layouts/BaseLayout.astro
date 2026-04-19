@@ -1,0 +1,38 @@
+---
+import '../styles/global.css'
+
+interface Props {
+  title: string
+  description?: string
+}
+
+const {
+  title,
+  description = 'typo — an AI-powered desktop tool that refines your selected text with smart suggestions and corrections.',
+} = Astro.props
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
+---
+
+<!doctype html>
+<html lang="en" class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <script is:inline>
+      ;(function () {
+        const stored = localStorage.getItem('typo-theme')
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (stored === 'dark' || (!stored && prefersDark)) document.documentElement.classList.add('dark')
+        else document.documentElement.classList.remove('dark')
+      })()
+    </script>
+  </head>
+  <body class="min-h-screen font-sans antialiased">
+    <slot />
+  </body>
+</html>

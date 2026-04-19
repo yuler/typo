@@ -392,22 +392,22 @@ pnpm install
 
 Every item must pass, in order:
 
-| #   | Command / check                              | Expected                                                                                                            |
-| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| 1   | `pnpm install` (at repo root)                | Clean install; `apps/desktop/node_modules` populated; no peer-dep warnings beyond pre-migration baseline            |
-| 2   | `pnpm lint`                                  | Same results as pre-migration                                                                                       |
-| 3   | `pnpm --filter @typo/desktop build:frontend` | `vue-tsc` passes; `apps/desktop/dist/` produced                                                                     |
-| 4   | `pnpm dev` (from root)                       | Tauri dev window opens; HMR works                                                                                   |
-| 5   | Smoke test                                   | Global shortcut `Ctrl/Cmd+Shift+X` triggers; DeepSeek/Ollama round-trip returns; clipboard paste replaces selection |
-| 6   | `pnpm build` (from root)                     | Tauri bundles produced under `apps/desktop/src-tauri/target/.../bundle/`                                            |
-| 7   | `git log --follow apps/desktop/src/App.vue`  | Shows history predating the migration                                                                               |
+| # | Command / check                              | Expected                                                                                                            |
+| - | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 1 | `pnpm install` (at repo root)                | Clean install; `apps/desktop/node_modules` populated; no peer-dep warnings beyond pre-migration baseline            |
+| 2 | `pnpm lint`                                  | Same results as pre-migration                                                                                       |
+| 3 | `pnpm --filter @typo/desktop build:frontend` | `vue-tsc` passes; `apps/desktop/dist/` produced                                                                     |
+| 4 | `pnpm dev` (from root)                       | Tauri dev window opens; HMR works                                                                                   |
+| 5 | Smoke test                                   | Global shortcut `Ctrl/Cmd+Shift+X` triggers; DeepSeek/Ollama round-trip returns; clipboard paste replaces selection |
+| 6 | `pnpm build` (from root)                     | Tauri bundles produced under `apps/desktop/src-tauri/target/.../bundle/`                                            |
+| 7 | `git log --follow apps/desktop/src/App.vue`  | Shows history predating the migration                                                                               |
 
 ### 7.2 Remote verification (gate for merging the PR)
 
-| #   | Check                 | Expected                                                                                                 |
-| --- | --------------------- | -------------------------------------------------------------------------------------------------------- |
-| 8   | CI workflow on the PR | All four matrix platforms (macOS arm64, macOS x64, ubuntu-22.04, windows) green with `--no-bundle` build |
-| 9   | `pr-format-fix.yml`   | Runs and no-ops                                                                                          |
+| # | Check                 | Expected                                                                                                 |
+| - | --------------------- | -------------------------------------------------------------------------------------------------------- |
+| 8 | CI workflow on the PR | All four matrix platforms (macOS arm64, macOS x64, ubuntu-22.04, windows) green with `--no-bundle` build |
+| 9 | `pr-format-fix.yml`   | Runs and no-ops                                                                                          |
 
 ### 7.3 Release path validation
 

@@ -1,0 +1,31 @@
+---
+title: Getting started
+description: Install dependencies and run the typo desktop app from this monorepo.
+---
+
+typo is the Tauri + Vue desktop app under `apps/desktop`. This page covers local development from the repository root.
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) (see the repo `.nvmrc` for the recommended version)
+- [pnpm](https://pnpm.io/)
+- Rust toolchain and platform dependencies for [Tauri 2](https://v2.tauri.app/start/prerequisites/)
+
+## Install and run
+
+From the repository root:
+
+```bash
+pnpm install
+pnpm desktop:dev
+```
+
+That starts the desktop app in development mode (Tauri + Vite).
+
+## Next steps
+
+- [Usage](/docs/usage) — select text, hotkey, and paste flow
+- [Prompt shortcuts](/docs/prompt-shortcuts) — `/command` style shortcuts
+- [FAQ](/docs/faq) — macOS, Linux, Wayland, and Ollama notes
+
+Prebuilt installers are on [GitHub Releases](https://github.com/yuler/typo/releases).

@@ -21,6 +21,25 @@
 
 <video src="https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e" controls playsinline width="720"></video>
 
+## 仓库结构
+
+```
+.
+├── core/                # 原服务端；更名为 core 以强调单体「大脑」。**TODO**
+├── apps/                # 所有面向用户的应用
+│   ├── www/             # Astro（营销 / SEO）
+│   ├── web/             # Nuxt（主产品）*备注：TODO
+│   ├── admin/           # Vite + Vue3（控制台）*备注：TODO
+│   └── desktop/         # Tauri / Electron
+├── packages/            # 跨应用共享代码
+│   ├── api-client/      # 生成的 Rails API 客户端
+│   ├── shared-utils/    # 共享工具与常量
+│   └── ui-kit/          #（可选）共享 UI 组件
+├── scripts/             # 仓库级自动化脚本
+├── package.json         # 根 package：工作区与顶层脚本
+└── README.md
+```
+
 ## 开发
 
 ```bash
@@ -155,9 +174,9 @@ Name=ydotool daemon
 Exec=/usr/bin/ydotoold
 ```
 
-  </details>
+</details>
 
-#### 3. XWayland 变通方法（可选）
+### 3. XWayland 变通方法（可选）
 
 如果选择捕获在特定应用中（如某些 Electron 应用）仍然失败，在 X11 模式下运行它们可能会有所帮助：
 

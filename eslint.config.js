@@ -1,9 +1,15 @@
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
-  formatters: true,
   vue: true,
+  react: true,
+  formatters: {
+    astro: true,
+    markdown: 'dprint',
+  },
   ignores: [
     '**/src-tauri/**',
+    'apps/www/.astro/**',
+    'apps/www/dist/**',
   ],
 })

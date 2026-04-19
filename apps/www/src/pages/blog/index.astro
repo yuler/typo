@@ -1,0 +1,120 @@
+---
+import { getCollection } from 'astro:content'
+import Footer from '@/components/Footer.astro'
+import Header from '@/components/Header.astro'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+
+const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)
+const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+
+function formatDateLong(d: Date) {
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+---
+
+<BaseLayout title="Blog — typo" description="Updates and notes from the typo project.">
+  <Header />
+  <div>
+    <!-- Hero: soft gray + blurred shapes + frosted layer -->
+    <header
+      class="relative isolate overflow-hidden border-b border-zinc-200/90 bg-zinc-200/45 px-4 pb-16 pt-14 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-900/35 sm:px-6 sm:pb-20 sm:pt-16 lg:pb-24 lg:pt-20"
+    >
+      <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div
+          class="absolute -left-32 top-1/2 h-[22rem] w-[22rem] -translate-y-1/2 rounded-full bg-zinc-300/70 blur-[100px] dark:bg-zinc-600/35"
+        >
+        </div>
+        <div class="absolute -right-24 -top-8 h-80 w-80 rounded-full bg-white/75 blur-[72px] dark:bg-zinc-500/25"></div>
+        <div
+          class="absolute left-1/2 top-0 h-72 w-[28rem] -translate-x-1/2 rounded-full bg-zinc-100/80 blur-[64px] dark:bg-zinc-800/30"
+        >
+        </div>
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-zinc-200/30 backdrop-blur-[2px] dark:from-zinc-950/20 dark:via-transparent dark:to-zinc-950/40 dark:backdrop-blur-sm"
+        >
+        </div>
+      </div>
+      <div class="relative mx-auto max-w-2xl lg:max-w-3xl">
+        <p class="font-mono text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-500">Blog</p>
+        <h1 class="mt-4 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl sm:leading-[1.08] dark:text-white">
+          Latest updates
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-relaxed text-zinc-600 sm:text-xl dark:text-zinc-400">
+          News and write-ups from the typo project — releases, workflow tips, and behind-the-scenes notes.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-4">
+          <a
+            href="https://github.com/yuler/typo"
+            class="inline-flex items-center justify-center rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-black dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+          >
+            View on GitHub
+          </a>
+          <a
+            href="/docs/getting-started"
+            class="text-sm font-semibold text-zinc-800 underline decoration-zinc-400/80 underline-offset-4 transition hover:text-black hover:decoration-zinc-900 dark:text-zinc-200 dark:decoration-zinc-500 dark:hover:text-white dark:hover:decoration-zinc-300"
+          >
+            Read the docs →
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Post list: date column + title/excerpt (Tailwind blog rhythm) -->
+    <div class="border-t border-zinc-200/90 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
+      <div class="mx-auto max-w-3xl px-4 sm:px-6">
+        {
+          sorted.length === 0 ? (
+            <p class="py-20 text-center text-zinc-600 dark:text-zinc-400">No posts yet.</p>
+          ) : (
+            <ol class="divide-y divide-zinc-200/90 dark:divide-zinc-800/80">
+              {sorted.map((post, i) => (
+                <li>
+                  <a
+                    href={`/blog/${post.id}`}
+                    class:list={[
+                      'group flex flex-col gap-4 py-12 transition sm:flex-row sm:gap-10 sm:py-14',
+                      i === 0 && 'sm:pt-16',
+                    ]}
+                  >
+                    <time
+                      class="shrink-0 font-mono text-[0.8125rem] font-medium uppercase leading-6 tracking-wide text-zinc-500 tabular-nums dark:text-zinc-500 sm:w-36 sm:pt-1"
+                      datetime={post.data.pubDate.toISOString()}
+                    >
+                      {formatDateLong(post.data.pubDate)}
+                    </time>
+                    <div class="min-w-0 flex-1">
+                      <h2
+                        class:list={[
+                          'font-semibold tracking-tight text-zinc-900 transition group-hover:text-black dark:text-zinc-50 dark:group-hover:text-white',
+                          i === 0
+                            ? 'text-2xl sm:text-[1.65rem] sm:leading-snug'
+                            : 'text-xl sm:text-[1.35rem] sm:leading-snug',
+                        ]}
+                      >
+                        <span class="relative">
+                          {post.data.title}
+                          <span
+                            class="absolute -bottom-0.5 left-0 h-px w-0 bg-zinc-900 transition-all duration-300 group-hover:w-full dark:bg-white"
+                            aria-hidden="true"
+                          />
+                        </span>
+                      </h2>
+                      <p class="mt-3 text-base leading-7 text-zinc-600 dark:text-zinc-400">{post.data.description}</p>
+                      <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-zinc-700 transition group-hover:text-black dark:text-zinc-400 dark:group-hover:text-white">
+                        Read article
+                        <span class="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+                          →
+                        </span>
+                      </span>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          )
+        }
+      </div>
+    </div>
+  </div>
+  <Footer />
+</BaseLayout>

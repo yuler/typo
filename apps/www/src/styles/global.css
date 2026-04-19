@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* MDX / Markdown body (no @tailwindcss/typography) */
+.mdx-content :where(h1) {
+  @apply mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50;
+}
+
+.mdx-content :where(h2) {
+  @apply mt-10 mb-3 text-xl font-semibold text-zinc-900 dark:text-zinc-50;
+}
+
+.mdx-content :where(h3) {
+  @apply mt-6 mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50;
+}
+
+.mdx-content :where(p, li) {
+  @apply text-zinc-600 leading-relaxed dark:text-zinc-400;
+}
+
+.mdx-content :where(ul, ol) {
+  @apply my-3 pl-5;
+}
+
+.mdx-content :where(a) {
+  @apply font-medium text-zinc-900 underline underline-offset-2 dark:text-zinc-100;
+}
+
+.mdx-content :where(pre) {
+  @apply my-4 overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-100 p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900;
+}
+
+.mdx-content :where(code) {
+  @apply rounded bg-zinc-200 px-1 py-0.5 text-[0.875em] dark:bg-zinc-800;
+}
+
+.mdx-content :where(pre code) {
+  @apply bg-transparent p-0;
+}
+
+/* ─── Docs (VitePress-inspired shell) ─── */
+.docs-sidebar-link {
+  @apply border-l-2 border-transparent text-zinc-600 dark:text-zinc-400;
+}
+
+.docs-sidebar-link:hover {
+  @apply text-zinc-900 dark:text-zinc-200;
+}
+
+.docs-sidebar-link--active {
+  @apply border-zinc-900 bg-zinc-200/90 font-medium text-zinc-950 dark:border-zinc-100 dark:bg-zinc-800/90 dark:text-zinc-50;
+}
+
+.docs-vp .mdx-content :where(h1) {
+  @apply mb-4 text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50;
+}
+
+.docs-vp .mdx-content :where(h2) {
+  @apply mt-12 border-b border-zinc-200 pb-2 text-xl font-semibold tracking-tight text-zinc-900 dark:border-zinc-800 dark:text-zinc-50;
+}
+
+.docs-vp .mdx-content :where(h3) {
+  @apply mt-8 text-lg font-semibold text-zinc-900 dark:text-zinc-50;
+}
+
+.docs-vp .mdx-content :where(p, li) {
+  @apply text-[15px] leading-7 text-zinc-600 dark:text-zinc-400;
+}
+
+.docs-vp .mdx-content :where(a) {
+  @apply font-medium text-zinc-800 no-underline decoration-zinc-300 underline-offset-2 transition-colors hover:text-zinc-950 hover:underline dark:text-zinc-200 dark:decoration-zinc-600 dark:hover:text-white;
+}
+
+.docs-vp .mdx-content :where(ul, ol) {
+  @apply my-4 pl-6;
+}
+
+.docs-vp .mdx-content :where(li) {
+  @apply my-1.5;
+}
+
+.docs-vp .mdx-content :where(pre) {
+  @apply my-5 rounded-lg border border-zinc-200 bg-zinc-50 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/80;
+}
+
+.docs-vp .mdx-content :where(code) {
+  @apply rounded-md border border-zinc-200/80 bg-zinc-100 px-1.5 py-0.5 text-[0.9em] font-medium text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-200;
+}
+
+.docs-vp .mdx-content :where(blockquote) {
+  @apply my-4 border-l-4 border-zinc-300 pl-4 text-zinc-600 italic dark:border-zinc-600 dark:text-zinc-400;
+}

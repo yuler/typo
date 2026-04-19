@@ -1,4 +1,4 @@
-name: PR Format Fix
+name: pr-format-fix
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: format-fix-pr-${{ github.event.pull_request.number }}
+  group: pr-format-fix-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
@@ -52,5 +52,5 @@ jobs:
             echo "No format changes to commit."
             exit 0
           fi
-          git commit -m "💄 Apply format:fix"
+          git commit -m "💄 Auto-formatting (format:fix) changes applied by CI"
           git push origin "HEAD:${{ github.head_ref }}"
