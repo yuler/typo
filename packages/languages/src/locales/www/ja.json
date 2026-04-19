@@ -1,0 +1,12 @@
+{
+  "header.brand_aria": "typo — ホーム",
+  "header.nav.docs": "ドキュメント",
+  "header.nav.blog": "ブログ",
+  "header.switcher_aria": "言語を変更",
+  "footer.copyright": "© {year} typo。オープンソース：{github}。",
+  "footer.github_label": "GitHub",
+  "footer.link.releases": "リリース",
+  "footer.link.docs": "ドキュメント",
+  "footer.link.blog": "ブログ",
+  "page.home.title": "typo — デスクトップ向けAIテキスト校正ツール"
+}

@@ -1,0 +1,12 @@
+{
+  "header.brand_aria": "typo — home",
+  "header.nav.docs": "Docs",
+  "header.nav.blog": "Blog",
+  "header.switcher_aria": "Change language",
+  "footer.copyright": "© {year} typo. Open source on {github}.",
+  "footer.github_label": "GitHub",
+  "footer.link.releases": "Releases",
+  "footer.link.docs": "Docs",
+  "footer.link.blog": "Blog",
+  "page.home.title": "typo — AI text refinement for your desktop"
+}

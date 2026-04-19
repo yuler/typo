@@ -1,0 +1,12 @@
+{
+  "header.brand_aria": "typo — 首页",
+  "header.nav.docs": "文档",
+  "header.nav.blog": "博客",
+  "header.switcher_aria": "切换语言",
+  "footer.copyright": "© {year} typo。开源于 {github}。",
+  "footer.github_label": "GitHub",
+  "footer.link.releases": "发布",
+  "footer.link.docs": "文档",
+  "footer.link.blog": "博客",
+  "page.home.title": "typo — 桌面端 AI 文本润色工具"
+}
