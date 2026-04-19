@@ -1,0 +1,37 @@
+---
+import { localeNames, locales, type Locale } from '@typo/languages'
+import { getLocale, tr } from '@/lib/i18n'
+
+const current = getLocale(Astro)
+const tw = tr(Astro, 'www')
+
+function pathFor(target: Locale): string {
+  const path = Astro.url.pathname
+  // Strip an existing /xx/ prefix if present
+  const stripped = path.replace(/^\/(zh|ja)(\/|$)/, '/').replace(/^\/+$/, '/')
+  if (target === 'en') return stripped
+  return `/${target}${stripped === '/' ? '/' : stripped}`
+}
+---
+
+<div
+  role="group"
+  aria-label={tw('header.switcher_aria')}
+  class="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400"
+>
+  {locales.map((l) => (
+    <a
+      href={pathFor(l)}
+      class:list={[
+        'rounded px-2 py-1 transition-colors',
+        l === current
+          ? 'bg-zinc-200/80 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
+          : 'hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100',
+      ]}
+      aria-current={l === current ? 'true' : undefined}
+      hreflang={l}
+    >
+      {localeNames[l]}
+    </a>
+  ))}
+</div>
