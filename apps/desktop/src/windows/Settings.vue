@@ -2,6 +2,8 @@
 import { invoke } from '@tauri-apps/api/core'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import type { Locale } from '@typo/languages'
+import { localeNames, locales } from '@typo/languages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,6 +11,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { useI18n } from '@/composables/useI18n'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
@@ -20,6 +23,13 @@ type SettingsTab = 'basic' | 'prompts'
 
 const activeTab = ref<SettingsTab>('basic')
 const showApiKey = ref(false)
+
+const { locale, setLocale, t } = useI18n('desktop')
+
+async function onLocaleChange(event: Event) {
+  const next = (event.target as HTMLSelectElement).value as Locale
+  await setLocale(next)
+}
 
 const form = ref({
   autoselect: false,
@@ -289,6 +299,19 @@ async function onSubmit() {
       <main class="flex-1 overflow-y-auto px-8 py-6">
         <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
           <template v-if="activeTab === 'basic'">
+            <div class="space-y-2">
+              <Label>{{ t('settings.language.title') }}</Label>
+              <select
+                :value="locale"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                @change="onLocaleChange"
+              >
+                <option v-for="l in locales" :key="l" :value="l">
+                  {{ localeNames[l] }}
+                </option>
+              </select>
+            </div>
+
             <h1 class="text-2xl font-bold">
               Basic Settings
             </h1>
