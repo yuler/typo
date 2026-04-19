@@ -20,10 +20,19 @@ function formatDateLong(d: Date) {
       class="relative isolate overflow-hidden border-b border-zinc-200/90 bg-zinc-200/45 px-4 pb-16 pt-14 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-900/35 sm:px-6 sm:pb-20 sm:pt-16 lg:pb-24 lg:pt-20"
     >
       <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div class="absolute -left-32 top-1/2 h-[22rem] w-[22rem] -translate-y-1/2 rounded-full bg-zinc-300/70 blur-[100px] dark:bg-zinc-600/35" />
-        <div class="absolute -right-24 -top-8 h-80 w-80 rounded-full bg-white/75 blur-[72px] dark:bg-zinc-500/25" />
-        <div class="absolute left-1/2 top-0 h-72 w-[28rem] -translate-x-1/2 rounded-full bg-zinc-100/80 blur-[64px] dark:bg-zinc-800/30" />
-        <div class="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-zinc-200/30 backdrop-blur-[2px] dark:from-zinc-950/20 dark:via-transparent dark:to-zinc-950/40 dark:backdrop-blur-sm" />
+        <div
+          class="absolute -left-32 top-1/2 h-[22rem] w-[22rem] -translate-y-1/2 rounded-full bg-zinc-300/70 blur-[100px] dark:bg-zinc-600/35"
+        >
+        </div>
+        <div class="absolute -right-24 -top-8 h-80 w-80 rounded-full bg-white/75 blur-[72px] dark:bg-zinc-500/25"></div>
+        <div
+          class="absolute left-1/2 top-0 h-72 w-[28rem] -translate-x-1/2 rounded-full bg-zinc-100/80 blur-[64px] dark:bg-zinc-800/30"
+        >
+        </div>
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-zinc-200/30 backdrop-blur-[2px] dark:from-zinc-950/20 dark:via-transparent dark:to-zinc-950/40 dark:backdrop-blur-sm"
+        >
+        </div>
       </div>
       <div class="relative mx-auto max-w-2xl lg:max-w-3xl">
         <p class="font-mono text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-500">Blog</p>
@@ -54,11 +63,9 @@ function formatDateLong(d: Date) {
     <div class="border-t border-zinc-200/90 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950">
       <div class="mx-auto max-w-3xl px-4 sm:px-6">
         {
-          sorted.length === 0
-? (
+          sorted.length === 0 ? (
             <p class="py-20 text-center text-zinc-600 dark:text-zinc-400">No posts yet.</p>
-          )
-: (
+          ) : (
             <ol class="divide-y divide-zinc-200/90 dark:divide-zinc-800/80">
               {sorted.map((post, i) => (
                 <li>
@@ -79,7 +86,9 @@ function formatDateLong(d: Date) {
                       <h2
                         class:list={[
                           'font-semibold tracking-tight text-zinc-900 transition group-hover:text-black dark:text-zinc-50 dark:group-hover:text-white',
-                          i === 0 ? 'text-2xl sm:text-[1.65rem] sm:leading-snug' : 'text-xl sm:text-[1.35rem] sm:leading-snug',
+                          i === 0
+                            ? 'text-2xl sm:text-[1.65rem] sm:leading-snug'
+                            : 'text-xl sm:text-[1.35rem] sm:leading-snug',
                         ]}
                       >
                         <span class="relative">

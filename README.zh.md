@@ -174,9 +174,9 @@ Name=ydotool daemon
 Exec=/usr/bin/ydotoold
 ```
 
-  </details>
+</details>
 
-#### 3. XWayland 变通方法（可选）
+### 3. XWayland 变通方法（可选）
 
 如果选择捕获在特定应用中（如某些 Electron 应用）仍然失败，在 X11 模式下运行它们可能会有所帮助：
 

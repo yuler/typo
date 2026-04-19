@@ -19,23 +19,22 @@ const sidebarDocs = sortDocsEntries(entries)
 const isIndex = pathname === '/docs'
 function linkActive(href: string) {
   const h = href.replace(/\/$/, '') || '/'
-  if (h === '/docs')
-    return isIndex
+  if (h === '/docs') return isIndex
   return pathname === h || pathname.startsWith(`${h}/`)
 }
 ---
 
 <BaseLayout title={title} description={description}>
   <Header />
-  <div
-    class="docs-vp flex min-h-[calc(100dvh-3.5rem)] flex-col bg-white dark:bg-zinc-950 lg:flex-row"
-  >
+  <div class="docs-vp flex min-h-[calc(100dvh-3.5rem)] flex-col bg-white dark:bg-zinc-950 lg:flex-row">
     <!-- Mobile: horizontal doc nav (VitePress-style top strip) -->
     <nav
       class="sticky top-14 z-40 border-b border-zinc-200 bg-zinc-50/95 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/95 lg:hidden"
       aria-label="Documentation pages"
     >
-      <div class="flex gap-1 overflow-x-auto px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div
+        class="flex gap-1 overflow-x-auto px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         <a
           href="/docs"
           class:list={[
@@ -48,7 +47,7 @@ function linkActive(href: string) {
           Overview
         </a>
         {
-          sidebarDocs.map(doc => (
+          sidebarDocs.map((doc) => (
             <a
               href={`/docs/${doc.id}`}
               class:list={[
@@ -69,7 +68,10 @@ function linkActive(href: string) {
     <aside
       class="hidden shrink-0 border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/40 lg:block lg:w-[272px] lg:border-r"
     >
-      <nav class="docs-sidebar-nav sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto px-5 py-8" aria-label="Documentation">
+      <nav
+        class="docs-sidebar-nav sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto px-5 py-8"
+        aria-label="Documentation"
+      >
         <ul class="space-y-0.5">
           <li>
             <a
@@ -83,7 +85,7 @@ function linkActive(href: string) {
             </a>
           </li>
           {
-            sidebarDocs.map(doc => (
+            sidebarDocs.map((doc) => (
               <li>
                 <a
                   href={`/docs/${doc.id}`}

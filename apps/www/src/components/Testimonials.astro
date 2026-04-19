@@ -16,7 +16,7 @@ const items: Testimonial[] = [
   },
   {
     quote:
-      'I\'m learning Japanese now, and I think this tool can help people like us who want to learn a foreign language.',
+      "I'm learning Japanese now, and I think this tool can help people like us who want to learn a foreign language.",
     name: 'JianWu',
     role: 'Co-founder',
     image: '/testimonials/jianwu.png',
@@ -40,12 +40,12 @@ const items: Testimonial[] = [
       Feedback from early testers and alpha users. <a
         href="https://github.com/yuler/typo/releases"
         class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition hover:decoration-zinc-500 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-400"
-                                                   >Download</a
+        >Download</a
       >
       and try it, or read the <a
         href="/docs/getting-started"
         class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition hover:decoration-zinc-500 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-400"
-                              >docs</a
+        >docs</a
       >.
     </p>
   </div>
@@ -63,8 +63,7 @@ const items: Testimonial[] = [
                 </span>
                 <p class="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{quote}</p>
                 <footer class="mt-4 flex items-center gap-2.5 border-t border-zinc-200/80 pt-3 dark:border-zinc-800/80">
-                  {image
-? (
+                  {image ? (
                     <img
                       src={image}
                       alt={name}
@@ -74,15 +73,14 @@ const items: Testimonial[] = [
                       decoding="async"
                       class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-zinc-200/90 dark:ring-zinc-700/90"
                     />
-                  )
-: (
+                  ) : (
                     <span
                       class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-zinc-200 to-zinc-300 text-[0.65rem] font-bold text-zinc-700 dark:from-zinc-700 dark:to-zinc-600 dark:text-zinc-100"
                       aria-hidden="true"
                     >
                       {name
                         .split(/\s+/)
-                        .map(w => w[0])
+                        .map((w) => w[0])
                         .join('')
                         .slice(0, 2)
                         .toUpperCase()}

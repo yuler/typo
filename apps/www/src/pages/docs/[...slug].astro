@@ -5,7 +5,7 @@ import DocsLayout from '@/components/docs/DocsLayout.astro'
 
 export async function getStaticPaths() {
   const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-  return entries.map(entry => ({
+  return entries.map((entry) => ({
     params: { slug: entry.id },
     props: { entry },
   }))
@@ -20,8 +20,14 @@ const { Content } = await render(entry)
 ---
 
 <DocsLayout title={`${entry.data.title} — typo docs`} description={entry.data.description}>
-  <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500 dark:text-zinc-500" aria-label="Breadcrumb">
-    <a href="/docs" class="font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white">
+  <nav
+    class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500 dark:text-zinc-500"
+    aria-label="Breadcrumb"
+  >
+    <a
+      href="/docs"
+      class="font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+    >
       Docs
     </a>
     <span aria-hidden class="text-zinc-400 dark:text-zinc-600">›</span>

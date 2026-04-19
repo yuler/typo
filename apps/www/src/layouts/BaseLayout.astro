@@ -6,7 +6,10 @@ interface Props {
   description?: string
 }
 
-const { title, description = 'typo — an AI-powered desktop tool that refines your selected text with smart suggestions and corrections.' } = Astro.props
+const {
+  title,
+  description = 'typo — an AI-powered desktop tool that refines your selected text with smart suggestions and corrections.',
+} = Astro.props
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
 ---
 
@@ -21,13 +24,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
     <script is:inline>
-      (function () {
+      ;(function () {
         const stored = localStorage.getItem('typo-theme')
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        if (stored === 'dark' || (!stored && prefersDark))
-          document.documentElement.classList.add('dark')
-        else
-          document.documentElement.classList.remove('dark')
+        if (stored === 'dark' || (!stored && prefersDark)) document.documentElement.classList.add('dark')
+        else document.documentElement.classList.remove('dark')
       })()
     </script>
   </head>

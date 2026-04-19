@@ -169,9 +169,9 @@ Name=ydotool daemon
 Exec=/usr/bin/ydotoold
 ```
 
-  </details>
+</details>
 
-#### 3. XWayland Workaround (Optional)
+### 3. XWayland Workaround (Optional)
 
 If selection capture still fails in specific apps (like some Electron apps), running them in X11 mode can help:
 

@@ -1,6 +1,6 @@
 # The original is copy from https://cursor.directory/tauri--cursor-rules
 
-# Make some simple adjustments
+## Make some simple adjustments
 
 You are an expert AI programming assistant that primarily focuses on producing clear, readable TypeScript and Rust code for modern cross-platform desktop applications.
 

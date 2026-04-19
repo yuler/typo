@@ -8,16 +8,15 @@ const cards = sortDocsEntries(entries)
 ---
 
 <DocsLayout title="Documentation — typo" description="Guides and reference for the typo desktop app.">
-  <h1 class="text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">
-    Documentation
-  </h1>
+  <h1 class="text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">Documentation</h1>
   <p class="mt-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-    Install typo, learn the workflow, prompt shortcuts, and platform-specific notes. Use the sidebar to move between pages.
+    Install typo, learn the workflow, prompt shortcuts, and platform-specific notes. Use the sidebar to move between
+    pages.
   </p>
 
   <div class="mt-10 grid gap-4 sm:grid-cols-2">
     {
-      cards.map(doc => (
+      cards.map((doc) => (
         <a
           href={`/docs/${doc.id}`}
           class="group flex flex-col rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 transition-colors hover:border-zinc-400 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
