@@ -1,0 +1,21 @@
+{
+  "name": "@typo/languages",
+  "private": true,
+  "version": "1.2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./messages/common": "./src/messages/common.ts",
+    "./messages/desktop": "./src/messages/desktop.ts",
+    "./messages/www": "./src/messages/www.ts"
+  },
+  "scripts": {
+    "build": "node --experimental-strip-types scripts/generate-types.ts",
+    "check": "node --experimental-strip-types scripts/generate-types.ts --verify",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.2",
+    "vitest": "^2.1.0"
+  }
+}

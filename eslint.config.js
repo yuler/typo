@@ -16,5 +16,6 @@ export default antfu({
     'docs/superpowers/plans/**',
     // i18n design spec embeds TypeScript/Vue/Astro samples that trip embedded-MD parsers.
     'docs/superpowers/specs/2026-04-19-i18n-languages-package-design.md',
+    'packages/languages/src/generated/**',
   ],
 })
