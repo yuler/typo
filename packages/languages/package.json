@@ -12,7 +12,8 @@
   "scripts": {
     "build": "node --experimental-strip-types scripts/generate-types.ts",
     "check": "node --experimental-strip-types scripts/generate-types.ts --verify",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepare": "node --experimental-strip-types scripts/generate-types.ts"
   },
   "devDependencies": {
     "typescript": "~5.6.2",
