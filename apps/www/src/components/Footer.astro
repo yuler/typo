@@ -11,9 +11,11 @@ const copyrightHTML = t('footer.copyright', { year, github: githubLink })
   <div
     class="mx-auto flex max-w-5xl flex-col gap-6 px-4 text-sm text-zinc-600 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:text-zinc-400"
   >
-    <p set:html={copyrightHTML}></p>
+    <p set:html={copyrightHTML} />
     <div class="flex flex-wrap gap-4">
-      <a href="https://github.com/yuler/typo/releases" class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.releases')}</a>
+      <a href="https://github.com/yuler/typo/releases" class="hover:text-zinc-900 dark:hover:text-zinc-100"
+        >{t('footer.link.releases')}</a
+      >
       <a href="/docs/getting-started" class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.docs')}</a>
       <a href="/blog" class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.blog')}</a>
     </div>

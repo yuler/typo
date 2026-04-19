@@ -11,16 +11,22 @@ const all: Record<Namespace, Record<Locale, Record<string, string>>> = {
   www,
 }
 
+function nodeDevFlag(): boolean {
+  const p = Reflect.get(globalThis, 'process') as { env?: Record<string, string | undefined> } | undefined
+  return p?.env?.DEV === 'true'
+}
+
 function isDev(): boolean {
   if (typeof import.meta !== 'undefined' && (import.meta as { env?: { DEV?: boolean } }).env?.DEV) {
     return true
   }
-  return typeof process !== 'undefined' && process.env.DEV === 'true'
+  return nodeDevFlag()
 }
 
 export function lookup(locale: Locale, namespace: Namespace, key: string): string {
   const primary = all[namespace][locale]?.[key]
-  if (primary !== undefined) return primary
+  if (primary !== undefined)
+    return primary
 
   const fallback = all[namespace].en[key]
   if (fallback !== undefined) {

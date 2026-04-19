@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -34,7 +35,12 @@ function placeholdersOf(value: string): Set<string> {
   const out = new Set<string>()
   let m: RegExpExecArray | null
   PLACEHOLDER.lastIndex = 0
-  while ((m = PLACEHOLDER.exec(value)) !== null) out.add(m[1]!)
+  for (;;) {
+    m = PLACEHOLDER.exec(value)
+    if (m === null)
+      break
+    out.add(m[1]!)
+  }
   return out
 }
 
@@ -62,7 +68,8 @@ function verify(): { failures: Failure[], namespaces: Record<string, string[]> }
     }
 
     for (const locale of locales) {
-      if (locale === 'en') continue
+      if (locale === 'en')
+        continue
       const localePath = join(nsDir, `${locale}.json`)
       const localeMap = loadJson(localePath)
       const localeKeys = new Set(Object.keys(localeMap))

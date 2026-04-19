@@ -1,7 +1,8 @@
+/* eslint-disable react/no-unnecessary-use-prefix -- Vue composable naming (not React hooks) */
 import type { Locale, Namespace } from '@typo/languages'
 import { emit, listen } from '@tauri-apps/api/event'
-import { computed, ref } from 'vue'
 import { createTranslator, defaultLocale } from '@typo/languages'
+import { computed, ref } from 'vue'
 import { get, save, set } from '@/store'
 
 const LOCALE_EVENT = 'typo://locale-changed'

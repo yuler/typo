@@ -1,5 +1,6 @@
-import { defaultLocale, type Locale } from '@typo/languages'
+import type { Locale } from '@typo/languages'
 import { LazyStore } from '@tauri-apps/plugin-store'
+import { defaultLocale } from '@typo/languages'
 
 export const SYSTEM_PROMPT = `
 You are an expert English writing and translation assistant with native-level proficiency.

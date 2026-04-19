@@ -19,19 +19,21 @@ function pathFor(target: Locale): string {
   aria-label={tw('header.switcher_aria')}
   class="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400"
 >
-  {locales.map((l) => (
-    <a
-      href={pathFor(l)}
-      class:list={[
-        'rounded px-2 py-1 transition-colors',
-        l === current
-          ? 'bg-zinc-200/80 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
-          : 'hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100',
-      ]}
-      aria-current={l === current ? 'true' : undefined}
-      hreflang={l}
-    >
-      {localeNames[l]}
-    </a>
-  ))}
+  {
+    locales.map((l) => (
+      <a
+        href={pathFor(l)}
+        class:list={[
+          'rounded px-2 py-1 transition-colors',
+          l === current
+            ? 'bg-zinc-200/80 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50'
+            : 'hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100',
+        ]}
+        aria-current={l === current ? 'true' : undefined}
+        hreflang={l}
+      >
+        {localeNames[l]}
+      </a>
+    ))
+  }
 </div>

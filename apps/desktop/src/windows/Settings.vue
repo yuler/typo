@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
+import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import type { Locale } from '@typo/languages'
-import { localeNames, locales } from '@typo/languages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

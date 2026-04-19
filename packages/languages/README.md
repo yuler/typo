@@ -9,14 +9,15 @@ Shared internationalization catalog and runtime helper for the typo monorepo.
 ## Public API
 
 ```ts
-import { t, createTranslator, locales, defaultLocale, localeNames, type Locale } from '@typo/languages'
+import type { Locale } from '@typo/languages'
+import { createTranslator, defaultLocale, localeNames, locales, t } from '@typo/languages'
 
-t('en', 'common', 'action.save')                   // "Save"
-t('zh', 'desktop', 'settings.language')            // "语言"
+t('en', 'common', 'action.save') // "Save"
+t('zh', 'desktop', 'settings.language') // "语言"
 t('en', 'www', 'hero.cta', { app: 'typo' })
 
 const tr = createTranslator('zh', 'common')
-tr('action.save')                                  // "保存"
+tr('action.save') // "保存"
 ```
 
 See `docs/superpowers/specs/2026-04-19-i18n-languages-package-design.md` for the full design.

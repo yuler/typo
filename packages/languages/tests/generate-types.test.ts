@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync, rmSync } from 'node:fs'
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -38,7 +38,7 @@ describe('generate-types --verify', () => {
       return { code: 0, stderr: '', stdout }
     }
     catch (e) {
-      const err = e as { status: number, stderr: Buffer | string, stdout: Buffer | string }
+      const err = e as { status: number, stderr?: unknown, stdout?: unknown }
       return {
         code: err.status,
         stderr: err.stderr?.toString() ?? '',
