@@ -66,12 +66,12 @@
 
 **Files:** none — read-only verification.
 
-- [ ] **Step 1: Verify clean working tree on the expected branch**
+- **Step 1: Verify clean working tree on the expected branch**
 
 Run: `git status --porcelain && git branch --show-current`
 Expected: empty output from `status --porcelain`, and `refactor/monorepo` from `branch --show-current`.
 
-- [ ] **Step 2: Record the pre-migration baseline for later comparison**
+- **Step 2: Record the pre-migration baseline for later comparison**
 
 Run:
 
@@ -83,12 +83,12 @@ pnpm lint 2>&1 | tail -20 > /tmp/typo-premigration-lint.txt
 
 Expected: all three commands exit 0; `/tmp/typo-premigration-install.txt` and `/tmp/typo-premigration-lint.txt` captured for diff during Task 10.
 
-- [ ] **Step 3: Confirm Tauri currently builds frontend**
+- **Step 3: Confirm Tauri currently builds frontend**
 
 Run: `pnpm build:frontend`
 Expected: exit 0, `dist/` directory produced at repo root. This establishes the "it worked before" baseline.
 
-- [ ] **Step 4: Clean the pre-migration `dist/` so it doesn't get moved**
+- **Step 4: Clean the pre-migration `dist/` so it doesn't get moved**
 
 Run: `rm -rf dist`
 Expected: no error.
@@ -101,13 +101,12 @@ Expected: no error.
 
 - Create: `apps/desktop/` (directory)
 - Modify: none directly (renames only)
-
-- [ ] **Step 1: Create the target directory**
+- **Step 1: Create the target directory**
 
 Run: `mkdir -p apps/desktop`
 Expected: `ls apps/desktop` returns empty output (directory exists and is empty).
 
-- [ ] **Step 2: Move each file/folder via `git mv`**
+- **Step 2: Move each file/folder via `git mv`**
 
 Run exactly these commands in order:
 
@@ -126,7 +125,7 @@ git mv .env.example apps/desktop/.env.example
 
 Expected: each `git mv` exits 0 with no output.
 
-- [ ] **Step 3: Verify the moves landed**
+- **Step 3: Verify the moves landed**
 
 Run: `ls apps/desktop`
 Expected output (alphabetical; exact set):
@@ -148,7 +147,7 @@ vite.config.ts
 Run: `ls | grep -E '^(src|src-tauri|public|resources|index\.html|vite\.config\.ts|tsconfig\.json|tsconfig\.node\.json|components\.json)$' || echo "none remaining"`
 Expected: `none remaining`.
 
-- [ ] **Step 4: Verify git detected the moves as renames**
+- **Step 4: Verify git detected the moves as renames**
 
 Run: `git status --short`
 Expected: every moved path shown with a leading `R` (rename), not `D`/`A` pairs. Sample lines:
@@ -159,7 +158,7 @@ R  src-tauri/Cargo.toml -> apps/desktop/src-tauri/Cargo.toml
 ...
 ```
 
-- [ ] **Step 5: Commit the pure-rename step**
+- **Step 5: Commit the pure-rename step**
 
 ```bash
 git add -A
@@ -175,8 +174,7 @@ Expected: commit succeeds. `git log --stat -1` shows rename lines only, no conte
 **Files:**
 
 - Modify: `package.json`
-
-- [ ] **Step 1: Replace root `package.json` with the proxy version**
+- **Step 1: Replace root `package.json` with the proxy version**
 
 Write the following exact content to `package.json` (overwriting the existing file):
 
@@ -206,7 +204,7 @@ Write the following exact content to `package.json` (overwriting the existing fi
 }
 ```
 
-- [ ] **Step 2: Shape check**
+- **Step 2: Shape check**
 
 Run: `jq -r '.name, .private, .scripts.dev' package.json`
 Expected output:
@@ -223,7 +221,7 @@ Expected: `1` (root has no `version` field — that's intentional).
 Run: `jq -e '.dependencies' package.json > /dev/null; echo $?`
 Expected: `1` (no runtime deps at root — intentional).
 
-- [ ] **Step 3: Commit**
+- **Step 3: Commit**
 
 ```bash
 git add package.json
@@ -237,8 +235,7 @@ git commit -m "🔧 Rewrite root package.json as workspace proxy"
 **Files:**
 
 - Create: `apps/desktop/package.json`
-
-- [ ] **Step 1: Write the desktop package manifest**
+- **Step 1: Write the desktop package manifest**
 
 Write the following exact content to `apps/desktop/package.json`:
 
@@ -294,7 +291,7 @@ Write the following exact content to `apps/desktop/package.json`:
 }
 ```
 
-- [ ] **Step 2: Shape check**
+- **Step 2: Shape check**
 
 Run: `jq -r '.name, .version, .scripts.build' apps/desktop/package.json`
 Expected output:
@@ -308,7 +305,7 @@ tauri build
 Run: `jq '.dependencies | length, .devDependencies | length' apps/desktop/package.json`
 Expected output: `16` then `12` (16 runtime deps, 12 dev deps; matches the pre-migration root `package.json` counts).
 
-- [ ] **Step 3: Commit**
+- **Step 3: Commit**
 
 ```bash
 git add apps/desktop/package.json
@@ -322,8 +319,7 @@ git commit -m "📦 Add apps/desktop/package.json (@typo/desktop)"
 **Files:**
 
 - Modify: `pnpm-workspace.yaml`
-
-- [ ] **Step 1: Rewrite the workspace manifest**
+- **Step 1: Rewrite the workspace manifest**
 
 Write the following exact content to `pnpm-workspace.yaml` (overwriting the existing file):
 
@@ -337,7 +333,7 @@ onlyBuiltDependencies:
   - vue-demi
 ```
 
-- [ ] **Step 2: Shape check**
+- **Step 2: Shape check**
 
 Run: `cat pnpm-workspace.yaml`
 Expected: output matches the content above exactly.
@@ -345,7 +341,7 @@ Expected: output matches the content above exactly.
 Run: `grep -q "packages:" pnpm-workspace.yaml && grep -q "apps/\*" pnpm-workspace.yaml && echo OK`
 Expected: `OK`.
 
-- [ ] **Step 3: Commit**
+- **Step 3: Commit**
 
 ```bash
 git add pnpm-workspace.yaml
@@ -360,23 +356,22 @@ git commit -m "🔧 Register apps/* as pnpm workspace packages"
 
 - Delete: `pnpm-lock.yaml`
 - Regenerated: `pnpm-lock.yaml`, `node_modules/`, `apps/desktop/node_modules/`
-
-- [ ] **Step 1: Delete the old lockfile**
+- **Step 1: Delete the old lockfile**
 
 Run: `rm pnpm-lock.yaml`
 Expected: no error.
 
-- [ ] **Step 2: Delete the root `node_modules/` to force a clean resolve**
+- **Step 2: Delete the root `node_modules/` to force a clean resolve**
 
 Run: `rm -rf node_modules`
 Expected: no error.
 
-- [ ] **Step 3: Install under the new workspace layout**
+- **Step 3: Install under the new workspace layout**
 
 Run: `pnpm install`
 Expected: exits 0. Output mentions two workspace projects (root + `@typo/desktop`). No new peer-dep warnings beyond the pre-migration baseline captured in `/tmp/typo-premigration-install.txt`.
 
-- [ ] **Step 4: Verify workspace wiring**
+- **Step 4: Verify workspace wiring**
 
 Run: `pnpm ls --depth -1`
 Expected: lists both `typo-monorepo` and `@typo/desktop`.
@@ -387,7 +382,7 @@ Expected: file exists (pnpm has linked the Tauri CLI into the desktop package).
 Run: `ls node_modules/eslint/package.json`
 Expected: file exists (ESLint stays at the root).
 
-- [ ] **Step 5: Commit the regenerated lockfile**
+- **Step 5: Commit the regenerated lockfile**
 
 ```bash
 git add pnpm-lock.yaml
@@ -401,8 +396,7 @@ git commit -m "🔒 Regenerate pnpm-lock.yaml under workspace layout"
 **Files:**
 
 - Modify: `.github/workflows/desktop-ci.yml`
-
-- [ ] **Step 1: Add `projectPath` to the `tauri-action` step**
+- **Step 1: Add `projectPath` to the `tauri-action` step**
 
 Edit `.github/workflows/desktop-ci.yml`. Find this block:
 
@@ -427,7 +421,7 @@ Replace it with:
     args: ${{ matrix.args }} --no-bundle
 ```
 
-- [ ] **Step 2: Shape check**
+- **Step 2: Shape check**
 
 Run: `rg "projectPath: apps/desktop" .github/workflows/desktop-ci.yml`
 Expected: one match.
@@ -435,7 +429,7 @@ Expected: one match.
 Run: `rg -c "tauri-apps/tauri-action@v0" .github/workflows/desktop-ci.yml`
 Expected: `1` (the action step still exists exactly once; indentation didn't accidentally duplicate it).
 
-- [ ] **Step 3: Commit**
+- **Step 3: Commit**
 
 ```bash
 git add .github/workflows/desktop-ci.yml
@@ -449,8 +443,7 @@ git commit -m "👷 Point CI tauri-action at apps/desktop"
 **Files:**
 
 - Modify: `.github/workflows/desktop-release.yml`
-
-- [ ] **Step 1: Add `projectPath` to the `tauri-action` step**
+- **Step 1: Add `projectPath` to the `tauri-action` step**
 
 Edit `.github/workflows/desktop-release.yml`. Find this block:
 
@@ -485,7 +478,7 @@ Replace it with:
     args: ${{ matrix.args }}
 ```
 
-- [ ] **Step 2: Shape check**
+- **Step 2: Shape check**
 
 Run: `rg "projectPath: apps/desktop" .github/workflows/desktop-release.yml`
 Expected: one match.
@@ -493,7 +486,7 @@ Expected: one match.
 Run: `rg -c "tauri-apps/tauri-action@v0" .github/workflows/desktop-release.yml`
 Expected: `1`.
 
-- [ ] **Step 3: Commit**
+- **Step 3: Commit**
 
 ```bash
 git add .github/workflows/desktop-release.yml
@@ -507,8 +500,7 @@ git commit -m "👷 Point release tauri-action at apps/desktop"
 **Files:**
 
 - Modify: `scripts/bump.sh`
-
-- [ ] **Step 1: Apply the three path edits**
+- **Step 1: Apply the three path edits**
 
 Edit `scripts/bump.sh`. Find this block (lines 33–47 in the current file):
 
@@ -550,7 +542,7 @@ sed -i "s/^version = \".*\"/version = \"$package_version\"/g" Cargo.toml
 cargo update --package typo --precise $package_version
 ```
 
-- [ ] **Step 2: Shape & syntax check**
+- **Step 2: Shape & syntax check**
 
 Run: `bash -n scripts/bump.sh && echo OK`
 Expected: `OK` (script is syntactically valid).
@@ -564,7 +556,7 @@ Expected: one match.
 Run: `! rg "^cd src-tauri$" scripts/bump.sh && echo OK`
 Expected: `OK` (old path no longer present).
 
-- [ ] **Step 3: Commit**
+- **Step 3: Commit**
 
 ```bash
 git add scripts/bump.sh
@@ -579,17 +571,17 @@ git commit -m "🔧 Update bump.sh for apps/desktop layout"
 
 This task has no commit. If any step fails, stop, debug, fix in a follow-up commit on this branch, and retry the failing step.
 
-- [ ] **Step 1: Lint**
+- **Step 1: Lint**
 
 Run: `pnpm lint`
 Expected: exits 0 with the same result set as `/tmp/typo-premigration-lint.txt`. A `diff` of the two should show only cosmetic differences (paths that now start with `apps/desktop/`), no new errors.
 
-- [ ] **Step 2: Build frontend**
+- **Step 2: Build frontend**
 
 Run: `pnpm --filter @typo/desktop build:frontend`
 Expected: exits 0. `vue-tsc` reports no errors. `ls apps/desktop/dist/index.html` exists.
 
-- [ ] **Step 3: Dev-mode smoke test**
+- **Step 3: Dev-mode smoke test**
 
 Run: `pnpm dev`
 Expected:
@@ -602,17 +594,17 @@ Expected:
 
 If the window doesn't appear or the shortcut doesn't fire, stop and debug — do not proceed.
 
-- [ ] **Step 4: Full bundle build**
+- **Step 4: Full bundle build**
 
 Run: `pnpm build`
 Expected: exits 0. `ls apps/desktop/src-tauri/target/*/release/bundle/` lists platform-specific bundle artifacts.
 
-- [ ] **Step 5: Rename history preservation**
+- **Step 5: Rename history preservation**
 
 Run: `git log --follow --oneline apps/desktop/src/App.vue | tail -5`
 Expected: output includes commits from before this migration (e.g., `6a8d0dc Update upgrade UI/UE`, `1be0113 Update windows UE`). If the output only shows migration-era commits, rename detection failed — investigate before merging.
 
-- [ ] **Step 6: Confirm no stray root-level files remain**
+- **Step 6: Confirm no stray root-level files remain**
 
 Run: `ls`
 Expected: top-level contains only `apps`, `docs`, `scripts`, `shots`, `node_modules`, `logo.png`, `AGENTS.md`, `DEV.md`, `README.md`, `README.zh.md`, `TODO.md`, `eslint.config.js`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`. No `src/`, `src-tauri/`, `public/`, `resources/`, `index.html`, `vite.config.ts`, `tsconfig.json`, `tsconfig.node.json`, `components.json`, `dist/`.
@@ -634,12 +626,12 @@ If a local `.env` still exists at the root (gitignored), move it now:
 
 If you prefer to keep Tasks 2–9 as separate commits on the branch and squash at PR merge time, skip this task and go to Task 12. The spec (Section 6.2) recommends a single atomic commit for cleanest rename detection in the merged history; the GitHub "Squash and merge" option at PR time achieves the same result.
 
-- [ ] **Step 1: Identify the commit before Task 2**
+- **Step 1: Identify the commit before Task 2**
 
 Run: `git log --oneline | head -10`
 Expected: the most recent commit is Task 9's `🔧 Update bump.sh for apps/desktop layout` or the lockfile commit from Task 6, depending on ordering. Note the SHA of the commit immediately before Task 2's `♻️ Move desktop app files…`.
 
-- [ ] **Step 2: Soft-reset to that commit**
+- **Step 2: Soft-reset to that commit**
 
 Run (replace `<PRE_TASK2_SHA>` with the SHA from Step 1):
 
@@ -649,7 +641,7 @@ git reset --soft <PRE_TASK2_SHA>
 
 Expected: all changes from Tasks 2–9 are now staged in the working tree; `git status` shows many staged renames and modifications.
 
-- [ ] **Step 3: Commit as a single atomic commit**
+- **Step 3: Commit as a single atomic commit**
 
 ```bash
 git commit -m "♻️ Refactor: migrate to pnpm monorepo (apps/desktop)"
@@ -657,7 +649,7 @@ git commit -m "♻️ Refactor: migrate to pnpm monorepo (apps/desktop)"
 
 Expected: one commit with all the renames and content changes.
 
-- [ ] **Step 4: Verify rename detection on the squashed commit**
+- **Step 4: Verify rename detection on the squashed commit**
 
 Run: `git log --stat -1 | grep "=>" | head -5`
 Expected: output lines with `old/path => new/path` format (git still detects renames in the squashed diff).
@@ -671,12 +663,12 @@ Expected: still shows pre-migration commits (rename detection works post-squash)
 
 **Files:** none — remote operations.
 
-- [ ] **Step 1: Push the branch**
+- **Step 1: Push the branch**
 
 Run: `git push -u origin refactor/monorepo`
 Expected: push succeeds; GitHub returns the URL for opening a PR.
 
-- [ ] **Step 2: Open the PR**
+- **Step 2: Open the PR**
 
 Run:
 
@@ -712,7 +704,7 @@ EOF
 
 Expected: PR URL returned.
 
-- [ ] **Step 3: Watch CI**
+- **Step 3: Watch CI**
 
 Run: `gh pr checks --watch`
 Expected: all four matrix jobs eventually pass.
