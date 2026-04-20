@@ -17,12 +17,12 @@ export function lookup(
     return val
 
   // 2. Try shared common messages for requested locale
-  const sharedVal = messages[locale]?.[key]
+  const sharedVal = (messages[locale] as Record<string, string>)?.[key]
   if (sharedVal !== undefined)
     return sharedVal
 
   // 3. Try en fallback (bundle then shared)
-  const fallback = bundle.en?.[key] || messages.en?.[key]
+  const fallback = bundle.en?.[key] || (messages.en as Record<string, string>)?.[key]
   if (fallback !== undefined) {
     if (isDev() && locale !== 'en') {
       console.warn(

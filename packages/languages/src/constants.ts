@@ -18,4 +18,4 @@ export const localeFlags: Record<Locale, string> = {
   jp: '🇯🇵',
 }
 
-export const messages: Record<Locale, Record<string, string>> = { en, zh, jp }
+export const messages = { en, zh, jp } satisfies Record<Locale, Record<string, string>>
