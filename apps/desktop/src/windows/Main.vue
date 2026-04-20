@@ -3,7 +3,6 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { check } from '@tauri-apps/plugin-updater'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
@@ -119,8 +118,6 @@ onMounted(async () => {
     return
   }
 
-  checkUpgrade()
-
   unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     await processSetInputPayload(event.payload)
   })
@@ -152,15 +149,6 @@ async function fetchCorrection(text: string): Promise<string> {
       throw new Error(t('main.error.invalid_ai'))
   }
   return process(text, abortController.signal)
-}
-
-async function checkUpgrade() {
-  try {
-    await check()
-  }
-  catch (err) {
-    console.error(err)
-  }
 }
 
 async function onESC() {

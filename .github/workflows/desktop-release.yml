@@ -34,6 +34,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup node
         uses: actions/setup-node@v6
@@ -85,7 +87,7 @@ jobs:
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: v__VERSION__
           releaseBody: ${{ steps.tag.outputs.message }}
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
           # includeDebug: true
           args: ${{ matrix.args }}

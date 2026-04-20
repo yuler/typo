@@ -16,6 +16,7 @@
     "www:lint": "pnpm --filter @typo/www lint",
     "www:deploy": "pnpm www:build && ./scripts/www-deploy.sh",
     "bump": "./scripts/bump.sh",
+    "release:notes": "./scripts/release-notes.sh",
     "clean": "pnpm --filter @typo/desktop clean",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
