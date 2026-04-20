@@ -3,6 +3,6 @@
 
 declare namespace App {
   interface Locals {
-    t: ReturnType<typeof import('./lib/i18n').$t>;
+    t: ReturnType<typeof import('./lib/i18n').$t>
   }
 }
