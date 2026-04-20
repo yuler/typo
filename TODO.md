@@ -1,6 +1,8 @@
 # TODO
 
+- [ ] More settings available
 - [x] Add system tray menu
+- [ ] Ctrl+1 to 5 for custom prompts
 
 ---
 
