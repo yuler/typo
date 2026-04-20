@@ -8,6 +8,12 @@ import zh from '../locales/zh.json'
 
 export { defaultLocale, locales }
 
+export const bcp47Map: Record<Locale, string> = {
+  en: 'en-US',
+  zh: 'zh-CN',
+  jp: 'ja-JP',
+}
+
 /**
  * Merge local messages with shared messages from @typo/languages.
  */

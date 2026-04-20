@@ -1,10 +1,5 @@
 import type { Locale } from '@typo/languages'
-
-const bcp47Map: Record<Locale, string> = {
-  en: 'en-US',
-  zh: 'zh-CN',
-  jp: 'ja-JP',
-}
+import { bcp47Map } from '@/lib/i18n'
 
 export function formatDateLong(date: Date, locale: Locale) {
   return date.toLocaleDateString(bcp47Map[locale] || bcp47Map.en, {

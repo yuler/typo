@@ -2,7 +2,7 @@
 import { locales } from '@typo/languages'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
-import { getLocalizedPath } from '@/lib/i18n'
+import { getLocalizedPath, bcp47Map } from '@/lib/i18n'
 import '../styles/global.css'
 
 interface Props {
@@ -17,7 +17,7 @@ const { title, description = t('base.default_description'), hideHeader, hideFoot
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
 
 const alternates = locales.map((l) => ({
-  lang: l,
+  lang: bcp47Map[l],
   href: new URL(getLocalizedPath(Astro.url.pathname, l), Astro.site ?? Astro.url),
 }))
 ---
