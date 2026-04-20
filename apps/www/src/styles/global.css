@@ -10,6 +10,14 @@ html {
   scroll-behavior: smooth;
 }
 
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* MDX / Markdown body (no @tailwindcss/typography) */
 .mdx-content :where(h1) {
   @apply mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50;
@@ -98,4 +106,18 @@ html {
 
 .docs-vp .mdx-content :where(blockquote) {
   @apply my-4 border-l-4 border-zinc-300 pl-4 text-zinc-600 italic dark:border-zinc-600 dark:text-zinc-400;
+}
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 0.15s ease-out forwards;
 }

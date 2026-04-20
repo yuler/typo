@@ -11,5 +11,6 @@ export default antfu({
     '**/src-tauri/**',
     'apps/www/.astro/**',
     'apps/www/dist/**',
+    'packages/languages/src/generated/**',
   ],
 })

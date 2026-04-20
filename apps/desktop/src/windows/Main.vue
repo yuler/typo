@@ -9,12 +9,14 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { useI18n } from '@/composables/useI18n'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
 import { formatShortcut, sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
 const { setCurrentWindow } = useGlobalState()
+const { t } = useI18n()
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 
@@ -44,7 +46,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
   console.debug({ text, mode })
 
   if (!text.trim().length) {
-    errorText.value = 'No text to improve'
+    errorText.value = t('main.error.no_text')
     state.value = 'error'
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
@@ -81,7 +83,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
       state.value = 'idle'
       return
     }
-    errorText.value = err.message || 'Something went wrong'
+    errorText.value = err.message || t('main.error.generic')
     state.value = 'error'
     await sleep(STATUS_DISPLAY_DURATION_MS)
     state.value = 'idle'
@@ -100,7 +102,7 @@ onMounted(async () => {
     try {
       const trusted = await invoke('request_mac_accessibility_permissions')
       if (!trusted) {
-        errorText.value = 'Enable Accessibility in System Preferences'
+        errorText.value = t('main.error.accessibility')
         state.value = 'error'
       }
     }
@@ -147,7 +149,7 @@ async function fetchCorrection(text: string): Promise<string> {
       process = ollamaProcess
       break
     default:
-      throw new Error('Invalid AI provider')
+      throw new Error(t('main.error.invalid_ai'))
   }
   return process(text, abortController.signal)
 }
@@ -202,7 +204,7 @@ function gotoSettings() {
         <span class="truncate text-sm text-green-400">{{ resultText }}</span>
         <!-- TODO: Add option for this -->
         <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
-        <span class="text-[10px] text-green-400/50 font-mono shrink-0">Copied</span>
+        <span class="text-[10px] text-green-400/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
       </div>
 
       <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">

@@ -1,26 +1,28 @@
 ---
+const { t } = Astro.locals
+
 const features = [
   {
-    title: 'Multi-model support',
-    body: 'Works with DeepSeek and local Ollama models so you can choose cloud or on-device AI.',
+    title: t('features.items.multi_model.title'),
+    body: t('features.items.multi_model.body'),
     emoji: '🌐',
     tint: 'from-violet-500/25 to-fuchsia-500/20',
   },
   {
-    title: 'Global hotkeys',
-    body: 'Quick activation with Ctrl/Cmd + Shift + X (or your system shortcut on Wayland).',
+    title: t('features.items.hotkeys.title'),
+    body: t('features.items.hotkeys.body'),
     emoji: '⌨️',
     tint: 'from-sky-500/25 to-cyan-400/20',
   },
   {
-    title: 'Intelligent pasting',
-    body: 'Clipboard-based replacement for maximum compatibility across apps and input methods.',
+    title: t('features.items.pasting.title'),
+    body: t('features.items.pasting.body'),
     emoji: '📋',
     tint: 'from-emerald-500/25 to-teal-400/20',
   },
   {
-    title: 'Customizable',
-    body: 'Tailor AI behavior via system prompts and up to five prompt shortcuts in Settings.',
+    title: t('features.items.customizable.title'),
+    body: t('features.items.customizable.body'),
     emoji: '⚙️',
     tint: 'from-amber-500/25 to-orange-400/20',
   },
@@ -40,13 +42,14 @@ const iconSlot =
   </div>
   <div class="relative mx-auto max-w-5xl px-4 sm:px-6">
     <div class="mx-auto max-w-3xl text-center">
-      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Workflow</p>
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+        {t('features.tag')}
+      </p>
       <h2 class="mt-3 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl lg:text-4xl dark:text-zinc-50">
-        Built for fast text workflows
+        {t('features.title')}
       </h2>
       <p class="mt-3 text-pretty text-sm leading-relaxed text-zinc-600 sm:text-base dark:text-zinc-400">
-        typo stays out of your way until you need it — then it captures selection, runs your prompt, and pastes the
-        result.
+        {t('features.description')}
       </p>
     </div>
 
@@ -74,7 +77,7 @@ const iconSlot =
           </p>
         </div>
         <p class="mt-6 text-xs font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500 lg:mt-8">
-          Core capability
+          {t('features.primary.tag')}
         </p>
       </article>
 

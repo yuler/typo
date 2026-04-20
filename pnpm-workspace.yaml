@@ -4,6 +4,7 @@ trustPolicy: no-downgrade
 
 packages:
   - 'apps/*'
+  - 'packages/*'
 
 overrides:
   eslint-plugin-yml: ^3.3.1

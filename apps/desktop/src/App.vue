@@ -9,6 +9,7 @@ import Navbar from '@/components/Navbar.vue'
 import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { initializeI18n } from '@/composables/useI18n'
 import { setupGlobalShortcut } from '@/shortcut'
 import { initializeStore } from '@/store'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
@@ -56,6 +57,7 @@ onMounted(async () => {
   const systemInfo = await invoke<SystemInfo>('get_system_info')
 
   await initializeStore()
+  await initializeI18n()
   initializeWindow()
 
   const isLinuxWayland = systemInfo.os === 'linux' && systemInfo.is_wayland

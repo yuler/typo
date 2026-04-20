@@ -4,8 +4,10 @@ import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import UpgradeProgress from '@/components/UpgradeProgress.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { useI18n } from '@/composables/useI18n'
 
 const { updateInfo, setCurrentWindow } = useGlobalState()
+const { t } = useI18n()
 
 const isUpgrading = ref(false)
 const downloadProgress = ref(0)
@@ -44,18 +46,18 @@ function onCancel() {
   <div class="h-full w-full flex flex-col p-6 text-white cursor-default select-none bg-black/40">
     <div class="flex-1 overflow-auto rounded-md bg-black/20 p-4 border border-white/10">
       <h1 class="text-xl font-semibold mb-2">
-        New version {{ updateInfo?.version }} available
+        {{ t('upgrade.title', { version: updateInfo?.version }) }}
       </h1>
       <p class="text-sm text-gray-300 whitespace-pre-wrap">
-        {{ updateInfo?.body || 'No release notes.' }}
+        {{ updateInfo?.body || t('upgrade.no_notes') }}
       </p>
     </div>
     <div class="flex justify-end gap-3 mt-6">
       <Button variant="secondary" @click="onCancel">
-        Later
+        {{ t('upgrade.later') }}
       </Button>
       <Button @click="onUpgradeConfirm">
-        Upgrade
+        {{ t('upgrade.confirm') }}
       </Button>
     </div>
 

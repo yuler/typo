@@ -8,6 +8,14 @@ import { defineConfig } from 'astro/config'
 export default defineConfig({
   site: 'https://typo.yuler.cc',
   output: 'static',
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'zh', 'jp'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+    fallback: { zh: 'en', jp: 'en' },
+  },
   integrations: [react(), mdx()],
   vite: {
     plugins: [tailwindcss()],

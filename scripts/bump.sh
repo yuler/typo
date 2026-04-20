@@ -39,7 +39,7 @@ package_version=$(jq -r '.version' package.json)
 # Sync apps/**/package.json "version" to match root (same release line)
 while IFS= read -r -d '' pkg; do
     perl -i -pe "s/\"version\": \"[^\"]*\"/\"version\": \"$package_version\"/" "$pkg"
-done < <(find apps -name package.json -print0)
+done < <(find apps packages -name package.json -print0)
 echo "package.json version: $package_version"
 
 # Update src-tauri version

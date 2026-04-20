@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
+import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
@@ -9,6 +11,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
+import { useI18n } from '@/composables/useI18n'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
@@ -20,6 +23,12 @@ type SettingsTab = 'basic' | 'prompts'
 
 const activeTab = ref<SettingsTab>('basic')
 const showApiKey = ref(false)
+
+const { locale, setLocale, t } = useI18n()
+
+async function onLocaleChange(next: Locale) {
+  await setLocale(next)
+}
 
 const form = ref({
   autoselect: false,
@@ -165,7 +174,7 @@ function handleShortcutKeyUp(e: KeyboardEvent) {
   // Require at least one modifier key (Cmd/Ctrl, Alt, or Shift) is present
   // This prevents single-key global shortcuts that would intercept that key system-wide
   if (!captured) {
-    shortcutConflictError.value = 'At least one modifier key (⌘/Ctrl, Alt, or Shift) is required'
+    shortcutConflictError.value = t('settings.basic.shortcut.error_modifier')
     recordedCaptureKeys.clear()
     return
   }
@@ -242,7 +251,7 @@ async function onSubmit() {
   const actualShortcut = await setupGlobalShortcut(requestedShortcut)
 
   if (requestedShortcut && actualShortcut !== requestedShortcut) {
-    shortcutConflictError.value = `Conflict detected! Fallback to default: ${actualShortcut}`
+    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcut })
     form.value.global_shortcut = actualShortcut
   }
 
@@ -268,41 +277,55 @@ async function onSubmit() {
     <div class="flex h-full">
       <aside class="w-44 border-r bg-muted/20 px-3 py-4 space-y-2">
         <h2 class="text-sm font-semibold px-2 text-muted-foreground uppercase tracking-wide">
-          Settings
+          {{ t('settings.title') }}
         </h2>
         <button
           class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
           :class="activeTab === 'basic' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
           @click="activeTab = 'basic'"
         >
-          Basic
+          {{ t('settings.tabs.basic') }}
         </button>
         <button
           class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
           :class="activeTab === 'prompts' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
           @click="activeTab = 'prompts'"
         >
-          Prompts
+          {{ t('settings.tabs.prompts') }}
         </button>
       </aside>
 
       <main class="flex-1 overflow-y-auto px-8 py-6">
         <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
           <template v-if="activeTab === 'basic'">
+            <div class="space-y-2">
+              <Label>{{ t('settings.language.title') }}</Label>
+              <Select :model-value="locale" @update:model-value="(val: any) => onLocaleChange(val as Locale)">
+                <SelectTrigger class="w-full">
+                  <SelectValue :placeholder="t('settings.language.title')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="l in locales" :key="l" :value="l">
+                    {{ localeNames[l] }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <h1 class="text-2xl font-bold">
-              Basic Settings
+              {{ t('settings.basic.title') }}
             </h1>
 
             <div class="grid w-full items-center gap-4">
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
-                <Label for="autoselect">Auto Select</Label>
+                <Label for="autoselect">{{ t('settings.basic.autoselect.label') }}</Label>
               </div>
               <p class="text-xs text-muted-foreground">
-                If nothing is selected, enabling this will trigger <code>{{ isMacOS ? '⌘ + A' : 'Ctrl + A' }}</code> first.
+                {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
               </p>
               <div class="grid w-full items-center gap-2 mt-2">
-                <Label for="global_shortcut">Global Shortcut</Label>
+                <Label for="global_shortcut">{{ t('settings.basic.shortcut.label') }}</Label>
                 <div class="flex flex-col gap-2">
                   <div class="flex items-center gap-2">
                     <Button
@@ -315,7 +338,7 @@ async function onSubmit() {
                     >
                       {{
                         isCapturingShortcut
-                          ? 'Listening...'
+                          ? t('settings.basic.shortcut.listening')
                           : formatShortcut(form.global_shortcut, isMacOS)
                       }}
                     </Button>
@@ -326,22 +349,22 @@ async function onSubmit() {
                       @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
                     >
                       <RotateCcwIcon class="h-4 w-4" />
-                      Reset
+                      {{ t('settings.basic.shortcut.reset') }}
                     </Button>
                   </div>
                   <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
                     {{ shortcutConflictError }}
                   </p>
                   <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
-                    {{ isCapturingShortcut ? 'Listening... (Press modifier + key, or Esc to cancel)' : 'Click the button then press modifier + key combination (⌘/Ctrl, Alt, or Shift required).' }}
+                    {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
                   </p>
                 </div>
               </div>
 
-              <Label for="ai_provider">AI Provider</Label>
+              <Label for="ai_provider">{{ t('settings.basic.ai_provider.label') }}</Label>
               <Select id="ai_provider" v-model="form.ai_provider">
                 <SelectTrigger class="w-full">
-                  <SelectValue placeholder="Select an AI Provider" />
+                  <SelectValue :placeholder="t('settings.basic.ai_provider.placeholder')" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="deepseek">
@@ -355,10 +378,10 @@ async function onSubmit() {
             </div>
 
             <div v-if="form.ai_provider === 'ollama'" class="grid w-full items-center gap-2">
-              <Label for="ollama_model">Ollama Model</Label>
+              <Label for="ollama_model">{{ t('settings.basic.ollama.model_label') }}</Label>
               <Select id="ollama_model" v-model="form.ollama_model">
                 <SelectTrigger class="w-full">
-                  <SelectValue placeholder="Select a Ollama Model" />
+                  <SelectValue :placeholder="t('settings.basic.ollama.model_placeholder')" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -371,14 +394,14 @@ async function onSubmit() {
             </div>
 
             <div v-if="form.ai_provider === 'deepseek'" class="grid w-full items-center gap-2">
-              <Label for="deepseek_api_key">DeepSeek API Key</Label>
+              <Label for="deepseek_api_key">{{ t('settings.basic.deepseek.api_key_label') }}</Label>
               <div class="relative w-full">
                 <Input
                   id="deepseek_api_key"
                   v-model="form.deepseek_api_key"
                   :type="showApiKey ? 'text' : 'password'"
                   autocomplete="off"
-                  placeholder="Enter your DeepSeek API Key"
+                  :placeholder="t('settings.basic.deepseek.api_key_placeholder')"
                   class="pr-10"
                 />
                 <button
@@ -395,20 +418,20 @@ async function onSubmit() {
 
           <template v-else>
             <h1 class="text-2xl font-bold">
-              Prompt Settings
+              {{ t('settings.prompts.title') }}
             </h1>
 
             <div class="grid w-full items-center gap-2">
-              <Label for="system_prompt">System Prompt</Label>
-              <Textarea id="system_prompt" v-model="form.system_prompt" autofocus :rows="12" placeholder="Enter your system prompt" />
+              <Label for="system_prompt">{{ t('settings.prompts.system.label') }}</Label>
+              <Textarea id="system_prompt" v-model="form.system_prompt" autofocus :rows="12" :placeholder="t('settings.prompts.system.placeholder')" />
             </div>
 
             <div class="grid w-full gap-3">
               <div class="flex items-center justify-between">
-                <Label>Prompt Shortcuts (Max 5)</Label>
+                <Label>{{ t('settings.prompts.shortcuts.label') }}</Label>
                 <Button type="button" variant="outline" :disabled="form.slash_commands.length >= 5" @click="addPromptShortcut">
                   <PlusIcon class="w-4 h-4" />
-                  Add Prompt
+                  {{ t('settings.prompts.shortcuts.add') }}
                 </Button>
               </div>
 
@@ -418,11 +441,11 @@ async function onSubmit() {
                 class="rounded-lg border p-3 grid gap-2"
               >
                 <div class="grid gap-1">
-                  <Label :for="`prompt-key-${index}`">Key</Label>
+                  <Label :for="`prompt-key-${index}`">{{ t('settings.prompts.shortcuts.key_label') }}</Label>
                   <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" />
                 </div>
                 <div class="grid gap-1">
-                  <Label :for="`prompt-aliases-${index}`">Aliases (Comma separated)</Label>
+                  <Label :for="`prompt-aliases-${index}`">{{ t('settings.prompts.shortcuts.aliases_label') }}</Label>
                   <Input
                     :id="`prompt-aliases-${index}`"
                     :model-value="item.aliases?.join(', ')"
@@ -431,19 +454,24 @@ async function onSubmit() {
                   />
                 </div>
                 <div class="grid gap-1">
-                  <Label :for="`prompt-value-${index}`">Instruction</Label>
-                  <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" placeholder="Use {{args}} and {{text}} placeholders if needed" />
+                  <Label :for="`prompt-value-${index}`">{{ t('settings.prompts.shortcuts.instruction_label') }}</Label>
+                  <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" :placeholder="t('settings.prompts.shortcuts.instruction_placeholder')" />
                 </div>
                 <div class="flex justify-end">
                   <Button type="button" variant="ghost" @click="removePromptShortcut(index)">
                     <Trash2Icon class="w-4 h-4" />
-                    Remove
+                    {{ t('settings.prompts.shortcuts.remove') }}
                   </Button>
                 </div>
               </div>
 
               <p class="text-xs text-muted-foreground">
-                Example: input ends with <code>/tr:zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.
+                <template v-for="(part, i) in t('settings.prompts.shortcuts.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
+                  <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
+                  <template v-else>
+                    {{ part }}
+                  </template>
+                </template>
               </p>
             </div>
           </template>
@@ -451,7 +479,7 @@ async function onSubmit() {
           <div class="fixed bottom-4 right-8 flex justify-end">
             <Button variant="secondary" type="submit">
               <SaveIcon class="w-4 h-4" />
-              Save
+              {{ t('settings.save') }}
             </Button>
           </div>
         </form>

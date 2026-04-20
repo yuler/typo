@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { useI18n } from '@/composables/useI18n'
 
 defineProps<{
   version: string
@@ -20,6 +21,7 @@ const emit = defineEmits<{
   (event: 'confirm'): void
 }>()
 
+const { t } = useI18n()
 const model = defineModel<boolean>({ required: true })
 </script>
 
@@ -27,7 +29,7 @@ const model = defineModel<boolean>({ required: true })
   <AlertDialog v-model:open="model">
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>New version {{ version }} available</AlertDialogTitle>
+        <AlertDialogTitle>{{ t('upgrade.title', { version }) }}</AlertDialogTitle>
         <AlertDialogDescription>
           <span class="text-sm text-muted-foreground">
             {{ notes }}
@@ -36,10 +38,10 @@ const model = defineModel<boolean>({ required: true })
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel @click="emit('cancel')">
-          Later
+          {{ t('upgrade.later') }}
         </AlertDialogCancel>
         <AlertDialogAction @click="emit('confirm')">
-          Upgrade
+          {{ t('upgrade.confirm') }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

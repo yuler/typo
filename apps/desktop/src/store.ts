@@ -1,4 +1,6 @@
+import type { Locale } from '@typo/languages'
 import { LazyStore } from '@tauri-apps/plugin-store'
+import { defaultLocale } from '@typo/languages'
 
 export const SYSTEM_PROMPT = `
 You are an expert English writing and translation assistant with native-level proficiency.
@@ -57,6 +59,7 @@ const DEFAULT_STORE = {
   ollama_model: '',
   slash_commands: DEFAULT_SLASH_COMMANDS,
   global_shortcut: DEFAULT_GLOBAL_SHORTCUT,
+  locale: defaultLocale satisfies Locale,
 }
 
 const store = new LazyStore('store.json', {

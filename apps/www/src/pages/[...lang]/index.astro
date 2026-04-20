@@ -1,18 +1,18 @@
 ---
 import FeatureGrid from '@/components/FeatureGrid.astro'
-import Footer from '@/components/Footer.astro'
-import Header from '@/components/Header.astro'
 import Hero from '@/components/Hero.astro'
 import Testimonials from '@/components/Testimonials.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
+
+export { getI18nStaticPaths as getStaticPaths } from '@/lib/i18n'
+
+const { t } = Astro.locals
 ---
 
-<BaseLayout title="typo — AI text refinement for your desktop">
-  <Header />
+<BaseLayout title={t('page.home.title')}>
   <main>
     <Hero />
     <FeatureGrid />
     <Testimonials />
   </main>
-  <Footer />
 </BaseLayout>

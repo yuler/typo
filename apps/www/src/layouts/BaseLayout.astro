@@ -1,20 +1,29 @@
 ---
+import { locales } from '@typo/languages'
+import Footer from '@/components/Footer.astro'
+import Header from '@/components/Header.astro'
+import { getLocalizedPath, bcp47Map } from '@/lib/i18n'
 import '../styles/global.css'
 
 interface Props {
   title: string
   description?: string
+  hideHeader?: boolean
+  hideFooter?: boolean
 }
 
-const {
-  title,
-  description = 'typo — an AI-powered desktop tool that refines your selected text with smart suggestions and corrections.',
-} = Astro.props
+const { locale, t } = Astro.locals
+const { title, description = t('base.default_description'), hideHeader, hideFooter } = Astro.props
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
+
+const alternates = locales.map((l) => ({
+  lang: bcp47Map[l],
+  href: new URL(getLocalizedPath(Astro.url.pathname, l), Astro.site ?? Astro.url),
+}))
 ---
 
 <!doctype html>
-<html lang="en" class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+<html lang={locale} class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,6 +32,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href.toString()} />)}
     <script is:inline>
       ;(function () {
         const stored = localStorage.getItem('typo-theme')
@@ -33,6 +43,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
     </script>
   </head>
   <body class="min-h-screen font-sans antialiased">
+    {!hideHeader && <Header />}
     <slot />
+    {!hideFooter && <Footer />}
   </body>
 </html>
