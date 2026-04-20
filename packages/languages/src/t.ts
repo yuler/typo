@@ -10,7 +10,7 @@ import { messages as sharedMessages } from './messages/common'
 export function t(
   locale: Locale,
   key: MessageKey<'common'>,
-  vars?: Record<string, string | number>,
+  vars?: Record<string, string | number | undefined | null>,
 ): string {
   const raw = lookup(sharedMessages, locale, key)
   return vars ? interpolate(raw, vars) : raw
@@ -20,7 +20,7 @@ export function t(
  * Creates a translator for shared/common messages.
  */
 export function createTranslator(locale: Locale) {
-  return (key: MessageKey<'common'>, vars?: Record<string, string | number>): string =>
+  return (key: MessageKey<'common'>, vars?: Record<string, string | number | undefined | null>): string =>
     t(locale, key, vars)
 }
 
@@ -32,7 +32,7 @@ export function createGenericTranslator<K extends string>(
   locale: Locale,
   messages: Record<Locale, Record<K, string>>,
 ) {
-  return (key: K, vars?: Record<string, string | number>): string => {
+  return (key: K, vars?: Record<string, string | number | undefined | null>): string => {
     const raw = lookup(messages, locale as any, key)
     return vars ? interpolate(raw, vars) : raw
   }

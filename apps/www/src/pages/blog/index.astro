@@ -1,14 +1,9 @@
 ---
-import { locales } from '@typo/languages'
 import { getCollection } from 'astro:content'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
-
-export function getStaticPaths() {
-  return locales.map((l) => ({ params: { lang: l === 'en' ? undefined : l } }))
-}
 
 const t = tr(Astro, 'www')
 const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)

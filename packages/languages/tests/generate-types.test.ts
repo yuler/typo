@@ -85,6 +85,6 @@ describe('generate-types --verify', () => {
     const r = run([])
     expect(r.code).toBe(0)
     const out = readFileSync(join(dir, 'src', 'generated', 'keys.d.ts'), 'utf8')
-    expect(out).toContain('common: \'a.b\' | \'c.d\'')
+    expect(out).toContain('common: "a.b" | "c.d"')
   })
 })

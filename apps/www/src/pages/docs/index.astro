@@ -1,13 +1,8 @@
 ---
-import { locales } from '@typo/languages'
 import { getCollection } from 'astro:content'
 import DocsLayout from '@/layouts/DocsLayout.astro'
 import { sortDocsEntries } from '@/lib/docs-nav'
 import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
-
-export function getStaticPaths() {
-  return locales.map((l) => ({ params: { lang: l === 'en' ? undefined : l } }))
-}
 
 const t = tr(Astro, 'www')
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)

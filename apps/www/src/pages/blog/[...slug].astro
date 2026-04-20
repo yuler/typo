@@ -1,5 +1,4 @@
 ---
-import { locales } from '@typo/languages'
 import type { CollectionEntry } from 'astro:content'
 import { getCollection, render } from 'astro:content'
 import Footer from '@/components/Footer.astro'
@@ -9,12 +8,10 @@ import { getLocale, getLocalizedPath } from '@/lib/i18n'
 
 export async function getStaticPaths() {
   const entries = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)
-  return locales.flatMap((l) =>
-    entries.map((entry) => ({
-      params: { lang: l === 'en' ? undefined : l, slug: entry.id },
-      props: { entry },
-    })),
-  )
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }))
 }
 
 interface Props {
