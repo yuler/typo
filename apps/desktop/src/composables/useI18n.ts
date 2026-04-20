@@ -29,17 +29,16 @@ export async function setLocale(next: Locale): Promise<void> {
   await emit(LOCALE_EVENT, next)
 }
 
+const allMessagesForLocale = {
+  en: { ...sharedMessages.en, ...localMessages.en },
+  zh: { ...sharedMessages.zh, ...localMessages.zh },
+  jp: { ...sharedMessages.jp, ...localMessages.jp },
+}
+
 export function useI18n(_namespace?: string) {
   // We ignore namespace for now as we merge all local keys into one bundle per app
   // This simplifies the structure as requested
-  const translator = computed(() => {
-    const allMessagesForLocale = {
-      en: { ...sharedMessages.en, ...localMessages.en },
-      zh: { ...sharedMessages.zh, ...localMessages.zh },
-      jp: { ...sharedMessages.jp, ...localMessages.jp },
-    }
-    return createGenericTranslator(locale.value, allMessagesForLocale)
-  })
+  const translator = computed(() => createGenericTranslator(locale.value, allMessagesForLocale))
 
   const t = (key: string, vars?: Record<string, string | number | undefined | null>) => translator.value(key, vars)
 

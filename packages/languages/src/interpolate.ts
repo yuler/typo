@@ -6,6 +6,6 @@ export function interpolate(
 ): string {
   return template.replace(TOKEN, (_, key: string) => {
     const value = vars[key]
-    return value === undefined ? `{${key}}` : String(value)
+    return value === undefined || value === null ? `{${key}}` : String(value)
   })
 }

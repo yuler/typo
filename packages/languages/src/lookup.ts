@@ -35,7 +35,7 @@ export function lookup(
   }
 
   if (isDev()) {
-    console.warn(`[@typo/languages] Missing key "${key}"`)
+    console.warn(`[@typo/languages] Missing key "${key}" in locale "${locale}"`)
   }
   return key
 }
