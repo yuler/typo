@@ -4,16 +4,16 @@ import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import { sortDocsEntries } from '@/lib/docs-nav'
-import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
+import { getLocale, getLocalizedPath } from '@/lib/i18n'
 
 interface Props {
   title: string
   description?: string
 }
 
-const t = tr(Astro, 'www')
+const { t } = Astro.locals
 const { title, description = t('docs.default_description') } = Astro.props
-const currentLocale = getLocale(Astro)
+const currentLocale = getLocale(Astro.currentLocale)
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/'
 
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)

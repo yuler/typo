@@ -33,8 +33,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Verify translations
-        run: pnpm languages:check
-
       - name: Test @typo/languages
-        run: pnpm languages:test
+        run: pnpm languages:build && pnpm languages:test

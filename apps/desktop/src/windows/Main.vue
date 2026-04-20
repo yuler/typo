@@ -16,7 +16,7 @@ import { formatShortcut, sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
 const { setCurrentWindow } = useGlobalState()
-const { t } = useI18n('desktop')
+const { t } = useI18n()
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 

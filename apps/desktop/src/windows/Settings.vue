@@ -24,7 +24,7 @@ type SettingsTab = 'basic' | 'prompts'
 const activeTab = ref<SettingsTab>('basic')
 const showApiKey = ref(false)
 
-const { locale, setLocale, t } = useI18n('desktop')
+const { locale, setLocale, t } = useI18n()
 
 async function onLocaleChange(next: any) {
   await setLocale(next as Locale)

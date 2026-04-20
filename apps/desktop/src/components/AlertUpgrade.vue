@@ -21,7 +21,7 @@ const emit = defineEmits<{
   (event: 'confirm'): void
 }>()
 
-const { t } = useI18n('desktop')
+const { t } = useI18n()
 const model = defineModel<boolean>({ required: true })
 </script>
 

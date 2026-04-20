@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { interpolate } from '../src/interpolate'
+import { interpolate } from '../src/index'
 
 describe('interpolate', () => {
   it('returns the template unchanged when there are no placeholders', () => {

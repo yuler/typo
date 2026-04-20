@@ -1,11 +1,11 @@
 ---
 import LanguageSwitcher from './LanguageSwitcher.astro'
 import ThemeToggle from './ThemeToggle'
-import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
+import { getLocale, getLocalizedPath } from '@/lib/i18n'
 
-const t = tr(Astro, 'www')
-const tc = tr(Astro, 'common')
-const currentLocale = getLocale(Astro)
+const { t } = Astro.locals
+const currentLocale = getLocale(Astro.currentLocale)
+const tc = t // We use the same t as we ignore namespace for now
 
 const pathname = Astro.url.pathname
 function link(href: string, label: string) {

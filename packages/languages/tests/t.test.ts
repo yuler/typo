@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createTranslator, t } from '../src/t'
+import { createTranslator, t } from '../src/index'
 
 describe('t', () => {
   it('returns the message for the requested locale', () => {

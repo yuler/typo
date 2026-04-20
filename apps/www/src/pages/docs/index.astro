@@ -2,12 +2,12 @@
 import { getCollection } from 'astro:content'
 import DocsLayout from '@/layouts/DocsLayout.astro'
 import { sortDocsEntries } from '@/lib/docs-nav'
-import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
+import { getLocale, getLocalizedPath } from '@/lib/i18n'
 
-const t = tr(Astro, 'www')
+const { t } = Astro.locals
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
 const cards = sortDocsEntries(entries)
-const currentLocale = getLocale(Astro)
+const currentLocale = getLocale(Astro.currentLocale)
 ---
 
 <DocsLayout title={t('page.docs.title')} description={t('page.docs.description')}>

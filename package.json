@@ -21,7 +21,6 @@
     "lint:fix": "eslint --fix .",
     "format:fix": "eslint --fix .",
     "languages:build": "pnpm --filter @typo/languages build",
-    "languages:check": "pnpm --filter @typo/languages check",
     "languages:test": "pnpm --filter @typo/languages test",
     "deps:up": "npx taze -I"
   },

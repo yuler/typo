@@ -18,7 +18,7 @@ interface Props {
 
 const { entry } = Astro.props
 const { Content } = await render(entry)
-const currentLocale = getLocale(Astro)
+const currentLocale = getLocale(Astro.currentLocale)
 ---
 
 <DocsLayout title={`${entry.data.title} — typo docs`} description={entry.data.description}>

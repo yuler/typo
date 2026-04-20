@@ -1,6 +1,6 @@
 ---
 import { locales } from '@typo/languages'
-import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
+import { getLocale, getLocalizedPath } from '@/lib/i18n'
 import '../styles/global.css'
 
 interface Props {
@@ -8,9 +8,9 @@ interface Props {
   description?: string
 }
 
-const t = tr(Astro, 'www')
+const { t } = Astro.locals
 const { title, description = t('base.default_description') } = Astro.props
-const locale = getLocale(Astro)
+const locale = getLocale(Astro.currentLocale)
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
 
 const alternates = locales.map((l) => ({

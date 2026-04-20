@@ -4,12 +4,10 @@
   "version": "1.2.0",
   "private": true,
   "exports": {
-    ".": "./src/index.ts",
-    "./messages/common": "./src/messages/common.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "build": "node --experimental-strip-types scripts/generate-types.ts",
-    "check": "node --experimental-strip-types scripts/generate-types.ts --verify",
     "test": "vitest run",
     "prepare": "node --experimental-strip-types scripts/generate-types.ts"
   },

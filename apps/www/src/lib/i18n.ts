@@ -1,37 +1,42 @@
 import type { Locale } from '@typo/languages'
-import { createGenericTranslator, defaultLocale, locales } from '@typo/languages'
-import { messages as sharedMessages } from '@typo/languages/messages/common'
+import { createGenericTranslator, defaultLocale } from '@typo/languages'
+import { getRelativeLocaleUrl } from 'astro:i18n'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
 import zh from '../locales/zh.json'
 
 const localMessages: Record<Locale, Record<string, string>> = { en, zh, jp }
 
-const allMessagesForLocale = {
-  en: { ...sharedMessages.en, ...localMessages.en },
-  zh: { ...sharedMessages.zh, ...localMessages.zh },
-  jp: { ...sharedMessages.jp, ...localMessages.jp },
-}
-
-export function getLocale(astro: { currentLocale?: string, params?: Record<string, any> }): Locale {
-  const l = astro.currentLocale || astro.params?.lang
-  if (l === 'ja' || l === 'jp')
+export function getLocale(currentLocale?: string): Locale {
+  if (currentLocale === 'ja' || currentLocale === 'jp')
     return 'jp'
-  if (l === 'zh')
+  if (currentLocale === 'zh')
     return 'zh'
   return defaultLocale
 }
 
-export function tr(astro: { currentLocale?: string, params?: Record<string, any> }, _ns?: string) {
-  // We ignore namespace for now as we merge all local keys into one bundle per app
-  return createGenericTranslator(getLocale(astro), allMessagesForLocale)
+/**
+ * Factory that returns a translator for the given locale.
+ */
+export function $t(currentLocale?: string) {
+  return createGenericTranslator(getLocale(currentLocale), localMessages)
 }
 
+/**
+ * Legacy/Alternative translator factory that takes Astro-like object
+ */
+export function tr(astro: { currentLocale?: string }) {
+  return $t(astro.currentLocale)
+}
+
+/**
+ * Returns a localized path for the given locale using astro:i18n.
+ */
 export function getLocalizedPath(path: string, locale: Locale): string {
-  const otherLocales = locales.filter(l => l !== 'en')
-  const regex = new RegExp(`^/(${otherLocales.join('|')})(/|$)`)
-  const stripped = path.replace(regex, '/').replace(/^\/+$/, '/')
-  if (locale === 'en')
-    return stripped
-  return `/${locale}${stripped === '/' ? '' : stripped}`
+  // Strip existing locale prefix if any to avoid double prefixing
+  const segments = path.split('/').filter(Boolean)
+  const isLocale = ['en', 'zh', 'jp', 'ja'].includes(segments[0])
+  const cleanPath = isLocale ? `/${segments.slice(1).join('/')}` : path
+
+  return getRelativeLocaleUrl(locale, cleanPath)
 }

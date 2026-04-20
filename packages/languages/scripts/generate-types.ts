@@ -46,25 +46,14 @@ function verify(): { failures: Failure[], namespaces: Record<string, string[]> }
   const failures: Failure[] = []
   const namespaces: Record<string, string[]> = {}
 
-  const nsDirs = readdirSync(LOCALES_DIR, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name)
-    .sort()
-
-  if (nsDirs.length === 0) {
-    failures.push({ file: LOCALES_DIR, message: `No namespace directories found in ${LOCALES_DIR}` })
-    return { failures, namespaces }
-  }
-
-  for (const ns of nsDirs) {
-    const nsPath = join(LOCALES_DIR, ns)
-    const locales = listLocales(nsPath)
+  function checkNamespace(ns: string, dir: string) {
+    const locales = listLocales(dir)
     if (!locales.includes('en')) {
-      failures.push({ file: nsPath, message: `Namespace "${ns}" is missing en.json` })
-      continue
+      failures.push({ file: dir, message: `Namespace "${ns}" is missing en.json` })
+      return
     }
 
-    const enPath = join(nsPath, 'en.json')
+    const enPath = join(dir, 'en.json')
     const enMap = loadJson(enPath)
     const enKeys = Object.keys(enMap).sort()
     namespaces[ns] = enKeys
@@ -78,7 +67,7 @@ function verify(): { failures: Failure[], namespaces: Record<string, string[]> }
     for (const locale of locales) {
       if (locale === 'en')
         continue
-      const localePath = join(nsPath, `${locale}.json`)
+      const localePath = join(dir, `${locale}.json`)
       const localeMap = loadJson(localePath)
       const localeKeys = new Set(Object.keys(localeMap))
 
@@ -121,6 +110,25 @@ function verify(): { failures: Failure[], namespaces: Record<string, string[]> }
         }
       }
     }
+  }
+
+  // 1. Check root for 'common' namespace
+  if (listLocales(LOCALES_DIR).includes('en')) {
+    checkNamespace('common', LOCALES_DIR)
+  }
+
+  // 2. Check subdirectories for other namespaces
+  const nsDirs = readdirSync(LOCALES_DIR, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name)
+    .sort()
+
+  for (const ns of nsDirs) {
+    checkNamespace(ns, join(LOCALES_DIR, ns))
+  }
+
+  if (Object.keys(namespaces).length === 0) {
+    failures.push({ file: LOCALES_DIR, message: `No translations found in ${LOCALES_DIR}` })
   }
 
   return { failures, namespaces }

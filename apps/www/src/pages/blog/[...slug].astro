@@ -20,7 +20,7 @@ interface Props {
 
 const { entry } = Astro.props
 const { Content } = await render(entry)
-const currentLocale = getLocale(Astro)
+const currentLocale = getLocale(Astro.currentLocale)
 
 function formatDate(d: Date) {
   return d.toLocaleDateString(currentLocale === 'en' ? 'en-US' : currentLocale === 'zh' ? 'zh-CN' : 'ja-JP', {

@@ -3,12 +3,12 @@ import { getCollection } from 'astro:content'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
+import { getLocale, getLocalizedPath } from '@/lib/i18n'
 
-const t = tr(Astro, 'www')
+const { t } = Astro.locals
 const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)
 const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-const currentLocale = getLocale(Astro)
+const currentLocale = getLocale(Astro.currentLocale)
 
 function formatDateLong(d: Date) {
   return d.toLocaleDateString(currentLocale === 'en' ? 'en-US' : currentLocale === 'zh' ? 'zh-CN' : 'ja-JP', {
