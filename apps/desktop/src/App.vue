@@ -21,21 +21,27 @@ import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWin
 const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
 const { t } = useI18n()
 const isDev = import.meta.env.DEV
+const trayUnlisteners: UnlistenFn[] = []
 
 async function notifyUpToDate() {
-  let permissionGranted = await isPermissionGranted()
-  if (!permissionGranted) {
-    const permission = await requestPermission()
-    permissionGranted = permission === 'granted'
+  try {
+    let permissionGranted = await isPermissionGranted()
+    if (!permissionGranted) {
+      const permission = await requestPermission()
+      permissionGranted = permission === 'granted'
+    }
+
+    if (!permissionGranted)
+      return
+
+    sendNotification({
+      title: 'typo',
+      body: t('updates.up_to_date', { version: __APP_VERSION__ }),
+    })
   }
-
-  if (!permissionGranted)
-    return
-
-  sendNotification({
-    title: 'typo',
-    body: t('updates.up_to_date', { version: __APP_VERSION__ }),
-  })
+  catch (err) {
+    console.error('Failed to send up-to-date notification:', err)
+  }
 }
 
 async function checkUpgrade(options?: { verbose?: boolean }) {
@@ -75,6 +81,12 @@ watch(() => currentWindow.value, async () => {
   }
 })
 
+onUnmounted(() => {
+  for (const unlisten of trayUnlisteners)
+    unlisten()
+  trayUnlisteners.length = 0
+})
+
 onMounted(async () => {
   const appWindow = WebviewWindow.getCurrent()
   await appWindow?.setVisibleOnAllWorkspaces(true)
@@ -84,14 +96,8 @@ onMounted(async () => {
   initializeWindow()
   await syncTrayMenu()
 
-  const unlistenFns: UnlistenFn[] = []
-  unlistenFns.push(await listen('tray:open-settings', () => setCurrentWindow('Settings')))
-  unlistenFns.push(await listen('tray:check-updates', () => void checkUpgrade({ verbose: true })))
-
-  onUnmounted(() => {
-    for (const unlisten of unlistenFns)
-      unlisten()
-  })
+  trayUnlisteners.push(await listen('tray:open-settings', () => setCurrentWindow('Settings')))
+  trayUnlisteners.push(await listen('tray:check-updates', () => void checkUpgrade({ verbose: true })))
 
   void checkUpgrade()
 
