@@ -27,18 +27,24 @@
 │   ├── admin/           # Vite + Vue3 (Dashboard) *Note: TODO
 │   └── desktop/         # Tauri / Electron
 ├── packages/            # Shared code across apps
-│   ├── api-client/      # Generated Rails API client
-│   ├── shared-utils/    # Shared helpers and constants
-│   └── ui-kit/          # (Optional) Shared UI components
+│   ├── languages/       # i18n utilities and translation bundles
+│   ├── utils/           # Shared helpers and constants
 ├── scripts/             # Repo-wide automation scripts
 ├── package.json         # Root package: workspaces and top-level scripts
 └── README.md
 ```
 
-## Development
+## Setup
+
+Follow the [`setup` skill](.agents/skills/setup/SKILL.md) to install Node.js (from [`.nvmrc`](.nvmrc)), pnpm (via Corepack, pinned in [`package.json`](package.json)), workspace dependencies, and the Rust toolchain for the Tauri desktop app.
 
 ```bash
-pnpm install
+/setup # run this skill/command in AI coding agent
+```
+
+### Run the desktop app
+
+```bash
 pnpm desktop:dev
 ```
 
