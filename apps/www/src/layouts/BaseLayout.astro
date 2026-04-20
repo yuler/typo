@@ -9,10 +9,7 @@ interface Props {
 }
 
 const t = tr(Astro, 'www')
-const {
-  title,
-  description = t('base.default_description'),
-} = Astro.props
+const { title, description = t('base.default_description') } = Astro.props
 const locale = getLocale(Astro)
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
 

@@ -119,4 +119,3 @@ export default function LanguageDropdown({ items, ariaLabel }: LanguageDropdownP
     </div>
   )
 }
-

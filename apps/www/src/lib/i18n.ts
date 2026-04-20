@@ -13,7 +13,7 @@ const allMessagesForLocale = {
   jp: { ...sharedMessages.jp, ...localMessages.jp },
 }
 
-export function getLocale(astro: { currentLocale?: string; params?: Record<string, any> }): Locale {
+export function getLocale(astro: { currentLocale?: string, params?: Record<string, any> }): Locale {
   const l = astro.currentLocale || astro.params?.lang
   if (l === 'ja' || l === 'jp')
     return 'jp'
@@ -22,7 +22,7 @@ export function getLocale(astro: { currentLocale?: string; params?: Record<strin
   return defaultLocale
 }
 
-export function tr(astro: { currentLocale?: string; params?: Record<string, any> }, _ns?: string) {
+export function tr(astro: { currentLocale?: string, params?: Record<string, any> }, _ns?: string) {
   // We ignore namespace for now as we merge all local keys into one bundle per app
   return createGenericTranslator(getLocale(astro), allMessagesForLocale)
 }

@@ -17,8 +17,13 @@ const copyrightHTML = t('footer.copyright', { year, github: githubLink })
       <a href="https://github.com/yuler/typo/releases" class="hover:text-zinc-900 dark:hover:text-zinc-100"
         >{t('footer.link.releases')}</a
       >
-      <a href={getLocalizedPath('/docs/getting-started', currentLocale)} class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.docs')}</a>
-      <a href={getLocalizedPath('/blog', currentLocale)} class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.blog')}</a>
+      <a
+        href={getLocalizedPath('/docs/getting-started', currentLocale)}
+        class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.docs')}</a
+      >
+      <a href={getLocalizedPath('/blog', currentLocale)} class="hover:text-zinc-900 dark:hover:text-zinc-100"
+        >{t('footer.link.blog')}</a
+      >
     </div>
   </div>
 </footer>
