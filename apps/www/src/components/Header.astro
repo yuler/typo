@@ -1,15 +1,17 @@
 ---
 import LanguageSwitcher from './LanguageSwitcher.astro'
 import ThemeToggle from './ThemeToggle'
-import { tr } from '@/lib/i18n'
+import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
 
 const t = tr(Astro, 'www')
 const tc = tr(Astro, 'common')
+const currentLocale = getLocale(Astro)
 
 const pathname = Astro.url.pathname
 function link(href: string, label: string) {
-  const active = pathname === href || (href !== '/' && pathname.startsWith(href))
-  return { href, label, active }
+  const lPath = getLocalizedPath(href, currentLocale)
+  const active = pathname === lPath || (lPath !== '/' && pathname.startsWith(lPath))
+  return { href: lPath, label, active }
 }
 const nav = [link('/docs', t('header.nav.docs')), link('/blog', t('header.nav.blog'))]
 ---
@@ -19,7 +21,7 @@ const nav = [link('/docs', t('header.nav.docs')), link('/blog', t('header.nav.bl
 >
   <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
     <a
-      href="/"
+      href={getLocalizedPath('/', currentLocale)}
       class="flex size-14 shrink-0 items-center justify-center rounded-md outline-offset-2 transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-400 dark:focus-visible:outline-zinc-500"
       aria-label={t('header.brand_aria')}
     >

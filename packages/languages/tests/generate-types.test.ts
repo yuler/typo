@@ -11,7 +11,7 @@ describe('generate-types --verify', () => {
 
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), 'i18n-test-'))
-    mkdirSync(join(dir, 'src', 'locales', 'fixture'), { recursive: true })
+    mkdirSync(join(dir, 'src', 'locales'), { recursive: true })
     mkdirSync(join(dir, 'src', 'generated'), { recursive: true })
     mkdirSync(join(dir, 'scripts'), { recursive: true })
     cpSync(SCRIPT, join(dir, 'scripts', 'generate-types.ts'))
@@ -23,7 +23,7 @@ describe('generate-types --verify', () => {
 
   function writeFixture(locale: string, content: object): void {
     writeFileSync(
-      join(dir, 'src', 'locales', 'fixture', `${locale}.json`),
+      join(dir, 'src', 'locales', `${locale}.json`),
       JSON.stringify(content),
     )
   }
@@ -85,6 +85,6 @@ describe('generate-types --verify', () => {
     const r = run([])
     expect(r.code).toBe(0)
     const out = readFileSync(join(dir, 'src', 'generated', 'keys.d.ts'), 'utf8')
-    expect(out).toContain('fixture: \'a.b\' | \'c.d\'')
+    expect(out).toContain('common: \'a.b\' | \'c.d\'')
   })
 })

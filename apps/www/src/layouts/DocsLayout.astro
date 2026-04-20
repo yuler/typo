@@ -4,22 +4,27 @@ import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import { sortDocsEntries } from '@/lib/docs-nav'
+import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
 
 interface Props {
   title: string
   description?: string
 }
 
-const { title, description = 'Guides and reference for the typo desktop app.' } = Astro.props
+const t = tr(Astro, 'www')
+const { title, description = t('docs.default_description') } = Astro.props
+const currentLocale = getLocale(Astro)
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/'
 
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
 const sidebarDocs = sortDocsEntries(entries)
 
-const isIndex = pathname === '/docs'
+const docsPath = getLocalizedPath('/docs', currentLocale)
+const isIndex = pathname === docsPath.replace(/\/$/, '') || (docsPath === '/' && pathname === '/')
+
 function linkActive(href: string) {
-  const h = href.replace(/\/$/, '') || '/'
-  if (h === '/docs') return isIndex
+  const h = getLocalizedPath(href, currentLocale).replace(/\/$/, '') || '/'
+  if (h === docsPath.replace(/\/$/, '') || (docsPath === '/' && h === '/')) return isIndex
   return pathname === h || pathname.startsWith(`${h}/`)
 }
 ---
@@ -30,13 +35,13 @@ function linkActive(href: string) {
     <!-- Mobile: horizontal doc nav (VitePress-style top strip) -->
     <nav
       class="sticky top-14 z-40 border-b border-zinc-200 bg-zinc-50/95 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/95 lg:hidden"
-      aria-label="Documentation pages"
+      aria-label={t('docs.mobile_nav_aria')}
     >
       <div
         class="flex gap-1 overflow-x-auto px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <a
-          href="/docs"
+          href={getLocalizedPath('/docs', currentLocale)}
           class:list={[
             'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
             isIndex
@@ -44,12 +49,12 @@ function linkActive(href: string) {
               : 'text-zinc-600 hover:bg-zinc-200/80 dark:text-zinc-400 dark:hover:bg-zinc-800/80',
           ]}
         >
-          Overview
+          {t('docs.nav.overview')}
         </a>
         {
           sidebarDocs.map((doc) => (
             <a
-              href={`/docs/${doc.id}`}
+              href={getLocalizedPath(`/docs/${doc.id}`, currentLocale)}
               class:list={[
                 'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                 linkActive(`/docs/${doc.id}`)
@@ -70,25 +75,25 @@ function linkActive(href: string) {
     >
       <nav
         class="docs-sidebar-nav sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto px-5 py-8"
-        aria-label="Documentation"
+        aria-label={t('docs.nav_aria')}
       >
         <ul class="space-y-0.5">
           <li>
             <a
-              href="/docs"
+              href={getLocalizedPath('/docs', currentLocale)}
               class:list={[
                 'docs-sidebar-link block rounded-none py-2 pl-3 pr-2 text-sm transition-colors',
                 isIndex && 'docs-sidebar-link--active',
               ]}
             >
-              Overview
+              {t('docs.nav.overview')}
             </a>
           </li>
           {
             sidebarDocs.map((doc) => (
               <li>
                 <a
-                  href={`/docs/${doc.id}`}
+                  href={getLocalizedPath(`/docs/${doc.id}`, currentLocale)}
                   class:list={[
                     'docs-sidebar-link block rounded-none py-2 pl-3 pr-2 text-sm transition-colors',
                     linkActive(`/docs/${doc.id}`) && 'docs-sidebar-link--active',

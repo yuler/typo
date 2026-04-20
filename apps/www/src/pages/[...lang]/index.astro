@@ -1,4 +1,5 @@
 ---
+import { locales } from '@typo/languages'
 import FeatureGrid from '@/components/FeatureGrid.astro'
 import Footer from '@/components/Footer.astro'
 import Header from '@/components/Header.astro'
@@ -6,6 +7,10 @@ import Hero from '@/components/Hero.astro'
 import Testimonials from '@/components/Testimonials.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import { tr } from '@/lib/i18n'
+
+export function getStaticPaths() {
+  return locales.map((l) => ({ params: { lang: l === 'en' ? undefined : l } }))
+}
 
 const t = tr(Astro, 'www')
 ---

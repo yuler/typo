@@ -5,9 +5,7 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./messages/common": "./src/messages/common.ts",
-    "./messages/desktop": "./src/messages/desktop.ts",
-    "./messages/www": "./src/messages/www.ts"
+    "./messages/common": "./src/messages/common.ts"
   },
   "scripts": {
     "build": "node --experimental-strip-types scripts/generate-types.ts",

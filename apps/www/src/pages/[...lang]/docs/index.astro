@@ -1,24 +1,33 @@
 ---
+import { locales } from '@typo/languages'
 import { getCollection } from 'astro:content'
-import DocsLayout from '@/components/docs/DocsLayout.astro'
+import DocsLayout from '@/layouts/DocsLayout.astro'
 import { sortDocsEntries } from '@/lib/docs-nav'
+import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
 
+export function getStaticPaths() {
+  return locales.map((l) => ({ params: { lang: l === 'en' ? undefined : l } }))
+}
+
+const t = tr(Astro, 'www')
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
 const cards = sortDocsEntries(entries)
+const currentLocale = getLocale(Astro)
 ---
 
-<DocsLayout title="Documentation — typo" description="Guides and reference for the typo desktop app.">
-  <h1 class="text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">Documentation</h1>
+<DocsLayout title={t('page.docs.title')} description={t('page.docs.description')}>
+  <h1 class="text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">
+    {t('page.docs.heading')}
+  </h1>
   <p class="mt-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-    Install typo, learn the workflow, prompt shortcuts, and platform-specific notes. Use the sidebar to move between
-    pages.
+    {t('page.docs.p')}
   </p>
 
   <div class="mt-10 grid gap-4 sm:grid-cols-2">
     {
       cards.map((doc) => (
         <a
-          href={`/docs/${doc.id}`}
+          href={getLocalizedPath(`/docs/${doc.id}`, currentLocale)}
           class="group flex flex-col rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 transition-colors hover:border-zinc-400 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
         >
           <span class="font-semibold text-zinc-900 group-hover:text-zinc-950 dark:text-zinc-100 dark:group-hover:text-white">
@@ -26,7 +35,7 @@ const cards = sortDocsEntries(entries)
           </span>
           <span class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{doc.data.description}</span>
           <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-zinc-700 group-hover:text-zinc-950 dark:text-zinc-300 dark:group-hover:text-white">
-            Read
+            {t('page.docs.card.read_label')}
             <span class="transition-transform group-hover:translate-x-0.5" aria-hidden>
               →
             </span>

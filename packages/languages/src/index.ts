@@ -1,3 +1,5 @@
 export type { MessageKey, Namespace } from './generated/keys'
-export { createTranslator, t } from './t'
-export { defaultLocale, type Locale, localeNames, locales } from './types'
+export { interpolate } from './interpolate'
+export { lookup } from './lookup'
+export { createGenericTranslator, createTranslator, t } from './t'
+export { defaultLocale, type Locale, localeFlags, localeNames, locales } from './types'

@@ -17,18 +17,16 @@ function loadJson(path: string): Record<string, string> {
   return JSON.parse(text) as Record<string, string>
 }
 
-function listNamespaces(root: string): string[] {
-  return readdirSync(root, { withFileTypes: true })
-    .filter(e => e.isDirectory())
-    .map(e => e.name)
-    .sort()
-}
-
-function listLocales(nsDir: string): string[] {
-  return readdirSync(nsDir)
-    .filter(f => f.endsWith('.json'))
-    .map(f => f.replace(/\.json$/, ''))
-    .sort()
+function listLocales(dir: string): string[] {
+  try {
+    return readdirSync(dir)
+      .filter(f => f.endsWith('.json'))
+      .map(f => f.replace(/\.json$/, ''))
+      .sort()
+  }
+  catch {
+    return []
+  }
 }
 
 function placeholdersOf(value: string): Set<string> {
@@ -48,61 +46,59 @@ function verify(): { failures: Failure[], namespaces: Record<string, string[]> }
   const failures: Failure[] = []
   const namespaces: Record<string, string[]> = {}
 
-  for (const ns of listNamespaces(LOCALES_DIR)) {
-    const nsDir = join(LOCALES_DIR, ns)
-    const locales = listLocales(nsDir)
-    if (!locales.includes('en')) {
-      failures.push({ file: nsDir, message: `Namespace "${ns}" is missing en.json` })
+  // In the new flattened structure, the root of LOCALES_DIR is the 'common' namespace
+  const locales = listLocales(LOCALES_DIR)
+  if (!locales.includes('en')) {
+    failures.push({ file: LOCALES_DIR, message: `Root locales directory is missing en.json` })
+    return { failures, namespaces }
+  }
+
+  const enPath = join(LOCALES_DIR, 'en.json')
+  const enMap = loadJson(enPath)
+  const enKeys = Object.keys(enMap).sort()
+  namespaces.common = enKeys
+
+  for (const [k, v] of Object.entries(enMap)) {
+    if (typeof v !== 'string' || v.length === 0) {
+      failures.push({ file: enPath, message: `Empty value for "${k}"` })
+    }
+  }
+
+  for (const locale of locales) {
+    if (locale === 'en')
       continue
-    }
+    const localePath = join(LOCALES_DIR, `${locale}.json`)
+    const localeMap = loadJson(localePath)
+    const localeKeys = new Set(Object.keys(localeMap))
 
-    const enPath = join(nsDir, 'en.json')
-    const enMap = loadJson(enPath)
-    const enKeys = Object.keys(enMap).sort()
-    namespaces[ns] = enKeys
-
-    for (const [k, v] of Object.entries(enMap)) {
-      if (typeof v !== 'string' || v.length === 0) {
-        failures.push({ file: enPath, message: `Empty value for "${k}"` })
-      }
-    }
-
-    for (const locale of locales) {
-      if (locale === 'en')
+    for (const k of enKeys) {
+      if (!localeKeys.has(k)) {
+        failures.push({ file: localePath, message: `Missing key "${k}"` })
         continue
-      const localePath = join(nsDir, `${locale}.json`)
-      const localeMap = loadJson(localePath)
-      const localeKeys = new Set(Object.keys(localeMap))
-
-      for (const k of enKeys) {
-        if (!localeKeys.has(k)) {
-          failures.push({ file: localePath, message: `Missing key "${k}"` })
-          continue
-        }
-        const v = localeMap[k]
-        if (typeof v !== 'string' || v.length === 0) {
-          failures.push({ file: localePath, message: `Empty value for "${k}"` })
-          continue
-        }
-        const enPlaceholders = placeholdersOf(enMap[k]!)
-        const localePlaceholders = placeholdersOf(v)
-        for (const ph of enPlaceholders) {
-          if (!localePlaceholders.has(ph)) {
-            failures.push({
-              file: localePath,
-              message: `Value for "${k}" is missing placeholder {${ph}}`,
-            })
-          }
-        }
       }
-
-      for (const k of localeKeys) {
-        if (!enKeys.includes(k)) {
+      const v = localeMap[k]
+      if (typeof v !== 'string' || v.length === 0) {
+        failures.push({ file: localePath, message: `Empty value for "${k}"` })
+        continue
+      }
+      const enPlaceholders = placeholdersOf(enMap[k]!)
+      const localePlaceholders = placeholdersOf(v)
+      for (const ph of enPlaceholders) {
+        if (!localePlaceholders.has(ph)) {
           failures.push({
             file: localePath,
-            message: `Extra key "${k}" not in en.json`,
+            message: `Value for "${k}" is missing placeholder {${ph}}`,
           })
         }
+      }
+    }
+
+    for (const k of localeKeys) {
+      if (!enKeys.includes(k)) {
+        failures.push({
+          file: localePath,
+          message: `Extra key "${k}" not in en.json`,
+        })
       }
     }
   }

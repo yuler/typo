@@ -1,6 +1,6 @@
 ---
 import { locales } from '@typo/languages'
-import { getLocale } from '@/lib/i18n'
+import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
 import '../styles/global.css'
 
 interface Props {
@@ -8,14 +8,18 @@ interface Props {
   description?: string
 }
 
+const t = tr(Astro, 'www')
 const {
   title,
-  description = 'typo — an AI-powered desktop tool that refines your selected text with smart suggestions and corrections.',
+  description = t('base.default_description'),
 } = Astro.props
 const locale = getLocale(Astro)
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
 
-const alternates = locales.filter((l) => l !== locale).map((l) => ({ lang: l, href: l === 'en' ? '/' : `/${l}/` }))
+const alternates = locales.map((l) => ({
+  lang: l,
+  href: new URL(getLocalizedPath(Astro.url.pathname, l), Astro.site ?? Astro.url),
+}))
 ---
 
 <!doctype html>
@@ -28,7 +32,7 @@ const alternates = locales.filter((l) => l !== locale).map((l) => ({ lang: l, hr
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
-    {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href} />)}
+    {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href.toString()} />)}
     <script is:inline>
       ;(function () {
         const stored = localStorage.getItem('typo-theme')

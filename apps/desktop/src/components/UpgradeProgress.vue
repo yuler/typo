@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Progress } from '@/components/ui/progress'
+import { useI18n } from '@/composables/useI18n'
 
 defineProps<{
   progress: number
 }>()
 
+const { t } = useI18n('desktop')
 const model = defineModel<boolean>({ required: true })
 </script>
 
@@ -13,7 +15,7 @@ const model = defineModel<boolean>({ required: true })
   <AlertDialog v-model:open="model">
     <AlertDialogContent @escape-key-down.prevent>
       <AlertDialogHeader>
-        <AlertDialogTitle>Downloading...</AlertDialogTitle>
+        <AlertDialogTitle>{{ t('upgrade.downloading') }}</AlertDialogTitle>
         <AlertDialogDescription>
           <Progress :model-value="progress" class="w-full" />
         </AlertDialogDescription>

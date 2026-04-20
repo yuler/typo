@@ -1,19 +1,39 @@
-import type { MessageKey, Namespace } from './generated/keys'
+import type { MessageKey } from './generated/keys'
 import type { Locale } from './types'
 import { interpolate } from './interpolate'
 import { lookup } from './lookup'
+import { messages as sharedMessages } from './messages/common'
 
-export function t<N extends Namespace>(
+/**
+ * Translator function for shared/common messages.
+ */
+export function t(
   locale: Locale,
-  namespace: N,
-  key: MessageKey<N>,
+  key: MessageKey<'common'>,
   vars?: Record<string, string | number>,
 ): string {
-  const raw = lookup(locale, namespace, key)
+  const raw = lookup(sharedMessages, locale, key)
   return vars ? interpolate(raw, vars) : raw
 }
 
-export function createTranslator<N extends Namespace>(locale: Locale, namespace: N) {
-  return (key: MessageKey<N>, vars?: Record<string, string | number>): string =>
-    t(locale, namespace, key, vars)
+/**
+ * Creates a translator for shared/common messages.
+ */
+export function createTranslator(locale: Locale) {
+  return (key: MessageKey<'common'>, vars?: Record<string, string | number>): string =>
+    t(locale, key, vars)
+}
+
+/**
+ * Generic factory to create a translator with any message bundle.
+ * Useful for apps to merge shared and local translations.
+ */
+export function createGenericTranslator<K extends string>(
+  locale: Locale,
+  messages: Record<Locale, Record<K, string>>,
+) {
+  return (key: K, vars?: Record<string, string | number>): string => {
+    const raw = lookup(messages, locale as any, key)
+    return vars ? interpolate(raw, vars) : raw
+  }
 }

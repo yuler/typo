@@ -1,9 +1,15 @@
 /* eslint-disable react/no-unnecessary-use-prefix -- Vue composable naming (not React hooks) */
-import type { Locale, Namespace } from '@typo/languages'
+import type { Locale } from '@typo/languages'
 import { emit, listen } from '@tauri-apps/api/event'
-import { createTranslator, defaultLocale } from '@typo/languages'
+import { createGenericTranslator, defaultLocale } from '@typo/languages'
+import { messages as sharedMessages } from '@typo/languages/messages/common'
 import { computed, ref } from 'vue'
 import { get, save, set } from '@/store'
+import en from '../locales/en.json'
+import jp from '../locales/jp.json'
+import zh from '../locales/zh.json'
+
+const localMessages: Record<Locale, Record<string, string>> = { en, zh, jp }
 
 const LOCALE_EVENT = 'typo://locale-changed'
 
@@ -23,7 +29,17 @@ export async function setLocale(next: Locale): Promise<void> {
   await emit(LOCALE_EVENT, next)
 }
 
-export function useI18n<N extends Namespace>(namespace: N) {
-  const t = computed(() => createTranslator(locale.value, namespace))
+export function useI18n(_namespace?: string) {
+  // We ignore namespace for now as we merge all local keys into one bundle per app
+  // This simplifies the structure as requested
+  const t = computed(() => {
+    const allMessagesForLocale = {
+      en: { ...sharedMessages.en, ...localMessages.en },
+      zh: { ...sharedMessages.zh, ...localMessages.zh },
+      jp: { ...sharedMessages.jp, ...localMessages.jp },
+    }
+    return createGenericTranslator(locale.value, allMessagesForLocale)
+  })
+
   return { locale, setLocale, t }
 }

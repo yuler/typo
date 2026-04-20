@@ -10,11 +10,11 @@ export default defineConfig({
   output: 'static',
   i18n: {
     defaultLocale: 'en',
-    locales: ['en', 'zh', 'ja'],
+    locales: ['en', 'zh', 'jp'],
     routing: {
       prefixDefaultLocale: false,
     },
-    fallback: { zh: 'en', ja: 'en' },
+    fallback: { zh: 'en', jp: 'en' },
   },
   integrations: [react(), mdx()],
   vite: {
