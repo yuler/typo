@@ -1,5 +1,5 @@
 import type { Locale } from '@typo/languages'
-import { createGenericTranslator, defaultLocale } from '@typo/languages'
+import { createGenericTranslator, defaultLocale, locales } from '@typo/languages'
 import { messages as sharedMessages } from '@typo/languages/messages/common'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
@@ -28,7 +28,9 @@ export function tr(astro: { currentLocale?: string, params?: Record<string, any>
 }
 
 export function getLocalizedPath(path: string, locale: Locale): string {
-  const stripped = path.replace(/^\/(zh|jp)(\/|$)/, '/').replace(/^\/+$/, '/')
+  const otherLocales = locales.filter(l => l !== 'en')
+  const regex = new RegExp(`^/(${otherLocales.join('|')})(/|$)`)
+  const stripped = path.replace(regex, '/').replace(/^\/+$/, '/')
   if (locale === 'en')
     return stripped
   return `/${locale}${stripped === '/' ? '' : stripped}`

@@ -91,6 +91,14 @@ function verify(): { failures: Failure[], namespaces: Record<string, string[]> }
           })
         }
       }
+      for (const ph of localePlaceholders) {
+        if (!enPlaceholders.has(ph)) {
+          failures.push({
+            file: localePath,
+            message: `Value for "${k}" has extra placeholder {${ph}} not in en.json`,
+          })
+        }
+      }
     }
 
     for (const k of localeKeys) {
@@ -119,7 +127,7 @@ function emitTypes(namespaces: Record<string, string[]>): string {
       lines.push(`  ${ns}: never`)
     }
     else {
-      const union = keys.map(k => `'${k}'`).join(' | ')
+      const union = keys.map(k => JSON.stringify(k)).join(' | ')
       lines.push(`  ${ns}: ${union}`)
     }
   }

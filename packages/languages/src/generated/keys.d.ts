@@ -2,7 +2,7 @@
 // Do not edit by hand. Run `pnpm --filter @typo/languages build` to regenerate.
 
 export interface MessageKeys {
-  common: 'action.cancel' | 'action.save' | 'brand.name' | 'language.en' | 'language.jp' | 'language.label' | 'language.zh'
+  common: "action.cancel" | "action.save" | "brand.name" | "language.en" | "language.jp" | "language.label" | "language.zh"
 }
 
 export type Namespace = keyof MessageKeys
