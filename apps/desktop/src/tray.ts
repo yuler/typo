@@ -3,8 +3,8 @@ import { watch } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 
 export async function syncTrayMenu(): Promise<void> {
-  const i18n = useI18n
-  const { t, locale } = i18n()
+  // eslint-disable-next-line react/rules-of-hooks -- Vue composable used in non-React utility function
+  const { t, locale } = useI18n()
 
   async function push(): Promise<void> {
     try {
