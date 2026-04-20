@@ -10,12 +10,15 @@ export { defaultLocale, locales }
 
 const localMessages: Record<Locale, Record<string, string>> = { en, zh, jp }
 
+const localeMap: Record<string, Locale> = {
+  en: 'en',
+  zh: 'zh',
+  ja: 'jp',
+  jp: 'jp',
+}
+
 export function getLocale(currentLocale?: string): Locale {
-  if (currentLocale === 'ja' || currentLocale === 'jp')
-    return 'jp'
-  if (currentLocale === 'zh')
-    return 'zh'
-  return defaultLocale
+  return localeMap[currentLocale || ''] || defaultLocale
 }
 
 /**

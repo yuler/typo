@@ -26,8 +26,8 @@ const showApiKey = ref(false)
 
 const { locale, setLocale, t } = useI18n()
 
-async function onLocaleChange(next: any) {
-  await setLocale(next as Locale)
+async function onLocaleChange(next: Locale) {
+  await setLocale(next)
 }
 
 const form = ref({
@@ -300,7 +300,7 @@ async function onSubmit() {
           <template v-if="activeTab === 'basic'">
             <div class="space-y-2">
               <Label>{{ t('settings.language.title') }}</Label>
-              <Select :model-value="locale" @update:model-value="onLocaleChange">
+              <Select :model-value="locale" @update:model-value="(val: any) => onLocaleChange(val as Locale)">
                 <SelectTrigger class="w-full">
                   <SelectValue :placeholder="t('settings.language.title')" />
                 </SelectTrigger>
@@ -465,7 +465,12 @@ async function onSubmit() {
                 </div>
               </div>
 
-              <p class="text-xs text-muted-foreground" v-html="t('settings.prompts.shortcuts.hint')" />
+              <p class="text-xs text-muted-foreground">
+                <template v-for="(part, i) in t('settings.prompts.shortcuts.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
+                  <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
+                  <template v-else>{{ part }}</template>
+                </template>
+              </p>
             </div>
           </template>
 

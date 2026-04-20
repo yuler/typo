@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { messages as commonMessages, lookup } from '../src/index'
+import { messages as commonMessages } from '../src/constants'
+import { lookup } from '../src/lookup'
 
 describe('lookup', () => {
   let warn: ReturnType<typeof vi.spyOn>
