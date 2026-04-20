@@ -4,34 +4,56 @@ Shared internationalization catalog and runtime helper for the typo monorepo.
 
 ## Locales
 
-`en` (default), `zh` (Simplified Chinese), `jp` (Japanese).
+Supports `en` (default), `zh` (Simplified Chinese), and `jp` (Japanese).
 
-## Public API
+## Usage
+
+### Shared Translations
+
+The package provides a built-in translator for shared strings (the `common` namespace).
+
+```ts
+import { createTranslator, t } from '@typo/languages'
+
+// Direct lookup
+t('en', 'brand.name') // "typo"
+t('zh', 'action.save') // "保存"
+
+// Created scoped translator
+const tr = createTranslator('jp')
+tr('action.cancel') // "キャンセル"
+```
+
+### App-Specific Translations
+
+Use `createGenericTranslator` to apply the same lookup and interpolation logic to your application's local message bundles.
 
 ```ts
 import type { Locale } from '@typo/languages'
-import { createTranslator, defaultLocale, localeNames, locales, t } from '@typo/languages'
+import { createGenericTranslator } from '@typo/languages'
+import en from './locales/en.json'
+import jp from './locales/jp.json'
+import zh from './locales/zh.json'
 
-t('en', 'common', 'action.save') // "Save"
-t('zh', 'desktop', 'settings.language') // "语言"
-t('en', 'www', 'hero.cta', { app: 'typo' })
+const messages = { en, jp, zh }
+const tr = createGenericTranslator(locale as Locale, messages)
 
-const tr = createTranslator('zh', 'common')
-tr('action.save') // "保存"
+tr('my.local.key', { name: 'World' })
 ```
-
-See `docs/superpowers/specs/2026-04-19-i18n-languages-package-design.md` for the full design.
 
 ## Adding a translation key
 
-1. Add the key to `src/locales/<namespace>/en.json` with the English value.
-2. Add the same key to `src/locales/<namespace>/zh.json` and `<namespace>/jp.json`.
-3. Run `pnpm check` (validates) or `pnpm build` (also regenerates `src/generated/keys.d.ts`).
+1. Add the key to `src/locales/common/en.json` with the English value.
+2. Add the same key to `src/locales/common/zh.json` and `src/locales/common/jp.json`.
+3. Run `pnpm check` to validate or `pnpm build` to regenerate types (`src/generated/keys.d.ts`).
 
-## Adding a namespace
+## Adding a shared namespace
 
-1. Create `src/locales/<new>/{en,zh,jp}.json`.
-2. Create `src/messages/<new>.ts` re-exporting the bundle (copy from `common.ts`).
-3. Register it in `src/lookup.ts` `all` map.
-4. Add an `exports` entry in `package.json`.
-5. Run `pnpm build`.
+1. Create `src/locales/<name>/{en,zh,jp}.json`.
+2. Create `src/messages/<name>.ts` re-exporting the bundle (see `messages/common.ts`).
+3. Add an `exports` entry in `package.json`.
+4. Run `pnpm build`.
+
+---
+
+See [2026-04-19-i18n-languages-package-design.md](../../docs/superpowers/specs/2026-04-19-i18n-languages-package-design.md) for the full architectural design.
