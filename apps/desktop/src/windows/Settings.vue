@@ -468,7 +468,9 @@ async function onSubmit() {
               <p class="text-xs text-muted-foreground">
                 <template v-for="(part, i) in t('settings.prompts.shortcuts.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
                   <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
-                  <template v-else>{{ part }}</template>
+                  <template v-else>
+                    {{ part }}
+                  </template>
                 </template>
               </p>
             </div>

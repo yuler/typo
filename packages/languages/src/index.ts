@@ -1,5 +1,6 @@
-import { messages, type Locale } from './constants'
+import type { Locale } from './constants'
 import type { MessageKey } from './generated/keys'
+import { messages } from './constants'
 import { interpolate } from './interpolate'
 import { lookup } from './lookup'
 
