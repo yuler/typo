@@ -1,4 +1,4 @@
-import type { Locale } from '@typo/languages'
+import type { Locale, MessageKey } from '@typo/languages'
 import { createGenericTranslator, defaultLocale, locales } from '@typo/languages'
 import { getCollection } from 'astro:content'
 import { getRelativeLocaleUrl } from 'astro:i18n'
@@ -25,7 +25,12 @@ export function getLocale(currentLocale?: string): Locale {
  * Factory that returns a translator for the given locale.
  */
 export function $t(currentLocale?: string) {
-  return createGenericTranslator(getLocale(currentLocale), localMessages)
+  const t = createGenericTranslator(getLocale(currentLocale), localMessages)
+  const combinedT = (
+    key: keyof typeof en | MessageKey,
+    vars?: Record<string, string | number | undefined | null>,
+  ): string => t(key as any, vars)
+  return combinedT
 }
 
 /**
