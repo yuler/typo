@@ -26,11 +26,11 @@ LOCKFILES=(
 # Build exclude pathspecs (one per file)
 exclude_args=()
 for f in "${LOCKFILES[@]}"; do
-    exclude_args+=(':(exclude)'"$f")
+    exclude_args+=(':(exclude)**/'"$f")
 done
 
 # Get the diff with exclusions
-diff=$(git diff --staged -- . "${exclude_args[@]}")
+diff=$(git diff --staged -- "${exclude_args[@]}")
 
 # If don't have staged changes, exit
 if [[ -z "$diff" ]]; then

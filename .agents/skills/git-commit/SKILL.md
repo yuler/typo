@@ -11,6 +11,8 @@ Use this skill to turn the staged diff into a short, human-readable commit messa
 
 This repo prefers the staged-diff helper in this skill over raw `git diff --staged` so common lockfiles do not dominate the summary.
 
+The `gh-pr-summary` and `receiving-code-review` skills referenced in PR workflows are built-in Claude Code harness skills, not local skills in this monorepo.
+
 ## When to use
 
 Use this skill when:
@@ -53,7 +55,7 @@ Format details:
 ## Workflow
 
 1. Gather the staged diff with the helper script.
-   - Run `skills/git-commit/scripts/git-diff.sh`.
+   - Run `.agents/skills/git-commit/scripts/git-diff.sh`.
    - Use this output as the primary source for the commit summary.
    - The helper excludes common lockfiles such as `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lockb`, `Gemfile.lock`, `uv.lock`, `composer.lock`, `go.sum`, and `Cargo.lock`.
 
