@@ -1,20 +1,20 @@
-name: www-ci
+name: packages-ci
 
 on:
   push:
     branches: [main]
-    paths: &www_paths
-      - 'apps/www/**'
+    paths: &packages_paths
+      - 'packages/**'
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
       - package.json
-      - .github/workflows/www-ci.yml
+      - .github/workflows/packages-ci.yml
   pull_request:
     branches: [main]
-    paths: *www_paths
+    paths: *packages_paths
 
 jobs:
-  www:
+  languages:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,8 +33,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Astro check
-        run: pnpm --filter @typo/www run check
+      - name: Verify translations
+        run: pnpm languages:check
 
-      - name: Astro build
-        run: pnpm --filter @typo/www run build
+      - name: Test @typo/languages
+        run: pnpm languages:test
