@@ -7,6 +7,8 @@
   ],
   "permissions": [
     "core:default",
+    "core:tray:default",
+    "core:menu:default",
     "core:window:default",
     "core:window:allow-start-dragging",
     "core:window:allow-show",
@@ -22,6 +24,7 @@
     "core:window:allow-set-size-constraints",
     "core:window:allow-center",
     "opener:default",
+    "opener:allow-open-url",
     "store:default",
     "clipboard-manager:default",
     "clipboard-manager:allow-read-text",

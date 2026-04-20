@@ -173,7 +173,9 @@ pub fn run() {
             );
         }))
         .setup(move |app| {
-            tray::init(app)?;
+            if let Err(error) = tray::init(app) {
+                eprintln!("Failed to initialize system tray: {}", error);
+            }
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
