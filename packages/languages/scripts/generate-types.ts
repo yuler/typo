@@ -42,125 +42,100 @@ function placeholdersOf(value: string): Set<string> {
   return out
 }
 
-function verify(): { failures: Failure[], namespaces: Record<string, string[]> } {
+function verify(): { failures: Failure[], keys: string[] } {
   const failures: Failure[] = []
-  const namespaces: Record<string, string[]> = {}
+  let keys: string[] = []
 
-  function checkNamespace(ns: string, dir: string) {
-    const locales = listLocales(dir)
-    if (!locales.includes('en')) {
-      failures.push({ file: dir, message: `Namespace "${ns}" is missing en.json` })
-      return
+  const locales = listLocales(LOCALES_DIR)
+  if (!locales.includes('en')) {
+    failures.push({ file: LOCALES_DIR, message: 'Missing en.json' })
+    return { failures, keys }
+  }
+
+  const enPath = join(LOCALES_DIR, 'en.json')
+  const enMap = loadJson(enPath)
+  keys = Object.keys(enMap).sort()
+
+  for (const [k, v] of Object.entries(enMap)) {
+    if (typeof v !== 'string' || v.length === 0) {
+      failures.push({ file: enPath, message: `Empty value for "${k}"` })
     }
+  }
 
-    const enPath = join(dir, 'en.json')
-    const enMap = loadJson(enPath)
-    const enKeys = Object.keys(enMap).sort()
-    namespaces[ns] = enKeys
+  for (const locale of locales) {
+    if (locale === 'en')
+      continue
+    const localePath = join(LOCALES_DIR, `${locale}.json`)
+    const localeMap = loadJson(localePath)
+    const localeKeys = new Set(Object.keys(localeMap))
 
-    for (const [k, v] of Object.entries(enMap)) {
-      if (typeof v !== 'string' || v.length === 0) {
-        failures.push({ file: enPath, message: `Empty value for "${k}" in namespace "${ns}"` })
-      }
-    }
-
-    for (const locale of locales) {
-      if (locale === 'en')
+    for (const k of keys) {
+      if (!localeKeys.has(k)) {
+        failures.push({ file: localePath, message: `Missing key "${k}"` })
         continue
-      const localePath = join(dir, `${locale}.json`)
-      const localeMap = loadJson(localePath)
-      const localeKeys = new Set(Object.keys(localeMap))
-
-      for (const k of enKeys) {
-        if (!localeKeys.has(k)) {
-          failures.push({ file: localePath, message: `Missing key "${k}" in namespace "${ns}"` })
-          continue
-        }
-        const v = localeMap[k]
-        if (typeof v !== 'string' || v.length === 0) {
-          failures.push({ file: localePath, message: `Empty value for "${k}" in namespace "${ns}"` })
-          continue
-        }
-        const enPlaceholders = placeholdersOf(enMap[k]!)
-        const localePlaceholders = placeholdersOf(v)
-        for (const ph of enPlaceholders) {
-          if (!localePlaceholders.has(ph)) {
-            failures.push({
-              file: localePath,
-              message: `Value for "${k}" in namespace "${ns}" is missing placeholder {${ph}}`,
-            })
-          }
-        }
-        for (const ph of localePlaceholders) {
-          if (!enPlaceholders.has(ph)) {
-            failures.push({
-              file: localePath,
-              message: `Value for "${k}" in namespace "${ns}" has extra placeholder {${ph}} not in en.json`,
-            })
-          }
-        }
       }
-
-      for (const k of localeKeys) {
-        if (!enKeys.includes(k)) {
+      const v = localeMap[k]
+      if (typeof v !== 'string' || v.length === 0) {
+        failures.push({ file: localePath, message: `Empty value for "${k}"` })
+        continue
+      }
+      const enPlaceholders = placeholdersOf(enMap[k]!)
+      const localePlaceholders = placeholdersOf(v)
+      for (const ph of enPlaceholders) {
+        if (!localePlaceholders.has(ph)) {
           failures.push({
             file: localePath,
-            message: `Extra key "${k}" in namespace "${ns}" not in en.json`,
+            message: `Value for "${k}" is missing placeholder {${ph}}`,
+          })
+        }
+      }
+      for (const ph of localePlaceholders) {
+        if (!enPlaceholders.has(ph)) {
+          failures.push({
+            file: localePath,
+            message: `Value for "${k}" has extra placeholder {${ph}} not in en.json`,
           })
         }
       }
     }
+
+    for (const k of localeKeys) {
+      if (!keys.includes(k)) {
+        failures.push({
+          file: localePath,
+          message: `Extra key "${k}" not in en.json`,
+        })
+      }
+    }
   }
 
-  // 1. Check root for 'common' namespace
-  if (listLocales(LOCALES_DIR).includes('en')) {
-    checkNamespace('common', LOCALES_DIR)
-  }
-
-  // 2. Check subdirectories for other namespaces
-  const nsDirs = readdirSync(LOCALES_DIR, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name)
-    .sort()
-
-  for (const ns of nsDirs) {
-    checkNamespace(ns, join(LOCALES_DIR, ns))
-  }
-
-  if (Object.keys(namespaces).length === 0) {
+  if (keys.length === 0) {
     failures.push({ file: LOCALES_DIR, message: `No translations found in ${LOCALES_DIR}` })
   }
 
-  return { failures, namespaces }
+  return { failures, keys }
 }
 
-function emitTypes(namespaces: Record<string, string[]>): string {
+function emitTypes(keys: string[]): string {
   const lines: string[] = [
     '// AUTO-GENERATED by packages/languages/scripts/generate-types.ts',
     '// Do not edit by hand. Run `pnpm --filter @typo/languages build` to regenerate.',
     '',
-    'export interface MessageKeys {',
   ]
-  for (const ns of Object.keys(namespaces).sort()) {
-    const keys = namespaces[ns]!
-    if (keys.length === 0) {
-      lines.push(`  ${ns}: never`)
-    }
-    else {
-      const union = keys.map(k => JSON.stringify(k)).join(' | ')
-      lines.push(`  ${ns}: ${union}`)
-    }
+  if (keys.length === 0) {
+    lines.push('export type MessageKey = never')
   }
-  lines.push('}', '')
-  lines.push('export type Namespace = keyof MessageKeys')
-  lines.push('export type MessageKey<N extends Namespace = Namespace> = MessageKeys[N]')
+  else {
+    const union = keys.map(k => JSON.stringify(k)).join(' | ')
+    lines.push(`export type MessageKey = ${union}`)
+  }
   lines.push('')
   return lines.join('\n')
 }
 
 function main(): void {
   const isVerify = process.argv.includes('--verify')
-  const { failures, namespaces } = verify()
+  const { failures, keys } = verify()
 
   if (failures.length > 0) {
     for (const f of failures) {
@@ -171,12 +146,12 @@ function main(): void {
   }
 
   if (!isVerify) {
-    const out = emitTypes(namespaces)
+    const out = emitTypes(keys)
     writeFileSync(OUTPUT_FILE, out, 'utf8')
-    console.log(`✓ Wrote ${OUTPUT_FILE} (${Object.keys(namespaces).length} namespaces).`)
+    console.log(`✓ Wrote ${OUTPUT_FILE} (${keys.length} keys).`)
   }
   else {
-    console.log(`✓ All locales complete (${Object.keys(namespaces).length} namespaces).`)
+    console.log(`✓ All locales complete (${keys.length} keys).`)
   }
 }
 

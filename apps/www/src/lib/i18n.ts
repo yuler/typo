@@ -1,5 +1,5 @@
 import type { Locale } from '@typo/languages'
-import { createGenericTranslator, defaultLocale } from '@typo/languages'
+import { createGenericTranslator, defaultLocale, locales } from '@typo/languages'
 import { getRelativeLocaleUrl } from 'astro:i18n'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
@@ -35,7 +35,7 @@ export function tr(astro: { currentLocale?: string }) {
 export function getLocalizedPath(path: string, locale: Locale): string {
   // Strip existing locale prefix if any to avoid double prefixing
   const segments = path.split('/').filter(Boolean)
-  const isLocale = ['en', 'zh', 'jp', 'ja'].includes(segments[0])
+  const isLocale = ([...locales, 'ja'] as string[]).includes(segments[0] || '')
   const cleanPath = isLocale ? `/${segments.slice(1).join('/')}` : path
 
   return getRelativeLocaleUrl(locale, cleanPath)

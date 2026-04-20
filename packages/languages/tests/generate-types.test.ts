@@ -21,13 +21,13 @@ describe('generate-types --verify', () => {
     rmSync(dir, { recursive: true, force: true })
   })
 
-  function writeFixture(namespace: string, locale: string, content: object): void {
-    const nsDir = join(dir, 'src', 'locales', namespace)
-    if (!existsSync(nsDir)) {
-      mkdirSync(nsDir, { recursive: true })
+  function writeFixture(locale: string, content: object): void {
+    const localesDir = join(dir, 'src', 'locales')
+    if (!existsSync(localesDir)) {
+      mkdirSync(localesDir, { recursive: true })
     }
     writeFileSync(
-      join(nsDir, `${locale}.json`),
+      join(localesDir, `${locale}.json`),
       JSON.stringify(content),
     )
   }
@@ -52,43 +52,43 @@ describe('generate-types --verify', () => {
   }
 
   it('passes when all locales are complete', () => {
-    writeFixture('common', 'en', { greeting: 'Hello' })
-    writeFixture('common', 'zh', { greeting: '你好' })
+    writeFixture('en', { greeting: 'Hello' })
+    writeFixture('zh', { greeting: '你好' })
     const r = run(['--verify'])
     expect(r.code).toBe(0)
     expect(r.stdout).toContain('All locales complete')
   })
 
   it('fails on missing key', () => {
-    writeFixture('common', 'en', { greeting: 'Hello', other: 'X' })
-    writeFixture('common', 'zh', { greeting: '你好' })
+    writeFixture('en', { greeting: 'Hello', other: 'X' })
+    writeFixture('zh', { greeting: '你好' })
     const r = run(['--verify'])
     expect(r.code).toBe(1)
-    expect(r.stderr).toContain('Missing key "other" in namespace "common"')
+    expect(r.stderr).toContain('Missing key "other"')
   })
 
   it('fails on empty value', () => {
-    writeFixture('common', 'en', { greeting: 'Hello' })
-    writeFixture('common', 'zh', { greeting: '' })
+    writeFixture('en', { greeting: 'Hello' })
+    writeFixture('zh', { greeting: '' })
     const r = run(['--verify'])
     expect(r.code).toBe(1)
-    expect(r.stderr).toContain('Empty value for "greeting" in namespace "common"')
+    expect(r.stderr).toContain('Empty value for "greeting"')
   })
 
   it('fails on missing placeholder', () => {
-    writeFixture('common', 'en', { greeting: 'Hello, {name}' })
-    writeFixture('common', 'zh', { greeting: '你好' })
+    writeFixture('en', { greeting: 'Hello, {name}' })
+    writeFixture('zh', { greeting: '你好' })
     const r = run(['--verify'])
     expect(r.code).toBe(1)
     expect(r.stderr).toContain('missing placeholder {name}')
   })
 
   it('writes keys.d.ts in non-verify mode', () => {
-    writeFixture('common', 'en', { 'a.b': 'A', 'c.d': 'B' })
-    writeFixture('common', 'zh', { 'a.b': 'A', 'c.d': 'B' })
+    writeFixture('en', { 'a.b': 'A', 'c.d': 'B' })
+    writeFixture('zh', { 'a.b': 'A', 'c.d': 'B' })
     const r = run([])
     expect(r.code).toBe(0)
     const out = readFileSync(join(dir, 'src', 'generated', 'keys.d.ts'), 'utf8')
-    expect(out).toContain('common: "a.b" | "c.d"')
+    expect(out).toContain('export type MessageKey = "a.b" | "c.d"')
   })
 })

@@ -4,7 +4,7 @@ import en from './locales/en.json'
 import jp from './locales/jp.json'
 import zh from './locales/zh.json'
 
-export type { MessageKey, Namespace } from './generated/keys'
+export type { MessageKey } from './generated/keys'
 
 // --- Shared Messages ---
 
@@ -105,7 +105,7 @@ export function lookup(
  */
 export function t(
   locale: Locale,
-  key: MessageKey<'common'>,
+  key: MessageKey,
   vars?: Record<string, string | number | undefined | null>,
 ): string {
   const raw = lookup(messages, locale, key)
@@ -116,7 +116,7 @@ export function t(
  * Creates a translator for shared/common messages.
  */
 export function createTranslator(locale: Locale) {
-  return (key: MessageKey<'common'>, vars?: Record<string, string | number | undefined | null>): string =>
+  return (key: MessageKey, vars?: Record<string, string | number | undefined | null>): string =>
     t(locale, key, vars)
 }
 
@@ -126,10 +126,10 @@ export function createTranslator(locale: Locale) {
  */
 export function createGenericTranslator<K extends string>(
   locale: Locale,
-  messages: Record<Locale, Record<K, string>>,
+  bundle: Record<Locale, Record<K, string>>,
 ) {
   return (key: K, vars?: Record<string, string | number | undefined | null>): string => {
-    const raw = lookup(messages, locale as any, key)
+    const raw = lookup(bundle, locale, key)
     return vars ? interpolate(raw, vars) : raw
   }
 }

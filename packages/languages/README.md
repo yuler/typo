@@ -1,18 +1,18 @@
 # @typo/languages
 
-Shared internationalization (i18n) utilities and common translation bundles for the Typo monorepo.
+Shared internationalization (i18n) utilities and translation bundles for the Typo monorepo.
 
 ## Features
 
 - **i18n Tools**: Type-safe lookup, interpolation, and translator factory helpers.
-- **Common Bundles**: Shared translation namespaces (e.g., `common`) used across the workspace.
+- **Shared Messages**: Centralized translation keys used across the workspace.
 - **Language Support**: English (`en`), Simplified Chinese (`zh`), and Japanese (`jp`).
 
 ## Usage
 
 ### Using Shared Translations
 
-Quickly access shared strings from the `common` namespace:
+Quickly access shared strings:
 
 ```ts
 import { createTranslator, t } from '@typo/languages'
@@ -20,7 +20,7 @@ import { createTranslator, t } from '@typo/languages'
 // Direct lookup
 t('zh', 'action.save') // "保存"
 
-// Create a scoped translator
+// Create a translator for a locale
 const tr = createTranslator('jp')
 tr('action.cancel') // "キャンセル"
 ```
@@ -43,4 +43,3 @@ tr('my.local.key', { name: 'World' })
 
 1. **Add Keys**: Update `src/locales/{en,zh,jp}.json`.
 2. **Sync Types**: Run `pnpm build` to regenerate `src/generated/keys.d.ts`.
-3. **New Namespaces**: Add JSON bundles and export via `src/<name>.ts`.
