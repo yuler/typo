@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "63b5ad97d696f5939ec4eb71269422cdb86fbc25844c0518f9384db4254f770b"
     },
+    "gh-pr-summary": {
+      "source": "yuler/skills",
+      "sourceType": "github",
+      "computedHash": "1fae6328e50c02badc6a46c1867574abf97a98ee0acbe6b3d18e89787256ffb2"
+    },
     "git-commit": {
       "source": "yuler/skills",
       "sourceType": "github",
