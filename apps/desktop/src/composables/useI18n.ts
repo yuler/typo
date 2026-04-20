@@ -8,7 +8,7 @@ import en from '../locales/en.json'
 import jp from '../locales/jp.json'
 import zh from '../locales/zh.json'
 
-const localMessages: Record<Locale, Record<string, string>> = { en, zh, jp }
+const localMessages = { en, zh, jp } satisfies Record<Locale, Record<string, string>>
 
 const LOCALE_EVENT = 'typo://locale-changed'
 
@@ -31,7 +31,7 @@ export async function setLocale(next: Locale): Promise<void> {
 export function useI18n() {
   const translator = computed(() => createGenericTranslator(locale.value, localMessages))
 
-  const t = (key: string, vars?: Record<string, string | number | undefined | null>) => translator.value(key, vars)
+  const t = (key: keyof typeof en, vars?: Record<string, string | number | undefined | null>) => translator.value(key, vars)
 
   return { locale, setLocale, t }
 }
