@@ -5,6 +5,7 @@ use std::sync::{Mutex, OnceLock};
 
 mod cli;
 mod keyboard;
+mod tray;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
@@ -172,6 +173,10 @@ pub fn run() {
             );
         }))
         .setup(move |app| {
+            tray::init(app)?;
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             if startup_selection && in_linux_wayland() {
                 app_cli_startup_selection_trigger(&app.handle());
             }
@@ -184,6 +189,7 @@ pub fn run() {
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
+            tray::update_tray_menu,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
