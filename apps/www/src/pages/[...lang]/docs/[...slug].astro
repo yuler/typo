@@ -1,16 +1,10 @@
 ---
+import { render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
-import { getCollection, render } from 'astro:content'
 import DocsLayout from '@/layouts/DocsLayout.astro'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import { getI18nCollectionStaticPaths, getLocalizedPath } from '@/lib/i18n'
 
-export async function getStaticPaths() {
-  const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-  return entries.map((entry) => ({
-    params: { slug: entry.id },
-    props: { entry },
-  }))
-}
+export const getStaticPaths = () => getI18nCollectionStaticPaths('docs')
 
 interface Props {
   entry: CollectionEntry<'docs'>
@@ -18,7 +12,7 @@ interface Props {
 
 const { entry } = Astro.props
 const { Content } = await render(entry)
-const currentLocale = getLocale(Astro.currentLocale)
+const { locale } = Astro.locals
 ---
 
 <DocsLayout title={`${entry.data.title} — typo docs`} description={entry.data.description}>
@@ -27,7 +21,7 @@ const currentLocale = getLocale(Astro.currentLocale)
     aria-label="Breadcrumb"
   >
     <a
-      href={getLocalizedPath('/docs', currentLocale)}
+      href={getLocalizedPath('/docs', locale)}
       class="font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
     >
       Docs

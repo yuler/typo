@@ -1,26 +1,17 @@
 ---
 import { getCollection } from 'astro:content'
-import Footer from '@/components/Footer.astro'
-import Header from '@/components/Header.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import { getI18nStaticPaths, getLocalizedPath } from '@/lib/i18n'
+import { formatDateLong } from '@/utils/date'
 
-const { t } = Astro.locals
+export { getI18nStaticPaths as getStaticPaths }
+
+const { locale, t } = Astro.locals
 const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)
 const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-const currentLocale = getLocale(Astro.currentLocale)
-
-function formatDateLong(d: Date) {
-  return d.toLocaleDateString(currentLocale === 'en' ? 'en-US' : currentLocale === 'zh' ? 'zh-CN' : 'ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
 ---
 
 <BaseLayout title={t('page.blog.title')} description={t('page.blog.description')}>
-  <Header />
   <div>
     <!-- Hero: soft gray + blurred shapes + frosted layer -->
     <header
@@ -59,7 +50,7 @@ function formatDateLong(d: Date) {
             {t('page.blog.github_label')}
           </a>
           <a
-            href={getLocalizedPath('/docs/getting-started', currentLocale)}
+            href={getLocalizedPath('/docs/getting-started', locale)}
             class="text-sm font-semibold text-zinc-800 underline decoration-zinc-400/80 underline-offset-4 transition hover:text-black hover:decoration-zinc-900 dark:text-zinc-200 dark:decoration-zinc-500 dark:hover:text-white dark:hover:decoration-zinc-300"
           >
             {t('page.blog.docs_label')}
@@ -79,7 +70,7 @@ function formatDateLong(d: Date) {
               {sorted.map((post, i) => (
                 <li>
                   <a
-                    href={getLocalizedPath(`/blog/${post.id}`, currentLocale)}
+                    href={getLocalizedPath(`/blog/${post.id}`, locale)}
                     class:list={[
                       'group flex flex-col gap-4 py-12 transition sm:flex-row sm:gap-10 sm:py-14',
                       i === 0 && 'sm:pt-16',
@@ -89,7 +80,7 @@ function formatDateLong(d: Date) {
                       class="shrink-0 font-mono text-[0.8125rem] font-medium uppercase leading-6 tracking-wide text-zinc-500 tabular-nums dark:text-zinc-500 sm:w-36 sm:pt-1"
                       datetime={post.data.pubDate.toISOString()}
                     >
-                      {formatDateLong(post.data.pubDate)}
+                      {formatDateLong(post.data.pubDate, locale)}
                     </time>
                     <div class="min-w-0 flex-1">
                       <h2
@@ -125,5 +116,4 @@ function formatDateLong(d: Date) {
       </div>
     </div>
   </div>
-  <Footer />
 </BaseLayout>

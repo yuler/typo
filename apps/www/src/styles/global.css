@@ -10,6 +10,14 @@ html {
   scroll-behavior: smooth;
 }
 
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* MDX / Markdown body (no @tailwindcss/typography) */
 .mdx-content :where(h1) {
   @apply mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-50;

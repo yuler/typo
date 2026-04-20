@@ -1,47 +1,42 @@
 ---
 import { getCollection } from 'astro:content'
 import Footer from '@/components/Footer.astro'
-import Header from '@/components/Header.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 import { sortDocsEntries } from '@/lib/docs-nav'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import { getLocalizedPath } from '@/lib/i18n'
 
 interface Props {
   title: string
   description?: string
 }
 
-const { t } = Astro.locals
+const { locale, t } = Astro.locals
 const { title, description = t('docs.default_description') } = Astro.props
-const currentLocale = getLocale(Astro.currentLocale)
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/'
 
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
 const sidebarDocs = sortDocsEntries(entries)
 
-const docsPath = getLocalizedPath('/docs', currentLocale)
+const docsPath = getLocalizedPath('/docs', locale)
 const isIndex = pathname === docsPath.replace(/\/$/, '') || (docsPath === '/' && pathname === '/')
 
 function linkActive(href: string) {
-  const h = getLocalizedPath(href, currentLocale).replace(/\/$/, '') || '/'
+  const h = getLocalizedPath(href, locale).replace(/\/$/, '') || '/'
   if (h === docsPath.replace(/\/$/, '') || (docsPath === '/' && h === '/')) return isIndex
   return pathname === h || pathname.startsWith(`${h}/`)
 }
 ---
 
 <BaseLayout title={title} description={description}>
-  <Header />
   <div class="docs-vp flex min-h-[calc(100dvh-3.5rem)] flex-col bg-white dark:bg-zinc-950 lg:flex-row">
     <!-- Mobile: horizontal doc nav (VitePress-style top strip) -->
     <nav
       class="sticky top-14 z-40 border-b border-zinc-200 bg-zinc-50/95 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/95 lg:hidden"
       aria-label={t('docs.mobile_nav_aria')}
     >
-      <div
-        class="flex gap-1 overflow-x-auto px-4 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
+      <div class="no-scrollbar flex gap-1 overflow-x-auto px-4 py-2.5">
         <a
-          href={getLocalizedPath('/docs', currentLocale)}
+          href={getLocalizedPath('/docs', locale)}
           class:list={[
             'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
             isIndex
@@ -54,7 +49,7 @@ function linkActive(href: string) {
         {
           sidebarDocs.map((doc) => (
             <a
-              href={getLocalizedPath(`/docs/${doc.id}`, currentLocale)}
+              href={getLocalizedPath(`/docs/${doc.id}`, locale)}
               class:list={[
                 'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                 linkActive(`/docs/${doc.id}`)
@@ -74,13 +69,13 @@ function linkActive(href: string) {
       class="hidden shrink-0 border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/40 lg:block lg:w-[272px] lg:border-r"
     >
       <nav
-        class="docs-sidebar-nav sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto px-5 py-8"
+        class="docs-sidebar-nav no-scrollbar sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto px-5 py-8"
         aria-label={t('docs.nav_aria')}
       >
         <ul class="space-y-0.5">
           <li>
             <a
-              href={getLocalizedPath('/docs', currentLocale)}
+              href={getLocalizedPath('/docs', locale)}
               class:list={[
                 'docs-sidebar-link block rounded-none py-2 pl-3 pr-2 text-sm transition-colors',
                 isIndex && 'docs-sidebar-link--active',
@@ -93,7 +88,7 @@ function linkActive(href: string) {
             sidebarDocs.map((doc) => (
               <li>
                 <a
-                  href={getLocalizedPath(`/docs/${doc.id}`, currentLocale)}
+                  href={getLocalizedPath(`/docs/${doc.id}`, locale)}
                   class:list={[
                     'docs-sidebar-link block rounded-none py-2 pl-3 pr-2 text-sm transition-colors',
                     linkActive(`/docs/${doc.id}`) && 'docs-sidebar-link--active',

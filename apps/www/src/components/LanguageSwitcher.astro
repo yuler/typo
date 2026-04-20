@@ -1,7 +1,7 @@
 ---
-import { localeFlags, localeNames, locales, type Locale } from '@typo/languages'
-import { getLocale, getLocalizedPath, tr } from '@/lib/i18n'
-import LanguageDropdown from './LanguageDropdown'
+import { localeFlags, localeNames, locales } from '@typo/languages'
+import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import LanguageDropdown from './LanguageDropdown.tsx'
 
 const current = getLocale(Astro.currentLocale)
 const { t } = Astro.locals

@@ -1,16 +1,19 @@
 ---
 import { locales } from '@typo/languages'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import Footer from '@/components/Footer.astro'
+import Header from '@/components/Header.astro'
+import { getLocalizedPath } from '@/lib/i18n'
 import '../styles/global.css'
 
 interface Props {
   title: string
   description?: string
+  hideHeader?: boolean
+  hideFooter?: boolean
 }
 
-const { t } = Astro.locals
-const { title, description = t('base.default_description') } = Astro.props
-const locale = getLocale(Astro.currentLocale)
+const { locale, t } = Astro.locals
+const { title, description = t('base.default_description'), hideHeader, hideFooter } = Astro.props
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
 
 const alternates = locales.map((l) => ({
@@ -20,7 +23,7 @@ const alternates = locales.map((l) => ({
 ---
 
 <!doctype html>
-<html lang={locale} class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+<html lang={locale} class="no-scrollbar bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,6 +43,8 @@ const alternates = locales.map((l) => ({
     </script>
   </head>
   <body class="min-h-screen font-sans antialiased">
+    {!hideHeader && <Header />}
     <slot />
+    {!hideFooter && <Footer />}
   </body>
 </html>

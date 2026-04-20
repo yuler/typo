@@ -2,12 +2,13 @@
 import { getCollection } from 'astro:content'
 import DocsLayout from '@/layouts/DocsLayout.astro'
 import { sortDocsEntries } from '@/lib/docs-nav'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import { getI18nStaticPaths, getLocalizedPath } from '@/lib/i18n'
 
-const { t } = Astro.locals
+export { getI18nStaticPaths as getStaticPaths }
+
+const { locale, t } = Astro.locals
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
 const cards = sortDocsEntries(entries)
-const currentLocale = getLocale(Astro.currentLocale)
 ---
 
 <DocsLayout title={t('page.docs.title')} description={t('page.docs.description')}>
@@ -22,7 +23,7 @@ const currentLocale = getLocale(Astro.currentLocale)
     {
       cards.map((doc) => (
         <a
-          href={getLocalizedPath(`/docs/${doc.id}`, currentLocale)}
+          href={getLocalizedPath(`/docs/${doc.id}`, locale)}
           class="group flex flex-col rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 transition-colors hover:border-zinc-400 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
         >
           <span class="font-semibold text-zinc-900 group-hover:text-zinc-950 dark:text-zinc-100 dark:group-hover:text-white">

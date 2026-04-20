@@ -1,9 +1,12 @@
 import type { Locale } from '@typo/languages'
 import { createGenericTranslator, defaultLocale, locales } from '@typo/languages'
+import { getCollection } from 'astro:content'
 import { getRelativeLocaleUrl } from 'astro:i18n'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
 import zh from '../locales/zh.json'
+
+export { defaultLocale, locales }
 
 const localMessages: Record<Locale, Record<string, string>> = { en, zh, jp }
 
@@ -39,4 +42,27 @@ export function getLocalizedPath(path: string, locale: Locale): string {
   const cleanPath = isLocale ? `/${segments.slice(1).join('/')}` : path
 
   return getRelativeLocaleUrl(locale, cleanPath)
+}
+
+/**
+ * Helper to generate static paths for all locales.
+ */
+export function getI18nStaticPaths() {
+  return [
+    { params: { lang: undefined } },
+    ...locales.filter(l => l !== defaultLocale).map(l => ({ params: { lang: l } })),
+  ]
+}
+
+/**
+ * Helper to generate static paths for all locales for a collection.
+ */
+export async function getI18nCollectionStaticPaths(collection: 'blog' | 'docs') {
+  const entries = await getCollection(collection, ({ data }) => import.meta.env.DEV || !data.draft)
+  return locales.flatMap(l =>
+    entries.map(entry => ({
+      params: { lang: l === defaultLocale ? undefined : l, slug: entry.id },
+      props: { entry },
+    })),
+  )
 }
