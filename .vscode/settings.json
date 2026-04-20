@@ -1,0 +1,4 @@
+{
+  // Format by eslint on CI
+  "editor.formatOnSave": false
+}

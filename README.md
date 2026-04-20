@@ -20,25 +20,30 @@
 
 ```
 .
-├── core/                # Former server; renamed core to stress the monolith "brain". **TODO**
-├── apps/                # All client-facing apps
-│   ├── www/             # Astro (Marketing / SEO)
-│   ├── web/             # Nuxt (Main Product) *Note: TODO
-│   ├── admin/           # Vite + Vue3 (Dashboard) *Note: TODO
-│   └── desktop/         # Tauri / Electron
-├── packages/            # Shared code across apps
-│   ├── api-client/      # Generated Rails API client
-│   ├── shared-utils/    # Shared helpers and constants
-│   └── ui-kit/          # (Optional) Shared UI components
-├── scripts/             # Repo-wide automation scripts
-├── package.json         # Root package: workspaces and top-level scripts
+├── .agents/skills/      # Reusable skills for AI agents
+├── .github/workflows/  # CI pipelines
+├── apps/               # Client-facing apps
+│   ├── desktop/       # Tauri + Vue 3 (main product)
+│   └── www/           # Astro (marketing / SEO)
+├── packages/          # Shared code across apps
+│   ├── languages/     # i18n utilities and translation bundles
+│   └── utils/         # Shared helpers and constants
+├── scripts/           # Repo-wide automation scripts
+├── package.json      # Workspaces and top-level scripts
 └── README.md
 ```
 
-## Development
+## Setup
+
+Follow the [`setup` skill](.agents/skills/setup/SKILL.md) to install Node.js (from `.nvmrc`), pnpm (via Corepack, pinned in `package.json`), workspace dependencies, and the Rust toolchain for the Tauri desktop app.
 
 ```bash
-pnpm install
+/setup # run this skill/command in AI coding agent
+```
+
+### Run the desktop app
+
+```bash
 pnpm desktop:dev
 ```
 

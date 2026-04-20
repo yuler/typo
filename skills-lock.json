@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "gh-pr-create": {
+      "source": "yuler/skills",
+      "sourceType": "github",
+      "computedHash": "78d753b37f0b635c585fa2d2092a03607fa454b63f314bc00f6bba8431b35f5f"
+    },
+    "gh-pr-review-fix": {
+      "source": "yuler/skills",
+      "sourceType": "github",
+      "computedHash": "63b5ad97d696f5939ec4eb71269422cdb86fbc25844c0518f9384db4254f770b"
+    },
+    "gh-pr-summary": {
+      "source": "yuler/skills",
+      "sourceType": "github",
+      "computedHash": "1fae6328e50c02badc6a46c1867574abf97a98ee0acbe6b3d18e89787256ffb2"
+    },
+    "git-commit": {
+      "source": "yuler/skills",
+      "sourceType": "github",
+      "computedHash": "e0398ae4e98c0848a2af14c3d971c87359033e22a98c0c1fe6b15fecc29ff2f2"
+    }
+  }
+}
