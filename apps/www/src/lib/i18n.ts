@@ -8,7 +8,7 @@ import zh from '../locales/zh.json'
 
 export { defaultLocale, locales }
 
-const localMessages: Record<Locale, Record<string, string>> = { en, zh, jp }
+const localMessages = { en, zh, jp } satisfies Record<Locale, Record<string, string>>
 
 const localeMap: Record<string, Locale> = {
   en: 'en',
