@@ -1,28 +1,54 @@
 <script setup lang="ts">
+import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { CurrentWindow } from '@/composables/useGlobalState'
 import type { SystemInfo } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
 import { check } from '@tauri-apps/plugin-updater'
-import { nextTick, onMounted, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
-import { initializeI18n } from '@/composables/useI18n'
+import { initializeI18n, useI18n } from '@/composables/useI18n'
 import { setupGlobalShortcut } from '@/shortcut'
 import { initializeStore } from '@/store'
+import { syncTrayMenu } from '@/tray'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
 const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
+const { t } = useI18n()
 const isDev = import.meta.env.DEV
 
-async function checkUpgrade() {
+async function notifyUpToDate() {
+  let permissionGranted = await isPermissionGranted()
+  if (!permissionGranted) {
+    const permission = await requestPermission()
+    permissionGranted = permission === 'granted'
+  }
+
+  if (!permissionGranted)
+    return
+
+  sendNotification({
+    title: 'typo',
+    body: t('updates.up_to_date', { version: __APP_VERSION__ }),
+  })
+}
+
+async function checkUpgrade(options?: { verbose?: boolean }) {
   try {
     const update = await check()
     if (update) {
       setUpdateInfo(update)
       setCurrentWindow('Upgrade')
+      return
+    }
+
+    if (options?.verbose) {
+      await notifyUpToDate()
     }
   }
   catch (err) {
@@ -53,12 +79,23 @@ onMounted(async () => {
   const appWindow = WebviewWindow.getCurrent()
   await appWindow?.setVisibleOnAllWorkspaces(true)
 
-  checkUpgrade()
-  const systemInfo = await invoke<SystemInfo>('get_system_info')
-
   await initializeStore()
   await initializeI18n()
   initializeWindow()
+  await syncTrayMenu()
+
+  const unlistenFns: UnlistenFn[] = []
+  unlistenFns.push(await listen('tray:open-settings', () => setCurrentWindow('Settings')))
+  unlistenFns.push(await listen('tray:check-updates', () => void checkUpgrade({ verbose: true })))
+
+  onUnmounted(() => {
+    for (const unlisten of unlistenFns)
+      unlisten()
+  })
+
+  void checkUpgrade()
+
+  const systemInfo = await invoke<SystemInfo>('get_system_info')
 
   const isLinuxWayland = systemInfo.os === 'linux' && systemInfo.is_wayland
   if (!isLinuxWayland) {
