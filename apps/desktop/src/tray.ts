@@ -1,10 +1,10 @@
-/* eslint-disable react/rules-of-hooks -- Vue helper uses Vue composable outside component setup */
 import { invoke } from '@tauri-apps/api/core'
 import { watch } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 
 export async function syncTrayMenu(): Promise<void> {
-  const { t, locale } = useI18n()
+  const i18n = useI18n
+  const { t, locale } = i18n()
 
   async function push(): Promise<void> {
     try {
@@ -19,8 +19,8 @@ export async function syncTrayMenu(): Promise<void> {
         },
       })
     }
-    catch (error) {
-      console.error('Failed to update tray menu labels', error)
+    catch (err) {
+      console.error('Failed to update tray menu labels:', err)
     }
   }
 
