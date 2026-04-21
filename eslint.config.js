@@ -1,8 +1,12 @@
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
-  vue: true,
-  react: true,
+  vue: {
+    files: ['apps/desktop/**'],
+  },
+  react: {
+    files: ['apps/www/**'],
+  },
   formatters: {
     astro: true,
     markdown: 'dprint',
