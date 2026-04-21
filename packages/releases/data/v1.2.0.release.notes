@@ -1,0 +1,9 @@
+🐛 Fix bump.sh sed cross-platform compatibility
+🔧 Rename desktop:bump to bump
+🔧 Sync version across all apps packages during bump
+💄 Capitalize workflow step names
+♻️ Monorepo: pnpm workspace, apps/desktop, CI, and post-move fixes (#17)
+📝 Update README with alpha badge and video [skip ci]
+�� Add format-fix automation and tighten type declarations (#14)
+📝 Add DEV.md with Tauri signing key guide [skip ci]
+✨ Add configurable global shortcut capture with safe fallback (#9)
