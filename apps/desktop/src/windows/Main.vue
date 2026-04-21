@@ -126,7 +126,8 @@ onMounted(async () => {
   unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     // Force show and focus when event received
     await appWindow.show()
-    await appWindow.setFocus()
+    // TODO: option in settings
+    // await appWindow.setFocus()
     // Clear pending input since we are processing it now via event
     await invoke('consume_pending_selection_input')
     await processSetInputPayload(event.payload)
