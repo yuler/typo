@@ -6,7 +6,7 @@ use tauri_plugin_opener::OpenerExt;
 
 pub const TRAY_ID: &str = "main";
 
-const ABOUT_URL: &str = "https://github.com/yuler/typo";
+const ABOUT_URL: &str = "https://typo.yuler.cc";
 
 // Menu-item IDs. Keep in sync with the on_menu_event match arms below.
 const ID_SHOW: &str = "show";
