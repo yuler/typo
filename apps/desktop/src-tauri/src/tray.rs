@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Manager, State, Wry};
+use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_opener::OpenerExt;
 
 pub const TRAY_ID: &str = "main";
@@ -156,9 +156,11 @@ fn show_and_focus_main(app: &AppHandle) {
 #[tauri::command]
 pub fn update_tray_menu(
     app: AppHandle,
-    state: State<'_, TrayMenuHandles>,
     labels: TrayLabels,
 ) -> Result<(), String> {
+    let Some(state) = app.try_state::<TrayMenuHandles>() else {
+        return Ok(());
+    };
     if let Some(text) = labels.show.as_deref() {
         state.show.set_text(text).map_err(|e| e.to_string())?;
     }
