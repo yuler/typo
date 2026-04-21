@@ -25,6 +25,12 @@ const trayUnlisteners: UnlistenFn[] = []
 
 async function notifyUpToDate() {
   try {
+    const currentPermission = window.Notification?.permission
+    if (currentPermission === 'denied') {
+      console.warn('Notification permission denied by user policy.')
+      return
+    }
+
     let permissionGranted = await isPermissionGranted()
     if (!permissionGranted) {
       const permission = await requestPermission()

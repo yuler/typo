@@ -159,6 +159,7 @@ pub fn update_tray_menu(
     labels: TrayLabels,
 ) -> Result<(), String> {
     let Some(state) = app.try_state::<TrayMenuHandles>() else {
+        eprintln!("Tray menu handles not found in state. Tray might not be initialized.");
         return Ok(());
     };
     if let Some(text) = labels.show.as_deref() {
