@@ -13,11 +13,7 @@ function link(href: string, label: string) {
   const active = pathname === lPath || (lPath !== '/' && pathname.startsWith(lPath))
   return { href: lPath, label, active }
 }
-const nav = [
-  link('/docs', t('header.nav.docs')),
-  link('/blog', t('header.nav.blog')),
-  link('/releases', t('header.nav.releases')),
-]
+const nav = [link('/docs', t('header.nav.docs')), link('/blog', t('header.nav.blog'))]
 ---
 
 <header

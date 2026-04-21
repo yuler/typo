@@ -3,7 +3,7 @@
   "date": "2026-04-20",
   "github_url": "https://github.com/yuler/typo/releases/tag/v1.2.1",
   "notes": {
-    "en": "✨ Add release notes update script & Update release workflow1\n🌐 Implement @typo/languages package and Monorepo I18n architecture (#21)\n📦 Change site URL to typo.yuler.cc\n✨ Add typo.sh Astro site with CI, ESLint, deploy, and format automation (#19)",
+    "en": "✨ Add interface language switching function in settings, currently supporting Chinese, English, and Japanese",
     "zh": "✨ 在设置中新增界面语言切换功能，当前支持中文、英文、日文",
     "jp": "✨ 設定にインターフェース言語切り替え機能を追加。現在は中国語、英語、日本語に対応しています"
   },

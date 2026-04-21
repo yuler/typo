@@ -7,6 +7,8 @@ import { getI18nStaticPaths } from '@/lib/i18n'
 export { getI18nStaticPaths as getStaticPaths }
 
 const { t } = Astro.locals
+
+console.log({ notes: releases[0].notes })
 ---
 
 <BaseLayout title={t('page.releases.title')} description={t('page.releases.description')}>
@@ -21,7 +23,7 @@ const { t } = Astro.locals
     </header>
 
     <div class="space-y-0">
-      {releases.map((release) => <ReleaseItem release={release} />)}
+      {releases.map((release, index) => <ReleaseItem release={release} isLatest={index === 0} />)}
     </div>
   </main>
 </BaseLayout>
