@@ -144,6 +144,9 @@ importers:
       '@typo/languages':
         specifier: workspace:*
         version: link:../../packages/languages
+      '@typo/releases':
+        specifier: workspace:*
+        version: link:../../packages/releases
       astro:
         specifier: ^5.7.0
         version: 5.18.1(@types/node@24.12.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(typescript@5.6.3)(yaml@2.8.3)
