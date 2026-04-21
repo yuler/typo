@@ -29,6 +29,7 @@ const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const STATUS_DISPLAY_DURATION_MS = 2500
 
 let unlistenSetInput: UnlistenFn
+let unlistenTrayToggle: UnlistenFn
 
 interface SetInputPayload {
   text: string
@@ -97,6 +98,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
 }
 
 let unlistenFocus: UnlistenFn
+let suppressBlurHideUntil = 0
+const TRAY_TOGGLE_BLUR_GUARD_MS = 250
 
 onMounted(async () => {
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
@@ -133,7 +136,14 @@ onMounted(async () => {
     await processSetInputPayload(event.payload)
   })
 
+  unlistenTrayToggle = await appWindow.listen('tray:toggle-clicked', () => {
+    suppressBlurHideUntil = Date.now() + TRAY_TOGGLE_BLUR_GUARD_MS
+  })
+
   unlistenFocus = await appWindow.onFocusChanged(({ payload: focused }) => {
+    if (Date.now() < suppressBlurHideUntil) {
+      return
+    }
     if (!focused && state.value !== 'processing') {
       appWindow.hide()
     }
@@ -147,6 +157,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unlistenSetInput?.()
+  unlistenTrayToggle?.()
   unlistenFocus?.()
 })
 

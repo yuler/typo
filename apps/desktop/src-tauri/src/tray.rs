@@ -18,6 +18,7 @@ const ID_QUIT: &str = "quit";
 // Events emitted to the frontend.
 const EV_OPEN_SETTINGS: &str = "tray:open-settings";
 const EV_CHECK_UPDATES: &str = "tray:check-updates";
+const EV_TOGGLE_CLICKED: &str = "tray:toggle-clicked";
 
 /// Handles to mutable menu items so update_tray_menu can relabel them.
 pub struct TrayMenuHandles {
@@ -96,6 +97,9 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
         ..
     } = event
     {
+        if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
+            eprintln!("Failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
+        }
         toggle_main_window(app);
     }
 }
