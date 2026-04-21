@@ -2,7 +2,8 @@
   "version": "1.2.0",
   "date": "2026-04-17",
   "github_url": "https://github.com/yuler/typo/releases/tag/v1.2.0",
-  "notes": {
+  "notes": "✨ Add global shortcut configuration in settings",
+  "notes_i18n": {
     "en": "✨ Add global shortcut configuration in settings",
     "zh": "✨ 在设置中新增全局快捷键配置功能",
     "jp": "✨ 設定にグローバルショートカット設定機能を追加"
