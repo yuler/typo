@@ -4,8 +4,7 @@
   },
   "security": {
     "allowedExtensions": [
-      "superpowers*",
-      "*superpowers*"
+      "superpowers*"
     ]
   }
 }

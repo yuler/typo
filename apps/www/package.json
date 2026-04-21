@@ -15,6 +15,7 @@
     "@astrojs/react": "^4.2.1",
     "@tailwindcss/vite": "^4.1.10",
     "@typo/languages": "workspace:*",
+    "@typo/releases": "workspace:*",
     "astro": "^5.7.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

@@ -1,0 +1,4 @@
+✨ Add release notes update script & Update release workflow
+🌐 Implement @typo/languages package and Monorepo I18n architecture (#21)
+📦 Change site URL to typo.yuler.cc
+✨ Add typo.sh Astro site with CI, ESLint, deploy, and format automation (#19)

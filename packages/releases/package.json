@@ -1,0 +1,20 @@
+{
+  "name": "@typo/releases",
+  "type": "module",
+  "version": "1.2.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "pull": "tsx src/pull.ts",
+    "push": "tsx src/push.ts"
+  },
+  "devDependencies": {
+    "@clack/prompts": "^1.2.0",
+    "execa": "^9.6.1",
+    "tsx": "^4.21.0",
+    "zod": "^4.3.6"
+  }
+}
