@@ -13,5 +13,6 @@ export default antfu({
     'apps/www/.astro/**',
     'apps/www/dist/**',
     'packages/languages/src/generated/**',
+    'packages/releases/data/**'
   ],
 })
