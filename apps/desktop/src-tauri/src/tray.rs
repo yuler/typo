@@ -6,7 +6,7 @@ use tauri_plugin_opener::OpenerExt;
 
 pub const TRAY_ID: &str = "main";
 
-const ABOUT_URL: &str = "https://typo.yuler.cc";
+const RELEASES_URL_BASE: &str = "https://typo.yuler.cc/releases/#v";
 
 // Menu-item IDs. Keep in sync with the on_menu_event match arms below.
 const ID_SHOW: &str = "show";
@@ -119,8 +119,9 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
             }
         }
         ID_ABOUT => {
-            if let Err(err) = app.opener().open_url(ABOUT_URL, None::<&str>) {
-                eprintln!("Failed to open {}: {}", ABOUT_URL, err);
+            let releases_url = format!("{}{}", RELEASES_URL_BASE, env!("CARGO_PKG_VERSION"));
+            if let Err(err) = app.opener().open_url(&releases_url, None::<&str>) {
+                eprintln!("Failed to open {}: {}", releases_url, err);
             }
         }
         ID_QUIT => app.exit(0),
