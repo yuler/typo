@@ -8,6 +8,7 @@ export default antfu({
     markdown: 'dprint',
   },
   ignores: [
+    'docs/superpowers/**',
     '**/src-tauri/**',
     'apps/www/.astro/**',
     'apps/www/dist/**',
