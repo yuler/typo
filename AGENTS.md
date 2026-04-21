@@ -12,6 +12,7 @@ Guidance for AI coding agents working in this repository. Prefer the conventions
 .
 ├── .agents/skills/      # Reusable skills for AI agents (read before acting)
 ├── .github/workflows/   # CI pipelines
+|-- core                 # The rails server for backend services
 ├── apps/                # Client-facing apps
 │   ├── desktop/         # Tauri + Vue 3 (main product)
 │   └── www/             # Astro (marketing / SEO)
