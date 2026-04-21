@@ -1,13 +1,13 @@
 ---
 name: setup
-description: Sets up the typo monorepo development environment. Installs Node.js via fnm/nvm from `.nvmrc`, enables Corepack so the pnpm version pinned in `package.json#packageManager` is used, installs workspace dependencies with `pnpm install`, and installs the Rust toolchain required by the Tauri desktop app. Use when the user asks to set up the project, bootstrap a fresh clone, install dependencies, or resolves environment errors running `pnpm`, `cargo`, or `tauri` commands.
+description: Sets up the typo monorepo development environment. Installs Node.js via fnm/nvm from `.nvmrc`, enables Corepack so the pnpm version pinned in `package.json#packageManager` is used, installs workspace dependencies with `pnpm install`, installs the Rust toolchain required by the Tauri desktop app, and optionally Ruby for the `core/` Rails app. Use when the user asks to set up the project, bootstrap a fresh clone, install dependencies, or resolves environment errors running `pnpm`, `cargo`, `tauri`, or `bin/rails` commands.
 ---
 
 # setup
 
 ## Purpose
 
-Bring a fresh clone of the `typo` monorepo to a working state: correct Node.js, correct pnpm, workspace deps installed, and Rust installed for the Tauri desktop app.
+Bring a fresh clone of the `typo` monorepo to a working state: correct Node.js, correct pnpm, workspace deps installed, Rust installed for the Tauri desktop app, and Ruby + Bundler for the `core/` Rails app when needed.
 
 ## When to use
 
@@ -15,7 +15,7 @@ Use this skill when:
 
 - The user asks to "set up", "bootstrap", or "install everything".
 - A fresh clone needs its environment prepared.
-- Commands like `pnpm install`, `pnpm desktop:dev`, `cargo`, or `tauri` fail because the toolchain is missing or the wrong version.
+- Commands like `pnpm install`, `pnpm desktop:dev`, `cargo`, `tauri`, or `pnpm core:dev` fail because the toolchain is missing or the wrong version.
 
 Do not use this skill for:
 
@@ -27,6 +27,7 @@ Do not use this skill for:
 - Node.js version: `.nvmrc` at the repo root (for example `v24.8.0`).
 - pnpm version: `packageManager` field in root `package.json` (for example `pnpm@10.33.0`).
 - Rust: stable toolchain from [`rustup`](https://rustup.rs).
+- Ruby: version from `core/.ruby-version` (read the file; do not invent a version).
 
 Never hardcode versions in the skill output. Read them from the files above when reporting to the user.
 
@@ -77,18 +78,36 @@ Never hardcode versions in the skill output. Read them from the files above when
      ```
    - Remind the user that Tauri also needs **platform-specific system dependencies** (WebKit, build tools). Link to <https://tauri.app/start/prerequisites/> instead of automating OS package installs.
 
-6. **Smoke test**
+6. **Install Ruby and gems (only if the user will work on `core/`)**
+   - Read `core/.ruby-version` for the expected Ruby version.
+   - Install Ruby with any manager that respects that file (`mise`, `rbenv`, `asdf`, `chruby`). Example with `rbenv`:
+     ```bash
+     rbenv install "$(cat core/.ruby-version)"   # skip if already installed
+     cd core && bundle install && bin/rails db:prepare
+     ```
+   - Verify from the repo root:
+     ```bash
+     pnpm core:test
+     pnpm core:lint
+     ```
+
+7. **Smoke test**
    - Only after the steps above, suggest:
      ```bash
      pnpm desktop:dev
      ```
    - If it fails on native build, the fix is almost always a missing Tauri system dependency from the link above.
+   - For the Rails app, optionally:
+     ```bash
+     pnpm core:dev
+     ```
 
 ## Rules
 
 - Always derive Node and pnpm versions from `.nvmrc` and `package.json`; do not invent versions.
 - Prefer Corepack over `npm i -g pnpm`; the pinned version must win.
 - Do not install Rust unless the user is touching `apps/desktop/` or Tauri build output.
+- Do not install Ruby unless the user is touching `core/` or running Rails commands.
 - Do not attempt to install OS-level Tauri prerequisites automatically — point the user to the official prerequisites page.
 - Run commands from the repo root unless a step explicitly requires a subdirectory.
 
@@ -111,4 +130,9 @@ source "$HOME/.cargo/env"
 
 # Run the desktop app
 pnpm desktop:dev
+
+# Ruby & Rails (core/) — only when working on the backend
+rbenv install "$(cat core/.ruby-version)"   # or: mise install / asdf install
+cd core && bundle install && bin/rails db:prepare && cd ..
+pnpm core:dev
 ```
