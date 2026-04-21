@@ -14,9 +14,8 @@ const copyrightHTML = t('footer.copyright', { year, github: githubLink })
   >
     <p set:html={copyrightHTML} />
     <div class="flex flex-wrap gap-4">
-      <a
-        href={getLocalizedPath('/releases', currentLocale)}
-        class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.releases')}</a
+      <a href={getLocalizedPath('/releases', currentLocale)} class="hover:text-zinc-900 dark:hover:text-zinc-100"
+        >{t('footer.link.releases')}</a
       >
       <a
         href={getLocalizedPath('/docs/getting-started', currentLocale)}

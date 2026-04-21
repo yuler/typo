@@ -21,9 +21,7 @@ const { t } = Astro.locals
     </header>
 
     <div class="space-y-0">
-      {releases.map(release => (
-        <ReleaseItem release={release} />
-      ))}
+      {releases.map((release) => <ReleaseItem release={release} />)}
     </div>
   </main>
 </BaseLayout>

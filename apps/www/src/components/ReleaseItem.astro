@@ -14,9 +14,17 @@ const notes = release.notes[locale] || release.notes.en
 
 <div class="relative pl-8 pb-12 last:pb-0 group">
   <!-- Timeline line -->
-  <div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-200 dark:bg-zinc-800 group-last:bg-transparent" aria-hidden="true"></div>
+  <div
+    class="absolute left-0 top-0 bottom-0 w-px bg-zinc-200 dark:bg-zinc-800 group-last:bg-transparent"
+    aria-hidden="true"
+  >
+  </div>
   <!-- Timeline dot -->
-  <div class="absolute left-[-4px] top-2 h-2 w-2 rounded-full border-2 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 group-hover:border-zinc-900 dark:group-hover:border-zinc-100 transition-colors" aria-hidden="true"></div>
+  <div
+    class="absolute left-[-4px] top-2 h-2 w-2 rounded-full border-2 border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 group-hover:border-zinc-900 dark:group-hover:border-zinc-100 transition-colors"
+    aria-hidden="true"
+  >
+  </div>
 
   <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
     <h2 class="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">v{release.version}</h2>
@@ -32,15 +40,17 @@ const notes = release.notes[locale] || release.notes.en
   </div>
 
   <div class="mt-6 flex flex-wrap gap-3">
-    {release.assets.map(asset => (
-      <a
-        href={getAssetUrl(release.version, asset.name)}
-        class="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
-      >
-        <span class="capitalize">{asset.platform}</span>
-        <span class="text-zinc-400 dark:text-zinc-500">•</span>
-        <span class="font-mono text-[10px]">{asset.name.split('_').pop()}</span>
-      </a>
-    ))}
+    {
+      release.assets.map((asset) => (
+        <a
+          href={getAssetUrl(release.version, asset.name)}
+          class="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          <span class="capitalize">{asset.platform}</span>
+          <span class="text-zinc-400 dark:text-zinc-500">•</span>
+          <span class="font-mono text-[10px]">{asset.name.split('_').pop()}</span>
+        </a>
+      ))
+    }
   </div>
 </div>
