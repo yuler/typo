@@ -98,6 +98,11 @@ onMounted(async () => {
 
   trayUnlisteners.push(await listen('tray:open-settings', () => setCurrentWindow('Settings')))
   trayUnlisteners.push(await listen('tray:check-updates', () => void checkUpgrade({ verbose: true })))
+  trayUnlisteners.push(await listen('set-input', () => {
+    if (currentWindow.value !== 'Main') {
+      setCurrentWindow('Main')
+    }
+  }))
 
   void checkUpgrade()
 

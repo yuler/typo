@@ -1,5 +1,3 @@
-use tauri_plugin_notification::NotificationExt;
-
 const SELECTION_FLAG: &str = "--selection";
 const VERSION_FLAG: &str = "--version";
 
@@ -25,6 +23,8 @@ pub fn handle_single_instance_event(
     is_wayland: bool,
     selection_handler: fn(&tauri::AppHandle),
 ) {
+    use tauri::Manager;
+
     if has_version_flag(argv.iter().map(|arg| arg.as_str())) {
         println!("typo {}", env!("CARGO_PKG_VERSION"));
         return;
@@ -35,17 +35,9 @@ pub fn handle_single_instance_event(
         return;
     }
 
-    notify_existing_instance(app);
-}
-
-fn notify_existing_instance(app: &tauri::AppHandle) {
-    if let Err(error) = app
-        .notification()
-        .builder()
-        .title("This app is already running!")
-        .body("You can find it in the tray menu.")
-        .show()
-    {
-        eprintln!("Failed to show existing-instance notification: {}", error);
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
     }
 }
+

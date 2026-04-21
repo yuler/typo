@@ -4,16 +4,27 @@ import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-s
 import { DEFAULT_GLOBAL_SHORTCUT, get } from './store'
 
 async function handleShortcut() {
-  const selectedText = await invoke('get_selected_text')
-  const appWindow = WebviewWindow.getCurrent()
+  const selectedText = (await invoke('get_selected_text')) as string
+  let payload: { text: string, mode: string } | null = null
 
   if (selectedText) {
-    await appWindow?.emit('set-input', { text: selectedText, mode: 'selected' })
+    payload = { text: selectedText, mode: 'selected' }
   }
   else if (await get('autoselect')) {
     await invoke('keyboard_select_all')
-    const autoSelectedText = await invoke('get_selected_text')
-    await appWindow?.emit('set-input', { text: autoSelectedText, mode: 'autoselect' })
+    const autoSelectedText = (await invoke('get_selected_text')) as string
+    if (autoSelectedText) {
+      payload = { text: autoSelectedText, mode: 'autoselect' }
+    }
+  }
+
+  if (payload) {
+    const appWindow = WebviewWindow.getCurrent()
+    await appWindow?.show()
+    await appWindow?.setFocus()
+
+    await invoke('set_pending_selection_input', { payload })
+    await appWindow?.emit('set-input', payload)
   }
 }
 

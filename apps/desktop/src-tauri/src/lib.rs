@@ -60,7 +60,7 @@ pub(crate) fn in_linux_wayland() -> bool {
     wayland_display || session_type.eq_ignore_ascii_case("wayland")
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, serde::Deserialize)]
 struct SetInputPayload {
     text: String,
     mode: String,
@@ -147,6 +147,13 @@ fn consume_pending_selection_input() -> Option<SetInputPayload> {
     }
 }
 
+#[tauri::command]
+fn set_pending_selection_input(payload: SetInputPayload) {
+    if let Ok(mut pending) = pending_selection_payload().lock() {
+        *pending = Some(payload);
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
@@ -188,6 +195,7 @@ pub fn run() {
             request_mac_accessibility_permissions,
             get_system_info,
             get_selected_text,
+            set_pending_selection_input,
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,

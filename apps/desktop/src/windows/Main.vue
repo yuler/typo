@@ -26,7 +26,7 @@ const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
-const STATUS_DISPLAY_DURATION_MS = 3000
+const STATUS_DISPLAY_DURATION_MS = 2500
 
 let unlistenSetInput: UnlistenFn
 
@@ -51,6 +51,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     await sleep(STATUS_DISPLAY_DURATION_MS)
     state.value = 'idle'
     errorText.value = ''
+    await appWindow.hide()
     return
   }
 
@@ -75,6 +76,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
       state.value = 'idle'
       inputText.value = ''
       resultText.value = ''
+      await appWindow.hide()
     }
   }
   catch (err: any) {
@@ -87,11 +89,14 @@ async function processSetInputPayload(payload: SetInputPayload) {
     await sleep(STATUS_DISPLAY_DURATION_MS)
     state.value = 'idle'
     errorText.value = ''
+    await appWindow.hide()
   }
   finally {
     processing.value = false
   }
 }
+
+let unlistenFocus: UnlistenFn
 
 onMounted(async () => {
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
@@ -119,7 +124,18 @@ onMounted(async () => {
   }
 
   unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
+    // Force show and focus when event received
+    await appWindow.show()
+    await appWindow.setFocus()
+    // Clear pending input since we are processing it now via event
+    await invoke('consume_pending_selection_input')
     await processSetInputPayload(event.payload)
+  })
+
+  unlistenFocus = await appWindow.onFocusChanged(({ payload: focused }) => {
+    if (!focused && state.value !== 'processing') {
+      appWindow.hide()
+    }
   })
 
   const pendingPayload = await invoke<SetInputPayload | null>('consume_pending_selection_input')
@@ -130,6 +146,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unlistenSetInput?.()
+  unlistenFocus?.()
 })
 
 let abortController: AbortController | null = null
@@ -160,6 +177,7 @@ async function onESC() {
   }
   state.value = 'idle'
   resultText.value = ''
+  await appWindow.hide()
 }
 
 function gotoSettings() {
