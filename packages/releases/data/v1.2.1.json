@@ -1,0 +1,17 @@
+{
+  "version": "1.2.1",
+  "date": "2026-04-17",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.2.1",
+  "notes": {
+    "en": "Initial public alpha release of typo. Features selection-based AI refinement and global shortcuts.",
+    "zh": "typo 的初始公开 Alpha 版本。具有基于选区的 AI 润色和全局快捷键功能。",
+    "jp": "typo の最初のパブリックアルファリリース。選択ベースの AI 校正とグローバルショートカット機能を備えています。"
+  },
+  "assets": [
+    { "name": "typo_1.2.1_aarch64.dmg", "platform": "macos" },
+    { "name": "typo_1.2.1_x64.dmg", "platform": "macos" },
+    { "name": "typo_1.2.1_amd64.deb", "platform": "linux" },
+    { "name": "typo_1.2.1_amd64.AppImage", "platform": "linux" },
+    { "name": "typo_1.2.1_x64_en-US.msi", "platform": "windows" }
+  ]
+}
