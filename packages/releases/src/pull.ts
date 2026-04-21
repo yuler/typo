@@ -126,16 +126,6 @@ async function main() {
     const filePath = path.join(DATA_DIR, `${tag}.json`)
     const notesPath = path.join(DATA_DIR, `${tag}.release.notes`)
 
-    if (await pathExists(filePath)) {
-      const existing = await readJson(filePath)
-      data.notes = existing.notes as string
-    }
-
-    if (await pathExists(notesPath)) {
-      // Keep local notes path? No, pull should update from remote body
-      // But we can check if they differ if we want to be safe.
-    }
-
     await ensureDir(DATA_DIR)
     await writeJson(filePath, data)
 

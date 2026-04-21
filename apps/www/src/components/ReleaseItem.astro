@@ -10,7 +10,7 @@ interface Props {
 
 const { release, isLatest } = Astro.props
 const { locale, t } = Astro.locals
-const notes = release.notes_i18n[locale] || release.notes_i18n.en
+const notes = (release.notes_i18n as Record<string, string>)[locale] || release.notes_i18n.en
 const versionAnchorId = `v${release.version}`
 
 const platformIcons: Record<string, string> = {
@@ -25,7 +25,7 @@ const platformIcons: Record<string, string> = {
 
 <div
   id={versionAnchorId}
-  class="relative pl-10 pb-16 py-6 group scroll-mt-24 rounded-2xl px-4 transition-all duration-300 [&:target]:bg-zinc-100 dark:[&:target]:bg-zinc-900/60 [&:target]:ring-1 [&:target]:ring-zinc-300/80 dark:[&:target]:ring-zinc-700"
+  class="relative pl-10 pt-6 pb-16 group scroll-mt-24 rounded-2xl px-4 transition-all duration-300 [&:target]:bg-zinc-100 dark:[&:target]:bg-zinc-900/60 [&:target]:ring-1 [&:target]:ring-zinc-300/80 dark:[&:target]:ring-zinc-700"
 >
   <!-- Timeline line -->
   <div
