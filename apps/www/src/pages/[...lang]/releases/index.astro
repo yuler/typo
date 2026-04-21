@@ -1,0 +1,27 @@
+---
+import { releases } from '@typo/releases'
+import BaseLayout from '@/layouts/BaseLayout.astro'
+import ReleaseItem from '@/components/ReleaseItem.astro'
+import { getI18nStaticPaths } from '@/lib/i18n'
+
+export { getI18nStaticPaths as getStaticPaths }
+
+const { t } = Astro.locals
+---
+
+<BaseLayout title={t('page.releases.title')} description={t('page.releases.description')}>
+  <main class="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
+    <header class="mb-12">
+      <h1 class="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+        {t('page.releases.heading')}
+      </h1>
+      <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+        {t('page.releases.p')}
+      </p>
+    </header>
+
+    <div class="space-y-0">
+      {releases.map((release, index) => <ReleaseItem release={release} isLatest={index === 0} />)}
+    </div>
+  </main>
+</BaseLayout>

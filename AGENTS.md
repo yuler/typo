@@ -16,7 +16,8 @@ Guidance for AI coding agents working in this repository. Prefer the conventions
 │   ├── desktop/         # Tauri + Vue 3 (main product)
 │   └── www/             # Astro (marketing / SEO)
 ├── packages/            # Code shared across apps
-│   └── languages/       # i18n utilities and translation bundles
+│   ├── languages/       # i18n utilities and translation bundles
+│   └── releases/        # Release data and scripts
 ├── scripts/             # Repo-wide automation scripts
 ├── package.json         # Workspaces and top-level scripts
 └── README.md

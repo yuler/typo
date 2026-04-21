@@ -33,7 +33,7 @@ const items: Testimonial[] = [
   },
 ]
 
-const downloadLink = `<a href="https://github.com/yuler/typo/releases" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition hover:decoration-zinc-500 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-400">${t('testimonials.download')}</a>`
+const downloadLink = `<a href="${getLocalizedPath('/releases', locale)}" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition hover:decoration-zinc-500 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-400">${t('testimonials.download')}</a>`
 
 const docsLink = `<a href="${getLocalizedPath('/docs/getting-started', locale)}" class="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 transition hover:decoration-zinc-500 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-400">${t('testimonials.docs')}</a>`
 

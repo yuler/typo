@@ -42,20 +42,6 @@ const sorted = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.va
         <p class="mt-5 max-w-xl text-lg leading-relaxed text-zinc-600 sm:text-xl dark:text-zinc-400">
           {t('page.blog.hero_p')}
         </p>
-        <div class="mt-8 flex flex-wrap items-center gap-4">
-          <a
-            href="https://github.com/yuler/typo"
-            class="inline-flex items-center justify-center rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-black dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-          >
-            {t('page.blog.github_label')}
-          </a>
-          <a
-            href={getLocalizedPath('/docs/getting-started', locale)}
-            class="text-sm font-semibold text-zinc-800 underline decoration-zinc-400/80 underline-offset-4 transition hover:text-black hover:decoration-zinc-900 dark:text-zinc-200 dark:decoration-zinc-500 dark:hover:text-white dark:hover:decoration-zinc-300"
-          >
-            {t('page.blog.docs_label')}
-          </a>
-        </div>
       </div>
     </header>
 
