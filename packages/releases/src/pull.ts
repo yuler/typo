@@ -125,6 +125,10 @@ async function main() {
     // Try to preserve existing notes if file exists
     const filePath = path.join(DATA_DIR, `${tag}.json`)
     const notesPath = path.join(DATA_DIR, `${tag}.release.notes`)
+    if (await pathExists(filePath)) {
+      const existing = await readJson(filePath)
+      data.notes_i18n = { ...data.notes_i18n, ...existing.notes_i18n }
+    }
 
     await ensureDir(DATA_DIR)
     await writeJson(filePath, data)
