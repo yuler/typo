@@ -2,7 +2,8 @@
   "version": "1.2.1",
   "date": "2026-04-20",
   "github_url": "https://github.com/yuler/typo/releases/tag/v1.2.1",
-  "notes": {
+  "notes": "✨ Add interface language switching function in settings, currently supporting Chinese, English, and Japanese",
+  "notes_i18n": {
     "en": "✨ Add interface language switching function in settings, currently supporting Chinese, English, and Japanese",
     "zh": "✨ 在设置中新增界面语言切换功能，当前支持中文、英文、日文",
     "jp": "✨ 設定にインターフェース言語切り替え機能を追加。現在は中国語、英語、日本語に対応しています"

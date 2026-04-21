@@ -10,7 +10,7 @@ interface Props {
 
 const { release, isLatest } = Astro.props
 const { locale, t } = Astro.locals
-const notes = release.notes[locale] || release.notes.en
+const notes = release.notes_i18n[locale] || release.notes_i18n.en
 const versionAnchorId = `v${release.version}`
 
 const platformIcons: Record<string, string> = {

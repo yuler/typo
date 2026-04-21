@@ -113,7 +113,8 @@ async function main() {
       version: tag.replace(/^v/, ''),
       date: release.publishedAt.split('T')[0],
       github_url: release.url,
-      notes: {
+      notes: latestNotes as string,
+      notes_i18n: {
         en: latestNotes,
         zh: '',
         jp: '',
@@ -127,7 +128,7 @@ async function main() {
 
     if (await pathExists(filePath)) {
       const existing = await readJson(filePath)
-      data.notes = { ...data.notes, ...existing.notes }
+      data.notes = existing.notes as string
     }
 
     if (await pathExists(notesPath)) {
