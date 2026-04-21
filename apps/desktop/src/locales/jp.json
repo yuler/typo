@@ -40,5 +40,12 @@
   "upgrade.no_notes": "リリースノートはありません。",
   "upgrade.later": "後で",
   "upgrade.confirm": "アップグレード",
-  "upgrade.downloading": "ダウンロード中..."
+  "upgrade.downloading": "ダウンロード中...",
+  "tray.tooltip": "typo",
+  "tray.show": "typo を表示",
+  "tray.settings": "設定",
+  "tray.check_updates": "アップデートを確認",
+  "tray.about": "typo について v{version}",
+  "tray.quit": "typo を終了",
+  "updates.up_to_date": "最新版です (v{version})"
 }

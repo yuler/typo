@@ -1,6 +1,6 @@
 <template>
   <div
-    class="pointer-events-none fixed top-0 right-0 z-50 origin-center rotate-45 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 font-mono text-xs text-emerald-300 backdrop-blur-sm"
+    class="pointer-events-none select-none fixed top-1 left-1 z-50 rounded-xs border border-yellow-400/30 bg-yellow-500/15 px-1.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-yellow-100/90 backdrop-blur-md"
   >
     DEV
   </div>

@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unnecessary-use-prefix -- Vue composable naming (not React hooks) */
 import type { Locale } from '@typo/languages'
 import { emit, listen } from '@tauri-apps/api/event'
 import { createGenericTranslator, defaultLocale } from '@typo/languages'

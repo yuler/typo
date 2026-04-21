@@ -1,9 +1,8 @@
 # TODO
 
 - [ ] Add [rtk] for AGENTS.md
-
+- [ ] Update the release workflow: the notes field in latest.json must be a string. Redesign fetching notes with i18n from the www JSON.
 - [ ] More settings available
-- [ ] Add system tray menu
 - [ ] Ctrl+1 to 5 for custom prompts
 
 ---
