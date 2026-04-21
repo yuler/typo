@@ -1,5 +1,7 @@
 # TODO
 
+- [ ] Add [rtk] for AGENTS.md
+
 - [ ] More settings available
 - [ ] Add system tray menu
 - [ ] Ctrl+1 to 5 for custom prompts
