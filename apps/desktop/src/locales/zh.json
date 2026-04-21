@@ -43,8 +43,8 @@
   "upgrade.downloading": "正在下载...",
   "tray.tooltip": "typo",
   "tray.show": "显示 typo",
-  "tray.settings": "设置…",
-  "tray.check_updates": "检查更新…",
+  "tray.settings": "设置",
+  "tray.check_updates": "检查更新",
   "tray.about": "关于 typo v{version}",
   "tray.quit": "退出 typo",
   "updates.up_to_date": "已是最新版本 (v{version})"

@@ -43,8 +43,8 @@
   "upgrade.downloading": "Downloading...",
   "tray.tooltip": "typo",
   "tray.show": "Show typo",
-  "tray.settings": "Settings…",
-  "tray.check_updates": "Check for updates…",
+  "tray.settings": "Settings",
+  "tray.check_updates": "Check for updates",
   "tray.about": "About typo v{version}",
   "tray.quit": "Quit typo",
   "updates.up_to_date": "You're on the latest version (v{version})"

@@ -100,7 +100,7 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
         if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
             eprintln!("Failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
         }
-        toggle_main_window(app);
+        show_and_focus_main(app);
     }
 }
 
@@ -125,22 +125,6 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         }
         ID_QUIT => app.exit(0),
         other => eprintln!("Unknown tray menu event id: {}", other),
-    }
-}
-
-fn toggle_main_window(app: &AppHandle) {
-    let Some(window) = app.get_webview_window("main") else {
-        return;
-    };
-
-    match window.is_visible() {
-        Ok(true) => {
-            if let Err(err) = window.hide() {
-                eprintln!("Failed to hide main window: {}", err);
-            }
-        }
-        Ok(false) => show_and_focus_main(app),
-        Err(err) => eprintln!("Failed to query main window visibility: {}", err),
     }
 }
 

@@ -21,7 +21,7 @@ async function handleShortcut() {
   if (payload) {
     const appWindow = WebviewWindow.getCurrent()
     await appWindow?.show()
-    await appWindow?.setFocus()
+    // await appWindow?.setFocus()
 
     await invoke('set_pending_selection_input', { payload })
     await appWindow?.emit('set-input', payload)
