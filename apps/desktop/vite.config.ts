@@ -4,7 +4,6 @@ import Vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import packageJson from './package.json'
 
-// eslint-disable-next-line node/prefer-global/process
 const host = process.env.TAURI_DEV_HOST
 
 // https://vitejs.dev/config/
