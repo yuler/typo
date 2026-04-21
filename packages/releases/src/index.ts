@@ -2,7 +2,7 @@ import type { ReleaseData } from './types'
 
 // For simplicity, we'll manually list the releases for now. 
 // In a real scenario, we'd use import.meta.glob but that requires a bundler.
-import v121 from '../data/v1.2.1.json' assert { type: 'json' }
+import v121 from '../data/v1.2.1.json'
 
 export * from './types'
 
