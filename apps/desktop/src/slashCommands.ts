@@ -57,9 +57,19 @@ export function resolveSlashCommand(text: string, baseSystemPrompt: string, comm
       commandLine = firstLine
       contentLines = lines.slice(1)
     }
-    else if (lines.length > 1 && matches(lastLine)) {
+    else if (matches(lastLine)) {
       commandLine = lastLine
       contentLines = lines.slice(0, -1)
+    }
+    else if (lastLine.includes(` ${key}`)) {
+      const idx = lastLine.lastIndexOf(` ${key}`)
+      const potentialCommand = lastLine.slice(idx + 1)
+      if (!matches(potentialCommand))
+        continue
+
+      commandLine = potentialCommand
+      const prefix = lastLine.slice(0, idx)
+      contentLines = [...lines.slice(0, -1), prefix]
     }
     else {
       continue
