@@ -13,6 +13,7 @@ const ID_SHOW: &str = "show";
 const ID_SETTINGS: &str = "settings";
 const ID_CHECK_UPDATES: &str = "check-updates";
 const ID_ABOUT: &str = "about";
+const ID_OPEN_LOG_FOLDER: &str = "open-log-folder";
 const ID_QUIT: &str = "quit";
 
 // Events emitted to the frontend.
@@ -26,6 +27,7 @@ pub struct TrayMenuHandles {
     pub settings: MenuItem<Wry>,
     pub check_updates: MenuItem<Wry>,
     pub about: MenuItem<Wry>,
+    pub open_log_folder: MenuItem<Wry>,
     pub quit: MenuItem<Wry>,
 }
 
@@ -35,6 +37,7 @@ pub struct TrayLabels {
     pub settings: Option<String>,
     pub check_updates: Option<String>,
     pub about: Option<String>,
+    pub open_log_folder: Option<String>,
     pub quit: Option<String>,
     pub tooltip: Option<String>,
 }
@@ -59,11 +62,18 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
+    let open_log_folder = MenuItem::with_id(
+        handle,
+        ID_OPEN_LOG_FOLDER,
+        "Open log folder…",
+        true,
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(handle, ID_QUIT, "Quit typo", true, Some("CmdOrCtrl+Q"))?;
 
     let menu = Menu::with_items(
         handle,
-        &[&show, &settings, &check_updates, &separator, &about, &quit],
+        &[&show, &settings, &check_updates, &separator, &about, &open_log_folder, &quit],
     )?;
 
     let icon_bytes = include_bytes!("../icons/tray.png");
@@ -84,6 +94,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         settings,
         check_updates,
         about,
+        open_log_folder,
         quit,
     });
 
@@ -124,8 +135,23 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
                 log::error!("failed to open {}: {}", releases_url, err);
             }
         }
+        ID_OPEN_LOG_FOLDER => open_log_folder_action(app),
         ID_QUIT => app.exit(0),
         other => log::error!("unknown tray menu event id: {}", other),
+    }
+}
+
+fn open_log_folder_action(app: &AppHandle) {
+    use tauri::Manager;
+    match app.path().app_log_dir() {
+        Ok(dir) => {
+            if let Err(err) = app.opener().open_path(dir.to_string_lossy(), None::<&str>) {
+                log::error!("failed to open log folder: {}", err);
+            }
+        }
+        Err(err) => {
+            log::error!("failed to resolve app log dir: {}", err);
+        }
     }
 }
 
@@ -165,6 +191,12 @@ pub fn update_tray_menu(
     }
     if let Some(text) = labels.about.as_deref() {
         state.about.set_text(text).map_err(|e| e.to_string())?;
+    }
+    if let Some(text) = labels.open_log_folder.as_deref() {
+        state
+            .open_log_folder
+            .set_text(text)
+            .map_err(|e| e.to_string())?;
     }
     if let Some(text) = labels.quit.as_deref() {
         state.quit.set_text(text).map_err(|e| e.to_string())?;
