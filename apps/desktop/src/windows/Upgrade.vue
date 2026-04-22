@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import { relaunch } from '@tauri-apps/plugin-process'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import UpgradeProgress from '@/components/UpgradeProgress.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { useI18n } from '@/composables/useI18n'
 
 const { updateInfo, setCurrentWindow } = useGlobalState()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const isUpgrading = ref(false)
 const downloadProgress = ref(0)
+
+const notes = computed(() => {
+  const info = updateInfo.value
+  if (!info)
+    return ''
+
+  const i18nNotes = (info.rawJson as any)?.notes_i18n
+  return i18nNotes?.[locale.value] || info.body || t('upgrade.no_notes')
+})
 
 async function onUpgradeConfirm() {
   if (updateInfo.value) {
@@ -49,7 +58,7 @@ function onCancel() {
         {{ t('upgrade.title', { version: updateInfo?.version }) }}
       </h1>
       <p class="text-sm text-gray-300 whitespace-pre-wrap">
-        {{ updateInfo?.body || t('upgrade.no_notes') }}
+        {{ notes }}
       </p>
     </div>
     <div class="flex justify-end gap-3 mt-6">
