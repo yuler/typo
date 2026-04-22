@@ -13,14 +13,12 @@ const isUpgrading = ref(false)
 const downloadProgress = ref(0)
 
 const notes = computed(() => {
-  if (updateInfo.value) {
-    const rawJson = updateInfo.value.rawJson as any
-    if (rawJson?.notes_i18n) {
-      return rawJson.notes_i18n[locale.value] || updateInfo.value.body || t('upgrade.no_notes')
-    }
-    return updateInfo.value.body || t('upgrade.no_notes')
-  }
-  return ''
+  const info = updateInfo.value
+  if (!info)
+    return ''
+
+  const i18nNotes = (info.rawJson as any)?.notes_i18n
+  return i18nNotes?.[locale.value] || info.body || t('upgrade.no_notes')
 })
 
 async function onUpgradeConfirm() {
