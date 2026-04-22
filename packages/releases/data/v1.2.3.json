@@ -1,0 +1,33 @@
+{
+  "version": "1.2.3",
+  "github_url": "https://github.com/yuler/typo/releases/tag/untagged-d96e432ea20389bb8cf6",
+  "notes": "✨ [desktop]: display slash command tag and support trailing commands (#39)\n✨ Add Rails 8 (Typo) backend scaffold and monorepo integration (#37)\n🌐 Implement localized release notes in desktop upgrade window and push script (#38)\n🔧 [www]: Use dynamic locale URL helper for releases link\n📦 releases: Add v1.2.2 release data",
+  "date": "2026-04-23",
+  "notes_i18n": {
+    "en": "✨ Display slash command tag and support trailing commands\n 🌐 Implement localized release notes in desktop upgrade window",
+    "zh": "✨ 显示斜杠命令标签并支持尾随命令\n 🌐 在桌面升级窗口中实现本地化版本发布说明",
+    "jp": "✨ スラッシュコマンドのタグ表示と末尾コマンドのサポート\n 🌐 デスクトップアップグレードウィンドウでのローカライズされたリリースノートの実装"
+  },
+  "assets": [
+    {
+      "name": "typo_1.2.3_aarch64.dmg",
+      "platform": "macos"
+    },
+    {
+      "name": "typo_1.2.3_amd64.AppImage",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.2.3_amd64.deb",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.2.3_x64-setup.exe",
+      "platform": "windows"
+    },
+    {
+      "name": "typo_1.2.3_x64.dmg",
+      "platform": "macos"
+    }
+  ]
+}

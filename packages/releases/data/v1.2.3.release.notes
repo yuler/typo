@@ -1,0 +1,5 @@
+✨ [desktop]: display slash command tag and support trailing commands (#39)
+✨ Add Rails 8 (Typo) backend scaffold and monorepo integration (#37)
+🌐 Implement localized release notes in desktop upgrade window and push script (#38)
+🔧 [www]: Use dynamic locale URL helper for releases link
+📦 releases: Add v1.2.2 release data

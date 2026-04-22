@@ -69,7 +69,7 @@ async function main() {
       continue
     }
 
-    const assets: ReleaseAsset[] = release.assets
+    const assets: ReleaseAsset[] = (release.assets || [])
       .map((a: any) => {
         let platform: 'macos' | 'linux' | 'windows' | undefined
         if (a.name.endsWith('.dmg'))
@@ -111,7 +111,7 @@ async function main() {
 
     const data: ReleaseData = {
       version: tag.replace(/^v/, ''),
-      date: release.publishedAt.split('T')[0],
+      date: (release.publishedAt || new Date().toISOString()).split('T')[0],
       github_url: release.url,
       notes: latestNotes as string,
       notes_i18n: {
