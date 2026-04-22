@@ -19,6 +19,8 @@
   "settings.basic.ollama.model_placeholder": "选择 Ollama 模型",
   "settings.basic.deepseek.api_key_label": "DeepSeek API 密钥",
   "settings.basic.deepseek.api_key_placeholder": "输入您的 DeepSeek API 密钥",
+  "settings.basic.logs.label": "日志",
+  "settings.basic.logs.open_button": "打开日志文件夹",
   "settings.prompts.title": "提示词设置",
   "settings.prompts.system.label": "系统提示词",
   "settings.prompts.system.placeholder": "输入您的系统提示词",
@@ -46,6 +48,7 @@
   "tray.settings": "设置",
   "tray.check_updates": "检查更新",
   "tray.about": "关于 typo v{version}",
+  "tray.open_log_folder": "打开日志文件夹…",
   "tray.quit": "退出 typo",
   "updates.up_to_date": "已是最新版本 (v{version})"
 }

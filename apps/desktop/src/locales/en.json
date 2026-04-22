@@ -19,6 +19,8 @@
   "settings.basic.ollama.model_placeholder": "Select a Ollama Model",
   "settings.basic.deepseek.api_key_label": "DeepSeek API Key",
   "settings.basic.deepseek.api_key_placeholder": "Enter your DeepSeek API Key",
+  "settings.basic.logs.label": "Logs",
+  "settings.basic.logs.open_button": "Open log folder",
   "settings.prompts.title": "Prompt Settings",
   "settings.prompts.system.label": "System Prompt",
   "settings.prompts.system.placeholder": "Enter your system prompt",
@@ -46,6 +48,7 @@
   "tray.settings": "Settings",
   "tray.check_updates": "Check for updates",
   "tray.about": "About typo v{version}",
+  "tray.open_log_folder": "Open log folder…",
   "tray.quit": "Quit typo",
   "updates.up_to_date": "You're on the latest version (v{version})"
 }
