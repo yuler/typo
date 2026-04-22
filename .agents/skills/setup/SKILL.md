@@ -83,7 +83,7 @@ Never hardcode versions in the skill output. Read them from the files above when
    - Install Ruby with any manager that respects that file (`mise`, `rbenv`, `asdf`, `chruby`). Example with `rbenv`:
      ```bash
      rbenv install "$(cat core/.ruby-version)"   # skip if already installed
-     cd core && bundle install && bin/rails db:prepare
+     cd core && bundle install && bin/rails db:prepare && cd ..
      ```
    - Verify from the repo root:
      ```bash
