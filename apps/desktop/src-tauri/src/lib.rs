@@ -1,4 +1,6 @@
 use serde::Serialize;
+use tauri::Manager;
+use tauri_plugin_log::{RotationStrategy, Target, TargetKind, TimezoneStrategy};
 use tauri::Emitter;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use std::sync::{Mutex, OnceLock};
@@ -154,6 +156,28 @@ fn set_pending_selection_input(payload: SetInputPayload) {
     }
 }
 
+fn log_plugin_builder() -> tauri_plugin_log::Builder {
+    let builder = tauri_plugin_log::Builder::new()
+        .timezone_strategy(TimezoneStrategy::UseLocal)
+        .max_file_size(5 * 1024 * 1024)
+        .rotation_strategy(RotationStrategy::KeepAll);
+
+    if cfg!(debug_assertions) {
+        builder
+            .level(log::LevelFilter::Debug)
+            .targets([
+                Target::new(TargetKind::Stdout),
+                Target::new(TargetKind::Webview),
+            ])
+    } else {
+        builder
+            .level(log::LevelFilter::Info)
+            .targets([Target::new(TargetKind::LogDir {
+                file_name: Some("typo".into()),
+            })])
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
@@ -164,6 +188,7 @@ pub fn run() {
     );
 
     tauri::Builder::default()
+        .plugin(log_plugin_builder().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
