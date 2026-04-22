@@ -3,7 +3,10 @@
 
 # Auto-accept file edits
 [[rule]]
-toolName = ["write_file", "replace"]
+toolName = [
+  "write_file",
+  "replace"
+]
 decision = "allow"
 priority = 100
 
