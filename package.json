@@ -24,7 +24,7 @@
     "clean": "pnpm --filter \"./apps/**\" --filter \"./packages/**\" clean",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "format:fix": "core:lint:fix && eslint --fix .",
+    "format:fix": "pnpm core:lint:fix && eslint --fix .",
     "languages:build": "pnpm --filter @typo/languages build",
     "languages:test": "pnpm --filter @typo/languages test",
     "release:notes": "./scripts/release-notes.sh",
