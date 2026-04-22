@@ -6,6 +6,8 @@
   "settings.basic.title": "基本設定",
   "settings.basic.autoselect.label": "自動全選択",
   "settings.basic.autoselect.description": "何も選択されていない場合、これを有効にすると最初に {shortcut} がトリガーされます。",
+  "settings.basic.autostart.label": "ログイン時に起動",
+  "settings.basic.autostart.description": "ログイン時にアプリを自動的に起動します。",
   "settings.basic.shortcut.label": "グローバルショートカット",
   "settings.basic.shortcut.listening": "入力待ち...",
   "settings.basic.shortcut.reset": "リセット",
