@@ -5,27 +5,16 @@ import { createOllama } from 'ollama-ai-provider'
 import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
 import { get } from './store'
 
-async function aiProcess(model: LanguageModelV1, text: string, abortSignal?: AbortSignal): Promise<string> {
-  const [systemPrompt, shortcuts] = await Promise.all([
-    get('ai_system_prompt'),
-    get('slash_commands'),
-  ])
-
-  const { text: inputText, systemPrompt: finalSystemPrompt, command } = resolveSlashCommand(
-    text,
-    systemPrompt,
-    parseSlashCommands(shortcuts),
-  )
-
+async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: string, command?: string, abortSignal?: AbortSignal): Promise<string> {
   const { text: result } = await generateText({
     model,
-    system: finalSystemPrompt,
+    system: systemPrompt,
     messages: [
       {
         role: 'user',
         // If a slash command is used, we send the raw text to be more compatible with the custom instructions
         // If not, we use our standard wrapper
-        content: command ? inputText : `### Input\n${inputText}\n###`,
+        content: command ? text : `### Input\n${text}\n###`,
       },
     ],
     abortSignal,
@@ -33,12 +22,46 @@ async function aiProcess(model: LanguageModelV1, text: string, abortSignal?: Abo
   return result
 }
 
-export async function deepSeekProcess(text: string, abortSignal?: AbortSignal): Promise<string> {
+export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
   const apiKey = await get('deepseek_api_key')
-  return aiProcess(createDeepSeek({ apiKey }).chat('deepseek-chat'), text, abortSignal)
+  const model = createDeepSeek({ apiKey }).chat('deepseek-chat')
+
+  if (preResolved) {
+    return aiProcess(model, preResolved.text, preResolved.systemPrompt, preResolved.command, abortSignal)
+  }
+
+  const [systemPrompt, shortcuts] = await Promise.all([
+    get('ai_system_prompt'),
+    get('slash_commands'),
+  ])
+
+  const { text: resolvedText, systemPrompt: finalSystemPrompt, command } = resolveSlashCommand(
+    text,
+    systemPrompt,
+    parseSlashCommands(shortcuts),
+  )
+
+  return aiProcess(model, resolvedText, finalSystemPrompt, command, abortSignal)
 }
 
-export async function ollamaProcess(text: string, abortSignal?: AbortSignal): Promise<string> {
-  const model = await get('ollama_model')
-  return aiProcess(createOllama().chat(model), text, abortSignal)
+export async function ollamaProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
+  const modelName = await get('ollama_model')
+  const model = createOllama().chat(modelName)
+
+  if (preResolved) {
+    return aiProcess(model, preResolved.text, preResolved.systemPrompt, preResolved.command, abortSignal)
+  }
+
+  const [systemPrompt, shortcuts] = await Promise.all([
+    get('ai_system_prompt'),
+    get('slash_commands'),
+  ])
+
+  const { text: resolvedText, systemPrompt: finalSystemPrompt, command } = resolveSlashCommand(
+    text,
+    systemPrompt,
+    parseSlashCommands(shortcuts),
+  )
+
+  return aiProcess(model, resolvedText, finalSystemPrompt, command, abortSignal)
 }

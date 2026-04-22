@@ -68,16 +68,16 @@ async function processSetInputPayload(payload: SetInputPayload) {
       store.get('slash_commands'),
     ])
 
-    const { text: resolvedText, command } = resolveSlashCommand(
+    const resolved = resolveSlashCommand(
       text,
       systemPrompt,
       parseSlashCommands(shortcuts),
     )
 
-    inputText.value = resolvedText
-    commandName.value = command ?? ''
+    inputText.value = resolved.text
+    commandName.value = resolved.command ?? ''
 
-    const output = await fetchCorrection(text)
+    const output = await fetchCorrection(text, resolved)
 
     resultText.value = output
     state.value = 'result'
@@ -182,10 +182,10 @@ onUnmounted(() => {
 
 let abortController: AbortController | null = null
 
-async function fetchCorrection(text: string): Promise<string> {
+async function fetchCorrection(text: string, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
   abortController = new AbortController()
   const aiProvider = await store.get('ai_provider')
-  let process: (text: string, abortSignal?: AbortSignal) => Promise<string>
+  let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }) => Promise<string>
   switch (aiProvider) {
     case 'deepseek':
       process = deepSeekProcess
@@ -196,7 +196,7 @@ async function fetchCorrection(text: string): Promise<string> {
     default:
       throw new Error(t('main.error.invalid_ai'))
   }
-  return process(text, abortController.signal)
+  return process(text, abortController.signal, preResolved)
 }
 
 async function onESC() {
