@@ -13,6 +13,7 @@ export async function syncTrayMenu(): Promise<void> {
           settings: t('tray.settings'),
           check_updates: t('tray.check_updates'),
           about: t('tray.about', { version: __APP_VERSION__ }),
+          open_log_folder: t('tray.open_log_folder'),
           quit: t('tray.quit'),
           tooltip: t('tray.tooltip'),
         },
