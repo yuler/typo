@@ -6,6 +6,8 @@
   "settings.basic.title": "基础设置",
   "settings.basic.autoselect.label": "自动全选",
   "settings.basic.autoselect.description": "如果未选中任何内容，启用此项将先触发 {shortcut}。",
+  "settings.basic.autostart.label": "开机自启动",
+  "settings.basic.autostart.description": "登录系统时自动启动应用。",
   "settings.basic.shortcut.label": "全局快捷键",
   "settings.basic.shortcut.listening": "监听中...",
   "settings.basic.shortcut.reset": "重置",
