@@ -19,9 +19,9 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
         let trusted =
             macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
         if trusted {
-            print!("Application is totally trusted!");
+            log::info!("application is totally trusted");
         } else {
-            print!("Application isn't trusted :(");
+            log::warn!("application is not trusted");
         }
         Ok(trusted)
     }
@@ -74,7 +74,7 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
 }
 
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
-    println!("app_cli_selection_trigger");
+    log::debug!("app_cli_selection_trigger");
 
     let text = if in_linux_wayland() {
         get_selected_text_wayland(app)
@@ -84,13 +84,13 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
 
     let Some(text) = text else { return };
 
-    println!("text: {}", text);
+    log::debug!("selected text: {}", text);
     let payload = SetInputPayload {
         text,
         mode: "selected".to_string(),
     };
     if let Err(error) = app.emit("set-input", payload) {
-        eprintln!("Failed to emit set-input event: {}", error);
+        log::error!("failed to emit set-input event: {}", error);
     }
 }
 
@@ -143,7 +143,7 @@ fn consume_pending_selection_input() -> Option<SetInputPayload> {
     match pending_selection_payload().lock() {
         Ok(mut pending) => pending.take(),
         Err(error) => {
-            eprintln!("Failed to access pending selection payload: {}", error);
+            log::error!("failed to access pending selection payload: {}", error);
             None
         }
     }
@@ -217,10 +217,7 @@ fn cleanup_old_logs(app: &tauri::AppHandle) {
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
 
-    println!(
-        "in_linux_wayland={}",
-        in_linux_wayland()
-    );
+    log::info!("in_linux_wayland={}", in_linux_wayland());
 
     tauri::Builder::default()
         .plugin(log_plugin_builder().build())
@@ -242,7 +239,7 @@ pub fn run() {
         .setup(move |app| {
             cleanup_old_logs(&app.handle());
             if let Err(error) = tray::init(app) {
-                eprintln!("Failed to initialize system tray: {}", error);
+                log::error!("failed to initialize system tray: {}", error);
             }
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);

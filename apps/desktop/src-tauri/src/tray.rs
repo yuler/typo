@@ -98,7 +98,7 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
     } = event
     {
         if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
-            eprintln!("Failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
+            log::error!("failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
         }
         show_and_focus_main(app);
     }
@@ -110,22 +110,22 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         ID_SETTINGS => {
             show_and_focus_main(app);
             if let Err(err) = app.emit(EV_OPEN_SETTINGS, ()) {
-                eprintln!("Failed to emit {}: {}", EV_OPEN_SETTINGS, err);
+                log::error!("failed to emit {}: {}", EV_OPEN_SETTINGS, err);
             }
         }
         ID_CHECK_UPDATES => {
             if let Err(err) = app.emit(EV_CHECK_UPDATES, ()) {
-                eprintln!("Failed to emit {}: {}", EV_CHECK_UPDATES, err);
+                log::error!("failed to emit {}: {}", EV_CHECK_UPDATES, err);
             }
         }
         ID_ABOUT => {
             let releases_url = format!("{}{}", RELEASES_URL_BASE, env!("CARGO_PKG_VERSION"));
             if let Err(err) = app.opener().open_url(&releases_url, None::<&str>) {
-                eprintln!("Failed to open {}: {}", releases_url, err);
+                log::error!("failed to open {}: {}", releases_url, err);
             }
         }
         ID_QUIT => app.exit(0),
-        other => eprintln!("Unknown tray menu event id: {}", other),
+        other => log::error!("unknown tray menu event id: {}", other),
     }
 }
 
@@ -135,10 +135,10 @@ fn show_and_focus_main(app: &AppHandle) {
     };
 
     if let Err(err) = window.show() {
-        eprintln!("Failed to show main window: {}", err);
+        log::error!("failed to show main window: {}", err);
     }
     if let Err(err) = window.set_focus() {
-        eprintln!("Failed to focus main window: {}", err);
+        log::error!("failed to focus main window: {}", err);
     }
 }
 
@@ -148,7 +148,7 @@ pub fn update_tray_menu(
     labels: TrayLabels,
 ) -> Result<(), String> {
     let Some(state) = app.try_state::<TrayMenuHandles>() else {
-        eprintln!("Tray menu handles not found in state. Tray might not be initialized.");
+        log::error!("tray menu handles not found in state, tray might not be initialized");
         return Ok(());
     };
     if let Some(text) = labels.show.as_deref() {
