@@ -120,12 +120,12 @@ In `setup(|app| …)`, before other setup code, run a once-on-startup cleanup th
 
 Files and migration rules:
 
-| File             | `println!` → `log::debug!` or `log::info!` | `eprintln!` → `log::error!` |
-| ---------------- | ------------------------------------------ | --------------------------- |
-| `src/lib.rs`     | ✓                                          | ✓                           |
-| `src/tray.rs`    | —                                          | ✓                           |
-| `src/keyboard.rs`| ✓                                          | ✓                           |
-| `src/cli.rs`     | ✓                                          | ✓                           |
+| File              | `println!`/`print!` → `log::debug!` or `log::info!` | `eprintln!` → `log::error!` |
+| ----------------- | --------------------------------------------------- | --------------------------- |
+| `src/lib.rs`      | ✓                                                   | ✓                           |
+| `src/tray.rs`     | —                                                   | ✓                           |
+| `src/cli.rs`      | **No** (see exception below)                        | —                           |
+| `src/keyboard.rs` | — (no matches)                                      | — (no matches)              |
 
 Rule-of-thumb:
 
@@ -133,7 +133,9 @@ Rule-of-thumb:
 - One-off startup facts (e.g. `"in_linux_wayland=…"`) → `log::info!`.
 - All `eprintln!` → `log::error!`.
 
-After the sweep there must be zero `println!` / `eprintln!` under `src-tauri/src/`. A simple grep in CI/local check confirms.
+**Preserved exception** — `src/cli.rs` contains `println!("typo {}", env!("CARGO_PKG_VERSION"));`. This is the user-facing `typo --version` CLI output and must remain a raw stdout write; it is not a log entry.
+
+After the sweep, the only surviving `println!` under `src-tauri/src/` is that `cli.rs` line. Verification: `rg '^\s*(println|eprintln|print)!' apps/desktop/src-tauri/src` returns exactly one match (the `cli.rs` version line).
 
 ## Rust — `apps/desktop/src-tauri/Cargo.toml`
 
@@ -264,8 +266,7 @@ Modified:
 - `apps/desktop/src-tauri/Cargo.toml` — add `tauri-plugin-log = "2"`.
 - `apps/desktop/src-tauri/src/lib.rs` — register plugin, migrate `println!`/`eprintln!`, add rotation cleanup.
 - `apps/desktop/src-tauri/src/tray.rs` — add `ID_OPEN_LOG_FOLDER`, extend `TrayMenuHandles` + `TrayLabels`, handle event, migrate `eprintln!`.
-- `apps/desktop/src-tauri/src/keyboard.rs` — migrate `println!`/`eprintln!`.
-- `apps/desktop/src-tauri/src/cli.rs` — migrate `println!`/`eprintln!`.
+- `apps/desktop/src-tauri/src/cli.rs` — **no code change**; `println!("typo {version}")` is preserved as CLI `--version` output. (Listed here only for clarity during the migration sweep.)
 - `apps/desktop/src-tauri/capabilities/default.json` — add `log:default`.
 - `apps/desktop/package.json` — add `@tauri-apps/plugin-log`.
 - `apps/desktop/src/main.ts` — call `attachConsole()`.
@@ -288,7 +289,7 @@ Done when all hold:
 5. The tray menu shows a new "Open log folder…" item between "About" and "Quit"; clicking it opens the log directory in the OS file manager.
 6. Settings (basic tab) shows a "Logs / Open log folder" row that behaves identically.
 7. Both the tray item and Settings row are localized in `en`, `jp`, and `zh` and relabel live when locale changes.
-8. `rg '^\s*(println|eprintln)!' apps/desktop/src-tauri/src` returns zero matches.
+8. `rg '^\s*(println|eprintln|print)!' apps/desktop/src-tauri/src` returns exactly one match: the `typo --version` line in `cli.rs`.
 9. `cargo check`, `pnpm desktop:build:frontend`, and `pnpm lint` all succeed.
 10. No changes under `core/`, `apps/www`, `packages/`, or to any root CI workflow.
 
