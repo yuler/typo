@@ -236,11 +236,19 @@ onUnmounted(() => {
 })
 
 watch(() => form.value.autostart, async (value) => {
-  if (value) {
-    await enable()
+  console.log('autostart change:', value)
+  try {
+    if (value) {
+      await enable()
+      console.log('autostart enabled')
+    }
+    else {
+      await disable()
+      console.log('autostart disabled')
+    }
   }
-  else {
-    await disable()
+  catch (error) {
+    console.error('autostart error:', error)
   }
   await store.set('autostart', value)
   await store.save()
