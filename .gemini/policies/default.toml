@@ -3,24 +3,14 @@
 
 # Auto-accept file edits
 [[rule]]
-toolName = "write_to_file"
+toolName = ["write_file", "replace"]
 decision = "allow"
 priority = 100
 
+# Allow specific shell commands via run_shell_command
 [[rule]]
-toolName = "replace_file_content"
-decision = "allow"
-priority = 100
-
-[[rule]]
-toolName = "multi_replace_file_content"
-decision = "allow"
-priority = 100
-
-# Allow specific shell commands via run_command
-[[rule]]
-toolName = "run_command"
-# commandPrefix accepts an array of strings that the command must start with
+toolName = "run_shell_command"
+# Allow commands starting with rtk or other common tools
 commandPrefix = [
   "rtk",
   "git",
@@ -32,8 +22,14 @@ commandPrefix = [
   "rm",
   "npx"
 ]
+
+# Ensure rtk specifically is allowed with its subcommands and redirection
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^rtk.*"
+allowRedirection = true
 decision = "allow"
-priority = 100
+priority = 200
 
 # Allow sending input to commands
 [[rule]]
