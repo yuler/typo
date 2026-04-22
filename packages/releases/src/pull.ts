@@ -124,7 +124,7 @@ async function main() {
 
     const filePath = path.join(DATA_DIR, `${tag}.json`)
     const notesPath = path.join(DATA_DIR, `${tag}.release.notes`)
-    
+
     await ensureDir(DATA_DIR)
     await writeJson(filePath, data)
 
