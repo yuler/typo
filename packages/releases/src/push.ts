@@ -74,6 +74,7 @@ async function main() {
 
       // Update GitHub latest.json's notes field from LOCAL json's notes.en
       latestJson.notes = data.notes
+      latestJson.notes_i18n = data.notes_i18n
 
       await writeJson(latestJsonPath, latestJson)
 
