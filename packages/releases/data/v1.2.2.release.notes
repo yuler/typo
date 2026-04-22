@@ -1,0 +1,4 @@
+✨ Add release deep-linking, release-page about navigation, and i18n release notes support (#36)
+✨ [desktop]: Add system tray menu and improve window focus behavior (#30)
+✨ Add `package/releases` and Add downloads/releases page to www
+✨ Add agent skills for PR management, git commit, and project setup (#27)

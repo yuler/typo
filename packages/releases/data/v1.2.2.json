@@ -1,0 +1,33 @@
+{
+  "version": "1.2.2",
+  "date": "2026-04-22",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.2.2",
+  "notes": "✨ Add release deep-linking, release-page about navigation, and i18n release notes support (#36)\n✨ [desktop]: Add system tray menu and improve window focus behavior (#30)\n✨ Add `package/releases` and Add downloads/releases page to www\n✨ Add agent skills for PR management, git commit, and project setup (#27)",
+  "notes_i18n": {
+    "en": "✨ Add system tray menu\n✨ Improve window behavior when interacting with auto-hide, automatically showing when triggered",
+    "zh": "✨ 添加系统托盘菜单\n✨ 优化窗口自动隐藏交互逻辑，触发时自动显示窗口",
+    "jp": "✨ システムトレイメニューを追加\n✨ オートハイド時のウィンドウ動作を改善し、トリガー時に自動表示されるように修正"
+  },
+  "assets": [
+    {
+      "name": "typo_1.2.2_aarch64.dmg",
+      "platform": "macos"
+    },
+    {
+      "name": "typo_1.2.2_amd64.AppImage",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.2.2_amd64.deb",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.2.2_x64-setup.exe",
+      "platform": "windows"
+    },
+    {
+      "name": "typo_1.2.2_x64.dmg",
+      "platform": "macos"
+    }
+  ]
+}
