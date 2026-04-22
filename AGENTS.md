@@ -12,6 +12,7 @@ Guidance for AI coding agents working in this repository. Prefer the conventions
 .
 ├── .agents/skills/      # Reusable skills for AI agents (read before acting)
 ├── .github/workflows/   # CI pipelines
+├── core/                # Rails 8 monolith (backend services)
 ├── apps/                # Client-facing apps
 │   ├── desktop/         # Tauri + Vue 3 (main product)
 │   └── www/             # Astro (marketing / SEO)
@@ -23,11 +24,9 @@ Guidance for AI coding agents working in this repository. Prefer the conventions
 └── README.md
 ```
 
-> `core/` (the former server, to be repositioned as the monolith "brain") is planned but not yet in the tree. Do not reference it in code or docs until it lands.
-
 ## Setup
 
-Follow [`.agents/skills/setup/SKILL.md`](.agents/skills/setup/SKILL.md) to bootstrap Node.js (`.nvmrc`), pnpm (pinned in `package.json#packageManager` via Corepack), workspace deps, and the Rust toolchain for Tauri.
+Follow [`.agents/skills/setup/SKILL.md`](.agents/skills/setup/SKILL.md) to bootstrap Node.js (`.nvmrc`), pnpm (pinned in `package.json#packageManager` via Corepack), workspace deps, and the Rust toolchain for Tauri. `core/` uses Ruby (pinned in `core/.ruby-version`) and Rails 8; run `bundle install` inside `core/` to install gems.
 
 ## NPM Scripts
 
@@ -36,6 +35,7 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 - `pnpm desktop:<cmd>` — commands for `apps/desktop` (e.g. `dev`, `build`, `preview`, `tauri`).
 - `pnpm www:<cmd>` — commands for `apps/www` (e.g. `dev`, `build`, `preview`, `lint`).
 - `pnpm languages:<cmd>` — commands for `packages/languages` (e.g. `build`, `test`).
+- `pnpm core:<cmd>` — commands for the `core/` Rails app (e.g. `dev`, `test`, `lint`, `console`).
 - `pnpm lint` / `pnpm lint:fix` — ESLint across the workspace.
 - `pnpm format:fix` — alias of `lint:fix`; the canonical formatter for this repo.
 - `pnpm clean` — clean workspace build artifacts.
@@ -46,6 +46,7 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 - ESLint (via [`@antfu/eslint-config`](eslint.config.js)) is the single source of truth for both linting and formatting. Do not introduce Prettier configs or other formatters.
 - `editor.formatOnSave` is intentionally disabled in [`.vscode/settings.json`](.vscode/settings.json). You may run `pnpm format:fix` locally if you want, but it is not required — CI will autofix formatting on PRs.
 - CI [`/.github/workflows/pr-format-fix.yml`](.github/workflows/pr-format-fix.yml) auto-commits autofixable formatting issues on PRs.
+- `core/` uses RuboCop (rails-omakase); it is independent from the ESLint scope and is not run by `pnpm lint`.
 
 ## Release & Deploy
 
@@ -55,6 +56,7 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 
 ## Agent Conventions
 
+- When (re)generating `core/` with `rails new`, pass `--no-rc` so a personal `~/.railsrc` does not override the intended stack (for example forcing API-only mode or skipping Importmap).
 - Prefer editing existing files over creating new ones; especially avoid adding new top-level docs unless asked.
 - Before non-trivial tasks, check `.agents/skills/` for a matching skill and follow it.
 - When a task spans multiple workspaces, make changes in the relevant workspace and run that workspace's scripts (e.g. `pnpm desktop:build`) to verify.

@@ -5,6 +5,11 @@
   "private": true,
   "packageManager": "pnpm@10.33.0",
   "scripts": {
+    "core:dev": "cd core && bin/dev",
+    "core:test": "cd core && bin/rails test",
+    "core:console": "cd core && bin/rails console",
+    "core:lint": "cd core && bin/rubocop",
+    "core:lint:fix": "cd core && bin/rubocop -A",
     "desktop:dev": "pnpm --filter @typo/desktop dev",
     "desktop:dev:x11": "pnpm --filter @typo/desktop dev:x11",
     "desktop:build": "pnpm --filter @typo/desktop build",
