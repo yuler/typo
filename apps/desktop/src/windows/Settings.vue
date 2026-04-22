@@ -225,25 +225,6 @@ onUnmounted(() => {
   }
 })
 
-watch(() => form.value.autostart, async (value) => {
-  console.log('autostart change:', value)
-  try {
-    if (value) {
-      await enable()
-      console.log('autostart enabled')
-    }
-    else {
-      await disable()
-      console.log('autostart disabled')
-    }
-  }
-  catch (error) {
-    console.error('autostart error:', error)
-  }
-  await store.set('autostart', value)
-  await store.save()
-})
-
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
   if (value === 'ollama') {
     await loadOllamaModels()
@@ -275,6 +256,18 @@ async function onSubmit() {
   if (requestedShortcut && actualShortcut !== requestedShortcut) {
     shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcut })
     form.value.global_shortcut = actualShortcut
+  }
+
+  try {
+    if (form.value.autostart) {
+      await enable()
+    }
+    else {
+      await disable()
+    }
+  }
+  catch (error) {
+    console.error('Failed to update autostart setting:', error)
   }
 
   await Promise.all([
