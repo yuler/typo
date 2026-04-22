@@ -80,10 +80,10 @@ Never hardcode versions in the skill output. Read them from the files above when
 
 6. **Install Ruby and gems (only if the user will work on `core/`)**
    - Read `core/.ruby-version` for the expected Ruby version.
-   - Install Ruby with any manager that respects that file (`mise`, `rbenv`, `asdf`, `chruby`). Example with `rbenv`:
+   - Install Ruby with any manager that respects that file (`mise`, `rbenv`, `asdf`, `chruby`). Example with `mise`:
      ```bash
-     rbenv install "$(cat core/.ruby-version)"   # skip if already installed
-     cd core && bundle install && bin/rails db:prepare && cd ..
+     mise install Ruby@"$(cat core/.ruby-version)"   # skip if already installed
+     ./core/bin/setup --skip-server
      ```
    - Verify from the repo root:
      ```bash
@@ -132,7 +132,8 @@ source "$HOME/.cargo/env"
 pnpm desktop:dev
 
 # Ruby & Rails (core/) — only when working on the backend
-rbenv install "$(cat core/.ruby-version)"   # or: mise install / asdf install
-cd core && bundle install && bin/rails db:prepare && cd ..
+mise install Ruby@"$(cat core/.ruby-version)"
+./core/bin/setup --skip-server
 pnpm core:dev
 ```
+

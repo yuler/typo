@@ -12,7 +12,6 @@ export default antfu({
     markdown: 'dprint',
   },
   ignores: [
-    'core/**',
     'docs/superpowers/**',
     '**/src-tauri/**',
     'apps/www/.astro/**',
