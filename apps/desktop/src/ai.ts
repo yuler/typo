@@ -22,10 +22,12 @@ async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: str
   return result
 }
 
-export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
-  const apiKey = await get('deepseek_api_key')
-  const model = createDeepSeek({ apiKey }).chat('deepseek-chat')
-
+async function resolveAndProcess(
+  model: LanguageModelV1,
+  text: string,
+  abortSignal?: AbortSignal,
+  preResolved?: { text: string, systemPrompt: string, command?: string },
+): Promise<string> {
   if (preResolved) {
     return aiProcess(model, preResolved.text, preResolved.systemPrompt, preResolved.command, abortSignal)
   }
@@ -44,24 +46,14 @@ export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, p
   return aiProcess(model, resolvedText, finalSystemPrompt, command, abortSignal)
 }
 
+export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
+  const apiKey = await get('deepseek_api_key')
+  const model = createDeepSeek({ apiKey }).chat('deepseek-chat')
+  return resolveAndProcess(model, text, abortSignal, preResolved)
+}
+
 export async function ollamaProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
   const modelName = await get('ollama_model')
   const model = createOllama().chat(modelName)
-
-  if (preResolved) {
-    return aiProcess(model, preResolved.text, preResolved.systemPrompt, preResolved.command, abortSignal)
-  }
-
-  const [systemPrompt, shortcuts] = await Promise.all([
-    get('ai_system_prompt'),
-    get('slash_commands'),
-  ])
-
-  const { text: resolvedText, systemPrompt: finalSystemPrompt, command } = resolveSlashCommand(
-    text,
-    systemPrompt,
-    parseSlashCommands(shortcuts),
-  )
-
-  return aiProcess(model, resolvedText, finalSystemPrompt, command, abortSignal)
+  return resolveAndProcess(model, text, abortSignal, preResolved)
 }
