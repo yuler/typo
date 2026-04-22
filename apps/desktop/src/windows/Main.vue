@@ -3,12 +3,13 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { ClipboardCheckIcon, Loader2Icon, SettingsIcon } from 'lucide-vue-next'
+import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { useI18n } from '@/composables/useI18n'
+import { parseSlashCommands, resolveSlashCommand } from '@/slashCommands'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
 import { formatShortcut, sleep } from '@/utils'
@@ -21,6 +22,7 @@ type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 
 const state = ref<CapsuleState>('idle')
 const inputText = ref('')
+const commandName = ref('')
 const resultText = ref('')
 const errorText = ref('')
 const processing = ref(false)
@@ -52,6 +54,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     await sleep(STATUS_DISPLAY_DURATION_MS)
     state.value = 'idle'
     errorText.value = ''
+    commandName.value = ''
     await appWindow.hide()
     return
   }
@@ -59,7 +62,20 @@ async function processSetInputPayload(payload: SetInputPayload) {
   try {
     state.value = 'processing'
     processing.value = true
-    inputText.value = text
+
+    const [systemPrompt, shortcuts] = await Promise.all([
+      store.get('ai_system_prompt'),
+      store.get('slash_commands'),
+    ])
+
+    const { text: resolvedText, command } = resolveSlashCommand(
+      text,
+      systemPrompt,
+      parseSlashCommands(shortcuts),
+    )
+
+    inputText.value = resolvedText
+    commandName.value = command ?? ''
 
     const output = await fetchCorrection(text)
 
@@ -77,12 +93,14 @@ async function processSetInputPayload(payload: SetInputPayload) {
       state.value = 'idle'
       inputText.value = ''
       resultText.value = ''
+      commandName.value = ''
       await appWindow.hide()
     }
   }
   catch (err: any) {
     if (err.name === 'AbortError') {
       state.value = 'idle'
+      commandName.value = ''
       return
     }
     errorText.value = err.message || t('main.error.generic')
@@ -90,6 +108,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     await sleep(STATUS_DISPLAY_DURATION_MS)
     state.value = 'idle'
     errorText.value = ''
+    commandName.value = ''
     await appWindow.hide()
   }
   finally {
@@ -185,10 +204,12 @@ async function onESC() {
     abortController?.abort()
     state.value = 'idle'
     processing.value = false
+    commandName.value = ''
     return
   }
   state.value = 'idle'
   resultText.value = ''
+  commandName.value = ''
   await appWindow.hide()
 }
 
@@ -211,10 +232,16 @@ function gotoSettings() {
     <Logo />
 
     <!-- Center: Status -->
-    <div class="flex-1 flex overflow-hidden min-w-0">
-      <div v-if="state === 'processing'" class="flex items-center gap-2 px-2 overflow-hidden">
-        <Loader2Icon class="w-4 h-4 animate-spin text-blue-400 shrink-0" />
-        <span class="truncate text-sm text-blue-400/70">{{ inputText }}</span>
+    <div class="flex-1 flex overflow-hidden min-w-0 h-full items-center">
+      <div v-if="state === 'processing'" class="flex items-center gap-2 px-2 overflow-hidden w-full">
+        <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-400/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-400/20">
+          <TerminalIcon class="w-3 h-3 text-blue-400/60" />
+          <span class="text-[10px] font-bold text-blue-400/80 tracking-tight uppercase">
+            {{ commandName.startsWith('/') ? commandName.slice(1) : commandName }}
+          </span>
+        </div>
+        <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
+        <span class="truncate text-sm text-blue-400/70 shrink min-w-0">{{ inputText }}</span>
         <span class="text-[10px] text-blue-400/40 font-mono shrink-0">{{ inputText?.length }}</span>
       </div>
 
