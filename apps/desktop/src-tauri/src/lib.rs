@@ -178,6 +178,41 @@ fn log_plugin_builder() -> tauri_plugin_log::Builder {
     }
 }
 
+fn cleanup_old_logs(app: &tauri::AppHandle) {
+    let Ok(dir) = app.path().app_log_dir() else {
+        return;
+    };
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return;
+    };
+
+    let mut logs: Vec<(std::path::PathBuf, std::time::SystemTime)> = entries
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.file_name()
+                .to_string_lossy()
+                .to_ascii_lowercase()
+                .starts_with("typo")
+                && e.file_name()
+                    .to_string_lossy()
+                    .to_ascii_lowercase()
+                    .ends_with(".log")
+        })
+        .filter_map(|e| {
+            let modified = e.metadata().ok()?.modified().ok()?;
+            Some((e.path(), modified))
+        })
+        .collect();
+
+    logs.sort_by(|a, b| b.1.cmp(&a.1));
+
+    for (path, _) in logs.into_iter().skip(3) {
+        if let Err(err) = std::fs::remove_file(&path) {
+            log::warn!("failed to prune old log file {:?}: {}", path, err);
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
@@ -205,6 +240,7 @@ pub fn run() {
             );
         }))
         .setup(move |app| {
+            cleanup_old_logs(&app.handle());
             if let Err(error) = tray::init(app) {
                 eprintln!("Failed to initialize system tray: {}", error);
             }
