@@ -404,36 +404,36 @@ async function onSubmit() {
               </Select>
             </div>
 
-              <div v-if="form.ai_provider === 'deepseek'" class="grid w-full items-center gap-2">
-                <Label for="deepseek_api_key">{{ t('settings.basic.deepseek.api_key_label') }}</Label>
-                <div class="relative w-full">
-                  <Input
-                    id="deepseek_api_key"
-                    v-model="form.deepseek_api_key"
-                    :type="showApiKey ? 'text' : 'password'"
-                    autocomplete="off"
-                    :placeholder="t('settings.basic.deepseek.api_key_placeholder')"
-                    class="pr-10"
-                  />
-                  <button
-                    type="button"
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground cursor-pointer"
-                    @click="showApiKey = !showApiKey"
-                  >
-                    <EyeIcon v-if="!showApiKey" class="h-4 w-4" />
-                    <EyeOffIcon v-else class="h-4 w-4" />
-                  </button>
-                </div>
+            <div v-if="form.ai_provider === 'deepseek'" class="grid w-full items-center gap-2">
+              <Label for="deepseek_api_key">{{ t('settings.basic.deepseek.api_key_label') }}</Label>
+              <div class="relative w-full">
+                <Input
+                  id="deepseek_api_key"
+                  v-model="form.deepseek_api_key"
+                  :type="showApiKey ? 'text' : 'password'"
+                  autocomplete="off"
+                  :placeholder="t('settings.basic.deepseek.api_key_placeholder')"
+                  class="pr-10"
+                />
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground cursor-pointer"
+                  @click="showApiKey = !showApiKey"
+                >
+                  <EyeIcon v-if="!showApiKey" class="h-4 w-4" />
+                  <EyeOffIcon v-else class="h-4 w-4" />
+                </button>
               </div>
+            </div>
 
-              <div class="grid w-full items-center gap-2">
-                <Label>{{ t('settings.basic.logs.label') }}</Label>
-                <div>
-                  <Button type="button" variant="outline" @click="openLogFolder">
-                    {{ t('settings.basic.logs.open_button') }}
-                  </Button>
-                </div>
+            <div class="grid w-full items-center gap-2">
+              <Label>{{ t('settings.basic.logs.label') }}</Label>
+              <div>
+                <Button type="button" variant="outline" @click="openLogFolder">
+                  {{ t('settings.basic.logs.open_button') }}
+                </Button>
               </div>
+            </div>
           </template>
 
           <template v-else>
