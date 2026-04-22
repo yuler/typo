@@ -132,7 +132,7 @@ source "$HOME/.cargo/env"
 pnpm desktop:dev
 
 # Ruby & Rails (core/) — only when working on the backend
-mise install Ruby@"$(cat core/.ruby-version)"
+mise install
 ./core/bin/setup --skip-server
 pnpm core:dev
 ```
