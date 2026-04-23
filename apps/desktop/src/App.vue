@@ -3,7 +3,7 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { CurrentWindow } from '@/composables/useGlobalState'
 import type { SystemInfo } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { emit, listen } from '@tauri-apps/api/event'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
 import { check } from '@tauri-apps/plugin-updater'
@@ -99,6 +99,8 @@ async function handleImportSuccess(data: any) {
 
   await set('slash_commands', commands)
   await save()
+
+  await emit('refresh-settings')
 
   sendNotification({
     title: 'typo',
