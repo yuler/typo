@@ -265,13 +265,13 @@ async function onSubmit() {
     else {
       await disable()
     }
+    await store.set('autostart', form.value.autostart)
   }
   catch (error) {
     console.error('Failed to update autostart setting:', error)
   }
 
   await Promise.all([
-    store.set('autostart', form.value.autostart),
     store.set('autoselect', form.value.autoselect),
     store.set('ai_provider', form.value.ai_provider),
     store.set('deepseek_api_key', form.value.deepseek_api_key),
