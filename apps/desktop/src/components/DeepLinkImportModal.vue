@@ -30,7 +30,7 @@ async function handleImport() {
   loading.value = true
   error.value = null
   try {
-    const response = await fetch(`https://typo.yuler.cc/prompts/${props.id}.json`)
+    const response = await fetch(`https://typo.yuler.cc/prompts/${encodeURIComponent(props.id)}.json`)
     if (!response.ok) {
       throw new Error(`Failed to fetch: ${response.statusText}`)
     }

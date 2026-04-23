@@ -76,7 +76,7 @@ function onChangeWindow(window: CurrentWindow) {
 
 async function handleImportSuccess(data: any) {
   const { metadata, content } = data
-  if (!metadata || !content)
+  if (!metadata?.id || !content)
     return
 
   const commands = [...await get('slash_commands')]
