@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
-import { appLogDir } from '@tauri-apps/api/path'
-import { openPath } from '@tauri-apps/plugin-opener'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -34,7 +32,7 @@ async function onLocaleChange(next: Locale) {
 
 async function openLogFolder(): Promise<void> {
   try {
-    await openPath(await appLogDir())
+    await invoke('open_log_folder')
   }
   catch (err) {
     console.error('failed to open log folder:', err)

@@ -3,6 +3,7 @@ use tauri::Manager;
 use tauri_plugin_log::{RotationStrategy, Target, TargetKind, TimezoneStrategy};
 use tauri::Emitter;
 use tauri_plugin_clipboard_manager::ClipboardExt;
+use tauri_plugin_opener::OpenerExt;
 use std::sync::{Mutex, OnceLock};
 
 mod cli;
@@ -156,6 +157,59 @@ fn set_pending_selection_input(payload: SetInputPayload) {
     }
 }
 
+pub(crate) fn desktop_log_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let home = app
+            .path()
+            .home_dir()
+            .map_err(|err| format!("failed to resolve home dir: {err}"))?;
+        Ok(home.join("Library").join("Logs").join("Typo"))
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        app.path()
+            .app_log_dir()
+            .map_err(|err| format!("failed to resolve app log dir: {err}"))
+    }
+}
+
+#[tauri::command]
+fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
+    let dir = desktop_log_dir(&app)?;
+
+    std::fs::create_dir_all(&dir)
+        .map_err(|err| format!("failed to create log dir {}: {err}", dir.display()))?;
+
+    app.opener()
+        .open_path(dir.to_string_lossy(), None::<&str>)
+        .map_err(|err| format!("failed to open log folder {}: {err}", dir.display()))?;
+
+    log::info!("opened log folder: {}", dir.display());
+    Ok(())
+}
+
+fn log_file_target() -> Target {
+    #[cfg(target_os = "macos")]
+    {
+        let home = std::env::var_os("HOME")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::PathBuf::from("."));
+        return Target::new(TargetKind::Folder {
+            path: home.join("Library").join("Logs").join("Typo"),
+            file_name: Some("typo".into()),
+        });
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        Target::new(TargetKind::LogDir {
+            file_name: Some("typo".into()),
+        })
+    }
+}
+
 fn log_plugin_builder() -> tauri_plugin_log::Builder {
     let builder = tauri_plugin_log::Builder::new()
         .timezone_strategy(TimezoneStrategy::UseLocal)
@@ -168,18 +222,17 @@ fn log_plugin_builder() -> tauri_plugin_log::Builder {
             .targets([
                 Target::new(TargetKind::Stdout),
                 Target::new(TargetKind::Webview),
+                log_file_target(),
             ])
     } else {
         builder
             .level(log::LevelFilter::Info)
-            .targets([Target::new(TargetKind::LogDir {
-                file_name: Some("typo".into()),
-            })])
+            .targets([log_file_target()])
     }
 }
 
 fn cleanup_old_logs(app: &tauri::AppHandle) {
-    let Ok(dir) = app.path().app_log_dir() else {
+    let Ok(dir) = desktop_log_dir(app) else {
         return;
     };
     let Ok(entries) = std::fs::read_dir(&dir) else {
@@ -254,6 +307,7 @@ pub fn run() {
             get_system_info,
             get_selected_text,
             set_pending_selection_input,
+            open_log_folder,
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
