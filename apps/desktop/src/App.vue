@@ -124,6 +124,28 @@ onUnmounted(() => {
   trayUnlisteners.length = 0
 })
 
+function handleDeepLink(urlStr: string) {
+  try {
+    const url = new URL(urlStr)
+    const isImportAction = url.host === 'import-prompt' || url.pathname.includes('import-prompt')
+    const id = url.searchParams.get('id')
+
+    if (isImportAction && id) {
+      console.log('Detected import-prompt ID:', id)
+      importId.value = id
+      if (currentWindow.value !== 'Main') {
+        setCurrentWindow('Main')
+      }
+    }
+    else {
+      console.warn('Deep link matched protocol but not action/id:', { isImportAction, id })
+    }
+  }
+  catch (e) {
+    console.error('Failed to parse deep-link URL:', e)
+  }
+}
+
 onMounted(async () => {
   const appWindow = WebviewWindow.getCurrent()
   await appWindow?.setVisibleOnAllWorkspaces(true)
@@ -143,22 +165,18 @@ onMounted(async () => {
 
   trayUnlisteners.push(await listen<string[]>('deep-link://link', (event) => {
     const payload = event.payload
-    if (payload.length > 0) {
-      try {
-        const url = new URL(payload[0])
-        if (url.protocol === 'typo:' && url.host === 'import-prompt') {
-          const id = url.searchParams.get('id')
-          if (id) {
-            console.log('Detected import-prompt ID:', id)
-            importId.value = id
-          }
-        }
-      }
-      catch (e) {
-        console.error('Failed to parse deep-link URL:', e)
-      }
+    console.log('Deep link received:', payload)
+    if (payload && payload.length > 0) {
+      handleDeepLink(payload[0])
     }
   }))
+
+  // Check for pending deep link on startup
+  const pendingUrl = await invoke<string | null>('consume_deep_link')
+  if (pendingUrl) {
+    console.log('Consuming pending deep link:', pendingUrl)
+    handleDeepLink(pendingUrl)
+  }
 
   void checkUpgrade()
 

@@ -23,7 +23,7 @@ pub fn handle_single_instance_event(
     is_wayland: bool,
     selection_handler: fn(&tauri::AppHandle),
 ) {
-    use tauri::Manager;
+    use tauri::{Manager, Emitter};
 
     if has_version_flag(argv.iter().map(|arg| arg.as_str())) {
         println!("typo {}", env!("CARGO_PKG_VERSION"));
@@ -33,6 +33,13 @@ pub fn handle_single_instance_event(
     if has_selection_flag(argv.iter().map(|arg| arg.as_str())) && is_wayland {
         selection_handler(app);
         return;
+    }
+
+    // Handle deep links in single instance
+    for arg in argv {
+        if arg.starts_with("typo://") {
+            let _ = app.emit("deep-link://link", vec![arg.clone()]);
+        }
     }
 
     if let Some(window) = app.get_webview_window("main") {
