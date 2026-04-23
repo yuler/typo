@@ -17,11 +17,8 @@ import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
 import { formatShortcut } from '@/utils'
 
-const { setCurrentWindow } = useGlobalState()
+const { setCurrentWindow, settingsTab: activeTab } = useGlobalState()
 
-type SettingsTab = 'basic' | 'prompts'
-
-const activeTab = ref<SettingsTab>('basic')
 const showApiKey = ref(false)
 
 const { locale, setLocale, t } = useI18n()

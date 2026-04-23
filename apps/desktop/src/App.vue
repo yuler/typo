@@ -19,7 +19,7 @@ import { get, initializeStore, save, set } from '@/store'
 import { syncTrayMenu } from '@/tray'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
-const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
+const { currentWindow, setCurrentWindow, setSettingsTab, setUpdateInfo } = useGlobalState()
 const { t } = useI18n()
 const isDev = import.meta.env.DEV
 const trayUnlisteners: UnlistenFn[] = []
@@ -71,6 +71,9 @@ async function checkUpgrade(options?: { verbose?: boolean }) {
 }
 
 function onChangeWindow(window: CurrentWindow) {
+  if (window === 'Settings') {
+    setSettingsTab('basic')
+  }
   setCurrentWindow(window)
 }
 
@@ -133,8 +136,9 @@ function handleDeepLink(urlStr: string) {
     if (isImportAction && id) {
       console.log('Detected import-prompt ID:', id)
       importId.value = id
-      if (currentWindow.value !== 'Main') {
-        setCurrentWindow('Main')
+      setSettingsTab('prompts')
+      if (currentWindow.value !== 'Settings') {
+        setCurrentWindow('Settings')
       }
     }
     else {
@@ -155,7 +159,10 @@ onMounted(async () => {
   initializeWindow()
   await syncTrayMenu()
 
-  trayUnlisteners.push(await listen('tray:open-settings', () => setCurrentWindow('Settings')))
+  trayUnlisteners.push(await listen('tray:open-settings', () => {
+    setSettingsTab('basic')
+    setCurrentWindow('Settings')
+  }))
   trayUnlisteners.push(await listen('tray:check-updates', () => void checkUpgrade({ verbose: true })))
   trayUnlisteners.push(await listen('set-input', () => {
     if (currentWindow.value !== 'Main') {
