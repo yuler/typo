@@ -226,7 +226,8 @@ pub fn run() {
             #[cfg(target_os = "linux")]
             {
                 for arg in std::env::args() {
-                    if arg.starts_with("typo://") {
+                    if arg.starts_with("typo://") || arg.starts_with("typo:") {
+                        println!("Initial deep link detected: {}", arg);
                         if let Ok(mut pending) = pending_deep_link().lock() {
                             *pending = Some(arg);
                         }

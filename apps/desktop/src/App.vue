@@ -130,25 +130,43 @@ onUnmounted(() => {
 })
 
 function handleDeepLink(urlStr: string) {
+  console.log('[DeepLink] Processing:', urlStr)
   try {
-    const url = new URL(urlStr)
-    const isImportAction = url.host === 'import-prompt' || url.pathname.includes('import-prompt')
-    const id = url.searchParams.get('id')
+    let id: string | null = null
+    let isImportAction = false
+
+    try {
+      const url = new URL(urlStr)
+      isImportAction = url.host === 'import-prompt' || url.pathname.includes('import-prompt')
+      id = url.searchParams.get('id')
+    }
+    catch (e) {
+      console.warn('[DeepLink] URL parsing failed, trying manual match:', e)
+      // Fallback for non-standard URL formats like typo:import-prompt?id=xxx
+      if (urlStr.includes('import-prompt')) {
+        isImportAction = true
+        const match = urlStr.match(/[?&]id=([^&]+)/)
+        if (match)
+          id = match[1]
+      }
+    }
+
+    console.log('[DeepLink] Parse result:', { isImportAction, id })
 
     if (isImportAction && id) {
-      console.log('Detected import-prompt ID:', id)
       importId.value = id
       setSettingsTab('prompts')
       if (currentWindow.value !== 'Settings') {
+        console.log('[DeepLink] Switching to Settings window')
         setCurrentWindow('Settings')
       }
     }
     else {
-      console.warn('Deep link matched protocol but not action/id:', { isImportAction, id })
+      console.warn('[DeepLink] No valid action or ID found in URL')
     }
   }
-  catch (e) {
-    console.error('Failed to parse deep-link URL:', e)
+  catch (err) {
+    console.error('[DeepLink] Fatal error processing link:', err)
   }
 }
 

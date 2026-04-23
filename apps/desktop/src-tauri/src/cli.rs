@@ -37,7 +37,8 @@ pub fn handle_single_instance_event(
 
     // Handle deep links in single instance
     for arg in argv {
-        if arg.starts_with("typo://") {
+        if arg.starts_with("typo://") || arg.starts_with("typo:") {
+            println!("Single instance deep link detected: {}", arg);
             let _ = app.emit("deep-link://link", vec![arg.clone()]);
         }
     }
