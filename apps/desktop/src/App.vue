@@ -110,6 +110,24 @@ onMounted(async () => {
     }
   }))
 
+  trayUnlisteners.push(await listen<string[]>('deep-link://link', (event) => {
+    const payload = event.payload
+    if (payload.length > 0) {
+      try {
+        const url = new URL(payload[0])
+        if (url.protocol === 'typo:' && url.host === 'import-prompt') {
+          const id = url.searchParams.get('id')
+          if (id) {
+            console.log('Detected import-prompt ID:', id)
+          }
+        }
+      }
+      catch (e) {
+        console.error('Failed to parse deep-link URL:', e)
+      }
+    }
+  }))
+
   void checkUpgrade()
 
   const systemInfo = await invoke<SystemInfo>('get_system_info')
