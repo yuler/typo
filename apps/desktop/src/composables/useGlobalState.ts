@@ -24,6 +24,8 @@ export const useGlobalState = createGlobalState(() => {
   return {
     currentWindow,
     setCurrentWindow,
+    settingsTab,
+    setSettingsTab,
     updateInfo,
     setUpdateInfo,
   }
