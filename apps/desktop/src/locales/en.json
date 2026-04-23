@@ -47,5 +47,11 @@
   "tray.check_updates": "Check for updates",
   "tray.about": "About typo v{version}",
   "tray.quit": "Quit typo",
-  "updates.up_to_date": "You're on the latest version (v{version})"
+  "updates.up_to_date": "You're on the latest version (v{version})",
+  "import.title": "Import Prompt",
+  "import.description": "Detect new prompt (ID: {id}), import it?",
+  "import.confirm": "Confirm",
+  "import.cancel": "Cancel",
+  "import.success": "Prompt imported successfully",
+  "import.error": "Failed to fetch prompt"
 }

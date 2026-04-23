@@ -15,7 +15,7 @@ import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { initializeI18n, useI18n } from '@/composables/useI18n'
 import { setupGlobalShortcut } from '@/shortcut'
-import { initializeStore } from '@/store'
+import { get, initializeStore, save, set } from '@/store'
 import { syncTrayMenu } from '@/tray'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
@@ -74,8 +74,33 @@ function onChangeWindow(window: CurrentWindow) {
   setCurrentWindow(window)
 }
 
-function handleImportSuccess(data: any) {
-  console.log('Successfully imported data:', data)
+async function handleImportSuccess(data: any) {
+  const { metadata, content } = data
+  if (!metadata || !content)
+    return
+
+  const commands = [...await get('slash_commands')]
+  const newCommand = {
+    id: metadata.id,
+    key: `/${metadata.id}`,
+    value: content,
+  }
+
+  const index = commands.findIndex(c => c.id === metadata.id || c.key === newCommand.key)
+  if (index > -1) {
+    commands[index] = newCommand
+  }
+  else {
+    commands.push(newCommand)
+  }
+
+  await set('slash_commands', commands)
+  await save()
+
+  sendNotification({
+    title: 'typo',
+    body: t('import.success'),
+  })
 }
 
 watch(() => currentWindow.value, async () => {
