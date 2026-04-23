@@ -7,7 +7,8 @@ import { listen } from '@tauri-apps/api/event'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
 import { check } from '@tauri-apps/plugin-updater'
-import { nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import DeepLinkImportModal from '@/components/DeepLinkImportModal.vue'
 import Navbar from '@/components/Navbar.vue'
 import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
@@ -22,6 +23,7 @@ const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
 const { t } = useI18n()
 const isDev = import.meta.env.DEV
 const trayUnlisteners: UnlistenFn[] = []
+const importId = ref<string | null>(null)
 
 async function notifyUpToDate() {
   try {
@@ -72,6 +74,10 @@ function onChangeWindow(window: CurrentWindow) {
   setCurrentWindow(window)
 }
 
+function handleImportSuccess(data: any) {
+  console.log('Successfully imported data:', data)
+}
+
 watch(() => currentWindow.value, async () => {
   if (currentWindow.value === 'Main') {
     await nextTick()
@@ -119,6 +125,7 @@ onMounted(async () => {
           const id = url.searchParams.get('id')
           if (id) {
             console.log('Detected import-prompt ID:', id)
+            importId.value = id
           }
         }
       }
@@ -144,6 +151,12 @@ onMounted(async () => {
     <Navbar v-if="currentWindow !== 'Main'" data-tauri-drag-region @settings="() => onChangeWindow('Settings')" />
     <Window class="flex-1" />
     <Ribbon v-if="isDev" />
+    <DeepLinkImportModal
+      v-if="importId"
+      :id="importId"
+      @close="importId = null"
+      @success="handleImportSuccess"
+    />
   </main>
 </template>
 
