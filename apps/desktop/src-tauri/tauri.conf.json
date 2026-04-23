@@ -1,6 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "typo",
+  "identifier": "cc.yuler.typo",
   "build": {
     "beforeDevCommand": "pnpm dev:frontend",
     "devUrl": "http://localhost:1420",
@@ -43,7 +44,6 @@
     }
   },
   "bundle": {
-    "identifier": "cc.yuler.typo",
     "active": true,
     "linux": {
       "deb": {
