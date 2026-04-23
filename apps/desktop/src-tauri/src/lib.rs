@@ -167,6 +167,24 @@ fn consume_deep_link() -> Option<String> {
     }
 }
 
+#[tauri::command]
+async fn fetch_remote_prompt(id: String) -> Result<serde_json::Value, String> {
+    let url = format!("https://typo.yuler.cc/prompts/{}.json", id);
+    let client = reqwest::Client::new();
+    let response = client.get(url).send().await.map_err(|e| e.to_string())?;
+
+    if !response.status().is_success() {
+        return Err(format!("Failed to fetch: {}", response.status()));
+    }
+
+    let data = response
+        .json::<serde_json::Value>()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(data)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
@@ -227,6 +245,7 @@ pub fn run() {
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
             consume_deep_link,
+            fetch_remote_prompt,
             tray::update_tray_menu,
         ])
         .run(tauri::generate_context!())

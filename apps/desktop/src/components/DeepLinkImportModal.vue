@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,11 +31,7 @@ async function handleImport() {
   loading.value = true
   error.value = null
   try {
-    const response = await fetch(`https://typo.yuler.cc/prompts/${encodeURIComponent(props.id)}.json`)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.statusText}`)
-    }
-    const data = await response.json()
+    const data = await invoke('fetch_remote_prompt', { id: props.id })
     emit('success', data)
     emit('close')
   }
