@@ -261,9 +261,15 @@ async function onSubmit() {
   try {
     if (form.value.autostart) {
       await enable()
+      if (isMacOS.value && !(await isEnabled())) {
+        // Fallback for environments where LaunchAgent doesn't register reliably.
+        await invoke('ensure_legacy_macos_login_item')
+      }
     }
     else {
       await disable()
+      // Compatibility cleanup: remove legacy Login Items created by older AppleScript launcher mode.
+      await invoke('cleanup_legacy_macos_login_item')
     }
     await store.set('autostart', form.value.autostart)
   }
