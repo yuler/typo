@@ -130,43 +130,31 @@ onUnmounted(() => {
 })
 
 function handleDeepLink(urlStr: string) {
-  console.log('[DeepLink] Processing:', urlStr)
+  // eslint-disable-next-line no-console
+  console.debug('[DeepLink] Processing:', urlStr)
+
   try {
     let id: string | null = null
-    let isImportAction = false
 
-    try {
-      const url = new URL(urlStr)
-      isImportAction = url.host === 'import-prompt' || url.pathname.includes('import-prompt')
-      id = url.searchParams.get('id')
-    }
-    catch (e) {
-      console.warn('[DeepLink] URL parsing failed, trying manual match:', e)
-      // Fallback for non-standard URL formats like typo:import-prompt?id=xxx
-      if (urlStr.includes('import-prompt')) {
-        isImportAction = true
-        const match = urlStr.match(/[?&]id=([^&]+)/)
-        if (match)
-          id = match[1]
-      }
+    // Extremely permissive parsing: just look for id= value
+    const match = urlStr.match(/[?&]id=([^&]+)/)
+    if (match) {
+      id = match[1]
     }
 
-    console.log('[DeepLink] Parse result:', { isImportAction, id })
+    const isImportAction = urlStr.includes('import-prompt')
+
+    // eslint-disable-next-line no-console
+    console.debug('[DeepLink] Results:', { id, isImportAction })
 
     if (isImportAction && id) {
       importId.value = id
       setSettingsTab('prompts')
-      if (currentWindow.value !== 'Settings') {
-        console.log('[DeepLink] Switching to Settings window')
-        setCurrentWindow('Settings')
-      }
-    }
-    else {
-      console.warn('[DeepLink] No valid action or ID found in URL')
+      setCurrentWindow('Settings')
     }
   }
   catch (err) {
-    console.error('[DeepLink] Fatal error processing link:', err)
+    console.error('[DeepLink] Error:', err)
   }
 }
 
@@ -192,7 +180,8 @@ onMounted(async () => {
 
   trayUnlisteners.push(await listen<string[]>('deep-link://link', (event) => {
     const payload = event.payload
-    console.log('Deep link received:', payload)
+    // eslint-disable-next-line no-alert
+    window.alert(`Deep link received in JS: ${JSON.stringify(payload)}`)
     if (payload && payload.length > 0) {
       handleDeepLink(payload[0])
     }
@@ -201,6 +190,7 @@ onMounted(async () => {
   // Check for pending deep link on startup
   const pendingUrl = await invoke<string | null>('consume_deep_link')
   if (pendingUrl) {
+    // eslint-disable-next-line no-console
     console.log('Consuming pending deep link:', pendingUrl)
     handleDeepLink(pendingUrl)
   }

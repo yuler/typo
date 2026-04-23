@@ -46,15 +46,15 @@ xdg-open "typo://import-prompt?id=english-polisher"
 
 ## 常见问题排查
 
-1.  **"The specified location is not supported"**:
-    *   检查 `.desktop` 文件是否位于 `~/.local/share/applications/` 目录下。
-    *   检查 `MimeType` 行末尾是否有分号 `;`。
-    *   确保运行了 `update-desktop-database`。
-2.  **App 启动了但没有处理数据**:
-    *   确保 `Exec` 路径后面带有 `%u`。
-    *   确保你正在运行的是开发版单实例模式（Tauri v2 默认处理）。
-3.  **路径无效**:
-    *   如果你移动了项目目录，必须更新 `.desktop` 文件中的 `Exec` 绝对路径。
+1. **"The specified location is not supported"**:
+   - 检查 `.desktop` 文件是否位于 `~/.local/share/applications/` 目录下。
+   - 检查 `MimeType` 行末尾是否有分号 `;`。
+   - 确保运行了 `update-desktop-database`。
+2. **App 启动了但没有处理数据**:
+   - 确保 `Exec` 路径后面带有 `%u`。
+   - 确保你正在运行的是开发版单实例模式（Tauri v2 默认处理）。
+3. **路径无效**:
+   - 如果你移动了项目目录，必须更新 `.desktop` 文件中的 `Exec` 绝对路径。
 
 ## 生产环境说明
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -10,7 +11,6 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { listen } from '@tauri-apps/api/event'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { useI18n } from '@/composables/useI18n'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
@@ -28,6 +28,18 @@ const { locale, setLocale, t } = useI18n()
 async function onLocaleChange(next: Locale) {
   await setLocale(next)
 }
+
+const isMacOS = ref(false)
+
+const form = ref({
+  autoselect: false,
+  ai_provider: 'deepseek' as store.AI_PROVIDER,
+  deepseek_api_key: '',
+  ollama_model: '',
+  system_prompt: '',
+  slash_commands: [] as store.SlashCommand[],
+  global_shortcut: '',
+})
 
 async function loadSettings() {
   form.value.autoselect = await store.get('autoselect')
@@ -48,21 +60,11 @@ async function loadSettings() {
   }
 }
 
-const form = ref({
-  autoselect: false,
-  ai_provider: 'deepseek' as store.AI_PROVIDER,
-  deepseek_api_key: '',
-  ollama_model: '',
-  system_prompt: '',
-  slash_commands: [] as store.SlashCommand[],
-  global_shortcut: '',
-})
-
 const ollamaModels = ref<any[]>([])
 
 const isCapturingShortcut = ref(false)
 const shortcutConflictError = ref('')
-const isMacOS = ref(false)
+
 const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
 const recordedCaptureKeys = new Set<string>()

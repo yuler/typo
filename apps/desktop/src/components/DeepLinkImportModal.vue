@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
+import { Loader2 } from 'lucide-vue-next'
+import { ref } from 'vue'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Loader2 } from 'lucide-vue-next'
 import { useI18n } from '@/composables/useI18n'
 
 const props = defineProps<{
