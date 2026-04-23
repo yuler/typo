@@ -30,6 +30,15 @@ async function onLocaleChange(next: Locale) {
   await setLocale(next)
 }
 
+async function openLogFolder(): Promise<void> {
+  try {
+    await invoke('open_log_folder')
+  }
+  catch (err) {
+    console.error('failed to open log folder:', err)
+  }
+}
+
 const form = ref({
   autoselect: false,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
@@ -412,6 +421,15 @@ async function onSubmit() {
                   <EyeIcon v-if="!showApiKey" class="h-4 w-4" />
                   <EyeOffIcon v-else class="h-4 w-4" />
                 </button>
+              </div>
+            </div>
+
+            <div class="grid w-full items-center gap-2">
+              <Label>{{ t('settings.basic.logs.label') }}</Label>
+              <div>
+                <Button type="button" variant="outline" @click="openLogFolder">
+                  {{ t('settings.basic.logs.open_button') }}
+                </Button>
               </div>
             </div>
           </template>
