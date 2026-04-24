@@ -27,9 +27,8 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version-file: core/.ruby-version
+          ruby-version: core/.ruby-version
           bundler-cache: true
-          working-directory: core
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
@@ -44,28 +43,27 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version-file: core/.ruby-version
+          ruby-version: core/.ruby-version
           bundler-cache: true
-          working-directory: core
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+  # Note: Run it in `pr-format-fix` workflow
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v6
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version-file: core/.ruby-version
-          bundler-cache: true
-          working-directory: core
+  #     - name: Set up Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: core/.ruby-version
+  #         bundler-cache: true
 
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
+  #     - name: Lint code for consistent style
+  #       run: bin/rubocop -f github
 
   test:
     runs-on: ubuntu-latest
@@ -80,9 +78,8 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version-file: core/.ruby-version
+          ruby-version: core/.ruby-version
           bundler-cache: true
-          working-directory: core
 
       - name: Run tests
         env:

@@ -39,9 +39,8 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version-file: core/.ruby-version
+          ruby-version: core/.ruby-version
           bundler-cache: true
-          working-directory: core
 
       - name: Format fix
         env:
