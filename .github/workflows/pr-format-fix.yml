@@ -36,6 +36,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version-file: core/.ruby-version
+          bundler-cache: true
+          working-directory: core
+
       - name: Format fix
         env:
           CI: '1'
