@@ -26,7 +26,7 @@ module ActiveRecord
         return unless value
 
         hex = Uuid.base36_to_hex(value)
-        super([hex].pack("H*"))
+        super([ hex ].pack("H*"))
       end
 
       def deserialize(value)
