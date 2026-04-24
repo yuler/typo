@@ -27,8 +27,9 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: core/.ruby-version
+          ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: core
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
@@ -43,8 +44,9 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: core/.ruby-version
+          ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: core
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
@@ -59,11 +61,13 @@ jobs:
   #     - name: Set up Ruby
   #       uses: ruby/setup-ruby@v1
   #       with:
-  #         ruby-version: core/.ruby-version
+  #         ruby-version: .ruby-version
   #         bundler-cache: true
+  #         working-directory: core
 
   #     - name: Lint code for consistent style
   #       run: bin/rubocop -f github
+
 
   test:
     runs-on: ubuntu-latest
@@ -78,8 +82,9 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: core/.ruby-version
+          ruby-version: .ruby-version
           bundler-cache: true
+          working-directory: core
 
       - name: Run tests
         env:
