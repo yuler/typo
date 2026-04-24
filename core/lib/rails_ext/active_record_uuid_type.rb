@@ -1,4 +1,5 @@
-# core/lib/rails_ext/active_record_uuid_type.rb
+#  Custom UUID attribute type for MySQL binary storage with base36 string representation
+#  refs: https://github.com/basecamp/fizzy/blob/e6c5cd51a0b2eb3f9eab3bb39da269a90e52cd62/lib/rails_ext/active_record_uuid_type.rb
 module ActiveRecord
   module Type
     class Uuid < Binary
@@ -6,8 +7,7 @@ module ActiveRecord
 
       class << self
         def generate
-          require "securerandom" unless defined?(SecureRandom)
-          uuid = SecureRandom.respond_to?(:uuid_v7) ? SecureRandom.uuid_v7 : SecureRandom.uuid
+          uuid = SecureRandom.uuid_v7
           hex = uuid.delete("-")
           hex_to_base36(hex)
         end
@@ -37,7 +37,7 @@ module ActiveRecord
       end
 
       def cast(value)
-        if value.is_a?(String) && value.match?(/\A[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}\z/i)
+        if value.is_a?(String) && (value.length == 36 || value.length == 32) && value.match?(/\A[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}\z/i)
           Uuid.hex_to_base36(value.delete("-"))
         else
           super
