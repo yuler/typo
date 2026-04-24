@@ -6,7 +6,8 @@ module ActiveRecord
 
       class << self
         def generate
-          uuid = SecureRandom.uuid_v7
+          require "securerandom" unless defined?(SecureRandom)
+          uuid = SecureRandom.respond_to?(:uuid_v7) ? SecureRandom.uuid_v7 : SecureRandom.uuid
           hex = uuid.delete("-")
           hex_to_base36(hex)
         end
@@ -21,10 +22,11 @@ module ActiveRecord
       end
 
       def serialize(value)
+        return super if value.is_a?(ActiveModel::Type::Binary::Data)
         return unless value
 
-        binary = Uuid.base36_to_hex(value).scan(/../).map(&:hex).pack("C*")
-        super(binary)
+        hex = Uuid.base36_to_hex(value)
+        super([hex].pack("H*"))
       end
 
       def deserialize(value)
@@ -35,7 +37,11 @@ module ActiveRecord
       end
 
       def cast(value)
-        value
+        if value.is_a?(String) && value.match?(/\A[0-9a-f]{8}-?([0-9a-f]{4}-?){3}[0-9a-f]{12}\z/i)
+          Uuid.hex_to_base36(value.delete("-"))
+        else
+          super
+        end
       end
     end
   end

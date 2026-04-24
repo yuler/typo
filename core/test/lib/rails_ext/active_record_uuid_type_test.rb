@@ -24,4 +24,14 @@ class ActiveRecordUuidTypeTest < ActiveSupport::TestCase
 
     assert_equal original, round_trip
   end
+
+  test "serialize handles Binary::Data objects" do
+    type = ActiveRecord::Type::Uuid.new
+    data = ActiveModel::Type::Binary::Data.new("binary_blob")
+
+    serialized = type.serialize(data)
+
+    assert_instance_of ActiveModel::Type::Binary::Data, serialized
+    assert_equal "binary_blob", serialized.to_s
+  end
 end
