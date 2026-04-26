@@ -3,25 +3,27 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { CurrentWindow } from '@/composables/useGlobalState'
 import type { SystemInfo } from '@/types'
 import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { emit, listen } from '@tauri-apps/api/event'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
 import { check } from '@tauri-apps/plugin-updater'
-import { nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import DeepLinkImportModal from '@/components/DeepLinkImportModal.vue'
 import Navbar from '@/components/Navbar.vue'
 import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { initializeI18n, useI18n } from '@/composables/useI18n'
 import { setupGlobalShortcut } from '@/shortcut'
-import { initializeStore } from '@/store'
+import { get, initializeStore, save, set } from '@/store'
 import { syncTrayMenu } from '@/tray'
 import { initializeWindow, setupMainWindow, setupSettingsWindow, setupUpgradeWindow } from '@/window'
 
-const { currentWindow, setCurrentWindow, setUpdateInfo } = useGlobalState()
+const { currentWindow, setCurrentWindow, setSettingsTab, setUpdateInfo } = useGlobalState()
 const { t } = useI18n()
 const isDev = import.meta.env.DEV
 const trayUnlisteners: UnlistenFn[] = []
+const importId = ref<string | null>(null)
 
 async function notifyUpToDate() {
   try {
@@ -69,7 +71,41 @@ async function checkUpgrade(options?: { verbose?: boolean }) {
 }
 
 function onChangeWindow(window: CurrentWindow) {
+  if (window === 'Settings') {
+    setSettingsTab('basic')
+  }
   setCurrentWindow(window)
+}
+
+async function handleImportSuccess(data: any) {
+  const { metadata, content } = data
+  if (!metadata?.id || !content)
+    return
+
+  const commands = [...await get('slash_commands')]
+  const newCommand = {
+    id: metadata.id,
+    key: `/${metadata.id}`,
+    value: content,
+  }
+
+  const index = commands.findIndex(c => c.id === metadata.id || c.key === newCommand.key)
+  if (index > -1) {
+    commands[index] = newCommand
+  }
+  else {
+    commands.push(newCommand)
+  }
+
+  await set('slash_commands', commands)
+  await save()
+
+  await emit('refresh-settings')
+
+  sendNotification({
+    title: 'typo',
+    body: t('import.success'),
+  })
 }
 
 watch(() => currentWindow.value, async () => {
@@ -93,6 +129,35 @@ onUnmounted(() => {
   trayUnlisteners.length = 0
 })
 
+function handleDeepLink(urlStr: string) {
+  // eslint-disable-next-line no-console
+  console.debug('[DeepLink] Processing:', urlStr)
+
+  try {
+    let id: string | null = null
+
+    // Extremely permissive parsing: just look for id= value
+    const match = urlStr.match(/[?&]id=([^&]+)/)
+    if (match) {
+      id = match[1]
+    }
+
+    const isImportAction = urlStr.includes('import-prompt')
+
+    // eslint-disable-next-line no-console
+    console.debug('[DeepLink] Results:', { id, isImportAction })
+
+    if (isImportAction && id) {
+      importId.value = id
+      setSettingsTab('prompts')
+      setCurrentWindow('Settings')
+    }
+  }
+  catch (err) {
+    console.error('[DeepLink] Error:', err)
+  }
+}
+
 onMounted(async () => {
   const appWindow = WebviewWindow.getCurrent()
   await appWindow?.setVisibleOnAllWorkspaces(true)
@@ -102,13 +167,33 @@ onMounted(async () => {
   initializeWindow()
   await syncTrayMenu()
 
-  trayUnlisteners.push(await listen('tray:open-settings', () => setCurrentWindow('Settings')))
+  trayUnlisteners.push(await listen('tray:open-settings', () => {
+    setSettingsTab('basic')
+    setCurrentWindow('Settings')
+  }))
   trayUnlisteners.push(await listen('tray:check-updates', () => void checkUpgrade({ verbose: true })))
   trayUnlisteners.push(await listen('set-input', () => {
     if (currentWindow.value !== 'Main') {
       setCurrentWindow('Main')
     }
   }))
+
+  trayUnlisteners.push(await listen<string[]>('deep-link://link', (event) => {
+    const payload = event.payload
+    // eslint-disable-next-line no-alert
+    window.alert(`Deep link received in JS: ${JSON.stringify(payload)}`)
+    if (payload && payload.length > 0) {
+      handleDeepLink(payload[0])
+    }
+  }))
+
+  // Check for pending deep link on startup
+  const pendingUrl = await invoke<string | null>('consume_deep_link')
+  if (pendingUrl) {
+    // eslint-disable-next-line no-console
+    console.log('Consuming pending deep link:', pendingUrl)
+    handleDeepLink(pendingUrl)
+  }
 
   void checkUpgrade()
 
@@ -126,6 +211,12 @@ onMounted(async () => {
     <Navbar v-if="currentWindow !== 'Main'" data-tauri-drag-region @settings="() => onChangeWindow('Settings')" />
     <Window class="flex-1" />
     <Ribbon v-if="isDev" />
+    <DeepLinkImportModal
+      v-if="importId"
+      :id="importId"
+      @close="importId = null"
+      @success="handleImportSuccess"
+    />
   </main>
 </template>
 

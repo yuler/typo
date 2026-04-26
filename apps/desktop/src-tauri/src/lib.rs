@@ -71,6 +71,11 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
     PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
 }
 
+fn pending_deep_link() -> &'static Mutex<Option<String>> {
+    static PENDING_DEEP_LINK: OnceLock<Mutex<Option<String>>> = OnceLock::new();
+    PENDING_DEEP_LINK.get_or_init(|| Mutex::new(None))
+}
+
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     println!("app_cli_selection_trigger");
 
@@ -154,6 +159,32 @@ fn set_pending_selection_input(payload: SetInputPayload) {
     }
 }
 
+#[tauri::command]
+fn consume_deep_link() -> Option<String> {
+    match pending_deep_link().lock() {
+        Ok(mut pending) => pending.take(),
+        Err(_) => None,
+    }
+}
+
+#[tauri::command]
+async fn fetch_remote_prompt(id: String) -> Result<serde_json::Value, String> {
+    let url = format!("https://typo.yuler.cc/prompts/{}.json", id);
+    let client = reqwest::Client::new();
+    let response = client.get(url).send().await.map_err(|e| e.to_string())?;
+
+    if !response.status().is_success() {
+        return Err(format!("Failed to fetch: {}", response.status()));
+    }
+
+    let data = response
+        .json::<serde_json::Value>()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(data)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
@@ -171,6 +202,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             cli::handle_single_instance_event(
                 app,
@@ -189,6 +221,20 @@ pub fn run() {
             if startup_selection && in_linux_wayland() {
                 app_cli_startup_selection_trigger(&app.handle());
             }
+
+            // Handle initial deep link on Linux
+            #[cfg(target_os = "linux")]
+            {
+                for arg in std::env::args() {
+                    if arg.starts_with("typo://") || arg.starts_with("typo:") {
+                        println!("Initial deep link detected: {}", arg);
+                        if let Ok(mut pending) = pending_deep_link().lock() {
+                            *pending = Some(arg);
+                        }
+                    }
+                }
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -199,6 +245,8 @@ pub fn run() {
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
+            consume_deep_link,
+            fetch_remote_prompt,
             tray::update_tray_menu,
         ])
         .run(tauri::generate_context!())
