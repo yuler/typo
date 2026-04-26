@@ -30,6 +30,7 @@ dist-ssr
 # Core
 # Ignore bundler config.
 core/.bundle
+core/vendor/bundle
 # Ignore all environment files.
 core/.env*
 # Ignore all logfiles and tempfiles.
