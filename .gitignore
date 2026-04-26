@@ -27,4 +27,30 @@ dist-ssr
 # Env
 .env
 
+# Core
+# Ignore bundler config.
+core/.bundle
+core/vendor/bundle
+# Ignore all environment files.
+core/.env*
+# Ignore all logfiles and tempfiles.
+core/log/*
+core/tmp/*
+!core/log/.keep
+!core/tmp/.keep
+# Ignore pidfiles, but keep the directory.
+core/tmp/pids/*
+!core/tmp/pids/
+!core/tmp/pids/.keep
+# Ignore storage (uploaded files in development and any SQLite databases).
+core/storage/*
+!core/storage/.keep
+core/tmp/storage/*
+!core/tmp/storage/
+!core/tmp/storage/.keep
+# Public
+core/public/assets
+# Ignore master key for decrypting credentials and more.
+core/config/master.key
+
 # Misc
