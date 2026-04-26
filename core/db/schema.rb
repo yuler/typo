@@ -11,7 +11,7 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_04_26_081755) do
-  create_table "accounts", id: { type: :string, limit: 25 }, force: :cascade do |t|
+  create_table "accounts", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.boolean "personal", default: true, null: false
@@ -20,14 +20,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_26_081755) do
     t.index ["slug"], name: "index_accounts_on_slug", unique: true
   end
 
-  create_table "identities", id: { type: :string, limit: 25 }, force: :cascade do |t|
+  create_table "identities", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_identities_on_email", unique: true
   end
 
-  create_table "magic_links", id: { type: :string, limit: 25 }, force: :cascade do |t|
+  create_table "magic_links", id: :uuid, force: :cascade do |t|
     t.string "code", null: false
     t.datetime "created_at", null: false
     t.datetime "expires_at", null: false
@@ -38,7 +38,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_26_081755) do
     t.index ["identity_id"], name: "index_magic_links_on_identity_id"
   end
 
-  create_table "sessions", id: { type: :string, limit: 25 }, force: :cascade do |t|
+  create_table "sessions", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "identity_id", null: false
     t.string "ip_address"
@@ -50,8 +50,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_26_081755) do
     t.index ["token"], name: "index_sessions_on_token", unique: true
   end
 
-  create_table "users", id: { type: :string, limit: 25 }, force: :cascade do |t|
+  create_table "users", id: :uuid, force: :cascade do |t|
     t.string "account_id", null: false
+    t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.string "identity_id", null: false
     t.string "role", null: false
