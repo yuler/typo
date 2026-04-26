@@ -1,0 +1,6 @@
+<h1>Dashboard for <%= @account.name %></h1>
+<p>Welcome, <%= Current.identity.email %>!</p>
+<p>Your role: <%= @user.role %></p>
+<p>Slug: <%= @account.slug %></p>
+
+<%= button_to "Logout", session_path, method: :delete %>
