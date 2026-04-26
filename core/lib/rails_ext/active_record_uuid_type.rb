@@ -1,4 +1,4 @@
-#  Custom UUID attribute type for MySQL binary storage with base36 string representation
+# Custom UUID attribute type for SQLite binary storage with base36 string representation
 #  refs: https://github.com/basecamp/fizzy/blob/e6c5cd51a0b2eb3f9eab3bb39da269a90e52cd62/lib/rails_ext/active_record_uuid_type.rb
 module ActiveRecord
   module Type
