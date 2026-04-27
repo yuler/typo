@@ -24,7 +24,7 @@ module AccountSlug
         env["typo.account_slug"] = AccountSlug.decode($2)
       end
 
-      Rails.logger.info "\n\n\nAccount slug: #{env["typo.account_slug"]}\n\n\n"
+      Rails.logger.info { "[AccountSlug] slug=#{env["typo.account_slug"].inspect} path=#{env["PATH_INFO"]}" }
 
       # Set the account in the current thread
       if env["typo.account_slug"]

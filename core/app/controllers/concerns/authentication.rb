@@ -5,7 +5,7 @@ module Authentication
     before_action :require_account # Checking and setting account must happen first
     before_action :require_authentication
     helper_method :authenticated?
-    helper_method :email_address_pending_authentication
+    helper_method :email_pending_authentication
 
     etag { Current.identity.id if authenticated? }
 
@@ -82,7 +82,7 @@ module Authentication
     end
 
     def after_authentication_url
-      session.delete(:return_to_after_authenticating) || landing_url
+      session.delete(:return_to_after_authenticating) || root_url
     end
 
     def redirect_authenticated_user

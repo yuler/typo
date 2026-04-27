@@ -1,6 +1,6 @@
 <% @page_title = "New Session" %>
 
 <%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address…" %>
+  <%= form.email_field :email, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address…" %>
   <%= form.submit "Submit" %>
 <% end %>

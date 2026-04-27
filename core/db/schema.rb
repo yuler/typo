@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_26_081755) do
+ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.boolean "personal", default: true, null: false
+    t.boolean "personal", default: false, null: false
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_accounts_on_slug", unique: true
@@ -23,6 +23,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_26_081755) do
   create_table "identities", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
+    t.boolean "staff", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_identities_on_email", unique: true
   end
@@ -31,33 +32,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_26_081755) do
     t.string "code", null: false
     t.datetime "created_at", null: false
     t.datetime "expires_at", null: false
-    t.string "identity_id", null: false
+    t.uuid "identity_id", null: false
     t.datetime "updated_at", null: false
-    t.datetime "used_at"
     t.index ["code"], name: "index_magic_links_on_code", unique: true
     t.index ["identity_id"], name: "index_magic_links_on_identity_id"
   end
 
   create_table "sessions", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "identity_id", null: false
+    t.uuid "identity_id", null: false
     t.string "ip_address"
     t.datetime "last_active_at"
-    t.string "token", null: false
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.index ["identity_id"], name: "index_sessions_on_identity_id"
-    t.index ["token"], name: "index_sessions_on_token", unique: true
   end
 
   create_table "users", id: :uuid, force: :cascade do |t|
-    t.string "account_id", null: false
+    t.uuid "account_id", null: false
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
-    t.string "identity_id", null: false
+    t.uuid "identity_id", null: false
+    t.string "name", null: false
     t.string "role", null: false
     t.datetime "updated_at", null: false
+    t.datetime "verified_at"
     t.index ["account_id"], name: "index_users_on_account_id"
     t.index ["identity_id"], name: "index_users_on_identity_id"
   end
+
+  add_foreign_key "magic_links", "identities"
+  add_foreign_key "sessions", "identities"
+  add_foreign_key "users", "accounts"
+  add_foreign_key "users", "identities"
 end

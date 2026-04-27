@@ -10,7 +10,11 @@ class SessionsController < ApplicationController
   end
 
   def create
-
+    if identity = Identity.find_by(email: email)
+      sign_in identity
+    else
+      sign_up
+    end
   end
 
   def destroy
@@ -24,6 +28,28 @@ class SessionsController < ApplicationController
       respond_to do |format|
         format.html { redirect_to new_session_path, alert: rate_limit_exceeded_message }
         format.json { render json: { message: rate_limit_exceeded_message }, status: :too_many_requests }
+      end
+    end
+
+    def email
+      params.expect(:email)
+    end
+
+    def sign_in(identity)
+      redirect_to_session_magic_link identity.send_magic_link
+    end
+
+    def sign_up
+      signup = Signup.new(email: email)
+
+      if signup.valid?(:identity_creation)
+        magic_link = signup.create_identity
+        redirect_to_session_magic_link magic_link
+      else
+        respond_to do |format|
+          format.html { redirect_to new_session_path, alert: "Something went wrong" }
+          format.json { render json: { message: "Something went wrong" }, status: :unprocessable_entity }
+        end
       end
     end
 end

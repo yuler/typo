@@ -1,8 +1,0 @@
-<h1>Login</h1>
-<%= form_with url: magic_link_path do |f| %>
-  <div>
-    <%= f.label :email %>
-    <%= f.email_field :email, required: true %>
-  </div>
-  <%= f.submit "Send Magic Link" %>
-<% end %>

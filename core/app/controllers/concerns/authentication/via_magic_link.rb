@@ -12,16 +12,6 @@ module Authentication::ViaMagicLink
       end
     end
 
-    def redirect_to_fake_session_magic_link(email_address, **options)
-      fake_magic_link = MagicLink.new(
-        identity: Identity.new(email_address: email_address),
-        code: SecureRandom.base32(6),
-        expires_at: MagicLink::EXPIRATION_TIME.from_now
-      )
-
-      redirect_to_session_magic_link fake_magic_link, **options
-    end
-
     def redirect_to_session_magic_link(magic_link, return_to: nil)
       serve_development_magic_link(magic_link)
       set_pending_authentication_token(magic_link)
@@ -42,14 +32,14 @@ module Authentication::ViaMagicLink
 
     def set_pending_authentication_token(magic_link)
       cookies[:pending_authentication_token] = {
-        value: pending_authentication_token_verifier.generate(magic_link.identity.email_address, expires_at: magic_link.expires_at),
+        value: pending_authentication_token_verifier.generate(magic_link.identity.email, expires_at: magic_link.expires_at),
         httponly: true,
         same_site: :lax,
         expires: magic_link.expires_at
       }
     end
 
-    def email_address_pending_authentication
+    def email_pending_authentication
       pending_authentication_token_verifier.verified(pending_authentication_token)
     end
 

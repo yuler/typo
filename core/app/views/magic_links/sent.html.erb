@@ -1,9 +1,0 @@
-<h1>Check your email</h1>
-<p>We've sent a magic link to your email.</p>
-<% if Rails.env.development? %>
-  <p>Development Mode: Your code is <strong><%= @code %></strong></p>
-  <%= form_with url: session_path do |f| %>
-    <%= f.hidden_field :code, value: @code %>
-    <%= f.submit "Login with this code" %>
-  <% end %>
-<% end %>
