@@ -21,23 +21,16 @@ class Signup
   end
 
   def create_personal_account
-    if valid?(:completion)
-      begin
-        create_account(personal: true)
-        true
-      rescue => error
-        destroy_account
+    return false unless valid?(:completion)
 
-        errors.add(:base, "Something went wrong, and we couldn't create your account. Please give it another try.")
-        Rails.error.report(error, severity: :error)
-        Rails.logger.error error
-        Rails.logger.error error.backtrace.join("\n")
-
-        false
-      end
-    else
-      false
+    ActiveRecord::Base.transaction do
+      create_account(personal: true)
+      true
     end
+  rescue => error
+    errors.add(:base, "Something went wrong, and we couldn't create your account. Please give it another try.")
+    Rails.error.report(error, severity: :error)
+    false
   end
 
   private
@@ -54,12 +47,5 @@ class Signup
         }
       )
       @user = @account.users.find_by!(role: :owner)
-    end
-
-    def destroy_account
-      @account&.destroy!
-
-      @user = nil
-      @account = nil
     end
 end
