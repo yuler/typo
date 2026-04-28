@@ -5,7 +5,7 @@
 
 <div class="account-list">
   <% @accounts.each do |account| %>
-    <%= link_to root_url(script_name: "/#{account.slug}"), do %>
+    <%= link_to root_url(script_name: "/#{account.slug}") do %>
       <span><%= account.name.first.upcase %></span>
       <span>
         <strong><%= account.name %></strong>
