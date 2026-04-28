@@ -12,4 +12,8 @@ class Identity < ApplicationRecord
       MagicLinkMailer.sign_in_instructions(magic_link).deliver_later
     end
   end
+
+  def personal_account
+    accounts.find_by(personal: true)
+  end
 end

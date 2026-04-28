@@ -57,7 +57,7 @@ class Sessions::MagicLinksController < ApplicationController
 
     def after_sign_in_url(magic_link)
       if magic_link.identity.accounts.empty?
-        session_menu_path(script_name: nil)
+        new_onboarding_path(script_name: nil)
       else
         after_authentication_url
       end

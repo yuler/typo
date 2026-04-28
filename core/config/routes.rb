@@ -7,10 +7,12 @@ Rails.application.routes.draw do
     end
   end
 
+  resource :onboarding, only: %i[ new create ]
+
   # Dashboard is now at the "root" of the mounted slug
   # Because the middleware moves the slug to SCRIPT_NAME,
   # Rails sees "/" as the path for the dashboard.
-  resource :dashboard, only: [ :show ]
+  resource :dashboard, only: :show
 
   # Defines the root path route ("/")
   root to: "dashboards#show"

@@ -3,11 +3,11 @@ class Signup
   include ActiveModel::Attributes
   include ActiveModel::Validations
 
-  attr_accessor :username, :email, :identity
+  attr_accessor :username, :nickname, :email, :identity
   attr_reader :account, :user
 
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, on: :identity_creation
-  validates :username, :identity, presence: true, on: :completion
+  validates :username, :nickname, :identity, presence: true, on: :completion
 
   def initialize(...)
     super
@@ -44,11 +44,12 @@ class Signup
     def create_account(personal: false)
       @account = Account.create_with_owner(
         account: {
-          name: username,
+          name: nickname,
+          slug: username,
           personal: personal
         },
         owner: {
-          name: username,
+          name: nickname,
           identity: identity
         }
       )

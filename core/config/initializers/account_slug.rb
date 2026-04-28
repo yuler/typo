@@ -1,7 +1,7 @@
 module AccountSlug
   PATTERN = /([a-zA-Z0-9_-]{4,16})/
   PATH_INFO_MATCH = /\A(\/#{AccountSlug::PATTERN})/
-  RESERVED_SLUGS = %w[admin api assets billing dashboard help jobs login logout magic_link rails settings setup static support typo session]
+  RESERVED_SLUGS = %w[session dashboard onboarding admin api assets billing help jobs login logout magic_link rails settings setup static support typo]
 
   class Extractor
     def initialize(app)
