@@ -16,4 +16,9 @@ class Identity < ApplicationRecord
   def personal_account
     accounts.find_by(personal: true)
   end
+
+  # TODO: Implement for api
+  def find_by_permissable_access_token
+    Identify.first
+  end
 end
