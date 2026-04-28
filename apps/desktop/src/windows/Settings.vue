@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
+import { disable, enable, isEnabled } from '@tauri-apps/plugin-autostart'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -31,6 +32,7 @@ async function onLocaleChange(next: Locale) {
 }
 
 const form = ref({
+  autostart: false,
   autoselect: false,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
   deepseek_api_key: '',
@@ -189,6 +191,7 @@ async function loadOllamaModels() {
 }
 
 onMounted(async () => {
+  form.value.autostart = await isEnabled()
   form.value.autoselect = await store.get('autoselect')
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
@@ -255,6 +258,25 @@ async function onSubmit() {
     form.value.global_shortcut = actualShortcut
   }
 
+  try {
+    if (form.value.autostart) {
+      await enable()
+      if (isMacOS.value && !(await isEnabled())) {
+        // Fallback for environments where LaunchAgent doesn't register reliably.
+        await invoke('ensure_legacy_macos_login_item')
+      }
+    }
+    else {
+      await disable()
+      // Compatibility cleanup: remove legacy Login Items created by older AppleScript launcher mode.
+      await invoke('cleanup_legacy_macos_login_item')
+    }
+    await store.set('autostart', form.value.autostart)
+  }
+  catch (error) {
+    console.error('Failed to update autostart setting:', error)
+  }
+
   await Promise.all([
     store.set('autoselect', form.value.autoselect),
     store.set('ai_provider', form.value.ai_provider),
@@ -317,6 +339,14 @@ async function onSubmit() {
             </h1>
 
             <div class="grid w-full items-center gap-4">
+              <div class="flex items-center space-x-2">
+                <Switch id="autostart" v-model="form.autostart" />
+                <Label for="autostart">{{ t('settings.basic.autostart.label') }}</Label>
+              </div>
+              <p class="text-xs text-muted-foreground">
+                {{ t('settings.basic.autostart.description') }}
+              </p>
+
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
                 <Label for="autoselect">{{ t('settings.basic.autoselect.label') }}</Label>
