@@ -1,4 +1,4 @@
-class CreateMultiTenancyTables < ActiveRecord::Migration[8.1]
+class CreateMultiTenancyTables < ActiveRecord::Migration[8.2]
   def change
     create_table :identities, id: :uuid do |t|
       t.string :email, null: false, index: { unique: true }
