@@ -12,6 +12,7 @@
 
 ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
+    t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.boolean "personal", default: false, null: false
@@ -32,7 +33,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
     t.string "code", null: false
     t.datetime "created_at", null: false
     t.datetime "expires_at", null: false
-    t.uuid "identity_id", null: false
+    t.uuid "identity_id"
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_magic_links_on_code", unique: true
     t.index ["identity_id"], name: "index_magic_links_on_identity_id"
@@ -40,7 +41,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
 
   create_table "sessions", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.uuid "identity_id", null: false
+    t.uuid "identity_id"
     t.string "ip_address"
     t.datetime "last_active_at"
     t.datetime "updated_at", null: false
@@ -49,10 +50,10 @@ ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
   end
 
   create_table "users", id: :uuid, force: :cascade do |t|
-    t.uuid "account_id", null: false
+    t.uuid "account_id"
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
-    t.uuid "identity_id", null: false
+    t.uuid "identity_id"
     t.string "name", null: false
     t.string "role", null: false
     t.datetime "updated_at", null: false
@@ -60,9 +61,4 @@ ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
     t.index ["account_id"], name: "index_users_on_account_id"
     t.index ["identity_id"], name: "index_users_on_identity_id"
   end
-
-  add_foreign_key "magic_links", "identities"
-  add_foreign_key "sessions", "identities"
-  add_foreign_key "users", "accounts"
-  add_foreign_key "users", "identities"
 end

@@ -7,7 +7,7 @@ class Sessions::MenusController < ApplicationController
     @accounts = Current.identity.accounts
 
     if @accounts.one?
-      redirect_to root_url(script_name: @accounts.first.slug)
+      redirect_to root_url(script_name: "/#{@accounts.first.slug}")
     elsif @accounts.empty?
       signup = Signup.new({
         username: Current.identity.email.split("@").first,
@@ -15,7 +15,7 @@ class Sessions::MenusController < ApplicationController
       })
 
       if signup.create_personal_account
-        redirect_to root_url(script_name: signup.account.slug)
+        redirect_to root_url(script_name: "/#{signup.account.slug}")
       else
         raise "Failed to create personal account: #{signup.errors.full_messages.join(", ")}"
       end

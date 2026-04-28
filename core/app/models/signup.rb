@@ -48,7 +48,7 @@ class Signup
           personal: personal
         },
         owner: {
-          username: username,
+          name: username,
           identity: identity
         }
       )

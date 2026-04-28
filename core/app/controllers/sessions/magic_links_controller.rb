@@ -57,13 +57,7 @@ class Sessions::MagicLinksController < ApplicationController
 
     def after_sign_in_url(magic_link)
       if magic_link.identity.accounts.empty?
-        signup = Signup.new({
-          username: magic_link.identity.email.split("@").first,
-          identity: magic_link.identity
-        })
-
-        signup.create_personal_account
-        redirect_to root_url(script_name: signup.account.slug)
+        session_menu_path(script_name: nil)
       else
         after_authentication_url
       end
@@ -72,9 +66,5 @@ class Sessions::MagicLinksController < ApplicationController
     def rate_limit_exceeded
       rate_limit_exceeded_message = "Try again in 15 minutes."
       redirect_to session_magic_link_path, alert: rate_limit_exceeded_message
-    end
-
-    def requires_signup_completion?(magic_link)
-      magic_link.for_sign_up?
     end
 end
