@@ -3,7 +3,8 @@ class Account < ApplicationRecord
   has_many :identities, through: :users
 
   validates :name, presence: true
-  validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-_]+\z/ }
+  validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9-_]+\z/ },
+                    exclusion: { in: AccountSlug::RESERVED_SLUGS, message: "is reserved" }
 
   before_validation :set_slug_from_name, on: :create
   # before_create :only_single_personal_account_allowed
@@ -26,6 +27,6 @@ class Account < ApplicationRecord
     # end
 
     def set_slug_from_name
-      self.slug = "#{name.first(4)}-#{rand(1000..9999)}" if slug.blank?
+      self.slug = "#{name.parameterize.first(4)}-#{rand(1000..9999)}" if slug.blank?
     end
 end
