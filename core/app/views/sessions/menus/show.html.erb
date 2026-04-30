@@ -1,0 +1,17 @@
+<% @page_title = "Choose Account" %>
+
+<h1>Choose an account</h1>
+<p>Select which account you'd like to use.</p>
+
+<div class="account-list">
+  <% @accounts.each do |account| %>
+    <%= link_to root_url(script_name: "/#{account.slug}") do %>
+      <span><%= account.name.first.upcase %></span>
+      <span>
+        <strong><%= account.name %></strong>
+        <small>@<%= account.slug %></small>
+      </span>
+      <span>→</span>
+    <% end %>
+  <% end %>
+</div>
