@@ -19,6 +19,8 @@
   "settings.basic.ollama.model_placeholder": "Ollama モデルを選択",
   "settings.basic.deepseek.api_key_label": "DeepSeek API キー",
   "settings.basic.deepseek.api_key_placeholder": "DeepSeek API キーを入力",
+  "settings.basic.logs.label": "ログ",
+  "settings.basic.logs.open_button": "ログフォルダを開く",
   "settings.prompts.title": "プロンプト設定",
   "settings.prompts.system.label": "システムプロンプト",
   "settings.prompts.system.placeholder": "システムプロンプトを入力",
@@ -46,6 +48,7 @@
   "tray.settings": "設定",
   "tray.check_updates": "アップデートを確認",
   "tray.about": "typo について v{version}",
+  "tray.open_log_folder": "ログフォルダを開く…",
   "tray.quit": "typo を終了",
   "updates.up_to_date": "最新版です (v{version})"
 }

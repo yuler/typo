@@ -13,8 +13,23 @@
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
+    "global-shortcut:allow-unregister-all",
     "core:app:allow-app-hide",
     "core:app:allow-app-show",
-    "updater:default"
+    "updater:default",
+    "opener:allow-default-urls",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "$HOME/Library/Logs/Typo"
+        },
+        {
+          "path": "$HOME/Library/Logs/Typo/**"
+        }
+      ]
+    },
+    "opener:allow-open-url",
+    "opener:allow-reveal-item-in-dir"
   ]
 }

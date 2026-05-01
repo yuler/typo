@@ -25,6 +25,8 @@ commandPrefix = [
   "rm",
   "npx"
 ]
+decision = "allow"
+priority = 100
 
 # Ensure rtk specifically is allowed with its subcommands and redirection
 [[rule]]

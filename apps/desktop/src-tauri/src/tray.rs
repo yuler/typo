@@ -13,6 +13,7 @@ const ID_SHOW: &str = "show";
 const ID_SETTINGS: &str = "settings";
 const ID_CHECK_UPDATES: &str = "check-updates";
 const ID_ABOUT: &str = "about";
+const ID_OPEN_LOG_FOLDER: &str = "open-log-folder";
 const ID_QUIT: &str = "quit";
 
 // Events emitted to the frontend.
@@ -26,6 +27,7 @@ pub struct TrayMenuHandles {
     pub settings: MenuItem<Wry>,
     pub check_updates: MenuItem<Wry>,
     pub about: MenuItem<Wry>,
+    pub open_log_folder: MenuItem<Wry>,
     pub quit: MenuItem<Wry>,
 }
 
@@ -35,6 +37,7 @@ pub struct TrayLabels {
     pub settings: Option<String>,
     pub check_updates: Option<String>,
     pub about: Option<String>,
+    pub open_log_folder: Option<String>,
     pub quit: Option<String>,
     pub tooltip: Option<String>,
 }
@@ -59,11 +62,18 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
+    let open_log_folder = MenuItem::with_id(
+        handle,
+        ID_OPEN_LOG_FOLDER,
+        "Open log folder…",
+        true,
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(handle, ID_QUIT, "Quit typo", true, Some("CmdOrCtrl+Q"))?;
 
     let menu = Menu::with_items(
         handle,
-        &[&show, &settings, &check_updates, &separator, &about, &quit],
+        &[&show, &settings, &check_updates, &separator, &about, &open_log_folder, &quit],
     )?;
 
     let icon_bytes = include_bytes!("../icons/tray.png");
@@ -84,6 +94,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         settings,
         check_updates,
         about,
+        open_log_folder,
         quit,
     });
 
@@ -98,7 +109,7 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
     } = event
     {
         if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
-            eprintln!("Failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
+            log::error!("failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
         }
         show_and_focus_main(app);
     }
@@ -110,22 +121,40 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         ID_SETTINGS => {
             show_and_focus_main(app);
             if let Err(err) = app.emit(EV_OPEN_SETTINGS, ()) {
-                eprintln!("Failed to emit {}: {}", EV_OPEN_SETTINGS, err);
+                log::error!("failed to emit {}: {}", EV_OPEN_SETTINGS, err);
             }
         }
         ID_CHECK_UPDATES => {
             if let Err(err) = app.emit(EV_CHECK_UPDATES, ()) {
-                eprintln!("Failed to emit {}: {}", EV_CHECK_UPDATES, err);
+                log::error!("failed to emit {}: {}", EV_CHECK_UPDATES, err);
             }
         }
         ID_ABOUT => {
             let releases_url = format!("{}{}", RELEASES_URL_BASE, env!("CARGO_PKG_VERSION"));
             if let Err(err) = app.opener().open_url(&releases_url, None::<&str>) {
-                eprintln!("Failed to open {}: {}", releases_url, err);
+                log::error!("failed to open {}: {}", releases_url, err);
             }
         }
+        ID_OPEN_LOG_FOLDER => open_log_folder_action(app),
         ID_QUIT => app.exit(0),
-        other => eprintln!("Unknown tray menu event id: {}", other),
+        other => log::error!("unknown tray menu event id: {}", other),
+    }
+}
+
+fn open_log_folder_action(app: &AppHandle) {
+    match crate::desktop_log_dir(app) {
+        Ok(dir) => {
+            if let Err(err) = std::fs::create_dir_all(&dir) {
+                log::error!("failed to create log dir {}: {}", dir.display(), err);
+                return;
+            }
+            if let Err(err) = app.opener().open_path(dir.to_string_lossy(), None::<&str>) {
+                log::error!("failed to open log folder: {}", err);
+            }
+        }
+        Err(err) => {
+            log::error!("failed to resolve app log dir: {}", err);
+        }
     }
 }
 
@@ -135,10 +164,10 @@ fn show_and_focus_main(app: &AppHandle) {
     };
 
     if let Err(err) = window.show() {
-        eprintln!("Failed to show main window: {}", err);
+        log::error!("failed to show main window: {}", err);
     }
     if let Err(err) = window.set_focus() {
-        eprintln!("Failed to focus main window: {}", err);
+        log::error!("failed to focus main window: {}", err);
     }
 }
 
@@ -148,7 +177,7 @@ pub fn update_tray_menu(
     labels: TrayLabels,
 ) -> Result<(), String> {
     let Some(state) = app.try_state::<TrayMenuHandles>() else {
-        eprintln!("Tray menu handles not found in state. Tray might not be initialized.");
+        log::error!("tray menu handles not found in state, tray might not be initialized");
         return Ok(());
     };
     if let Some(text) = labels.show.as_deref() {
@@ -165,6 +194,12 @@ pub fn update_tray_menu(
     }
     if let Some(text) = labels.about.as_deref() {
         state.about.set_text(text).map_err(|e| e.to_string())?;
+    }
+    if let Some(text) = labels.open_log_folder.as_deref() {
+        state
+            .open_log_folder
+            .set_text(text)
+            .map_err(|e| e.to_string())?;
     }
     if let Some(text) = labels.quit.as_deref() {
         state.quit.set_text(text).map_err(|e| e.to_string())?;
