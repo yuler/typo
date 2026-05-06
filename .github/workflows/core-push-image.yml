@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'Git ref (tag or commit SHA) to build'
+        description: Git ref (tag or commit SHA) to build
         required: true
         type: string
-        default: 'main'
+        default: main
   push:
     tags:
       - 'v*'
@@ -25,7 +25,7 @@ permissions:
   attestations: write
 
 env:
-  IMAGE_DESCRIPTION: "typo: An AI-powered desktop tool that refines your selected text with smart suggestions and corrections."
+  IMAGE_DESCRIPTION: 'typo: An AI-powered desktop tool that refines your selected text with smart suggestions and corrections.'
   SOURCE_URL: https://github.com/${{ github.repository }}
 
 jobs:

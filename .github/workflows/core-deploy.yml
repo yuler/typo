@@ -2,10 +2,10 @@ name: core-deploy
 
 on:
   workflow_run:
-    workflows: ["core-push-image"]
+    workflows: [core-push-image]
     types:
       - completed
-    branches: ["main"]
+    branches: [main]
 
 jobs:
   trigger-dokploy-deployment:
