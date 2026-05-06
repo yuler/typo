@@ -8,9 +8,11 @@ class Identity < ApplicationRecord
   normalizes :email, with: ->(value) { value.strip.downcase.presence }
 
   def self.find_by_permissable_access_token(token, method:)
-    Identity.find(token) # Currently using token as ID for development purposes
+    # Using signed_id as a temporary secure token to avoid IDOR vulnerability.
+    # In production, this should be replaced by a proper AccessToken system.
+    Identity.find_signed(token, purpose: :api_token)
 
-    # TODO: Implement this with access token
+    # TODO: Implement this with a dedicated AccessToken model for more granular control
     # if (access_token = AccessToken.find_by(token: token)) && access_token.allows?(method)
     #   access_token.identity
     # end

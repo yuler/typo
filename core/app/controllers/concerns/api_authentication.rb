@@ -37,15 +37,9 @@ module ApiAuthentication
     end
 
     def authenticate_by_bearer_token
-      if request.authorization.to_s.include?("Bearer")
-        if bearer_token_authenticatable_request?
-          authenticate_or_request_with_http_token do |token|
-            if identity = Identity.find_by_permissable_access_token(token, method: request.method)
-              Current.identity = identity
-            end
-          end
-        else
-          request_http_token_authentication
+      authenticate_with_http_token do |token|
+        if identity = Identity.find_by_permissable_access_token(token, method: request.method)
+          Current.identity = identity
         end
       end
     end
