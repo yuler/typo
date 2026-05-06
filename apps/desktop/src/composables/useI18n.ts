@@ -1,4 +1,4 @@
-import type { Locale } from '@typo/languages'
+import type { Locale, MessageKey } from '@typo/languages'
 import { emit, listen } from '@tauri-apps/api/event'
 import { createGenericTranslator, defaultLocale } from '@typo/languages'
 import { computed, ref } from 'vue'
@@ -6,6 +6,9 @@ import { get, save, set } from '@/store'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
 import zh from '../locales/zh.json'
+
+type LocalKey = keyof typeof en
+type TranslationKey = LocalKey | MessageKey
 
 const localMessages = { en, zh, jp } satisfies Record<Locale, Record<string, string>>
 
@@ -30,7 +33,7 @@ export async function setLocale(next: Locale): Promise<void> {
 export function useI18n() {
   const translator = computed(() => createGenericTranslator(locale.value, localMessages))
 
-  const t = (key: keyof typeof en, vars?: Record<string, string | number | undefined | null>) => translator.value(key, vars)
+  const t = (key: TranslationKey, vars?: Record<string, string | number | undefined | null>) => translator.value(key as any, vars)
 
   return { locale, setLocale, t }
 }

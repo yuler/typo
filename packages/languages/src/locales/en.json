@@ -2,6 +2,8 @@
   "brand.name": "typo",
   "action.save": "Save",
   "action.cancel": "Cancel",
+  "action.enable": "Enable",
+  "action.disable": "Disable",
   "language.label": "Language",
   "language.en": "English",
   "language.zh": "中文",

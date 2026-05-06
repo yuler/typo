@@ -13,8 +13,12 @@
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
+    "global-shortcut:allow-unregister-all",
     "core:app:allow-app-hide",
     "core:app:allow-app-show",
-    "updater:default"
+    "updater:default",
+    "opener:allow-default-urls",
+    "opener:allow-open-url",
+    "opener:allow-reveal-item-in-dir"
   ]
 }

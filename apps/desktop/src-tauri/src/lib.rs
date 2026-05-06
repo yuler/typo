@@ -1,10 +1,13 @@
 use serde::Serialize;
+use tauri::Manager;
 use tauri::Emitter;
 use tauri_plugin_clipboard_manager::ClipboardExt;
+use tauri_plugin_opener::OpenerExt;
 use std::sync::{Mutex, OnceLock};
 
 mod cli;
 mod keyboard;
+mod logging;
 mod tray;
 
 #[cfg(target_os = "macos")]
@@ -17,9 +20,9 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
         let trusted =
             macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
         if trusted {
-            print!("Application is totally trusted!");
+            log::info!("application is totally trusted");
         } else {
-            print!("Application isn't trusted :(");
+            log::warn!("application is not trusted");
         }
         Ok(trusted)
     }
@@ -72,7 +75,7 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
 }
 
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
-    println!("app_cli_selection_trigger");
+    log::debug!("app_cli_selection_trigger");
 
     let text = if in_linux_wayland() {
         get_selected_text_wayland(app)
@@ -82,13 +85,13 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
 
     let Some(text) = text else { return };
 
-    println!("text: {}", text);
+    log::debug!("selected text: {}", text);
     let payload = SetInputPayload {
         text,
         mode: "selected".to_string(),
     };
     if let Err(error) = app.emit("set-input", payload) {
-        eprintln!("Failed to emit set-input event: {}", error);
+        log::error!("failed to emit set-input event: {}", error);
     }
 }
 
@@ -103,6 +106,7 @@ fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
     }
 
     // 2. Fallback to copyq selection
+    // TODO: remove this
     if let Some(text) = keyboard::copyq_selection() {
         return Some(text);
     }
@@ -141,7 +145,7 @@ fn consume_pending_selection_input() -> Option<SetInputPayload> {
     match pending_selection_payload().lock() {
         Ok(mut pending) => pending.take(),
         Err(error) => {
-            eprintln!("Failed to access pending selection payload: {}", error);
+            log::error!("failed to access pending selection payload: {}", error);
             None
         }
     }
@@ -154,16 +158,37 @@ fn set_pending_selection_input(payload: SetInputPayload) {
     }
 }
 
+pub(crate) fn desktop_log_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    app.path()
+        .app_log_dir()
+        .map_err(|err| format!("failed to resolve app log dir: {err}"))
+}
+
+pub(crate) fn open_log_folder_inner(app: &tauri::AppHandle) -> Result<(), String> {
+    let dir = desktop_log_dir(app)?;
+
+    std::fs::create_dir_all(&dir)
+        .map_err(|err| format!("failed to create log dir {}: {err}", dir.display()))?;
+
+    app.opener()
+        .open_path(dir.to_string_lossy(), None::<&str>)
+        .map_err(|err| format!("failed to open log folder {}: {err}", dir.display()))?;
+
+    log::info!("opened log folder: {}", dir.display());
+    Ok(())
+}
+
+#[tauri::command]
+fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
+    open_log_folder_inner(&app)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
 
-    println!(
-        "in_linux_wayland={}",
-        in_linux_wayland()
-    );
-
     tauri::Builder::default()
+        .plugin(logging::log_plugin_builder().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -180,8 +205,9 @@ pub fn run() {
             );
         }))
         .setup(move |app| {
+            log::info!("in_linux_wayland={}", in_linux_wayland());
             if let Err(error) = tray::init(app) {
-                eprintln!("Failed to initialize system tray: {}", error);
+                log::error!("failed to initialize system tray: {}", error);
             }
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -196,6 +222,7 @@ pub fn run() {
             get_system_info,
             get_selected_text,
             set_pending_selection_input,
+            open_log_folder,
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,

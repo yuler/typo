@@ -30,6 +30,15 @@ async function onLocaleChange(next: Locale) {
   await setLocale(next)
 }
 
+async function openLogFolder(): Promise<void> {
+  try {
+    await invoke('open_log_folder')
+  }
+  catch (err) {
+    console.error('failed to open log folder:', err)
+  }
+}
+
 const form = ref({
   autoselect: false,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
@@ -228,7 +237,7 @@ watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
   }
 })
 
-function addPromptShortcut() {
+function addPromptSlash() {
   if (form.value.slash_commands.length >= 5) {
     return
   }
@@ -236,7 +245,7 @@ function addPromptShortcut() {
   form.value.slash_commands.push({ id: crypto.randomUUID(), key: '', value: '' })
 }
 
-function removePromptShortcut(index: number) {
+function removePromptSlash(index: number) {
   form.value.slash_commands.splice(index, 1)
 }
 
@@ -298,6 +307,10 @@ async function onSubmit() {
       <main class="flex-1 overflow-y-auto px-8 py-6">
         <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
           <template v-if="activeTab === 'basic'">
+            <h1 class="text-2xl font-bold">
+              {{ t('settings.basic.title') }}
+            </h1>
+
             <div class="space-y-2">
               <Label>{{ t('settings.language.title') }}</Label>
               <Select :model-value="locale" @update:model-value="(val: any) => onLocaleChange(val as Locale)">
@@ -312,55 +325,55 @@ async function onSubmit() {
               </Select>
             </div>
 
-            <h1 class="text-2xl font-bold">
-              {{ t('settings.basic.title') }}
-            </h1>
-
-            <div class="grid w-full items-center gap-4">
+            <div class="space-y-2">
+              <Label>{{ t('settings.basic.autoselect.label') }}</Label>
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
-                <Label for="autoselect">{{ t('settings.basic.autoselect.label') }}</Label>
+                <Label for="autoselect">{{ form.autoselect ? t('action.enable') : t('action.disable') }}</Label>
               </div>
               <p class="text-xs text-muted-foreground">
                 {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
               </p>
-              <div class="grid w-full items-center gap-2 mt-2">
-                <Label for="global_shortcut">{{ t('settings.basic.shortcut.label') }}</Label>
-                <div class="flex flex-col gap-2">
-                  <div class="flex items-center gap-2">
-                    <Button
-                      ref="captureButtonEl"
-                      type="button"
-                      variant="outline"
-                      class="flex-1 justify-start font-mono"
-                      :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
-                      @click="isCapturingShortcut ? stopCapture() : startCapture()"
-                    >
-                      {{
-                        isCapturingShortcut
-                          ? t('settings.basic.shortcut.listening')
-                          : formatShortcut(form.global_shortcut, isMacOS)
-                      }}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      class="gap-1"
-                      @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
-                    >
-                      <RotateCcwIcon class="h-4 w-4" />
-                      {{ t('settings.basic.shortcut.reset') }}
-                    </Button>
-                  </div>
-                  <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
-                    {{ shortcutConflictError }}
-                  </p>
-                  <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
-                    {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
-                  </p>
-                </div>
-              </div>
+            </div>
 
+            <div class="space-y-2">
+              <Label for="global_shortcut">{{ t('settings.basic.shortcut.label') }}</Label>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <Button
+                    ref="captureButtonEl"
+                    type="button"
+                    variant="outline"
+                    class="flex-1 justify-start font-mono"
+                    :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
+                    @click="isCapturingShortcut ? stopCapture() : startCapture()"
+                  >
+                    {{
+                      isCapturingShortcut
+                        ? t('settings.basic.shortcut.listening')
+                        : formatShortcut(form.global_shortcut, isMacOS)
+                    }}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    class="gap-1"
+                    @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
+                  >
+                    <RotateCcwIcon class="h-4 w-4" />
+                    {{ t('settings.basic.shortcut.reset') }}
+                  </Button>
+                </div>
+                <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
+                  {{ shortcutConflictError }}
+                </p>
+                <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
+                  {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
               <Label for="ai_provider">{{ t('settings.basic.ai_provider.label') }}</Label>
               <Select id="ai_provider" v-model="form.ai_provider">
                 <SelectTrigger class="w-full">
@@ -414,6 +427,15 @@ async function onSubmit() {
                 </button>
               </div>
             </div>
+
+            <div class="grid w-full items-center gap-2">
+              <Label>{{ t('settings.basic.logs.label') }}</Label>
+              <div>
+                <Button type="button" variant="outline" @click="openLogFolder">
+                  {{ t('settings.basic.logs.open_button') }}
+                </Button>
+              </div>
+            </div>
           </template>
 
           <template v-else>
@@ -428,10 +450,10 @@ async function onSubmit() {
 
             <div class="grid w-full gap-3">
               <div class="flex items-center justify-between">
-                <Label>{{ t('settings.prompts.shortcuts.label') }}</Label>
-                <Button type="button" variant="outline" :disabled="form.slash_commands.length >= 5" @click="addPromptShortcut">
+                <Label>{{ t('settings.prompts.slash.label') }}</Label>
+                <Button type="button" variant="outline" :disabled="form.slash_commands.length >= 5" @click="addPromptSlash">
                   <PlusIcon class="w-4 h-4" />
-                  {{ t('settings.prompts.shortcuts.add') }}
+                  {{ t('settings.prompts.slash.add') }}
                 </Button>
               </div>
 
@@ -441,11 +463,11 @@ async function onSubmit() {
                 class="rounded-lg border p-3 grid gap-2"
               >
                 <div class="grid gap-1">
-                  <Label :for="`prompt-key-${index}`">{{ t('settings.prompts.shortcuts.key_label') }}</Label>
+                  <Label :for="`prompt-key-${index}`">{{ t('settings.prompts.slash.key_label') }}</Label>
                   <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" />
                 </div>
                 <div class="grid gap-1">
-                  <Label :for="`prompt-aliases-${index}`">{{ t('settings.prompts.shortcuts.aliases_label') }}</Label>
+                  <Label :for="`prompt-aliases-${index}`">{{ t('settings.prompts.slash.aliases_label') }}</Label>
                   <Input
                     :id="`prompt-aliases-${index}`"
                     :model-value="item.aliases?.join(', ')"
@@ -454,19 +476,19 @@ async function onSubmit() {
                   />
                 </div>
                 <div class="grid gap-1">
-                  <Label :for="`prompt-value-${index}`">{{ t('settings.prompts.shortcuts.instruction_label') }}</Label>
-                  <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" :placeholder="t('settings.prompts.shortcuts.instruction_placeholder')" />
+                  <Label :for="`prompt-value-${index}`">{{ t('settings.prompts.slash.instruction_label') }}</Label>
+                  <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" :placeholder="t('settings.prompts.slash.instruction_placeholder')" />
                 </div>
                 <div class="flex justify-end">
-                  <Button type="button" variant="ghost" @click="removePromptShortcut(index)">
+                  <Button type="button" variant="ghost" @click="removePromptSlash(index)">
                     <Trash2Icon class="w-4 h-4" />
-                    {{ t('settings.prompts.shortcuts.remove') }}
+                    {{ t('settings.prompts.slash.remove') }}
                   </Button>
                 </div>
               </div>
 
               <p class="text-xs text-muted-foreground">
-                <template v-for="(part, i) in t('settings.prompts.shortcuts.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
+                <template v-for="(part, i) in t('settings.prompts.slash.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
                   <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
                   <template v-else>
                     {{ part }}
