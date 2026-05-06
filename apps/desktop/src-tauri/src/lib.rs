@@ -106,6 +106,7 @@ fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
     }
 
     // 2. Fallback to copyq selection
+    // TODO: remove this
     if let Some(text) = keyboard::copyq_selection() {
         return Some(text);
     }
@@ -158,21 +159,9 @@ fn set_pending_selection_input(payload: SetInputPayload) {
 }
 
 pub(crate) fn desktop_log_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    #[cfg(target_os = "macos")]
-    {
-        let home = app
-            .path()
-            .home_dir()
-            .map_err(|err| format!("failed to resolve home dir: {err}"))?;
-        Ok(home.join("Library").join("Logs").join("Typo"))
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        app.path()
-            .app_log_dir()
-            .map_err(|err| format!("failed to resolve app log dir: {err}"))
-    }
+    app.path()
+        .app_log_dir()
+        .map_err(|err| format!("failed to resolve app log dir: {err}"))
 }
 
 #[tauri::command]
