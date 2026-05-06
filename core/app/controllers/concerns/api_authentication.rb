@@ -1,11 +1,10 @@
-module Authentication
+module ApiAuthentication
   extend ActiveSupport::Concern
 
   included do
-    before_action :require_account # Checking and setting account must happen first
     before_action :require_authentication
+    before_action :require_account
     helper_method :authenticated?
-    helper_method :email_pending_authentication
 
     etag { Current.identity.id if authenticated? }
 
@@ -35,24 +34,8 @@ module Authentication
       Current.identity.present?
     end
 
-    def require_account
-      unless Current.account.present?
-        redirect_to main_app.session_menu_path(script_name: nil)
-      end
-    end
-
     def require_authentication
-      resume_session || authenticate_by_bearer_token || request_authentication
-    end
-
-    def resume_session
-      if session = find_session_by_cookie
-        set_current_session session
-      end
-    end
-
-    def find_session_by_cookie
-      Session.find_signed(cookies.signed[:session_token])
+      authenticate_by_bearer_token || authenticate_by_query_token || json_request_unauthorized
     end
 
     def authenticate_by_bearer_token
@@ -73,24 +56,24 @@ module Authentication
       request.format.json?
     end
 
-    def request_authentication
-      if Current.account.present?
-        session[:return_to_after_authenticating] = request.url
+    def authenticate_by_query_token
+      if token = params[:token]
+        if identity = Identity.find_by_permissable_access_token(token, method: request.method)
+          Current.identity = identity
+        end
       end
-
-      redirect_to_login_url
     end
 
-    def after_authentication_url
-      session.delete(:return_to_after_authenticating) || root_url
+    def json_request_unauthorized
+      render json: { error: "Unauthorized" }, status: :unauthorized
     end
 
-    def redirect_authenticated_user
-      redirect_to main_app.root_url if authenticated?
+    def require_account
+      Current.account || Current.identity.personal_account || json_request_account_not_found
     end
 
-    def redirect_accounted_request
-      redirect_to main_app.root_url if Current.account.present?
+    def json_request_account_not_found
+      render json: { error: "Account not found in api url or as identity user personal account" }, status: :not_found
     end
 
     def start_new_session_for(identity)
