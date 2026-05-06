@@ -307,6 +307,10 @@ async function onSubmit() {
       <main class="flex-1 overflow-y-auto px-8 py-6">
         <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
           <template v-if="activeTab === 'basic'">
+            <h1 class="text-2xl font-bold">
+              {{ t('settings.basic.title') }}
+            </h1>
+
             <div class="space-y-2">
               <Label>{{ t('settings.language.title') }}</Label>
               <Select :model-value="locale" @update:model-value="(val: any) => onLocaleChange(val as Locale)">
@@ -321,55 +325,55 @@ async function onSubmit() {
               </Select>
             </div>
 
-            <h1 class="text-2xl font-bold">
-              {{ t('settings.basic.title') }}
-            </h1>
-
-            <div class="grid w-full items-center gap-4">
+            <div class="space-y-2">
+              <Label>{{ t('settings.basic.autoselect.label') }}</Label>
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
-                <Label for="autoselect">{{ t('settings.basic.autoselect.label') }}</Label>
+                <Label for="autoselect">{{ form.autoselect ? t('action.enable') : t('action.disable') }}</Label>
               </div>
               <p class="text-xs text-muted-foreground">
                 {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
               </p>
-              <div class="grid w-full items-center gap-2 mt-2">
-                <Label for="global_shortcut">{{ t('settings.basic.shortcut.label') }}</Label>
-                <div class="flex flex-col gap-2">
-                  <div class="flex items-center gap-2">
-                    <Button
-                      ref="captureButtonEl"
-                      type="button"
-                      variant="outline"
-                      class="flex-1 justify-start font-mono"
-                      :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
-                      @click="isCapturingShortcut ? stopCapture() : startCapture()"
-                    >
-                      {{
-                        isCapturingShortcut
-                          ? t('settings.basic.shortcut.listening')
-                          : formatShortcut(form.global_shortcut, isMacOS)
-                      }}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      class="gap-1"
-                      @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
-                    >
-                      <RotateCcwIcon class="h-4 w-4" />
-                      {{ t('settings.basic.shortcut.reset') }}
-                    </Button>
-                  </div>
-                  <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
-                    {{ shortcutConflictError }}
-                  </p>
-                  <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
-                    {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
-                  </p>
-                </div>
-              </div>
+            </div>
 
+            <div class="space-y-2">
+              <Label for="global_shortcut">{{ t('settings.basic.shortcut.label') }}</Label>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <Button
+                    ref="captureButtonEl"
+                    type="button"
+                    variant="outline"
+                    class="flex-1 justify-start font-mono"
+                    :class="{ 'border-primary ring-2 ring-primary': isCapturingShortcut }"
+                    @click="isCapturingShortcut ? stopCapture() : startCapture()"
+                  >
+                    {{
+                      isCapturingShortcut
+                        ? t('settings.basic.shortcut.listening')
+                        : formatShortcut(form.global_shortcut, isMacOS)
+                    }}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    class="gap-1"
+                    @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
+                  >
+                    <RotateCcwIcon class="h-4 w-4" />
+                    {{ t('settings.basic.shortcut.reset') }}
+                  </Button>
+                </div>
+                <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
+                  {{ shortcutConflictError }}
+                </p>
+                <p class="text-xs text-muted-foreground" :class="{ 'text-primary font-medium animate-pulse': isCapturingShortcut }">
+                  {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
               <Label for="ai_provider">{{ t('settings.basic.ai_provider.label') }}</Label>
               <Select id="ai_provider" v-model="form.ai_provider">
                 <SelectTrigger class="w-full">

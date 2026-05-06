@@ -3,6 +3,8 @@
   "action.save": "保存",
   "action.cancel": "取消",
   "language.label": "语言",
+  "action.enable": "启用",
+  "action.disable": "禁用",
   "language.en": "English",
   "language.zh": "中文",
   "language.jp": "日本語"
