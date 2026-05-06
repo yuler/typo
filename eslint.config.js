@@ -19,5 +19,6 @@ export default antfu({
     'apps/www/dist/**',
     'packages/languages/src/generated/**',
     'packages/releases/data/**',
+    '.github/workflows/**',
   ],
 })
