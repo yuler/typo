@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
@@ -124,7 +124,7 @@ onMounted(async () => {
   // Show Settings window if AI key is missing
   const aiProvider = await store.get('ai_provider')
   if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
-    await nextTick()
+    await sleep(500)
     gotoSettings()
     return
   }
