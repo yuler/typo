@@ -8,7 +8,7 @@ class Identity < ApplicationRecord
   normalizes :email, with: ->(value) { value.strip.downcase.presence }
 
   def self.find_by_permissable_access_token(token, method:)
-    Identity.first
+    Identity.find(token) # Currently using token as ID for development purposes
 
     # TODO: Implement this with access token
     # if (access_token = AccessToken.find_by(token: token)) && access_token.allows?(method)

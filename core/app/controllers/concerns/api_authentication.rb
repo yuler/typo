@@ -14,7 +14,6 @@ module ApiAuthentication
   class_methods do
     def disallow_account_scope(**options)
       skip_before_action :require_account, **options
-      before_action :redirect_accounted_request, **options
     end
 
     def require_unauthenticated_access(**options)
@@ -24,7 +23,6 @@ module ApiAuthentication
 
     def allow_unauthenticated_access(**options)
       skip_before_action :require_authentication, **options
-      before_action :resume_session, **options
       allow_unauthorized_access(**options)
     end
   end
@@ -69,30 +67,10 @@ module ApiAuthentication
     end
 
     def require_account
-      Current.account || Current.identity.personal_account || json_request_account_not_found
+      Current.account || Current.identity&.personal_account || json_request_account_not_found
     end
 
     def json_request_account_not_found
       render json: { error: "Account not found in api url or as identity user personal account" }, status: :not_found
-    end
-
-    def start_new_session_for(identity)
-      identity.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |session|
-        set_current_session session
-      end
-    end
-
-    def set_current_session(session)
-      Current.session = session
-      cookies.signed.permanent[:session_token] = { value: session.signed_id, httponly: true, same_site: :lax }
-    end
-
-    def terminate_session
-      Current.session&.destroy
-      cookies.delete(:session_token)
-    end
-
-    def session_token
-      cookies[:session_token]
     end
 end
