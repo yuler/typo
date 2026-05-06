@@ -33,7 +33,7 @@ export async function setLocale(next: Locale): Promise<void> {
 export function useI18n() {
   const translator = computed(() => createGenericTranslator(locale.value, localMessages))
 
-  const t = (key: TranslationKey, vars?: Record<string, string | number | undefined | null>) => translator.value(key as LocalKey, vars)
+  const t = (key: TranslationKey, vars?: Record<string, string | number | undefined | null>) => translator.value(key as any, vars)
 
   return { locale, setLocale, t }
 }
