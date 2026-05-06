@@ -47,5 +47,11 @@
   "tray.check_updates": "アップデートを確認",
   "tray.about": "typo について v{version}",
   "tray.quit": "typo を終了",
-  "updates.up_to_date": "最新版です (v{version})"
+  "updates.up_to_date": "最新版です (v{version})",
+  "import.title": "プロンプトをインポート",
+  "import.description": "新しいプロンプト (ID: {id}) を検出しました。インポートしますか？",
+  "import.confirm": "確認",
+  "import.cancel": "キャンセル",
+  "import.success": "プロンプトが正常にインポートされました",
+  "import.error": "プロンプトの取得に失敗しました"
 }

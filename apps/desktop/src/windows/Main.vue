@@ -15,7 +15,7 @@ import * as store from '@/store'
 import { formatShortcut, sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
-const { setCurrentWindow } = useGlobalState()
+const { setCurrentWindow, setSettingsTab } = useGlobalState()
 const { t } = useI18n()
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
@@ -214,6 +214,7 @@ async function onESC() {
 }
 
 function gotoSettings() {
+  setSettingsTab('basic')
   setCurrentWindow('Settings')
 }
 </script>

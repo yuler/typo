@@ -47,5 +47,11 @@
   "tray.check_updates": "检查更新",
   "tray.about": "关于 typo v{version}",
   "tray.quit": "退出 typo",
-  "updates.up_to_date": "已是最新版本 (v{version})"
+  "updates.up_to_date": "已是最新版本 (v{version})",
+  "import.title": "导入提示词",
+  "import.description": "检测到新的提示词 (ID: {id})，是否导入？",
+  "import.confirm": "确认导入",
+  "import.cancel": "取消",
+  "import.success": "提示词已成功导入",
+  "import.error": "获取提示词失败"
 }

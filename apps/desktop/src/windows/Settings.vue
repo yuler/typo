@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -17,18 +18,18 @@ import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
 import { formatShortcut } from '@/utils'
 
-const { setCurrentWindow } = useGlobalState()
+const { setCurrentWindow, settingsTab: activeTab } = useGlobalState()
 
-type SettingsTab = 'basic' | 'prompts'
-
-const activeTab = ref<SettingsTab>('basic')
 const showApiKey = ref(false)
+const unlisteners: (() => void)[] = []
 
 const { locale, setLocale, t } = useI18n()
 
 async function onLocaleChange(next: Locale) {
   await setLocale(next)
 }
+
+const isMacOS = ref(false)
 
 const form = ref({
   autoselect: false,
@@ -40,11 +41,30 @@ const form = ref({
   global_shortcut: '',
 })
 
+async function loadSettings() {
+  form.value.autoselect = await store.get('autoselect')
+  form.value.deepseek_api_key = await store.get('deepseek_api_key')
+  form.value.ai_provider = await store.get('ai_provider')
+  form.value.ollama_model = await store.get('ollama_model')
+  form.value.system_prompt = await store.get('ai_system_prompt')
+  form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_GLOBAL_SHORTCUT
+
+  const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  isMacOS.value = systemInfo.os === 'macos'
+
+  const shortcuts = await store.get('slash_commands')
+  form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
+
+  if (form.value.ai_provider === 'ollama') {
+    await loadOllamaModels()
+  }
+}
+
 const ollamaModels = ref<any[]>([])
 
 const isCapturingShortcut = ref(false)
 const shortcutConflictError = ref('')
-const isMacOS = ref(false)
+
 const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
 const recordedCaptureKeys = new Set<string>()
@@ -189,22 +209,11 @@ async function loadOllamaModels() {
 }
 
 onMounted(async () => {
-  form.value.autoselect = await store.get('autoselect')
-  form.value.deepseek_api_key = await store.get('deepseek_api_key')
-  form.value.ai_provider = await store.get('ai_provider')
-  form.value.ollama_model = await store.get('ollama_model')
-  form.value.system_prompt = await store.get('ai_system_prompt')
-  form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_GLOBAL_SHORTCUT
+  await loadSettings()
 
-  const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
-  isMacOS.value = systemInfo.os === 'macos'
-
-  const shortcuts = await store.get('slash_commands')
-  form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
-
-  if (form.value.ai_provider === 'ollama') {
-    await loadOllamaModels()
-  }
+  unlisteners.push(await listen('refresh-settings', async () => {
+    await loadSettings()
+  }))
 
   nextTick(() => {
     const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
@@ -219,6 +228,9 @@ onUnmounted(() => {
   // Clean up keydown listener if component is unmounted while capturing shortcut
   if (isCapturingShortcut.value) {
     stopCapture()
+  }
+  for (const unlisten of unlisteners) {
+    unlisten()
   }
 })
 
