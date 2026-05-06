@@ -121,6 +121,14 @@ let suppressBlurHideUntil = 0
 const TRAY_TOGGLE_BLUR_GUARD_MS = 250
 
 onMounted(async () => {
+  // Show Settings window if AI key is missing
+  const aiProvider = await store.get('ai_provider')
+  if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
+    await sleep(500)
+    gotoSettings()
+    return
+  }
+
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
   isMacOS.value = systemInfo.os === 'macos'
 
@@ -138,12 +146,6 @@ onMounted(async () => {
   }
 
   globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
-
-  const aiProvider = await store.get('ai_provider')
-  if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
-    setCurrentWindow('Settings')
-    return
-  }
 
   unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     // Force show and focus when event received
