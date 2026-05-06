@@ -142,19 +142,8 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
 }
 
 fn open_log_folder_action(app: &AppHandle) {
-    match crate::desktop_log_dir(app) {
-        Ok(dir) => {
-            if let Err(err) = std::fs::create_dir_all(&dir) {
-                log::error!("failed to create log dir {}: {}", dir.display(), err);
-                return;
-            }
-            if let Err(err) = app.opener().open_path(dir.to_string_lossy(), None::<&str>) {
-                log::error!("failed to open log folder: {}", err);
-            }
-        }
-        Err(err) => {
-            log::error!("failed to resolve app log dir: {}", err);
-        }
+    if let Err(err) = crate::open_log_folder_inner(app) {
+        log::error!("{}", err);
     }
 }
 

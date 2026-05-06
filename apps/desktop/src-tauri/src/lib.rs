@@ -164,9 +164,8 @@ pub(crate) fn desktop_log_dir(app: &tauri::AppHandle) -> Result<std::path::PathB
         .map_err(|err| format!("failed to resolve app log dir: {err}"))
 }
 
-#[tauri::command]
-fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
-    let dir = desktop_log_dir(&app)?;
+pub(crate) fn open_log_folder_inner(app: &tauri::AppHandle) -> Result<(), String> {
+    let dir = desktop_log_dir(app)?;
 
     std::fs::create_dir_all(&dir)
         .map_err(|err| format!("failed to create log dir {}: {err}", dir.display()))?;
@@ -177,6 +176,11 @@ fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
 
     log::info!("opened log folder: {}", dir.display());
     Ok(())
+}
+
+#[tauri::command]
+fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
+    open_log_folder_inner(&app)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
