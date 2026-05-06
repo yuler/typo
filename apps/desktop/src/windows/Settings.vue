@@ -237,7 +237,7 @@ watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
   }
 })
 
-function addPromptShortcut() {
+function addPromptSlash() {
   if (form.value.slash_commands.length >= 5) {
     return
   }
@@ -245,7 +245,7 @@ function addPromptShortcut() {
   form.value.slash_commands.push({ id: crypto.randomUUID(), key: '', value: '' })
 }
 
-function removePromptShortcut(index: number) {
+function removePromptSlash(index: number) {
   form.value.slash_commands.splice(index, 1)
 }
 
@@ -450,10 +450,10 @@ async function onSubmit() {
 
             <div class="grid w-full gap-3">
               <div class="flex items-center justify-between">
-                <Label>{{ t('settings.prompts.shortcuts.label') }}</Label>
-                <Button type="button" variant="outline" :disabled="form.slash_commands.length >= 5" @click="addPromptShortcut">
+                <Label>{{ t('settings.prompts.slash.label') }}</Label>
+                <Button type="button" variant="outline" :disabled="form.slash_commands.length >= 5" @click="addPromptSlash">
                   <PlusIcon class="w-4 h-4" />
-                  {{ t('settings.prompts.shortcuts.add') }}
+                  {{ t('settings.prompts.slash.add') }}
                 </Button>
               </div>
 
@@ -463,11 +463,11 @@ async function onSubmit() {
                 class="rounded-lg border p-3 grid gap-2"
               >
                 <div class="grid gap-1">
-                  <Label :for="`prompt-key-${index}`">{{ t('settings.prompts.shortcuts.key_label') }}</Label>
+                  <Label :for="`prompt-key-${index}`">{{ t('settings.prompts.slash.key_label') }}</Label>
                   <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" />
                 </div>
                 <div class="grid gap-1">
-                  <Label :for="`prompt-aliases-${index}`">{{ t('settings.prompts.shortcuts.aliases_label') }}</Label>
+                  <Label :for="`prompt-aliases-${index}`">{{ t('settings.prompts.slash.aliases_label') }}</Label>
                   <Input
                     :id="`prompt-aliases-${index}`"
                     :model-value="item.aliases?.join(', ')"
@@ -476,19 +476,19 @@ async function onSubmit() {
                   />
                 </div>
                 <div class="grid gap-1">
-                  <Label :for="`prompt-value-${index}`">{{ t('settings.prompts.shortcuts.instruction_label') }}</Label>
-                  <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" :placeholder="t('settings.prompts.shortcuts.instruction_placeholder')" />
+                  <Label :for="`prompt-value-${index}`">{{ t('settings.prompts.slash.instruction_label') }}</Label>
+                  <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" :placeholder="t('settings.prompts.slash.instruction_placeholder')" />
                 </div>
                 <div class="flex justify-end">
-                  <Button type="button" variant="ghost" @click="removePromptShortcut(index)">
+                  <Button type="button" variant="ghost" @click="removePromptSlash(index)">
                     <Trash2Icon class="w-4 h-4" />
-                    {{ t('settings.prompts.shortcuts.remove') }}
+                    {{ t('settings.prompts.slash.remove') }}
                   </Button>
                 </div>
               </div>
 
               <p class="text-xs text-muted-foreground">
-                <template v-for="(part, i) in t('settings.prompts.shortcuts.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
+                <template v-for="(part, i) in t('settings.prompts.slash.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
                   <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
                   <template v-else>
                     {{ part }}
