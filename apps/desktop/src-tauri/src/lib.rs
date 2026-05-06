@@ -1,6 +1,5 @@
 use serde::Serialize;
 use tauri::Manager;
-use tauri_plugin_log::{RotationStrategy, Target, TargetKind, TimezoneStrategy};
 use tauri::Emitter;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
@@ -8,6 +7,7 @@ use std::sync::{Mutex, OnceLock};
 
 mod cli;
 mod keyboard;
+mod logging;
 mod tray;
 
 #[cfg(target_os = "macos")]
@@ -190,90 +190,12 @@ fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-fn log_file_target() -> Target {
-    #[cfg(target_os = "macos")]
-    {
-        let home = std::env::var_os("HOME")
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| std::path::PathBuf::from("."));
-        return Target::new(TargetKind::Folder {
-            path: home.join("Library").join("Logs").join("Typo"),
-            file_name: Some("typo".into()),
-        });
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        Target::new(TargetKind::LogDir {
-            file_name: Some("typo".into()),
-        })
-    }
-}
-
-fn log_plugin_builder() -> tauri_plugin_log::Builder {
-    let builder = tauri_plugin_log::Builder::new()
-        .timezone_strategy(TimezoneStrategy::UseLocal)
-        .max_file_size(5 * 1024 * 1024)
-        .rotation_strategy(RotationStrategy::KeepAll);
-
-    if cfg!(debug_assertions) {
-        builder
-            .level(log::LevelFilter::Debug)
-            .targets([
-                Target::new(TargetKind::Stdout),
-                Target::new(TargetKind::Webview),
-                log_file_target(),
-            ])
-    } else {
-        builder
-            .level(log::LevelFilter::Info)
-            .targets([log_file_target()])
-    }
-}
-
-fn cleanup_old_logs(app: &tauri::AppHandle) {
-    let Ok(dir) = desktop_log_dir(app) else {
-        return;
-    };
-    let Ok(entries) = std::fs::read_dir(&dir) else {
-        return;
-    };
-
-    let mut logs: Vec<(std::path::PathBuf, std::time::SystemTime)> = entries
-        .filter_map(|e| e.ok())
-        .filter(|e| {
-            e.file_name()
-                .to_string_lossy()
-                .to_ascii_lowercase()
-                .starts_with("typo")
-                && e.file_name()
-                    .to_string_lossy()
-                    .to_ascii_lowercase()
-                    .ends_with(".log")
-        })
-        .filter_map(|e| {
-            let modified = e.metadata().ok()?.modified().ok()?;
-            Some((e.path(), modified))
-        })
-        .collect();
-
-    logs.sort_by(|a, b| b.1.cmp(&a.1));
-
-    for (path, _) in logs.into_iter().skip(3) {
-        if let Err(err) = std::fs::remove_file(&path) {
-            log::warn!("failed to prune old log file {:?}: {}", path, err);
-        }
-    }
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
 
-    log::info!("in_linux_wayland={}", in_linux_wayland());
-
     tauri::Builder::default()
-        .plugin(log_plugin_builder().build())
+        .plugin(logging::log_plugin_builder().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -290,7 +212,7 @@ pub fn run() {
             );
         }))
         .setup(move |app| {
-            cleanup_old_logs(&app.handle());
+            log::info!("in_linux_wayland={}", in_linux_wayland());
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
