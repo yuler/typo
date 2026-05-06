@@ -14,6 +14,7 @@ export default antfu({
   ignores: [
     'docs/superpowers/**',
     '**/src-tauri/**',
+    'core/**',
     'apps/www/.astro/**',
     'apps/www/dist/**',
     'packages/languages/src/generated/**',

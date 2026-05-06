@@ -1,0 +1,29 @@
+<% @page_title = "Welcome to Typo" %>
+
+<h1>Create your account</h1>
+
+<%= form_with model: @signup, url: onboarding_path do |form| %>
+  <% if @signup.errors.any? %>
+    <div id="error_explanation">
+      <ul>
+        <% @signup.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :username %>
+    <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", placeholder: "your-username" %>
+    <p><small><%= request.host_with_port %>/<%= @signup.username.presence || "username" %></small></p>
+  </div>
+
+  <div>
+    <%= form.label :nickname %>
+    <%= form.text_field :nickname, required: true, placeholder: "Display name" %>
+    <p><small>This is how others will see you</small></p>
+  </div>
+
+  <%= form.submit "Create Account" %>
+<% end %>

@@ -1,5 +1,5 @@
 {
-  "name": "typo-monorepo",
+  "name": "typo",
   "type": "module",
   "version": "1.2.3",
   "private": true,
@@ -7,9 +7,10 @@
   "scripts": {
     "core:dev": "cd core && bin/dev",
     "core:test": "cd core && bin/rails test",
-    "core:console": "cd core && bin/rails console",
     "core:lint": "cd core && bin/rubocop",
     "core:lint:fix": "cd core && bin/rubocop -A",
+    "core:commands": "./scripts/core-commands.sh",
+    "core:rails": "cd core && bin/rails",
     "desktop:dev": "pnpm --filter @typo/desktop dev",
     "desktop:dev:x11": "pnpm --filter @typo/desktop dev:x11",
     "desktop:build": "pnpm --filter @typo/desktop build",
@@ -24,7 +25,7 @@
     "clean": "pnpm --filter \"./apps/**\" --filter \"./packages/**\" clean",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "format:fix": "eslint --fix .",
+    "format:fix": "eslint --fix . && pnpm core:lint:fix",
     "languages:build": "pnpm --filter @typo/languages build",
     "languages:test": "pnpm --filter @typo/languages test",
     "release:notes": "./scripts/release-notes.sh",
