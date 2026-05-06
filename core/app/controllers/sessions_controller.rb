@@ -18,6 +18,8 @@ class SessionsController < ApplicationController
   end
 
   def destroy
+    terminate_session
+    redirect_to_login_url
   end
 
   private

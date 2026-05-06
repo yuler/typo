@@ -3,4 +3,4 @@
 <p>Your role: <%= Current.user.role %></p>
 <p>Slug: <%= Current.account.slug %></p>
 
-<%= button_to "Logout", session_path, method: :delete %>
+<%= button_to "Logout", logout_url, method: :delete %>

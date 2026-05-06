@@ -9,10 +9,15 @@ module Authentication
 
     etag { Current.identity.id if authenticated? }
 
-    include Authentication::ViaMagicLink, LoginHelper
+    include Authentication::ViaMagicLink, UrlHelper
   end
 
   class_methods do
+    def disallow_account_scope(**options)
+      skip_before_action :require_account, **options
+      before_action :redirect_accounted_request, **options
+    end
+
     def require_unauthenticated_access(**options)
       allow_unauthenticated_access(**options)
       before_action :redirect_authenticated_user, **options
@@ -22,11 +27,6 @@ module Authentication
       skip_before_action :require_authentication, **options
       before_action :resume_session, **options
       allow_unauthorized_access(**options)
-    end
-
-    def disallow_account_scope(**options)
-      skip_before_action :require_account, **options
-      before_action :redirect_tenanted_request, **options
     end
   end
 
@@ -89,7 +89,7 @@ module Authentication
       redirect_to main_app.root_url if authenticated?
     end
 
-    def redirect_tenanted_request
+    def redirect_accounted_request
       redirect_to main_app.root_url if Current.account.present?
     end
 

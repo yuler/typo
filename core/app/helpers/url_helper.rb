@@ -1,10 +1,10 @@
-module LoginHelper
+module UrlHelper
   def login_url
     main_app.new_session_path(script_name: nil)
   end
 
   def logout_url
-    main_app.new_session_path
+    main_app.session_path(script_name: nil)
   end
 
   def redirect_to_login_url
