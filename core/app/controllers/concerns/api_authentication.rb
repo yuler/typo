@@ -8,7 +8,7 @@ module ApiAuthentication
 
     etag { Current.identity.id if authenticated? }
 
-    include Authentication::ViaMagicLink, UrlHelper
+    include ActionController::HttpAuthentication::Token::ControllerMethods
   end
 
   class_methods do
@@ -55,6 +55,8 @@ module ApiAuthentication
     end
 
     def authenticate_by_query_token
+      # NOTE: Query parameter tokens are convenient for testing but can be leaked via server logs
+      # and browser history. Consider disabling this in production for sensitive applications.
       if token = params[:token]
         if identity = Identity.find_by_permissable_access_token(token, method: request.method)
           Current.identity = identity
@@ -67,10 +69,30 @@ module ApiAuthentication
     end
 
     def require_account
-      Current.account || Current.identity&.personal_account || json_request_account_not_found
+      if Current.account
+        # Ensure the authenticated identity is authorized to access the account from the URL slug
+        if (user = Current.identity.users.find_by(account: Current.account))
+          Current.user = user
+        else
+          json_request_forbidden
+        end
+      elsif request.env["typo.account_slug"].present?
+        # A slug was provided in the URL but the account was not found by the middleware
+        json_request_account_not_found
+      elsif (personal_account = Current.identity&.personal_account)
+        # Fallback to personal account ONLY if no slug was provided
+        Current.account = personal_account
+        Current.user = Current.identity.users.find_by(account: personal_account)
+      else
+        json_request_account_not_found
+      end
     end
 
     def json_request_account_not_found
-      render json: { error: "Account not found in api url or as identity user personal account" }, status: :not_found
+      render json: { error: "Account not found" }, status: :not_found
+    end
+
+    def json_request_forbidden
+      render json: { error: "Forbidden" }, status: :forbidden
     end
 end
