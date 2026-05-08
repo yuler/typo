@@ -59,7 +59,7 @@ Rails.application.configure do
 
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: ENV.fetch("SITE_DOMAIN", "example.com") }
-  config.action_mailer.default_options = { from: ENV.fetch("MAILER_FROM", "hi@yuler.cc") }
+  config.action_mailer.default_options = { from: ENV.fetch("MAILER_FROM", "support@example.com") }
 
   # Specify outgoing SMTP server.
   config.action_mailer.delivery_method = :smtp
@@ -69,7 +69,7 @@ Rails.application.configure do
     domain:               ENV.fetch("SMTP_DOMAIN", "example.com"),
     user_name:            ENV.fetch("SMTP_USERNAME", nil),
     password:             ENV.fetch("SMTP_PASSWORD", nil),
-    authentication:       "plain",
+    authentication:       ENV.fetch("SMTP_AUTHENTICATION", "plain"),
     enable_starttls_auto: true,
     tls:                  ENV.fetch("SMTP_SSL_ENABLED", "false") == "true"
   }
