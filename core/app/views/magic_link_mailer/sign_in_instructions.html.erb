@@ -1,0 +1,8 @@
+<h1>Welcome to Typo!</h1>
+<p>Please enter this 6-character verification code on the Typo sign-in page:</p>
+
+<strong><%= @magic_link.code %></strong>
+
+<p>This code will work for <%= distance_of_time_in_words(0, MagicLink::EXPIRATION_TIME) %>.</p>
+
+<p class="footer">Need help? <%= mail_to @support_email, "Send us an email" %>.</p>
