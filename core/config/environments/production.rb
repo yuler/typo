@@ -64,14 +64,14 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
     address:              ENV.fetch("SMTP_ADDRESS", "smtp.example.com"),
-    port:                 ENV.fetch("SMTP_PORT", 587).to_i,
+    port:                 ENV.fetch("SMTP_PORT", (ENV["SMTP_SSL_ENABLED"] == "true" ? 465 : 587)).to_i,
     domain:               ENV.fetch("SMTP_DOMAIN", "example.com"),
     user_name:            ENV["SMTP_USERNAME"].presence,
     password:             ENV["SMTP_PASSWORD"].presence,
-    authentication:       (ENV["SMTP_AUTHENTICATION"].presence || "plain").to_sym,
-    enable_starttls_auto: true,
+    authentication:       ENV["SMTP_AUTHENTICATION"].presence&.to_sym || (:plain if ENV["SMTP_USERNAME"].present?),
+    enable_starttls_auto: ENV["SMTP_SSL_ENABLED"] != "true",
     tls:                  ENV["SMTP_SSL_ENABLED"] == "true"
-  }
+  }.compact
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
