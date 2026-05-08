@@ -6,4 +6,4 @@ Please enter this 6-character verification code on the Typo sign-in page.
 
 This code will work for <%= distance_of_time_in_words(MagicLink::EXPIRATION_TIME) %>.
 
-Need help? mail to hi@yuler.cc
+Need help? mail to <%= ENV.fetch("SUPPORT_EMAIL", "support@example.com") %>
