@@ -3,9 +3,9 @@ class Account < ApplicationRecord
   has_many :identities, through: :users
 
   validates :name, presence: true
-  validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9\-_]+\z/ },
+  validates :slug, presence: true, uniqueness: true, format: { with: AccountSlug::FORMAT },
                     exclusion: { in: AccountSlug::RESERVED_SLUGS, message: "is reserved" },
-                    length: { in: 4..16 }
+                    length: { in: AccountSlug::LENGTH }
 
   before_validation :set_slug_from_name, on: :create
   # before_create :only_single_personal_account_allowed

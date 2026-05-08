@@ -3,6 +3,6 @@
 
 <strong><%= @magic_link.code %></strong>
 
-<p>This code will work for <%= distance_of_time_in_words(MagicLink::EXPIRATION_TIME) %>.</p>
+<p>This code will work for <%= distance_of_time_in_words(0, MagicLink::EXPIRATION_TIME) %>.</p>
 
 <p class="footer">Need help? <%= mail_to @support_email, "Send us an email" %>.</p>

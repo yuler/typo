@@ -1,5 +1,7 @@
 module AccountSlug
   PATTERN = /([a-zA-Z0-9_-]{4,16})/
+  FORMAT = /\A[a-z0-9\-_]+\z/
+  LENGTH = 4..16
   PATH_INFO_MATCH = /\A(\/#{AccountSlug::PATTERN})/
   RESERVED_SLUGS = %w[session dashboard onboarding admin api assets billing help jobs login logout magic_link rails settings setup static support typo]
 
