@@ -63,9 +63,9 @@ Rails.application.configure do
   # Specify outgoing SMTP server.
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address:              ENV.fetch("SMTP_ADDRESS", "smtp.example.com"),
-    port:                 ENV.fetch("SMTP_PORT", (ENV["SMTP_SSL_ENABLED"] == "true" ? 465 : 587)).to_i,
-    domain:               ENV.fetch("SMTP_DOMAIN", "example.com"),
+    address:              ENV["SMTP_ADDRESS"].presence || "smtp.example.com",
+    port:                 ENV["SMTP_PORT"].presence&.to_i || (ENV["SMTP_SSL_ENABLED"] == "true" ? 465 : 587),
+    domain:               ENV["SMTP_DOMAIN"].presence || "example.com",
     user_name:            ENV["SMTP_USERNAME"].presence,
     password:             ENV["SMTP_PASSWORD"].presence,
     authentication:       ENV["SMTP_AUTHENTICATION"].presence&.to_sym || (:plain if ENV["SMTP_USERNAME"].present?),
