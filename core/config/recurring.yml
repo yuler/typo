@@ -15,5 +15,5 @@ production:
     schedule: every hour at minute 12
 
   cleanup_magic_links:
-    command: "MagicLink.cleanup"
-    schedule: every 4 hours
+    command: 'MagicLink.cleanup'
+    schedule: every 4 hours at minute 25
