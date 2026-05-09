@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
@@ -35,7 +36,7 @@ async function openLogFolder(): Promise<void> {
     await invoke('open_log_folder')
   }
   catch (err) {
-    console.error('failed to open log folder:', err)
+    logger.error('Settings', 'failed to open log folder:', err)
   }
 }
 

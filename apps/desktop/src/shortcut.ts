@@ -36,7 +36,7 @@ export async function unregisterCurrentGlobalShortcut(): Promise<void> {
     await unregisterAll()
   }
   catch (e) {
-    console.error('Failed to unregisterAll', e)
+    logger.error('shortcut', 'Failed to unregisterAll', e)
     const storedShortcut = await get('global_shortcut')
     for (const shortcut of [DEFAULT_GLOBAL_SHORTCUT, storedShortcut]) {
       if (shortcut) {
@@ -67,7 +67,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
     return shortcutToRegister
   }
   catch (e) {
-    console.error(`Failed to register shortcut ${shortcutToRegister}:`, e)
+    logger.error('shortcut', `Failed to register shortcut ${shortcutToRegister}:`, e)
     // 3. Fallback to default if custom fails
     if (shortcutToRegister !== DEFAULT_GLOBAL_SHORTCUT) {
       try {
@@ -78,7 +78,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
         return DEFAULT_GLOBAL_SHORTCUT
       }
       catch (fallbackError) {
-        console.error('Failed to register fallback shortcut:', fallbackError)
+        logger.error('shortcut', 'Failed to register fallback shortcut:', fallbackError)
       }
     }
   }

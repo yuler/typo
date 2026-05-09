@@ -78,7 +78,7 @@ export async function initializeStore() {
 }
 
 export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise<typeof DEFAULT_STORE[T]> {
-  return (await store.get(key)) as typeof DEFAULT_STORE[T] ?? DEFAULT_STORE[key]
+  return await store.get<typeof DEFAULT_STORE[T]>(key) ?? DEFAULT_STORE[key]
 }
 
 export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: typeof DEFAULT_STORE[T] | undefined): Promise<void> {

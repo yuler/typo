@@ -28,7 +28,7 @@ async function notifyUpToDate() {
   try {
     const currentPermission = window.Notification?.permission
     if (currentPermission === 'denied') {
-      console.warn('Notification permission denied by user policy.')
+      logger.warn('App', 'Notification permission denied by user policy.')
       return
     }
 
@@ -47,7 +47,7 @@ async function notifyUpToDate() {
     })
   }
   catch (err) {
-    console.error('Failed to send up-to-date notification:', err)
+    logger.error('App', 'Failed to send up-to-date notification:', err)
   }
 }
 
@@ -65,7 +65,7 @@ async function checkUpgrade(options?: { verbose?: boolean }) {
     }
   }
   catch (err) {
-    console.error(err)
+    logger.error('App', 'checkUpgrade error', err)
   }
 }
 

@@ -9,6 +9,7 @@ import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 import { parseSlashCommands, resolveSlashCommand } from '@/slashCommands'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
@@ -44,8 +45,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   const { text, mode } = payload
 
-  // eslint-disable-next-line no-console
-  console.debug({ text, mode })
+  logger.debug('Main', { text, mode })
 
   if (!text.trim().length) {
     errorText.value = t('main.error.no_text')
@@ -141,7 +141,7 @@ onMounted(async () => {
       }
     }
     catch (err) {
-      console.error(err)
+      logger.error('Main', 'accessibility error', err)
     }
   }
 

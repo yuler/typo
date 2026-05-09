@@ -22,7 +22,7 @@ export async function syncTrayMenu(): Promise<void> {
       logger.debug('tray', 'tray menu updated')
     }
     catch (err) {
-      console.error('Failed to update tray menu labels:', err)
+      logger.error('tray', 'Failed to update tray menu labels:', err)
     }
   }
 
