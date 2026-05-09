@@ -2,10 +2,12 @@ import type { LanguageModelV1 } from 'ai'
 import { createDeepSeek } from '@ai-sdk/deepseek'
 import { generateText } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
+import { logger } from '@/logger'
 import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
 import { get } from './store'
 
 async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: string, command?: string, abortSignal?: AbortSignal): Promise<string> {
+  logger.info('ai', 'aiProcess', { text, systemPrompt, command })
   const { text: result } = await generateText({
     model,
     system: systemPrompt,
@@ -19,6 +21,7 @@ async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: str
     ],
     abortSignal,
   })
+  logger.info('ai', 'aiProcess result', result)
   return result
 }
 
@@ -28,6 +31,7 @@ async function resolveAndProcess(
   abortSignal?: AbortSignal,
   preResolved?: { text: string, systemPrompt: string, command?: string },
 ): Promise<string> {
+  logger.debug('ai', 'resolveAndProcess', { text, preResolved })
   if (preResolved) {
     return aiProcess(model, preResolved.text, preResolved.systemPrompt, preResolved.command, abortSignal)
   }

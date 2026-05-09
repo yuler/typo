@@ -13,6 +13,7 @@ import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { initializeI18n, useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
 import { initializeStore } from '@/store'
 import { syncTrayMenu } from '@/tray'
@@ -27,7 +28,7 @@ async function notifyUpToDate() {
   try {
     const currentPermission = window.Notification?.permission
     if (currentPermission === 'denied') {
-      console.warn('Notification permission denied by user policy.')
+      logger.warn('App', 'Notification permission denied by user policy.')
       return
     }
 
@@ -46,7 +47,7 @@ async function notifyUpToDate() {
     })
   }
   catch (err) {
-    console.error('Failed to send up-to-date notification:', err)
+    logger.error('App', 'Failed to send up-to-date notification:', err)
   }
 }
 
@@ -64,7 +65,7 @@ async function checkUpgrade(options?: { verbose?: boolean }) {
     }
   }
   catch (err) {
-    console.error(err)
+    logger.error('App', 'checkUpgrade error', err)
   }
 }
 
@@ -73,6 +74,7 @@ function onChangeWindow(window: CurrentWindow) {
 }
 
 watch(() => currentWindow.value, async () => {
+  logger.info('App', 'window changed to', currentWindow.value)
   if (currentWindow.value === 'Main') {
     await nextTick()
     await setupMainWindow()
@@ -94,6 +96,7 @@ onUnmounted(() => {
 })
 
 onMounted(async () => {
+  logger.info('App', 'onMounted')
   const appWindow = WebviewWindow.getCurrent()
   await appWindow?.setVisibleOnAllWorkspaces(true)
 

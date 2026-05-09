@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { watch } from 'vue'
 import { useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 
 export async function syncTrayMenu(): Promise<void> {
   const { t, locale } = useI18n()
@@ -18,9 +19,10 @@ export async function syncTrayMenu(): Promise<void> {
           tooltip: t('tray.tooltip'),
         },
       })
+      logger.info('tray', 'tray menu updated')
     }
     catch (err) {
-      console.error('Failed to update tray menu labels:', err)
+      logger.error('tray', 'Failed to update tray menu labels:', err)
     }
   }
 

@@ -1,9 +1,11 @@
 import { invoke } from '@tauri-apps/api/core'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
+import { logger } from '@/logger'
 import { DEFAULT_GLOBAL_SHORTCUT, get } from './store'
 
 async function handleShortcut() {
+  logger.info('shortcut', 'handleShortcut')
   const selectedText = (await invoke('get_selected_text')) as string
   let payload: { text: string, mode: string } | null = null
 
@@ -24,6 +26,7 @@ async function handleShortcut() {
     // await appWindow?.setFocus()
 
     await invoke('set_pending_selection_input', { payload })
+    logger.info('shortcut', 'emit set-input', payload)
     await appWindow?.emit('set-input', payload)
   }
 }
@@ -33,7 +36,7 @@ export async function unregisterCurrentGlobalShortcut(): Promise<void> {
     await unregisterAll()
   }
   catch (e) {
-    console.error('Failed to unregisterAll', e)
+    logger.error('shortcut', 'Failed to unregisterAll', e)
     const storedShortcut = await get('global_shortcut')
     for (const shortcut of [DEFAULT_GLOBAL_SHORTCUT, storedShortcut]) {
       if (shortcut) {
@@ -47,6 +50,7 @@ export async function unregisterCurrentGlobalShortcut(): Promise<void> {
 }
 
 export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
+  logger.info('shortcut', 'setupGlobalShortcut', shortcut)
   // 1. Unregister all existing shortcuts first
   await unregisterCurrentGlobalShortcut()
 
@@ -55,13 +59,15 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
 
   try {
     await register(shortcutToRegister, (event) => {
+      logger.debug('shortcut', 'event', event)
       if (event.state === 'Released')
         handleShortcut()
     })
+    logger.info('shortcut', 'registered', shortcutToRegister)
     return shortcutToRegister
   }
   catch (e) {
-    console.error(`Failed to register shortcut ${shortcutToRegister}:`, e)
+    logger.error('shortcut', `Failed to register shortcut ${shortcutToRegister}:`, e)
     // 3. Fallback to default if custom fails
     if (shortcutToRegister !== DEFAULT_GLOBAL_SHORTCUT) {
       try {
@@ -72,7 +78,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
         return DEFAULT_GLOBAL_SHORTCUT
       }
       catch (fallbackError) {
-        console.error('Failed to register fallback shortcut:', fallbackError)
+        logger.error('shortcut', 'Failed to register fallback shortcut:', fallbackError)
       }
     }
   }
