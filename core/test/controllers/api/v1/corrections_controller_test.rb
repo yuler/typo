@@ -27,9 +27,9 @@ class Api::V1::CorrectionsControllerTest < ActionDispatch::IntegrationTest
     token = identity.signed_id(purpose: :api_token)
 
     6.times do
-      post api_v1_corrections_url, 
-           params: { text: "test" }, 
-           headers: { "Authorization" => "Bearer #{token}" }, 
+      post api_v1_corrections_url,
+           params: { text: "test" },
+           headers: { "Authorization" => "Bearer #{token}" },
            as: :json
       assert_response :success
     end
