@@ -12,15 +12,18 @@ const MIN_LEVEL = isDev ? LogLevel.Debug : LogLevel.Warn
 
 function formatArgs(args: any[]): string {
   return args.map((arg) => {
-    if (typeof arg === 'object') {
-      try {
-        return JSON.stringify(arg)
-      }
-      catch {
-        return String(arg)
-      }
+    if (arg instanceof Error) {
+      return arg.stack || arg.message
     }
-    return String(arg)
+
+    try {
+      return (typeof arg === 'object' && arg !== null)
+        ? JSON.stringify(arg)
+        : String(arg)
+    }
+    catch {
+      return String(arg)
+    }
   }).join(' ')
 }
 
