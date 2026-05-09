@@ -11,6 +11,7 @@ class Api::V1::CorrectionsController < Api::V1::BaseController
   private
 
   def check_rate_limit
+    authenticate_by_bearer_token || authenticate_by_query_token
     return if authenticated?
 
     ip = request.remote_ip

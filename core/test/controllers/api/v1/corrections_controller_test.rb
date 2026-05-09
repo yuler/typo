@@ -19,4 +19,18 @@ class Api::V1::CorrectionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :too_many_requests
     assert_equal "Rate limit exceeded. Please try again in 15 minutes.", JSON.parse(response.body)["error"]
   end
+
+  test "authenticated users should bypass rate limit" do
+    Rails.cache.clear
+    identity = Identity.create!(email: "test@example.com")
+    token = identity.signed_id(purpose: :api_token)
+
+    6.times do
+      post api_v1_corrections_url, 
+           params: { text: "test" }, 
+           headers: { "Authorization" => "Bearer #{token}" }, 
+           as: :json
+      assert_response :success
+    end
+  end
 end
