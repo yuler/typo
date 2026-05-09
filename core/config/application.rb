@@ -27,5 +27,8 @@ module Typo
     config.generators do |g|
       g.orm :active_record, primary_key_type: :uuid
     end
+
+    # Disable HTTP basic authentication for job queue dashboard
+    config.mission_control.jobs.http_basic_auth_enabled = false
   end
 end
