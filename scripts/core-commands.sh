@@ -14,6 +14,7 @@ add "console" "./bin/rails console"
 add "db:reset" "./bin/rails db:reset"
 add "db:schema:refresh" "./bin/rails db:drop && ./bin/rails db:migrate:reset && ./bin/rails db:schema:dump"
 add "generate:controller" "./bin/rails g controller" "Controller name and actions (e.g. Posts index show)" "--skip-routes --skip-helper --no-test-framework"
+add "server:console" "./bin/server-console.sh"
 
 chosen=$(printf '%s\n' "${names[@]}" | gum filter --header "Pick a shortcut to run:" --placeholder "Type to search...")
 
