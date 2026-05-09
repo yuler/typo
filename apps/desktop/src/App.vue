@@ -74,7 +74,7 @@ function onChangeWindow(window: CurrentWindow) {
 }
 
 watch(() => currentWindow.value, async () => {
-  logger.debug('App', 'window changed to', currentWindow.value)
+  logger.info('App', 'window changed to', currentWindow.value)
   if (currentWindow.value === 'Main') {
     await nextTick()
     await setupMainWindow()
@@ -96,7 +96,7 @@ onUnmounted(() => {
 })
 
 onMounted(async () => {
-  logger.debug('App', 'onMounted')
+  logger.info('App', 'onMounted')
   const appWindow = WebviewWindow.getCurrent()
   await appWindow?.setVisibleOnAllWorkspaces(true)
 

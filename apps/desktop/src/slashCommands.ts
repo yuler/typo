@@ -114,7 +114,7 @@ export function resolveSlashCommand(text: string, baseSystemPrompt: string, comm
         ].join('\n').trim()
 
     const result = { text: finalText, systemPrompt, command: key }
-    logger.debug('slash', 'resolved', result)
+    logger.info('slash', 'resolved', result)
     return result
   }
 

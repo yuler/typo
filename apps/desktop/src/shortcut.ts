@@ -5,7 +5,7 @@ import { logger } from '@/logger'
 import { DEFAULT_GLOBAL_SHORTCUT, get } from './store'
 
 async function handleShortcut() {
-  logger.debug('shortcut', 'handleShortcut')
+  logger.info('shortcut', 'handleShortcut')
   const selectedText = (await invoke('get_selected_text')) as string
   let payload: { text: string, mode: string } | null = null
 
@@ -26,7 +26,7 @@ async function handleShortcut() {
     // await appWindow?.setFocus()
 
     await invoke('set_pending_selection_input', { payload })
-    logger.debug('shortcut', 'emit set-input', payload)
+    logger.info('shortcut', 'emit set-input', payload)
     await appWindow?.emit('set-input', payload)
   }
 }
@@ -50,7 +50,7 @@ export async function unregisterCurrentGlobalShortcut(): Promise<void> {
 }
 
 export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
-  logger.debug('shortcut', 'setupGlobalShortcut', shortcut)
+  logger.info('shortcut', 'setupGlobalShortcut', shortcut)
   // 1. Unregister all existing shortcuts first
   await unregisterCurrentGlobalShortcut()
 
@@ -63,7 +63,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
       if (event.state === 'Released')
         handleShortcut()
     })
-    logger.debug('shortcut', 'registered', shortcutToRegister)
+    logger.info('shortcut', 'registered', shortcutToRegister)
     return shortcutToRegister
   }
   catch (e) {

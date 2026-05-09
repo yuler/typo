@@ -19,7 +19,7 @@ export async function syncTrayMenu(): Promise<void> {
           tooltip: t('tray.tooltip'),
         },
       })
-      logger.debug('tray', 'tray menu updated')
+      logger.info('tray', 'tray menu updated')
     }
     catch (err) {
       logger.error('tray', 'Failed to update tray menu labels:', err)

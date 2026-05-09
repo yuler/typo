@@ -7,7 +7,7 @@ import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
 import { get } from './store'
 
 async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: string, command?: string, abortSignal?: AbortSignal): Promise<string> {
-  logger.debug('ai', 'aiProcess', { text, systemPrompt, command })
+  logger.info('ai', 'aiProcess', { text, systemPrompt, command })
   const { text: result } = await generateText({
     model,
     system: systemPrompt,
@@ -21,7 +21,7 @@ async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: str
     ],
     abortSignal,
   })
-  logger.debug('ai', 'aiProcess result', result)
+  logger.info('ai', 'aiProcess result', result)
   return result
 }
 

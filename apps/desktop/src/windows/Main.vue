@@ -45,7 +45,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   const { text, mode } = payload
 
-  logger.debug('Main', { text, mode })
+  logger.info('Main', { text, mode })
 
   if (!text.trim().length) {
     errorText.value = t('main.error.no_text')

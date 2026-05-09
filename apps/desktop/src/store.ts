@@ -82,7 +82,7 @@ export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise
 }
 
 export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: typeof DEFAULT_STORE[T] | undefined): Promise<void> {
-  logger.debug('store', `set ${key}`, value)
+  logger.info('store', `set ${key}`, value)
   await store.set(key, value)
 }
 
