@@ -24,12 +24,12 @@ class Api::V1::CorrectionsController < Api::V1::BaseController
 
     ip = request.remote_ip
     key = "rate_limit:v1_corrections:#{ip}"
-    
-    # Rails.cache.increment is atomic. 
+
+    # Rails.cache.increment is atomic.
     # We use a 15-minute window. If the key doesn't exist, increment returns nil or 1 depending on backend.
     # To ensure atomicity and expiration, we can use a combination or check for nil.
     count = Rails.cache.increment(key, 1)
-    
+
     if count.nil? || count == 1
       # Key didn't exist or was just created, set expiration
       Rails.cache.write(key, 1, expires_in: 15.minutes)
