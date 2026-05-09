@@ -382,11 +382,14 @@ DEPENDENCIES
   solid_cable
   solid_cache
   solid_queue
-  sqlite3 (>= 2.1)
+  sqlite3 (>= 2.8)
   stimulus-rails
   turbo-rails
   tzinfo-data
   web-console
+
+RUBY VERSION
+   ruby 4.0.3p0
 
 BUNDLED WITH
    2.6.9
