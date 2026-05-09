@@ -28,6 +28,7 @@ Rails.application.routes.draw do
   # API
   namespace :api do
     namespace :v1, defaults: { format: :json } do
+      resources :corrections, only: :create
       namespace :test do
         get :private, to: "private#show"
         get :public, to: "public#show"
