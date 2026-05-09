@@ -1,5 +1,6 @@
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi'
 import { currentMonitor, getCurrentWindow } from '@tauri-apps/api/window'
+import { logger } from '@/logger'
 import { sleep } from './utils'
 
 const APP_WINDOW_WIDTH = 300
@@ -27,6 +28,7 @@ function getMainWindowPos(): LogicalPosition | null {
 }
 
 export async function initializeWindow() {
+  logger.debug('window', 'initializeWindow')
   const appWindow = getCurrentWindow()
   await appWindow?.setAlwaysOnTop(true)
   await appWindow?.setVisibleOnAllWorkspaces(true)
@@ -55,6 +57,7 @@ export async function initializeWindow() {
   }
 
   if (targetPos) {
+    logger.debug('window', 'setPosition', targetPos)
     await appWindow.setPosition(targetPos)
   }
 
@@ -76,6 +79,7 @@ export async function initializeWindow() {
 export const MAIN_WINDOW_WIDTH = 300
 export const MAIN_WINDOW_HEIGHT = 56
 export async function setupMainWindow() {
+  logger.debug('window', 'setupMainWindow')
   const appWindow = getCurrentWindow()
   const size = new LogicalSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
   await appWindow.setSize(size)
@@ -92,6 +96,7 @@ export async function setupMainWindow() {
 export const SETTINGS_WINDOW_WIDTH = 600
 export const SETTINGS_WINDOW_HEIGHT = 800
 export async function setupSettingsWindow() {
+  logger.debug('window', 'setupSettingsWindow')
   const appWindow = getCurrentWindow()
   await appWindow.setSize(new LogicalSize(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT))
   await appWindow.setMinSize(new LogicalSize(SETTINGS_WINDOW_WIDTH, SETTINGS_WINDOW_HEIGHT))
@@ -103,6 +108,7 @@ export async function setupSettingsWindow() {
 export const UPGRADE_WINDOW_WIDTH = 400
 export const UPGRADE_WINDOW_HEIGHT = 450
 export async function setupUpgradeWindow() {
+  logger.debug('window', 'setupUpgradeWindow')
   const appWindow = getCurrentWindow()
   const size = new LogicalSize(UPGRADE_WINDOW_WIDTH, UPGRADE_WINDOW_HEIGHT)
   await appWindow.setSize(size)

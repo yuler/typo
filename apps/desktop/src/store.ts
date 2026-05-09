@@ -1,6 +1,7 @@
 import type { Locale } from '@typo/languages'
 import { LazyStore } from '@tauri-apps/plugin-store'
 import { defaultLocale } from '@typo/languages'
+import { logger } from '@/logger'
 
 export const SYSTEM_PROMPT = `
 You are an expert English writing and translation assistant with native-level proficiency.
@@ -77,10 +78,11 @@ export async function initializeStore() {
 }
 
 export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise<typeof DEFAULT_STORE[T]> {
-  return (await store.get(key)) ?? DEFAULT_STORE[key]
+  return (await store.get(key)) as typeof DEFAULT_STORE[T] ?? DEFAULT_STORE[key]
 }
 
 export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: typeof DEFAULT_STORE[T] | undefined): Promise<void> {
+  logger.debug('store', `set ${key}`, value)
   await store.set(key, value)
 }
 

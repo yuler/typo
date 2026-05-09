@@ -13,6 +13,7 @@ import Ribbon from '@/components/Ribbon.vue'
 import Window from '@/components/Window.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { initializeI18n, useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
 import { initializeStore } from '@/store'
 import { syncTrayMenu } from '@/tray'
@@ -73,6 +74,7 @@ function onChangeWindow(window: CurrentWindow) {
 }
 
 watch(() => currentWindow.value, async () => {
+  logger.debug('App', 'window changed to', currentWindow.value)
   if (currentWindow.value === 'Main') {
     await nextTick()
     await setupMainWindow()
@@ -94,6 +96,7 @@ onUnmounted(() => {
 })
 
 onMounted(async () => {
+  logger.debug('App', 'onMounted')
   const appWindow = WebviewWindow.getCurrent()
   await appWindow?.setVisibleOnAllWorkspaces(true)
 
