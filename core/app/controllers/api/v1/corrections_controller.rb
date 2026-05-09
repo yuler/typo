@@ -5,7 +5,8 @@ class Api::V1::CorrectionsController < Api::V1::BaseController
   before_action :check_rate_limit
 
   def create
-    render json: { result: "corrected: #{params[:text]}" }, status: :ok
+    result = Ai::CorrectionService.call(params[:text], params[:system_prompt])
+    render json: { result: result }, status: :ok
   end
 
   private

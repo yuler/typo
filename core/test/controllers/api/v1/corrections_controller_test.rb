@@ -4,6 +4,7 @@ class Api::V1::CorrectionsControllerTest < ActionDispatch::IntegrationTest
   test "should get success on create" do
     post api_v1_corrections_url, params: { text: "hello", system_prompt: "correct this" }, as: :json
     assert_response :success
+    assert_equal "AI Corrected: hello", JSON.parse(response.body)["result"]
   end
 
   test "should rate limit after 5 requests" do
