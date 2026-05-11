@@ -30,9 +30,9 @@ module Ai
 
     def perform
       chat = RubyLLM.chat
-        .with_params( thinking: { type: "disabled" }, stream: false )
-        # Note: I will test it later.
-        # .with_params(  thinking: { type: "enabled" }, reasoning_effort: "high" )
+        .with_params(thinking: { type: "disabled" }, stream: false)
+      # Note: I will test it later.
+      # .with_params(  thinking: { type: "enabled" }, reasoning_effort: "high" )
       response = chat.with_instructions(@system_prompt).ask("###\n#{@text}\n###")
 
       Rails.logger.info({ model: chat.model.id, system_prompt: @system_prompt, text: @text, output: response.content, tokens: response.tokens, cost: response.cost.total }.to_json)
