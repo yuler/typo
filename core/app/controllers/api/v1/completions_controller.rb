@@ -29,6 +29,8 @@ class Api::V1::CompletionsController < Api::V1::BaseController
       # To ensure atomicity and expiration, we can use a combination or check for nil.
       count = Rails.cache.increment(key, 1)
 
+      Rails.logger.info({ tag: "Api::V1::CompletionsController", ip: ip, count: count, key: key }.to_json)
+
       if count.nil? || count == 1
         # Key didn't exist or was just created, set expiration
         Rails.cache.write(key, 1, expires_in: 15.minutes)

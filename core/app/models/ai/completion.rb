@@ -30,7 +30,7 @@ module Ai
 
     def perform
       # Note: this is just for test
-      if @text == "__fake_test_text__" && Rails.env.test?
+      if @text == "__fake_test_text__" && !Rails.env.production?
         return "__success__"
       end
 
