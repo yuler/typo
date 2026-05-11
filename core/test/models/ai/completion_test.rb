@@ -30,8 +30,4 @@ class Ai::CompletionTest < ActiveSupport::TestCase
     result = Ai::Completion.perform(text: text, prompt: prompt)
     assert_equal "你好，世界。", result
   end
-
-  test "Translate with explicit fake response" do
-    assert_equal "__fake_test_text__", "__fake_test_text__"
-  end
 end

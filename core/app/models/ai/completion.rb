@@ -29,11 +29,6 @@ module Ai
     end
 
     def perform
-      # Note: this is just for test
-      if @text == "__fake_test_text__" && !Rails.env.production?
-        return "__success__"
-      end
-
       chat = RubyLLM.chat
         .with_params(thinking: { type: "disabled" }, stream: false)
       # Note: I will test it later.
