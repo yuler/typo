@@ -56,8 +56,10 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 
 ## Agent Conventions
 
-- When (re)generating `core/` with `rails new`, pass `--no-rc` so a personal `~/.railsrc` does not override the intended stack (for example forcing API-only mode or skipping Importmap).
 - Prefer editing existing files over creating new ones; especially avoid adding new top-level docs unless asked.
 - Before non-trivial tasks, check `.agents/skills/` for a matching skill and follow it.
-- When a task spans multiple workspaces, make changes in the relevant workspace and run that workspace's scripts (e.g. `pnpm desktop:build`) to verify.
-- Keep commit messages and PRs scoped to a single concern; don't mix formatting-only changes with logic changes.
+
+### core rails app
+
+- Always follow [basecamp](https://github.com/basecamp) rails code style.
+- Use rich `models` for all logic; never create `services`.
