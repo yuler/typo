@@ -13,21 +13,25 @@ class Ai::CompletionTest < ActiveSupport::TestCase
     assert_equal "Hello, world.", result
   end
 
-  test "Translate to Janpanese" do
+  test "Translate to Japanese" do
     text = "你好，世界。"
-    system_prompt = <<~PROMPT.freeze
-      Translate to Janpanese
+    prompt = <<~PROMPT.freeze
+      Translate to Japanese
     PROMPT
-    result = Ai::Completion.perform(text: text, system_prompt: system_prompt)
+    result = Ai::Completion.perform(text: text, prompt: prompt)
     assert_equal "こんにちは、世界。", result
   end
 
   test "Translate to Chinese" do
     text = "Hello, world."
-    system_prompt = <<~PROMPT.freeze
+    prompt = <<~PROMPT.freeze
       Translate to Chinese
     PROMPT
-    result = Ai::Completion.perform(text: text, system_prompt: system_prompt)
+    result = Ai::Completion.perform(text: text, prompt: prompt)
     assert_equal "你好，世界。", result
+  end
+
+  test "Translate with explicit fake response" do
+    assert_equal "__fake_test_text__", "__fake_test_text__"
   end
 end

@@ -15,11 +15,14 @@ module AccountSlug
     def call(env)
       request = ActionDispatch::Request.new(env)
 
-      # Match standard API path patterns, e.g.: /api/v1/:account_slug/xxx or /api/v1/accounts/:account_slug/xxx
-      # $1 = api prefix (/api/v1) or (/api/v1/accounts), $2 = :account_slug, $' = remaining path (/test/private)
-      if request.path_info =~ %r{\A(/api/v\d+(?:/accounts)?)/(#{AccountSlug::PATTERN})} && !$2.in?(RESERVED_SLUGS)
+      # Match standard API path patterns, e.g.: /api/v1/accounts/:account_slug/xxx
+      # $1 = api prefix (/api/v1/accounts), $2 = :account_slug, $' = remaining path (/test/private)
+      if request.path_info =~ %r{\A(/api/v\d+/accounts)/(#{AccountSlug::PATTERN})} && !$2.in?(RESERVED_SLUGS)
         env["typo.account_slug"] = AccountSlug.decode($2)
         request.path_info = "#{$1}#{$'}"
+      # Skip further slug extraction for other API paths (e.g., /api/v1/completions) to prevent treating path segments as account slugs
+      elsif request.path_info.start_with?("/api")
+        env["typo.account_slug"] = nil
       # $1, $2, $' == script_name, slug, path_info
       elsif request.script_name && request.script_name =~ PATH_INFO_MATCH
         # Likely due to restarting the action cable connection after upgrade
@@ -31,7 +34,7 @@ module AccountSlug
         env["typo.account_slug"] = AccountSlug.decode($2)
       end
 
-      Rails.logger.info { "[AccountSlug] slug=#{env["typo.account_slug"].inspect} path=#{env["PATH_INFO"]}" }
+      Rails.logger.info({ tag: "AccountSlug", slug: env["typo.account_slug"], path: env["PATH_INFO"] }.to_json)
 
       # Set the account in the current thread
       if env["typo.account_slug"]

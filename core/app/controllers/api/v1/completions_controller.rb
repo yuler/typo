@@ -3,15 +3,15 @@ class Api::V1::CompletionsController < Api::V1::BaseController
   disallow_account_scope
 
   before_action :check_rate_limit
-  before_action :validate_params
+  before_action :set_params
 
   def create
-    result = Ai::Completion.perform(text: params[:text], system_prompt: params[:system_prompt])
+    result = Ai::Completion.perform(text: params[:text], prompt: params[:prompt])
     render json: { result: result }, status: :ok
   end
 
   private
-    def validate_params
+    def set_params
       if params[:text].blank?
         render json: { error: "Text parameter is required" }, status: :unprocessable_entity
       end

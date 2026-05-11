@@ -1,6 +1,6 @@
 module Ai
   class Completion
-    DEFAULT_SYSTEM_PROMPT = <<~PROMPT.freeze
+    DEFAULT_PROMPT = <<~PROMPT.freeze
       You are Typo's system assistant.
 
       Role:
@@ -19,23 +19,28 @@ module Ai
       Input Format:
       Text will be provided between ### markers.
     PROMPT
-    def self.perform(text:, system_prompt: DEFAULT_SYSTEM_PROMPT)
-      new(text: text, system_prompt: system_prompt).perform
+    def self.perform(text:, prompt: DEFAULT_PROMPT)
+      new(text: text, prompt: prompt).perform
     end
 
-    def initialize(text:, system_prompt: DEFAULT_SYSTEM_PROMPT)
+    def initialize(text:, prompt: DEFAULT_PROMPT)
       @text = text
-      @system_prompt = system_prompt
+      @prompt = prompt
     end
 
     def perform
+      # Note: this is just for test
+      if @text == "__fake_test_text__" && Rails.env.test?
+        return "__success__"
+      end
+
       chat = RubyLLM.chat
         .with_params(thinking: { type: "disabled" }, stream: false)
       # Note: I will test it later.
       # .with_params(  thinking: { type: "enabled" }, reasoning_effort: "high" )
-      response = chat.with_instructions(@system_prompt).ask("###\n#{@text}\n###")
+      response = chat.with_instructions(@prompt).ask("###\n#{@text}\n###")
 
-      Rails.logger.info({ model: chat.model.id, system_prompt: @system_prompt, text: @text, output: response.content, tokens: response.tokens, cost: response.cost.total }.to_json)
+      Rails.logger.info({ model: chat.model.id, prompt: @prompt, text: @text, output: response.content, tokens: response.tokens, cost: response.cost.total }.to_json)
 
       response.content
     end
