@@ -349,15 +349,18 @@ async function onSubmit() {
             </div>
 
             <div class="space-y-2">
-              <Label>{{ t('settings.basic.autoselect.label') }}</Label>
+              <Label>{{ t('settings.basic.autostart.label') }}</Label>
               <div class="flex items-center space-x-2">
                 <Switch id="autostart" v-model="form.autostart" />
-                <Label for="autostart">{{ t('settings.basic.autostart.label') }}</Label>
+                <Label for="autostart">{{ form.autostart ? t('action.enable') : t('action.disable') }}</Label>
               </div>
               <p class="text-xs text-muted-foreground">
                 {{ t('settings.basic.autostart.description') }}
               </p>
+            </div>
 
+            <div class="space-y-2">
+              <Label>{{ t('settings.basic.autoselect.label') }}</Label>
               <div class="flex items-center space-x-2">
                 <Switch id="autoselect" v-model="form.autoselect" />
                 <Label for="autoselect">{{ form.autoselect ? t('action.enable') : t('action.disable') }}</Label>

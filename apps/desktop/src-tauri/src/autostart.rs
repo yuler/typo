@@ -3,17 +3,22 @@ use std::process::Command;
 #[cfg(target_os = "macos")]
 use std::path::{Path, PathBuf};
 
+const APP_NAME: &str = "typo";
+
 #[tauri::command]
 pub fn cleanup_legacy_macos_login_item() -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        let script = r#"
+        let script = format!(
+            r#"
 tell application "System Events"
-    if exists login item "typo" then
-        delete login item "typo"
+    if exists login item "{0}" then
+        delete login item "{0}"
     end if
 end tell
-"#;
+"#,
+            APP_NAME
+        );
 
         let output = Command::new("osascript")
             .arg("-e")
@@ -66,12 +71,12 @@ pub fn ensure_legacy_macos_login_item() -> Result<(), String> {
         let script = format!(
             r#"
 tell application "System Events"
-    if not (exists login item "typo") then
-        make login item at end with properties {{name:"typo", path:"{}", hidden:true}}
+    if not (exists login item "{0}") then
+        make login item at end with properties {{name:"{0}", path:"{1}", hidden:true}}
     end if
 end tell
 "#,
-            escaped_path
+            APP_NAME, escaped_path
         );
 
         let output = Command::new("osascript")
