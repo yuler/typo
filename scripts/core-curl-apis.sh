@@ -23,6 +23,11 @@ api_v1_completions() {
   echo "$PAYLOAD" | jq .
 
   echo ""
+  echo "curl command:"
+  echo "curl -X POST ${URL} \
+    -H 'Content-Type: application/json' \
+    -d '${PAYLOAD}'"
+  echo ""
   gum spin --spinner minidot --title "Sending request to $URL..." -- \
     curl -s -X POST "$URL" \
     -H "Content-Type: application/json" \
