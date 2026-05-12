@@ -153,7 +153,7 @@ body {
 .glass {
   position: relative;
   background: rgba(255, 255, 255, 0.01);
-  backdrop-filter: blur(1px) saturate(180%);
+  backdrop-filter: blur(8px) saturate(180%);
   border: 1px solid rgba(211, 211, 211, 0.5);
   border-radius: var(--app-radius, 8px);
   box-shadow:
@@ -170,12 +170,12 @@ body {
   height: 100%;
   background: rgba(255, 255, 255, 0.05);
   border-radius: var(--app-radius, 8px);
-  backdrop-filter: blur(1px);
+  backdrop-filter: blur(8px);
   box-shadow:
     inset -10px -8px 0px -11px rgba(255, 255, 255, 1),
     inset 0px -9px 0px -8px rgba(255, 255, 255, 1);
   opacity: 0.6;
   z-index: -1;
-  filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(105%);
+  filter: blur(8px) drop-shadow(10px 4px 6px black) brightness(105%);
 }
 </style>

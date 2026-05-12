@@ -5,7 +5,7 @@ A design system document that AI agents read to generate consistent UI across th
 ## 1. Aesthetic Identity
 
 - **Theme**: Minimalist, utilitarian, high-contrast.
-- **Palette**: Strictly monochrome (Black, White, Zinc/Neutral gray scale). Avoid bright, saturated colors unless used for semantic status (e.g., error, success).
+- **Palette**: Strictly monochrome (Black, White, Zinc gray scale). Avoid bright, saturated colors unless used for semantic status (e.g., error, success).
 - **Vibe**: Native OS feel with glassmorphism in the desktop app; clean, content-first layout for the marketing site.
 
 ## 2. Color System
@@ -45,7 +45,7 @@ The project uses Tailwind CSS with the `zinc` color palette for both Light and D
 ## 5. UI Patterns (Desktop App)
 
 - **Glassmorphism**: The main app window uses a `glass` class to blend with the OS desktop.
-  - Background: `rgba(24, 24, 24, 0.8)` with `backdrop-filter: blur(...)`.
+  - Background: `rgba(24, 24, 24, 0.8)` with `backdrop-filter: blur(8px)`.
 - **Capsule States**: The main input window changes border/shadow glow based on state (Idle: none, Processing: Blue glow, Result: Green glow, Error: Red glow).
 - **Icons**: Lucide icons (`lucide-vue-next`). Size is typically `w-4 h-4`.
 - **Forms/Settings**: Standard label + input pairs, vertically stacked with `gap-2`. Inputs use `bg-transparent` with `border-input`.
