@@ -3,12 +3,12 @@ require "test_helper"
 class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
   setup do
     Rails.cache.clear
-    @original_perform = Ai::Completion.method(:perform)
-    Ai::Completion.define_singleton_method(:perform) { |**_| "__success__" }
+    @original_perform = Ai::Completion.instance_method(:perform)
+    Ai::Completion.define_method(:perform) { "__success__" }
   end
 
   teardown do
-    Ai::Completion.define_singleton_method(:perform, @original_perform)
+    Ai::Completion.define_method(:perform, @original_perform)
   end
 
   test "should get success on create" do
@@ -20,7 +20,14 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
   test "should return unprocessable_entity if text is missing" do
     post api_v1_completions_url, params: { prompt: "correct this" }, as: :json
     assert_response :unprocessable_entity
-    assert_equal "Text parameter is required", JSON.parse(response.body)["error"]
+    assert_equal "Text can't be blank", JSON.parse(response.body)["error"]
+  end
+
+  test "should return unprocessable_entity if text is too long" do
+    long_text = "a" * (Ai::Completion::MAX_TEXT_LENGTH + 1)
+    post api_v1_completions_url, params: { text: long_text }, as: :json
+    assert_response :unprocessable_entity
+    assert_equal "Text is too long (maximum is #{Ai::Completion::MAX_TEXT_LENGTH} characters)", JSON.parse(response.body)["error"]
   end
 
   test "should rate limit after 5 requests" do

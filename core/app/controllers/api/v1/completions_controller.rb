@@ -6,14 +6,15 @@ class Api::V1::CompletionsController < Api::V1::BaseController
   before_action :check_rate_limit
 
   def create
-    result = Ai::Completion.perform(text: params[:text], prompt: params[:prompt])
+    result = @completion.perform
     render json: { result: result }, status: :ok
   end
 
   private
     def validate_params!
-      if params[:text].blank?
-        render json: { error: "Text parameter is required" }, status: :unprocessable_entity
+      @completion = Ai::Completion.new(text: params[:text], prompt: params[:prompt])
+      if @completion.invalid?
+        render json: { error: @completion.errors.full_messages.to_sentence }, status: :unprocessable_entity
       end
     end
 

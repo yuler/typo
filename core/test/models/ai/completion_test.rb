@@ -10,7 +10,7 @@ class Ai::CompletionTest < ActiveSupport::TestCase
 
   test "Translate to English with default system prompt" do
     text = "你好，世界。"
-    result = Ai::Completion.perform(text: text)
+    result = Ai::Completion.new(text: text).perform
     assert_equal "Hello, world.", result
   end
 
@@ -19,7 +19,7 @@ class Ai::CompletionTest < ActiveSupport::TestCase
     prompt = <<~PROMPT.freeze
       Translate to Japanese
     PROMPT
-    result = Ai::Completion.perform(text: text, prompt: prompt)
+    result = Ai::Completion.new(text: text, prompt: prompt).perform
     assert_equal "こんにちは、世界。", result
   end
 
@@ -28,7 +28,7 @@ class Ai::CompletionTest < ActiveSupport::TestCase
     prompt = <<~PROMPT.freeze
       Translate to Chinese
     PROMPT
-    result = Ai::Completion.perform(text: text, prompt: prompt)
+    result = Ai::Completion.new(text: text, prompt: prompt).perform
     assert_equal "你好，世界。", result
   end
 end

@@ -1,5 +1,8 @@
 module Ai
   class Completion
+    include ActiveModel::Model
+    include ActiveModel::Attributes
+
     DEFAULT_PROMPT = <<~PROMPT.freeze
       You are Typo's system assistant.
 
@@ -19,16 +22,22 @@ module Ai
       Input Format:
       Text will be provided between ### markers.
     PROMPT
-    def self.perform(text:, prompt: DEFAULT_PROMPT)
-      new(text: text, prompt: prompt).perform
-    end
 
-    def initialize(text:, prompt: DEFAULT_PROMPT)
-      @text = text
-      @prompt = prompt
+    MAX_TEXT_LENGTH = 100
+
+    attribute :text, :string
+    attribute :prompt, :string, default: -> { DEFAULT_PROMPT }
+
+    validates :text, presence: true, length: { maximum: MAX_TEXT_LENGTH }
+
+    def initialize(attributes = {})
+      super
+      self.prompt = prompt.presence || DEFAULT_PROMPT
     end
 
     def perform
+      return unless valid?
+
       chat = RubyLLM.chat
         .with_params(thinking: { type: "disabled" }, stream: false)
       # Note: I will test it later.
