@@ -116,7 +116,7 @@ Add the following content (replace `<$USER>` with your username):
 [Desktop Entry]
 Name=Typo
 Comment=AI-powered text improvement tool
-Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
+Exec=env GDK_BACKEND=x11 /home/<$USER>/Applications/typo.appimage --no-sandbox
 Icon=typo
 Type=Application
 Categories=Utility;TextEditor;
