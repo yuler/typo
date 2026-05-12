@@ -116,7 +116,7 @@ Add the following content (replace `<$USER>` with your username):
 [Desktop Entry]
 Name=Typo
 Comment=AI-powered text improvement tool
-Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
+Exec=env GDK_BACKEND=x11 /home/<$USER>/Applications/typo.appimage --no-sandbox
 Icon=typo
 Type=Application
 Categories=Utility;TextEditor;
@@ -184,6 +184,22 @@ If selection capture still fails in specific apps (like some Electron apps), run
 # Force VS Code to use X11
 code --ozone-platform=x11
 ```
+
+#### 4. System Tray Support
+
+On Wayland/GNOME environments (like Ubuntu 24.04 or Omakub), the system tray icon might be hidden by default.
+
+1. **Install required libraries**:
+   ```bash
+   sudo apt update
+   sudo apt install libayatana-appindicator3-dev libayatana-appindicator3-1
+   ```
+2. **Enable GNOME extension**:
+   Install the AppIndicator extension:
+   ```bash
+   sudo apt install gnome-shell-extension-appindicator
+   ```
+   Open the **Extensions** app and ensure **Ubuntu AppIndicators** or **AppIndicator and KStatusNotifierItem Support** is toggled **ON**.
 
 ### Ollama
 
