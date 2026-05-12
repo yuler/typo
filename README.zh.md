@@ -185,6 +185,22 @@ Exec=/usr/bin/ydotoold
 code --ozone-platform=x11
 ```
 
+#### 4. 系统托盘支持
+
+在 Wayland/GNOME 环境下（如 Ubuntu 24.04 或 Omakub），系统托盘图标可能默认不会显示。
+
+1. **安装必要库**:
+   ```bash
+   sudo apt update
+   sudo apt install libayatana-appindicator3-dev libayatana-appindicator3-1
+   ```
+2. **启用 GNOME 扩展**:
+   安装 AppIndicator 扩展：
+   ```bash
+   sudo apt install gnome-shell-extension-appindicator
+   ```
+   打开 **Extensions (扩展)** 应用，确保 **Ubuntu AppIndicators** 或 **AppIndicator and KStatusNotifierItem Support** 处于 **开启 (ON)** 状态。
+
 ### Ollama
 
 - 确保 Ollama 正在运行 (`ollama serve`)。
