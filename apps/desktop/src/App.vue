@@ -154,11 +154,11 @@ body {
   position: relative;
   background: rgba(255, 255, 255, 0.01);
   backdrop-filter: blur(8px) saturate(180%);
-  border: 1px solid rgba(211, 211, 211, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--app-radius, 8px);
   box-shadow:
-    0 8px 32px rgba(31, 38, 135, 0.1),
-    inset 0 4px 16px rgba(255, 255, 255, 0.2);
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 4px 16px rgba(255, 255, 255, 0.05);
 }
 
 .glass::after {

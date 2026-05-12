@@ -22,8 +22,8 @@ typography:
   mono:
     fontFamily: ui-monospace, SFMono-Regular, monospace
 rounded:
-  md: 6px
-  xl: 12px
+  md: 8px
+  xl: 14px
   2xl: 16px
   app: 8px
 ---
@@ -41,8 +41,8 @@ The project uses Tailwind CSS with the `zinc` color palette for both Light and D
 
 - **Background**: `bg-zinc-50` (light) / `bg-zinc-950` (dark)
 - **Surface/Card**: `bg-white` (light) / `bg-zinc-900` (dark)
-- **Foreground (Text)**: `text-zinc-900` (light) / `text-zinc-50` or `text-zinc-100` (dark)
-- **Muted Text**: `text-zinc-500` or `text-zinc-600` (light) / `text-zinc-400` (dark)
+- **Foreground (Text)**: `text-zinc-900` (light) / `text-zinc-100` (dark)
+- **Muted Text**: `text-zinc-500` (light) / `text-zinc-400` (dark)
 - **Borders**: `border-zinc-200` (light) / `border-zinc-800` (dark)
 - **Primary Accent**: `bg-zinc-900 text-white` (light) / `bg-zinc-100 text-zinc-900` (dark)
 - **Success**: Green (e.g., `text-green-400`) - sparingly used for "Copied" or completed states.
@@ -56,7 +56,7 @@ Use native system fonts; do not import custom web fonts.
 - **Font Family**: Default system sans-serif (`ui-sans-serif, system-ui, sans-serif`).
 - **Monospace**: Default system mono (`font-mono`) used for shortcuts, commands, and code blocks.
 - **Headings**: High contrast (`text-zinc-900 dark:text-zinc-50`), tight tracking (`tracking-tight`), bold.
-- **Body**: Relaxed leading (`leading-relaxed`), muted colors (`text-zinc-600 dark:text-zinc-400`).
+- **Body**: Relaxed leading (`leading-relaxed`), `text-zinc-900` (light) / `text-zinc-100` (dark).
 
 ## Layout
 
@@ -78,7 +78,7 @@ Use native system fonts; do not import custom web fonts.
 ### Desktop App
 
 - **Glassmorphism**: The main app window uses a `glass` class to blend with the OS desktop.
-  - Background: `rgba(24, 24, 24, 0.8)` with `backdrop-filter: blur(8px)`.
+  - Background: `rgba(255, 255, 255, 0.01)` (overlaying the dark app background) with `backdrop-filter: blur(8px) saturate(180%)`.
 - **Capsule States**: The main input window changes border/shadow glow based on state (Idle: none, Processing: Blue glow, Result: Green glow, Error: Red glow).
 - **Icons**: Lucide icons (`lucide-vue-next`). Size is typically `w-4 h-4`.
 - **Forms/Settings**: Standard label + input pairs, vertically stacked with `gap-2`. Inputs use `bg-transparent` with `border-input`.
