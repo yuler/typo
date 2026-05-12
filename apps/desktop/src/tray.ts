@@ -4,6 +4,14 @@ import { watch } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 
+let pushFn: (() => Promise<void>) | null = null
+
+export async function updateTrayMenu(): Promise<void> {
+  if (pushFn) {
+    await pushFn()
+  }
+}
+
 export async function syncTrayMenu(): Promise<void> {
   const { t, locale } = useI18n()
 
@@ -30,6 +38,7 @@ export async function syncTrayMenu(): Promise<void> {
     }
   }
 
+  pushFn = push
   await push()
   watch(locale, () => void push())
 }

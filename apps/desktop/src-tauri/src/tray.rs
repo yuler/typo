@@ -169,32 +169,41 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
 
 fn toggle_autostart_action(app: &AppHandle) {
     let autostart_manager = app.autolaunch();
+    let Some(state) = app.try_state::<TrayMenuHandles>() else {
+        log::error!("tray menu handles not found");
+        return;
+    };
+
     match autostart_manager.is_enabled() {
         Ok(enabled) => {
+            let next_state = !enabled;
             if enabled {
                 if let Err(err) = autostart_manager.disable() {
                     log::error!("failed to disable autostart: {}", err);
+                    return;
                 }
-                else {
-                    log::info!("autostart disabled via tray");
-                    #[cfg(target_os = "macos")]
-                    if let Err(err) = crate::autostart::cleanup_legacy_macos_login_item() {
-                        log::error!("failed to cleanup legacy macos login item: {}", err);
-                    }
+                log::info!("autostart disabled via tray");
+                #[cfg(target_os = "macos")]
+                if let Err(err) = crate::autostart::cleanup_legacy_macos_login_item(app.clone()) {
+                    log::error!("failed to cleanup legacy macos login item: {}", err);
                 }
-            }
-            else {
+            } else {
                 if let Err(err) = autostart_manager.enable() {
                     log::error!("failed to enable autostart: {}", err);
+                    return;
                 }
-                else {
-                    log::info!("autostart enabled via tray");
-                    #[cfg(target_os = "macos")]
-                    if let Err(err) = crate::autostart::ensure_legacy_macos_login_item() {
-                        log::error!("failed to ensure legacy macos login item: {}", err);
-                    }
+                log::info!("autostart enabled via tray");
+                #[cfg(target_os = "macos")]
+                if let Err(err) = crate::autostart::ensure_legacy_macos_login_item(app.clone()) {
+                    log::error!("failed to ensure legacy macos login item: {}", err);
                 }
             }
+
+            // Sync tray menu checkmark
+            let _ = state.autostart.set_checked(next_state);
+            // Notify frontend
+            let _ = app.emit("tray:autostart-changed", next_state);
+            let _ = app.emit(EV_TOGGLE_CLICKED, ());
         }
         Err(err) => {
             log::error!("failed to check autostart status: {}", err);

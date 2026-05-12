@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { disable, enable, isEnabled } from '@tauri-apps/plugin-autostart'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
@@ -17,6 +19,7 @@ import { logger } from '@/logger'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
+import { updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
 const { setCurrentWindow } = useGlobalState()
@@ -60,6 +63,7 @@ const isMacOS = ref(false)
 const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
 const recordedCaptureKeys = new Set<string>()
+let unlistenAutostart: UnlistenFn | undefined
 
 function normalizeCaptureKey(e: KeyboardEvent): string {
   const code = e.code
@@ -226,6 +230,10 @@ onMounted(async () => {
       textarea.setSelectionRange(0, 0)
     }
   })
+
+  unlistenAutostart = await listen<boolean>('tray:autostart-changed', (event) => {
+    form.value.autostart = event.payload
+  })
 })
 
 onUnmounted(() => {
@@ -233,6 +241,7 @@ onUnmounted(() => {
   if (isCapturingShortcut.value) {
     stopCapture()
   }
+  unlistenAutostart?.()
 })
 
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
@@ -253,6 +262,30 @@ function removePromptSlash(index: number) {
   form.value.slash_commands.splice(index, 1)
 }
 
+async function onAutostartToggle(value: boolean) {
+  form.value.autostart = value
+  try {
+    if (value) {
+      await enable()
+      if (isMacOS.value && !(await isEnabled())) {
+        // Fallback for environments where LaunchAgent doesn't register reliably.
+        await invoke('ensure_legacy_macos_login_item')
+      }
+    }
+    else {
+      await disable()
+      // Compatibility cleanup: remove legacy Login Items created by older AppleScript launcher mode.
+      await invoke('cleanup_legacy_macos_login_item')
+    }
+    await updateTrayMenu()
+  }
+  catch (error) {
+    console.error('Failed to update autostart setting:', error)
+    // Revert on failure
+    form.value.autostart = !value
+  }
+}
+
 async function onSubmit() {
   const slashCommands = form.value.slash_commands
     .map(item => ({ ...item, key: item.key.trim(), value: item.value.trim() }))
@@ -266,25 +299,6 @@ async function onSubmit() {
   if (requestedShortcut && actualShortcut !== requestedShortcut) {
     shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcut })
     form.value.global_shortcut = actualShortcut
-  }
-
-  try {
-    if (form.value.autostart) {
-      await enable()
-      if (isMacOS.value && !(await isEnabled())) {
-        // Fallback for environments where LaunchAgent doesn't register reliably.
-        await invoke('ensure_legacy_macos_login_item')
-      }
-    }
-    else {
-      await disable()
-      // Compatibility cleanup: remove legacy Login Items created by older AppleScript launcher mode.
-      await invoke('cleanup_legacy_macos_login_item')
-    }
-    await store.set('autostart', form.value.autostart)
-  }
-  catch (error) {
-    console.error('Failed to update autostart setting:', error)
   }
 
   await Promise.all([
@@ -351,7 +365,7 @@ async function onSubmit() {
             <div class="space-y-2">
               <Label>{{ t('settings.basic.autostart.label') }}</Label>
               <div class="flex items-center space-x-2">
-                <Switch id="autostart" v-model="form.autostart" />
+                <Switch id="autostart" :model-value="form.autostart" @update:model-value="onAutostartToggle" />
                 <Label for="autostart">{{ form.autostart ? t('action.enable') : t('action.disable') }}</Label>
               </div>
               <p class="text-xs text-muted-foreground">

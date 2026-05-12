@@ -53,7 +53,6 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
 
 const DEFAULT_STORE = {
-  autostart: false,
   autoselect: false,
   ai_provider: 'deepseek' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
