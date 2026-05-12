@@ -2,8 +2,8 @@ class Api::V1::CompletionsController < Api::V1::BaseController
   allow_unauthenticated_access
   disallow_account_scope
 
-  before_action :check_rate_limit
   before_action :validate_params!
+  before_action :check_rate_limit
 
   def create
     result = Ai::Completion.perform(text: params[:text], prompt: params[:prompt])

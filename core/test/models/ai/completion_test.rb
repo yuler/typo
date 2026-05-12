@@ -1,6 +1,7 @@
 require "test_helper"
 
 class Ai::CompletionTest < ActiveSupport::TestCase
+  # Note: these tests only run locally.
   setup do
     if ENV["CI"] || ENV["DEEPSEEK_API_KEY"].blank?
       skip "Skipping AI test due to missing DEEPSEEK_API_KEY environment variable or CI environment"
