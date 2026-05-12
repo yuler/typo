@@ -19,13 +19,14 @@ module Ai
       Input Format:
       Text will be provided between ### markers.
     PROMPT
-    def self.perform(text:, prompt: DEFAULT_PROMPT)
+
+    def self.perform(text:, prompt: nil)
       new(text: text, prompt: prompt).perform
     end
 
-    def initialize(text:, prompt: DEFAULT_PROMPT)
+    def initialize(text:, prompt: nil)
       @text = text
-      @prompt = prompt
+      @prompt = prompt.presence || DEFAULT_PROMPT
     end
 
     def perform
