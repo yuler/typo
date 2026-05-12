@@ -11,6 +11,7 @@
     "core:lint:fix": "cd core && bin/rubocop -A",
     "core:commands": "./scripts/core-commands.sh",
     "core:rails": "cd core && bin/rails",
+    "core:curl-apis": "./scripts/core-curl-apis.sh",
     "desktop:dev": "pnpm --filter @typo/desktop dev",
     "desktop:dev:x11": "pnpm --filter @typo/desktop dev:x11",
     "desktop:build": "pnpm --filter @typo/desktop build",

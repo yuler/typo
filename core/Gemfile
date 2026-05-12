@@ -39,6 +39,8 @@ gem "mission_control-jobs"
 # API
 # gem "jwt"
 gem "jbuilder"
+gem "ruby_llm"
+
 
 # HTTP Clients
 # gem "faraday"
@@ -60,6 +62,7 @@ gem "bootsnap", require: false
 # gem "thruster", require: false
 
 group :development, :test do
+  gem "dotenv-rails"
   # gem "dotenv"
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "letter_opener"
