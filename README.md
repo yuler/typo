@@ -201,6 +201,14 @@ On Wayland/GNOME environments (like Ubuntu 24.04 or Omakub), the system tray ico
    ```
    Open the **Extensions** app and ensure **Ubuntu AppIndicators** or **AppIndicator and KStatusNotifierItem Support** is toggled **ON**.
 
+#### 5. Autostart Configuration and Testing
+
+You can verify if autostart is correctly configured:
+
+- **macOS**: System Settings -> General -> Login Items.
+- **Linux**: Check if `~/.config/autostart/typo.desktop` exists.
+- **Windows**: Task Manager -> Startup.
+
 ### Ollama
 
 - Ensure Ollama is running (`ollama serve`).
