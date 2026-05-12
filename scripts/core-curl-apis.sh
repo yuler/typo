@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 set -e
-echo "🌍 Select environment:"
+
+gum style --foreground 212 "🌍 Select environment:"
 ENV=$(gum choose "local" "production")
 
 if [ "$ENV" = "production" ]; then
@@ -18,28 +19,33 @@ api_v1_completions() {
 
   local PAYLOAD=$(jq -n --arg text "$TEXT" --arg prompt "$PROMPT" '{text: $text, prompt: $prompt}')
 
-  echo ""
-  gum style --foreground 212 "Payload:"
+  printf "\n"
+  gum style --foreground 212 "📦 Payload:"
   echo "$PAYLOAD" | jq .
 
-  echo ""
-  echo "curl command:"
-  echo "curl -X POST ${URL} \
-    -H 'Content-Type: application/json' \
+  printf "\n"
+  gum style --foreground 212 "🚀 Curl Command:"
+  gum style --foreground 245 "curl -X POST ${URL} \\
+    -H 'Content-Type: application/json' \\
     -d '${PAYLOAD}'"
-  echo ""
+
+  printf "\n"
+  start_time=$(date +%s%3N)
   gum spin --spinner minidot --title "Sending request to $URL..." -- \
     curl -s -X POST "$URL" \
     -H "Content-Type: application/json" \
     -d "$PAYLOAD" > response.json
+  end_time=$(date +%s%3N)
+  duration=$((end_time - start_time))
 
-  echo ""
-  gum style --foreground 82 "Response:"
+  printf "\n"
+  gum style --foreground 82 "✅ Response (took $((duration))ms):"
   jq . response.json
 
   rm -f response.json
 }
 
+gum style --foreground 212 "🛠️ Select API action:"
 ACTION=$(gum choose "api_v1_completions")
 
 case $ACTION in
