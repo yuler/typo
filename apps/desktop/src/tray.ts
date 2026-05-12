@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
+import { isEnabled } from '@tauri-apps/plugin-autostart'
 import { watch } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
@@ -8,6 +9,7 @@ export async function syncTrayMenu(): Promise<void> {
 
   async function push(): Promise<void> {
     try {
+      const autostartChecked = await isEnabled()
       await invoke('update_tray_menu', {
         labels: {
           show: t('tray.show'),
@@ -15,6 +17,8 @@ export async function syncTrayMenu(): Promise<void> {
           check_updates: t('tray.check_updates'),
           about: t('tray.about', { version: __APP_VERSION__ }),
           open_log_folder: t('tray.open_log_folder'),
+          autostart: t('tray.autostart'),
+          autostart_checked: autostartChecked,
           quit: t('tray.quit'),
           tooltip: t('tray.tooltip'),
         },

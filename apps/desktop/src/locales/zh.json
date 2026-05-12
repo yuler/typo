@@ -51,6 +51,7 @@
   "tray.check_updates": "检查更新",
   "tray.about": "关于 typo v{version}",
   "tray.open_log_folder": "打开日志文件夹…",
+  "tray.autostart": "开机自启动",
   "tray.quit": "退出 typo",
   "updates.up_to_date": "已是最新版本 (v{version})"
 }

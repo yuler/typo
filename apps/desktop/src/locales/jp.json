@@ -51,6 +51,7 @@
   "tray.check_updates": "アップデートを確認",
   "tray.about": "typo について v{version}",
   "tray.open_log_folder": "ログフォルダを開く…",
+  "tray.autostart": "ログイン時に起動",
   "tray.quit": "typo を終了",
   "updates.up_to_date": "最新版です (v{version})"
 }

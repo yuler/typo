@@ -1,7 +1,8 @@
 use serde::Deserialize;
-use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Wry};
+use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_opener::OpenerExt;
 
 pub const TRAY_ID: &str = "main";
@@ -14,6 +15,7 @@ const ID_SETTINGS: &str = "settings";
 const ID_CHECK_UPDATES: &str = "check-updates";
 const ID_ABOUT: &str = "about";
 const ID_OPEN_LOG_FOLDER: &str = "open-log-folder";
+const ID_AUTOSTART: &str = "autostart";
 const ID_QUIT: &str = "quit";
 
 // Events emitted to the frontend.
@@ -28,6 +30,7 @@ pub struct TrayMenuHandles {
     pub check_updates: MenuItem<Wry>,
     pub about: MenuItem<Wry>,
     pub open_log_folder: MenuItem<Wry>,
+    pub autostart: CheckMenuItem<Wry>,
     pub quit: MenuItem<Wry>,
 }
 
@@ -38,6 +41,8 @@ pub struct TrayLabels {
     pub check_updates: Option<String>,
     pub about: Option<String>,
     pub open_log_folder: Option<String>,
+    pub autostart: Option<String>,
+    pub autostart_checked: Option<bool>,
     pub quit: Option<String>,
     pub tooltip: Option<String>,
 }
@@ -69,11 +74,30 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
+    let autostart_checked = handle.autolaunch().is_enabled().unwrap_or(false);
+    let autostart = CheckMenuItem::with_id(
+        handle,
+        ID_AUTOSTART,
+        "Launch at login",
+        true,
+        autostart_checked,
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(handle, ID_QUIT, "Quit typo", true, Some("CmdOrCtrl+Q"))?;
 
     let menu = Menu::with_items(
         handle,
-        &[&show, &settings, &check_updates, &separator, &about, &open_log_folder, &quit],
+        &[
+            &show,
+            &settings,
+            &check_updates,
+            &separator,
+            &autostart,
+            &open_log_folder,
+            &separator,
+            &about,
+            &quit,
+        ],
     )?;
 
     let icon_bytes = include_bytes!("../icons/tray.png");
@@ -95,6 +119,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         check_updates,
         about,
         open_log_folder,
+        autostart,
         quit,
     });
 
@@ -136,8 +161,44 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
             }
         }
         ID_OPEN_LOG_FOLDER => open_log_folder_action(app),
+        ID_AUTOSTART => toggle_autostart_action(app),
         ID_QUIT => app.exit(0),
         other => log::error!("unknown tray menu event id: {}", other),
+    }
+}
+
+fn toggle_autostart_action(app: &AppHandle) {
+    let autostart_manager = app.autolaunch();
+    match autostart_manager.is_enabled() {
+        Ok(enabled) => {
+            if enabled {
+                if let Err(err) = autostart_manager.disable() {
+                    log::error!("failed to disable autostart: {}", err);
+                }
+                else {
+                    log::info!("autostart disabled via tray");
+                    #[cfg(target_os = "macos")]
+                    if let Err(err) = crate::autostart::cleanup_legacy_macos_login_item() {
+                        log::error!("failed to cleanup legacy macos login item: {}", err);
+                    }
+                }
+            }
+            else {
+                if let Err(err) = autostart_manager.enable() {
+                    log::error!("failed to enable autostart: {}", err);
+                }
+                else {
+                    log::info!("autostart enabled via tray");
+                    #[cfg(target_os = "macos")]
+                    if let Err(err) = crate::autostart::ensure_legacy_macos_login_item() {
+                        log::error!("failed to ensure legacy macos login item: {}", err);
+                    }
+                }
+            }
+        }
+        Err(err) => {
+            log::error!("failed to check autostart status: {}", err);
+        }
     }
 }
 
@@ -189,6 +250,15 @@ pub fn update_tray_menu(
             .open_log_folder
             .set_text(text)
             .map_err(|e| e.to_string())?;
+    }
+    if let Some(text) = labels.autostart.as_deref() {
+        state
+            .autostart
+            .set_text(text)
+            .map_err(|e| e.to_string())?;
+    }
+    if let Some(checked) = labels.autostart_checked {
+        state.autostart.set_checked(checked).map_err(|e| e.to_string())?;
     }
     if let Some(text) = labels.quit.as_deref() {
         state.quit.set_text(text).map_err(|e| e.to_string())?;

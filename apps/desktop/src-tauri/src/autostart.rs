@@ -3,6 +3,7 @@ use std::process::Command;
 #[cfg(target_os = "macos")]
 use std::path::{Path, PathBuf};
 
+#[cfg(target_os = "macos")]
 const APP_NAME: &str = "typo";
 
 #[tauri::command]
