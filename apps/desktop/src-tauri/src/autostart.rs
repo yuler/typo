@@ -3,13 +3,11 @@ use std::process::Command;
 #[cfg(target_os = "macos")]
 use std::path::{Path, PathBuf};
 
-#[cfg(target_os = "macos")]
-const APP_NAME: &str = "typo";
-
 #[tauri::command]
-pub fn cleanup_legacy_macos_login_item() -> Result<(), String> {
+pub fn cleanup_legacy_macos_login_item(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
+        let app_name = app.package_info().name.clone();
         let script = format!(
             r#"
 tell application "System Events"
@@ -18,7 +16,7 @@ tell application "System Events"
     end if
 end tell
 "#,
-            APP_NAME
+            app_name
         );
 
         let output = Command::new("osascript")
@@ -61,9 +59,10 @@ fn app_bundle_path(executable_path: &Path) -> PathBuf {
 }
 
 #[tauri::command]
-pub fn ensure_legacy_macos_login_item() -> Result<(), String> {
+pub fn ensure_legacy_macos_login_item(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
+        let app_name = app.package_info().name.clone();
         let executable_path = std::env::current_exe()
             .map_err(|error| format!("failed to resolve executable path: {}", error))?;
         let login_path = app_bundle_path(&executable_path);
@@ -77,7 +76,7 @@ tell application "System Events"
     end if
 end tell
 "#,
-            APP_NAME, escaped_path
+            app_name, escaped_path
         );
 
         let output = Command::new("osascript")
