@@ -2,7 +2,6 @@ module Ai
   class Completion
     include ActiveModel::Model
     include ActiveModel::Attributes
-    include ActiveModel::Validations
 
     DEFAULT_PROMPT = <<~PROMPT.freeze
       You are Typo's system assistant.
@@ -26,17 +25,14 @@ module Ai
 
     MAX_TEXT_LENGTH = 100
 
-    attr_accessor :text, :prompt
+    attribute :text, :string
+    attribute :prompt, :string, default: -> { DEFAULT_PROMPT }
 
     validates :text, presence: true, length: { maximum: MAX_TEXT_LENGTH }
 
-    def self.perform(text:, prompt: nil)
-      new(text: text, prompt: prompt).perform
-    end
-
-    def initialize(text:, prompt: nil)
-      @text = text
-      @prompt = prompt.presence || DEFAULT_PROMPT
+    def initialize(attributes = {})
+      super
+      self.prompt = prompt.presence || DEFAULT_PROMPT
     end
 
     def perform
