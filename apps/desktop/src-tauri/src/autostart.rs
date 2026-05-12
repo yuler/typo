@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 pub fn cleanup_legacy_macos_login_item(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        let app_name = app.package_info().name.clone();
+        let app_name = escape_applescript_string(&app.package_info().name);
         let script = format!(
             r#"
 tell application "System Events"
@@ -62,7 +62,7 @@ fn app_bundle_path(executable_path: &Path) -> PathBuf {
 pub fn ensure_legacy_macos_login_item(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        let app_name = app.package_info().name.clone();
+        let app_name = escape_applescript_string(&app.package_info().name);
         let executable_path = std::env::current_exe()
             .map_err(|error| format!("failed to resolve executable path: {}", error))?;
         let login_path = app_bundle_path(&executable_path);
