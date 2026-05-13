@@ -3,7 +3,10 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": [
-    "main"
+    "home",
+    "settings",
+    "indicator",
+    "upgrade"
   ],
   "permissions": [
     "core:default",

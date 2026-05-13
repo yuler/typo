@@ -16,35 +16,24 @@ pub fn open_indicator_window(app: AppHandle) {
     create_indicator_window(&app);
 }
 
-pub fn create_main_window(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
+pub fn create_home_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("home") {
         let _ = window.set_focus();
         return;
     }
 
-    // 获取主显示器信息
-    let monitor = app.primary_monitor().ok().flatten();
-    let (width, height) = if let Some(m) = monitor {
-        let size = m.size();
-        (size.width as f64, size.height as f64)
-    } else {
-        (1920.0, 1080.0)
-    };
+    let win_width = 1000.0;
+    let win_height = 800.0;
 
-    let win_width = 360.0;
-    let win_height = 56.0;
-    let x = (width - win_width) / 2.0;
-    let y = height - win_height - 80.0; // 距离底部 80px
-
-    let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-        .title("typo")
+    let win_builder = WebviewWindowBuilder::new(app, "home", WebviewUrl::App("index.html".into()))
+        .title("Typeless")
         .inner_size(win_width, win_height)
-        .position(x, y)
-        .decorations(false)
-        .transparent(true)
-        .always_on_top(true)
-        .skip_taskbar(true)
-        .visible(false); // 初始隐藏，由前端或 Rust 逻辑控制显示
+        .center()
+        .decorations(true)
+        .transparent(false)
+        .always_on_top(false)
+        .skip_taskbar(false)
+        .visible(true);
 
     let _ = win_builder.build();
 }
@@ -68,17 +57,18 @@ pub fn create_indicator_window(app: &AppHandle) {
     let win_width = 360.0;
     let win_height = 56.0;
     let x = (width - win_width) / 2.0;
-    let y = height - win_height - 80.0; // 距离底部 80px
+    let y = height - win_height - 20.0; // 距离底部 20px
 
     let _ = WebviewWindowBuilder::new(app, "indicator", WebviewUrl::App("index.html".into()))
         .title("typo - Indicator")
         .inner_size(win_width, win_height)
         .position(x, y)
         .decorations(false)
-        .transparent(true)
+        .transparent(false)
         .always_on_top(true)
         .skip_taskbar(true)
         .visible_on_all_workspaces(true)
+        .visible(false)
         .build();
 }
 

@@ -38,7 +38,7 @@ async function handleShortcut() {
   }
   else {
     // No text selected, show the Home window (main)
-    const mainWindow = await WebviewWindow.getByLabel('main')
+    const mainWindow = await WebviewWindow.getByLabel('home')
     if (mainWindow) {
       await mainWindow.show()
       await mainWindow.setFocus()

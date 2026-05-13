@@ -12,6 +12,13 @@ import Upgrade from '@/windows/Upgrade.vue'
 const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
 
+const windows: Record<string, any> = {
+  home: Home,
+  indicator: Indicator,
+  settings: Settings,
+  upgrade: Upgrade,
+}
+
 onMounted(async () => {
   logger.info('App', `onMounted for window: ${currentLabel}`)
 
@@ -19,19 +26,18 @@ onMounted(async () => {
   await initializeStore()
   await initializeI18n()
 
-  // 对于 main 窗口，确保它在所有工作区可见
-  if (currentLabel === 'main') {
+  // 对于 home 窗口，确保它在所有工作区可见
+  if (currentLabel === 'home') {
     await appWindow.setVisibleOnAllWorkspaces(true)
   }
 })
 </script>
 
 <template>
-  <main class="h-screen w-screen overflow-hidden bg-transparent">
-    <Home v-if="currentLabel === 'main'" />
-    <Indicator v-else-if="currentLabel === 'indicator'" />
-    <Settings v-else-if="currentLabel === 'settings'" />
-    <Upgrade v-else-if="currentLabel === 'upgrade'" />
+  <main
+    class="h-screen w-screen overflow-hidden bg-transparent"
+  >
+    <component :is="windows[currentLabel]" v-if="windows[currentLabel]" />
     <div v-else class="flex items-center justify-center h-full text-white">
       Unknown window label: {{ currentLabel }}
     </div>

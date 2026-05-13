@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { relaunch } from '@tauri-apps/plugin-process'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { relaunch } from '@tauri-apps/plugin-process'
 import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import UpgradeProgress from '@/components/UpgradeProgress.vue'

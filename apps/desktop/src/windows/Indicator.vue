@@ -29,7 +29,7 @@ const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
-const STATUS_DISPLAY_DURATION_MS = 2500
+const STATUS_DISPLAY_DURATION_MS = 1000
 
 let unlistenSetInput: UnlistenFn
 
@@ -115,8 +115,6 @@ async function processSetInputPayload(payload: SetInputPayload) {
   }
 }
 
-
-
 onMounted(async () => {
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
   isMacOS.value = systemInfo.os === 'macos'
@@ -132,10 +130,6 @@ onMounted(async () => {
     await invoke('consume_pending_selection_input')
     await processSetInputPayload(event.payload)
   })
-
-
-
-
 
   const pendingPayload = await invoke<SetInputPayload | null>('consume_pending_selection_input')
   if (pendingPayload) {
@@ -187,7 +181,7 @@ function gotoSettings() {
 
 <template>
   <div
-    class="h-full w-full flex items-center px-3 gap-3 cursor-move transition-shadow duration-300 select-none"
+    class="h-full w-full flex items-center px-3 gap-3 transition-shadow duration-300 select-none bg-background rounded-xl border border-border"
     :class="{
       'capsule-processing': state === 'processing',
       'capsule-result': state === 'result',
@@ -196,30 +190,30 @@ function gotoSettings() {
     tabindex="0"
     @keydown.esc="onESC"
   >
-    <Logo />
+    <Logo :drag="false" />
 
     <!-- Center: Status -->
     <div class="flex-1 flex overflow-hidden min-w-0 h-full items-center">
       <div v-if="state === 'processing'" class="flex items-center gap-2 px-2 overflow-hidden w-full">
-        <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-400/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-400/20">
-          <TerminalIcon class="w-3 h-3 text-blue-400/60" />
-          <span class="text-[10px] font-bold text-blue-400/80 tracking-tight uppercase">
+        <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-600/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-600/20">
+          <TerminalIcon class="w-3 h-3 text-blue-600/60" />
+          <span class="text-[10px] font-bold text-blue-600/80 tracking-tight uppercase">
             {{ commandName.startsWith('/') ? commandName.slice(1) : commandName }}
           </span>
         </div>
-        <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
-        <span class="truncate text-sm text-blue-400/70 shrink min-w-0">{{ inputText }}</span>
-        <span class="text-[10px] text-blue-400/40 font-mono shrink-0">{{ inputText?.length }}</span>
+        <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-600 shrink-0" />
+        <span class="truncate text-sm text-blue-600/70 shrink min-w-0">{{ inputText }}</span>
+        <span class="text-[10px] text-blue-600/40 font-mono shrink-0">{{ inputText?.length }}</span>
       </div>
 
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
-        <span class="truncate text-sm text-green-400">{{ resultText }}</span>
+        <span class="truncate text-sm text-green-600">{{ resultText }}</span>
         <!-- TODO: Add option for this -->
-        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
-        <span class="text-[10px] text-green-400/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
+        <ClipboardCheckIcon class="w-4 h-4 text-green-600 shrink-0" />
+        <span class="text-[10px] text-green-600/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
       </div>
 
-      <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">
+      <p v-else-if="state === 'error'" class="truncate text-sm text-red-600 px-2">
         {{ errorText }}
       </p>
 
@@ -230,7 +224,7 @@ function gotoSettings() {
 
     <!-- Right: Settings -->
     <button
-      class="shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+      class="shrink-0 p-1.5 rounded-lg hover:bg-muted transition-colors"
       @click="gotoSettings"
     >
       <SettingsIcon class="w-4 h-4 text-muted-foreground" />

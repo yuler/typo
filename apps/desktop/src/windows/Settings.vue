@@ -309,7 +309,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="h-full w-full border-t" @keydown.esc="appWindow.close()">
+  <div class="h-full w-full border-t bg-background" @keydown.esc="appWindow.close()">
     <div class="flex h-full">
       <aside class="w-44 border-r bg-muted/20 px-3 py-4 space-y-2">
         <h2 class="text-sm font-semibold px-2 text-muted-foreground uppercase tracking-wide">

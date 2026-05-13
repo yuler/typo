@@ -18,8 +18,6 @@ const ID_AUTOSTART: &str = "autostart";
 const ID_QUIT: &str = "quit";
 
 // Events emitted to the frontend.
-const EV_OPEN_SETTINGS: &str = "tray:open-settings";
-const EV_CHECK_UPDATES: &str = "tray:check-updates";
 const EV_TOGGLE_CLICKED: &str = "tray:toggle-clicked";
 
 /// Handles to mutable menu items so update_tray_menu can relabel them.
@@ -134,13 +132,13 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
         if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
             log::error!("failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
         }
-        show_and_focus_main(app);
+        show_and_focus_home(app);
     }
 }
 
 fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
-        ID_SHOW => show_and_focus_main(app),
+        ID_SHOW => show_and_focus_home(app),
         ID_SETTINGS => {
             crate::windows::create_settings_window(app);
         }
@@ -193,16 +191,17 @@ fn open_log_folder_action(app: &AppHandle) {
     }
 }
 
-fn show_and_focus_main(app: &AppHandle) {
-    let Some(window) = app.get_webview_window("main") else {
+fn show_and_focus_home(app: &AppHandle) {
+    crate::windows::create_home_window(app);
+    let Some(window) = app.get_webview_window("home") else {
         return;
     };
 
     if let Err(err) = window.show() {
-        log::error!("failed to show main window: {}", err);
+        log::error!("failed to show home window: {}", err);
     }
     if let Err(err) = window.set_focus() {
-        log::error!("failed to focus main window: {}", err);
+        log::error!("failed to focus home window: {}", err);
     }
 }
 

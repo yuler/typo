@@ -35,7 +35,7 @@ pub fn handle_single_instance_event(
         return;
     }
 
-    if let Some(window) = app.get_webview_window("main") {
+    if let Some(window) = app.get_webview_window("home") {
         let _ = window.show();
         // TODO: option in settings
         // let _ = window.set_focus();
