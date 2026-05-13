@@ -74,7 +74,8 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
-    let autostart_checked = handle.autolaunch().is_enabled().unwrap_or(false);
+    let autostart_checked = handle.autolaunch().is_enabled().unwrap_or(false)
+        || crate::autostart::is_legacy_macos_login_item_enabled(handle.clone()).unwrap_or(false);
     let autostart = CheckMenuItem::with_id(
         handle,
         ID_AUTOSTART,
@@ -184,18 +185,29 @@ fn toggle_autostart_action(app: &AppHandle) {
                 }
                 log::info!("autostart disabled via tray");
                 #[cfg(target_os = "macos")]
-                if let Err(err) = crate::autostart::cleanup_legacy_macos_login_item(app.clone()) {
-                    log::error!("failed to cleanup legacy macos login item: {}", err);
-                }
+                let _ = crate::autostart::cleanup_legacy_macos_login_item(app.clone());
             } else {
+                let mut success = true;
                 if let Err(err) = autostart_manager.enable() {
-                    log::error!("failed to enable autostart: {}", err);
-                    return;
+                    log::warn!("failed to enable autostart via plugin: {}", err);
+                    success = false;
                 }
-                log::info!("autostart enabled via tray");
+
                 #[cfg(target_os = "macos")]
-                if let Err(err) = crate::autostart::ensure_legacy_macos_login_item(app.clone()) {
-                    log::error!("failed to ensure legacy macos login item: {}", err);
+                {
+                    // Fallback to legacy method if plugin fails or is unreliable
+                    if !success || !autostart_manager.is_enabled().unwrap_or(false) {
+                        if let Err(err) = crate::autostart::ensure_legacy_macos_login_item(app.clone()) {
+                            log::error!("failed to ensure legacy macos login item: {}", err);
+                            if !success { return; }
+                        } else {
+                            log::info!("autostart enabled via legacy macos login item");
+                        }
+                    }
+                }
+
+                if success {
+                    log::info!("autostart enabled via tray");
                 }
             }
 

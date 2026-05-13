@@ -39,6 +39,41 @@ end tell
     }
 }
 
+#[tauri::command]
+pub fn is_legacy_macos_login_item_enabled(app: tauri::AppHandle) -> Result<bool, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let app_name = escape_applescript_string(&app.package_info().name);
+        let script = format!(
+            r#"
+tell application "System Events"
+    return exists login item "{}"
+end tell
+"#,
+            app_name
+        );
+
+        let output = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output()
+            .map_err(|error| format!("failed to run osascript: {}", error))?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("failed to check login item: {}", stderr.trim()));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(stdout.trim() == "true")
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(false)
+    }
+}
+
 #[cfg(target_os = "macos")]
 fn escape_applescript_string(value: &str) -> String {
     value.replace('\\', "\\\\").replace('"', "\\\"")

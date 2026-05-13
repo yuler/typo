@@ -205,7 +205,11 @@ async function loadOllamaModels() {
 }
 
 onMounted(async () => {
-  form.value.autostart = await isEnabled()
+  const [pluginEnabled, legacyEnabled] = await Promise.all([
+    isEnabled(),
+    invoke<boolean>('is_legacy_macos_login_item_enabled'),
+  ])
+  form.value.autostart = pluginEnabled || legacyEnabled
   form.value.autoselect = await store.get('autoselect')
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
@@ -266,10 +270,25 @@ async function onAutostartToggle(value: boolean) {
   form.value.autostart = value
   try {
     if (value) {
-      await enable()
-      if (isMacOS.value && !(await isEnabled())) {
-        // Fallback for environments where LaunchAgent doesn't register reliably.
-        await invoke('ensure_legacy_macos_login_item')
+      let success = true
+      try {
+        await enable()
+      }
+      catch (error) {
+        console.warn('Failed to enable autostart via plugin:', error)
+        success = false
+      }
+
+      if (isMacOS.value && (!success || !(await isEnabled()))) {
+        // Fallback for environments where LaunchAgent doesn't register reliably or plugin fails.
+        try {
+          await invoke('ensure_legacy_macos_login_item')
+        }
+        catch (error) {
+          console.error('Failed to enable autostart via legacy method:', error)
+          if (!success)
+            throw error
+        }
       }
     }
     else {
