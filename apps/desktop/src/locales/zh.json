@@ -36,6 +36,7 @@
   "settings.prompts.slash.hint": "示例：输入以 <code>/tr:zh</code> 结尾或整行如 <code>/prompt Translate to Japanese in polite style</code>。",
   "settings.save": "保存",
   "main.status.copied": "已复制",
+  "main.status.ready": "准备就绪",
   "main.error.no_text": "没有待润色的文本",
   "main.error.generic": "出错了",
   "main.error.accessibility": "请在系统偏好设置中开启辅助功能权限",

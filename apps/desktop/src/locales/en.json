@@ -36,6 +36,7 @@
   "settings.prompts.slash.hint": "Example: input ends with <code>/tr:zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.",
   "settings.save": "Save",
   "main.status.copied": "Copied",
+  "main.status.ready": "Ready",
   "main.error.no_text": "No text to improve",
   "main.error.generic": "Something went wrong",
   "main.error.accessibility": "Enable Accessibility in System Preferences",

@@ -142,15 +142,10 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
         ID_SHOW => show_and_focus_main(app),
         ID_SETTINGS => {
-            show_and_focus_main(app);
-            if let Err(err) = app.emit(EV_OPEN_SETTINGS, ()) {
-                log::error!("failed to emit {}: {}", EV_OPEN_SETTINGS, err);
-            }
+            crate::windows::create_settings_window(app);
         }
         ID_CHECK_UPDATES => {
-            if let Err(err) = app.emit(EV_CHECK_UPDATES, ()) {
-                log::error!("failed to emit {}: {}", EV_CHECK_UPDATES, err);
-            }
+            crate::windows::create_upgrade_window(app);
         }
         ID_ABOUT => {
             let releases_url = format!("{}{}", RELEASES_URL_BASE, env!("CARGO_PKG_VERSION"));

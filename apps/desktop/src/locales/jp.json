@@ -36,6 +36,7 @@
   "settings.prompts.slash.hint": "例：入力の末尾が <code>/tr:zh</code> であるか、<code>/prompt Translate to Japanese in polite style</code> のような行全体。",
   "settings.save": "保存",
   "main.status.copied": "コピー済み",
+  "main.status.ready": "準備完了",
   "main.error.no_text": "改善するテキストがありません",
   "main.error.generic": "エラーが発生しました",
   "main.error.accessibility": "システム環境設定でアクセシビリティを有効にしてください",
