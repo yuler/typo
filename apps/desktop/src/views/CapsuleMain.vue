@@ -112,7 +112,6 @@ onMounted(async () => {
 
   unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     await appWindow.show()
-    await invoke('consume_pending_selection_input')
     await processSetInputPayload(event.payload)
   })
 
