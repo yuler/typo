@@ -1,5 +1,5 @@
 // apps/desktop/src-tauri/src/windows.rs
-use tauri::{AppHandle, WebviewWindowBuilder, WebviewUrl, Manager};
+use tauri::{AppHandle, WebviewWindowBuilder, WebviewUrl, Manager, TitleBarStyle};
 
 #[tauri::command]
 pub fn open_settings_window(app: AppHandle) {
@@ -13,7 +13,7 @@ pub fn open_upgrade_window(app: AppHandle) {
 
 #[tauri::command]
 pub fn open_indicator_window(app: AppHandle) {
-    create_indicator_window(&app);
+    create_indicator_window(&app, true);
 }
 
 pub fn create_home_window(app: &AppHandle) {
@@ -26,10 +26,11 @@ pub fn create_home_window(app: &AppHandle) {
     let win_height = 800.0;
 
     let win_builder = WebviewWindowBuilder::new(app, "home", WebviewUrl::App("index.html".into()))
-        .title("Typeless")
         .inner_size(win_width, win_height)
         .center()
         .decorations(true)
+        .title_bar_style(TitleBarStyle::Overlay)
+        .hidden_title(true)
         .transparent(false)
         .always_on_top(false)
         .skip_taskbar(false)
@@ -38,37 +39,40 @@ pub fn create_home_window(app: &AppHandle) {
     let _ = win_builder.build();
 }
 
-pub fn create_indicator_window(app: &AppHandle) {
+pub fn create_indicator_window(app: &AppHandle, show: bool) {
     if let Some(window) = app.get_webview_window("indicator") {
-        let _ = window.show();
-        let _ = window.set_focus();
+        if show {
+            let _ = window.show();
+            let _ = window.set_always_on_top(true);
+        }
         return;
     }
 
-    // 获取主显示器信息
+    // 获取主显示器工作区信息（排除 Dock 和 菜单栏）
     let monitor = app.primary_monitor().ok().flatten();
-    let (width, height) = if let Some(m) = monitor {
-        let size = m.size();
-        (size.width as f64, size.height as f64)
+    let (width, height, scale) = if let Some(m) = monitor {
+        let area = m.work_area();
+        let scale = m.scale_factor();
+        (area.size.width as f64 / scale, area.size.height as f64 / scale, scale)
     } else {
-        (1920.0, 1080.0)
+        (1920.0, 1080.0, 1.0)
     };
 
     let win_width = 360.0;
     let win_height = 56.0;
     let x = (width - win_width) / 2.0;
-    let y = height - win_height - 20.0; // 距离底部 20px
+    let y = height - win_height - 20.0; // 在工作区底部上方 20px
 
     let _ = WebviewWindowBuilder::new(app, "indicator", WebviewUrl::App("index.html".into()))
         .title("typo - Indicator")
         .inner_size(win_width, win_height)
         .position(x, y)
         .decorations(false)
-        .transparent(false)
+        .transparent(true)
         .always_on_top(true)
         .skip_taskbar(true)
         .visible_on_all_workspaces(true)
-        .visible(false)
+        .visible(show)
         .build();
 }
 

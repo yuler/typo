@@ -2,19 +2,26 @@
 import { invoke } from '@tauri-apps/api/core'
 import {
   BookIcon,
-  ChevronDownIcon,
-  ClockIcon,
-  HelpCircleIcon,
   HistoryIcon,
   HomeIcon,
-  LockIcon,
-  MessageCircleIcon,
   MoreHorizontalIcon,
-  SettingsIcon,
-  UserIcon,
 } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
-import Logo from '@/components/Logo.vue'
+import AppSidebar from '@/components/AppSidebar.vue'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import { Separator } from '@/components/ui/separator'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
@@ -29,7 +36,7 @@ const activeTab = ref('history')
 const navItems = [
   { id: 'home', label: 'Home', icon: HomeIcon },
   { id: 'history', label: 'History', icon: HistoryIcon },
-  { id: 'dictionary', label: 'Dictionary', icon: BookIcon },
+  // { id: 'dictionary', label: 'Dictionary', icon: BookIcon },
 ]
 
 const historyItems = [
@@ -80,144 +87,57 @@ function openSettings() {
 </script>
 
 <template>
-  <div class="flex h-screen w-screen bg-background overflow-hidden select-none rounded-xl">
-    <!-- Sidebar -->
-    <aside class="w-64 border-r border-border bg-background flex flex-col p-4 shrink-0">
-      <div class="flex items-center gap-2 mb-8 px-2" data-tauri-drag-region>
-        <Logo class="w-8 h-8" />
-        <span class="bg-muted px-1.5 py-0.5 rounded text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Free</span>
-      </div>
+  <SidebarProvider>
+    <AppSidebar
+      v-model:active-tab="activeTab"
+      :nav-items="navItems"
+      @open-settings="openSettings"
+    />
+    <SidebarInset>
+      <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <div class="flex items-center gap-2 px-4">
+          <SidebarTrigger class="-ml-1" />
+          <Separator orientation="vertical" class="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem class="hidden md:block">
+                <BreadcrumbLink href="#">
+                  Typo
+                  <span class="text-[10px] ml-1 bg-muted px-1 py-0.5 rounded text-muted-foreground uppercase">Free</span>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator class="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{{ navItems.find(i => i.id === activeTab)?.label }}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
 
-      <nav class="flex-1 space-y-1">
-        <button
-          v-for="item in navItems"
-          :key="item.id"
-          class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium"
-          :class="activeTab === item.id ? 'bg-muted/40 shadow-sm border border-border/50 text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'"
-          @click="activeTab = item.id"
-        >
-          <component :is="item.icon" class="w-4 h-4" />
-          {{ item.label }}
-        </button>
-      </nav>
-
-      <!-- Sidebar Footer -->
-      <div class="flex items-center justify-between px-2 text-muted-foreground/60">
-        <button class="p-1.5 hover:bg-muted hover:text-foreground rounded-md transition-colors">
-          <UserIcon class="w-4 h-4" />
-        </button>
-        <button class="p-1.5 hover:bg-muted hover:text-foreground rounded-md transition-colors">
-          <MessageCircleIcon class="w-4 h-4" />
-        </button>
-        <button class="p-1.5 hover:bg-muted hover:text-foreground rounded-md transition-colors" @click="openSettings">
-          <SettingsIcon class="w-4 h-4" />
-        </button>
-        <button class="p-1.5 hover:bg-muted hover:text-foreground rounded-md transition-colors">
-          <HelpCircleIcon class="w-4 h-4" />
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
-      <!-- Content based on activeTab -->
-      <div v-if="activeTab === 'history'" class="flex-1 flex flex-col p-10 overflow-y-auto">
-        <header class="flex items-center justify-end mb-10">
-          <button class="p-2 hover:bg-muted rounded-lg text-muted-foreground transition-colors">
-            <MoreHorizontalIcon class="w-5 h-5" />
-          </button>
-        </header>
-
-        <!-- Settings Info Card -->
-        <div class="bg-muted/10 border border-border/40 rounded-2xl p-7 space-y-6 mb-10">
-          <div class="flex items-start justify-between gap-6">
-            <div class="flex gap-4">
-              <div class="p-1 bg-muted/30 rounded">
-                <ClockIcon class="w-4 h-4 text-foreground/80" />
-              </div>
-              <div>
-                <h4 class="font-bold text-sm">
-                  Keep history
-                </h4>
-                <p class="text-xs text-muted-foreground mt-1.5 leading-normal">
-                  How long do you want to keep your dictation history on your device?
-                </p>
-              </div>
-            </div>
-            <div class="relative min-w-[140px]">
-              <button class="w-full flex items-center justify-between bg-background border border-border rounded-lg px-4 py-2 text-xs font-medium shadow-sm hover:bg-muted/20 transition-colors">
-                Forever
-                <ChevronDownIcon class="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-            </div>
-          </div>
-
-          <div class="flex gap-4">
-            <div class="p-1 bg-muted/30 rounded">
-              <LockIcon class="w-4 h-4 text-foreground/80" />
-            </div>
-            <div>
-              <h4 class="font-bold text-sm">
-                Your data stays private
-              </h4>
-              <p class="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                Your voice dictations are private with zero data retention. They are stored only on your device and cannot be accessed from anywhere else.
-              </p>
-            </div>
-          </div>
+      <!-- Main Content -->
+      <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
+        <!-- Content based on activeTab -->
+        <div v-if="activeTab === 'home'" class="flex-1 flex flex-col min-h-0 bg-muted/20 rounded-xl border border-border overflow-hidden p-4">
+          <p>Press <kbd class="kbd">{{ globalShortcut }}</kbd> to start</p>
+          Or you can change the global shortcut in the settings
         </div>
 
-        <!-- Filters -->
-        <div class="flex items-center gap-2 mb-10">
-          <button
-            v-for="tab in ['All', 'Dictations', 'Ask anything']"
-            :key="tab"
-            class="px-5 py-1.5 rounded-full text-xs font-semibold transition-all"
-            :class="tab === 'All' ? 'bg-muted text-foreground ring-1 ring-border/20 shadow-sm' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'"
-          >
-            {{ tab }}
-          </button>
-        </div>
-
-        <!-- History List -->
-        <div class="space-y-10">
-          <div>
-            <h2 class="text-xs font-semibold text-muted-foreground/70 mb-5">
-              May 1, 2026
+        <!-- Placeholder for other tabs -->
+        <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
+          <div class="text-center space-y-4">
+            <div class="p-4 bg-muted/20 rounded-full inline-block">
+              <component :is="navItems.find(i => i.id === activeTab)?.icon" class="w-12 h-12 text-muted-foreground/30" />
+            </div>
+            <h2 class="text-xl font-semibold text-foreground/40">
+              {{ activeTab.charAt(0).toUpperCase() + activeTab.slice(1) }}
             </h2>
-            <div class="border border-border/40 rounded-2xl overflow-hidden bg-card/10 backdrop-blur-sm">
-              <div
-                v-for="(item, index) in historyItems"
-                :key="index"
-                class="flex gap-6 p-5 hover:bg-muted/10 transition-colors group relative border-b border-border/30 last:border-0"
-              >
-                <div class="text-[10px] text-muted-foreground/50 font-bold tabular-nums whitespace-nowrap mt-1 uppercase w-16">
-                  {{ item.time }}
-                </div>
-                <div class="text-sm leading-relaxed text-foreground/90 flex-1 pr-6">
-                  {{ item.text }}
-                  <span v-if="item.pinned" class="ml-1 opacity-100 transition-opacity">📌</span>
-                </div>
-              </div>
-            </div>
+            <p class="text-sm text-muted-foreground/40">
+              Coming soon
+            </p>
           </div>
         </div>
-      </div>
-
-      <!-- Placeholder for other tabs -->
-      <div v-else class="flex-1 flex items-center justify-center">
-        <div class="text-center space-y-4">
-          <div class="p-4 bg-muted/20 rounded-full inline-block">
-            <component :is="navItems.find(i => i.id === activeTab)?.icon" class="w-12 h-12 text-muted-foreground/30" />
-          </div>
-          <h2 class="text-xl font-semibold text-foreground/40">
-            {{ activeTab.charAt(0).toUpperCase() + activeTab.slice(1) }}
-          </h2>
-          <p class="text-sm text-muted-foreground/40">
-            Coming soon
-          </p>
-        </div>
-      </div>
-    </main>
-  </div>
+      </main>
+    </SidebarInset>
+  </SidebarProvider>
 </template>

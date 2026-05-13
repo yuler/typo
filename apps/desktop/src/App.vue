@@ -26,8 +26,8 @@ onMounted(async () => {
   await initializeStore()
   await initializeI18n()
 
-  // 对于 home 窗口，确保它在所有工作区可见
-  if (currentLabel === 'home') {
+  // 对于 home 和 indicator 窗口，确保它在所有工作区可见
+  if (currentLabel === 'home' || currentLabel === 'indicator') {
     await appWindow.setVisibleOnAllWorkspaces(true)
   }
 })
@@ -58,6 +58,5 @@ body {
   height: 100vh;
   background-color: transparent;
   overflow: hidden;
-  color: #fff;
 }
 </style>

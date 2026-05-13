@@ -181,12 +181,7 @@ function gotoSettings() {
 
 <template>
   <div
-    class="h-full w-full flex items-center px-3 gap-3 transition-shadow duration-300 select-none bg-background rounded-xl border border-border"
-    :class="{
-      'capsule-processing': state === 'processing',
-      'capsule-result': state === 'result',
-      'capsule-error': state === 'error',
-    }"
+    class="h-full w-full flex items-center px-3 gap-3 transition-shadow duration-300 select-none bg-neutral-800 rounded-lg border border-white/10 overflow-hidden"
     tabindex="0"
     @keydown.esc="onESC"
   >
@@ -195,59 +190,39 @@ function gotoSettings() {
     <!-- Center: Status -->
     <div class="flex-1 flex overflow-hidden min-w-0 h-full items-center">
       <div v-if="state === 'processing'" class="flex items-center gap-2 px-2 overflow-hidden w-full">
-        <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-600/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-600/20">
-          <TerminalIcon class="w-3 h-3 text-blue-600/60" />
-          <span class="text-[10px] font-bold text-blue-600/80 tracking-tight uppercase">
+        <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-500/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-500/20">
+          <TerminalIcon class="w-3 h-3 text-blue-400" />
+          <span class="text-[10px] font-bold text-blue-400 tracking-tight uppercase">
             {{ commandName.startsWith('/') ? commandName.slice(1) : commandName }}
           </span>
         </div>
-        <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-600 shrink-0" />
-        <span class="truncate text-sm text-blue-600/70 shrink min-w-0">{{ inputText }}</span>
-        <span class="text-[10px] text-blue-600/40 font-mono shrink-0">{{ inputText?.length }}</span>
+        <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
+        <span class="truncate text-sm text-blue-100/90 shrink min-w-0 font-medium">{{ inputText }}</span>
+        <span class="text-[10px] text-blue-400/40 font-mono shrink-0">{{ inputText?.length }}</span>
       </div>
 
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
-        <span class="truncate text-sm text-green-600">{{ resultText }}</span>
+        <span class="truncate text-sm text-green-400 font-medium">{{ resultText }}</span>
         <!-- TODO: Add option for this -->
-        <ClipboardCheckIcon class="w-4 h-4 text-green-600 shrink-0" />
-        <span class="text-[10px] text-green-600/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
+        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
+        <span class="text-[10px] text-green-400/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
       </div>
 
-      <p v-else-if="state === 'error'" class="truncate text-sm text-red-600 px-2">
+      <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2 font-medium">
         {{ errorText }}
       </p>
 
-      <kbd v-else class="px-1.5 py-0.5 rounded border border-border/50 bg-muted/30 font-mono text-[10px] text-muted-foreground/60">
+      <kbd v-else class="px-1.5 py-0.5 rounded border border-white/10 bg-white/5 font-mono text-[10px] text-white/40">
         {{ formatShortcut(globalShortcut, isMacOS) }}
       </kbd>
     </div>
 
     <!-- Right: Settings -->
     <button
-      class="shrink-0 p-1.5 rounded-lg hover:bg-muted transition-colors"
+      class="shrink-0 p-1.5 rounded-lg hover:bg-white/5 transition-colors"
       @click="gotoSettings"
     >
-      <SettingsIcon class="w-4 h-4 text-muted-foreground" />
+      <SettingsIcon class="w-4 h-4 text-white/40 hover:text-white/60" />
     </button>
   </div>
 </template>
-
-<style scoped>
-.capsule-processing {
-  box-shadow:
-    0 0 20px rgba(59, 130, 246, 0.3),
-    inset 0 0 20px rgba(59, 130, 246, 0.05);
-}
-
-.capsule-result {
-  box-shadow:
-    0 0 20px rgba(34, 197, 94, 0.3),
-    inset 0 0 20px rgba(34, 197, 94, 0.05);
-}
-
-.capsule-error {
-  box-shadow:
-    0 0 20px rgba(239, 68, 68, 0.3),
-    inset 0 0 20px rgba(239, 68, 68, 0.05);
-}
-</style>
