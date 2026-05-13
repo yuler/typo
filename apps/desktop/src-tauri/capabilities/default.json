@@ -32,6 +32,7 @@
     "notification:default",
     "process:default",
     "process:allow-restart",
-    "log:default"
+    "log:default",
+    "autostart:default"
   ]
 }

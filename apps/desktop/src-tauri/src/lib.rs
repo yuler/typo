@@ -5,6 +5,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
 use std::sync::{Mutex, OnceLock};
 
+mod autostart;
 mod cli;
 mod keyboard;
 mod logging;
@@ -189,6 +190,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(logging::log_plugin_builder().build())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -219,6 +221,11 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             request_mac_accessibility_permissions,
+            autostart::cleanup_legacy_macos_login_item,
+            autostart::ensure_legacy_macos_login_item,
+            autostart::is_legacy_macos_login_item_enabled,
+            autostart::is_autostart_enabled,
+            autostart::set_autostart,
             get_system_info,
             get_selected_text,
             set_pending_selection_input,

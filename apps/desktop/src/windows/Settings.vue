@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -16,6 +18,7 @@ import { logger } from '@/logger'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
+import { updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
 const { setCurrentWindow } = useGlobalState()
@@ -41,6 +44,7 @@ async function openLogFolder(): Promise<void> {
 }
 
 const form = ref({
+  autostart: false,
   autoselect: false,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
   deepseek_api_key: '',
@@ -58,6 +62,7 @@ const isMacOS = ref(false)
 const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
 const recordedCaptureKeys = new Set<string>()
+let unlistenAutostart: UnlistenFn | undefined
 
 function normalizeCaptureKey(e: KeyboardEvent): string {
   const code = e.code
@@ -199,6 +204,8 @@ async function loadOllamaModels() {
 }
 
 onMounted(async () => {
+  const autostartEnabled = await invoke<boolean>('is_autostart_enabled')
+  form.value.autostart = autostartEnabled
   form.value.autoselect = await store.get('autoselect')
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
@@ -223,6 +230,10 @@ onMounted(async () => {
       textarea.setSelectionRange(0, 0)
     }
   })
+
+  unlistenAutostart = await listen<boolean>('autostart-changed', (event) => {
+    form.value.autostart = event.payload
+  })
 })
 
 onUnmounted(() => {
@@ -230,6 +241,7 @@ onUnmounted(() => {
   if (isCapturingShortcut.value) {
     stopCapture()
   }
+  unlistenAutostart?.()
 })
 
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
@@ -248,6 +260,19 @@ function addPromptSlash() {
 
 function removePromptSlash(index: number) {
   form.value.slash_commands.splice(index, 1)
+}
+
+async function onAutostartToggle(value: boolean) {
+  form.value.autostart = value
+  try {
+    await invoke('set_autostart', { enabled: value })
+    await updateTrayMenu()
+  }
+  catch (error) {
+    logger.error('Settings', 'Failed to update autostart setting:', error)
+    // Revert on failure
+    form.value.autostart = !value
+  }
 }
 
 async function onSubmit() {
@@ -324,6 +349,17 @@ async function onSubmit() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div class="space-y-2">
+              <Label>{{ t('settings.basic.autostart.label') }}</Label>
+              <div class="flex items-center space-x-2">
+                <Switch id="autostart" :model-value="form.autostart" @update:model-value="onAutostartToggle" />
+                <Label for="autostart">{{ form.autostart ? t('action.enable') : t('action.disable') }}</Label>
+              </div>
+              <p class="text-xs text-muted-foreground">
+                {{ t('settings.basic.autostart.description') }}
+              </p>
             </div>
 
             <div class="space-y-2">

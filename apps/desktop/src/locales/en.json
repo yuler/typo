@@ -6,6 +6,8 @@
   "settings.basic.title": "Basic Settings",
   "settings.basic.autoselect.label": "Auto Select",
   "settings.basic.autoselect.description": "If nothing is selected, enabling this will trigger {shortcut} first.",
+  "settings.basic.autostart.label": "Launch at login",
+  "settings.basic.autostart.description": "Automatically start the app when you log in.",
   "settings.basic.shortcut.label": "Global Shortcut",
   "settings.basic.shortcut.listening": "Listening...",
   "settings.basic.shortcut.reset": "Reset",
@@ -49,6 +51,7 @@
   "tray.check_updates": "Check for updates",
   "tray.about": "About typo v{version}",
   "tray.open_log_folder": "Open log folder…",
+  "tray.autostart": "Launch at Login",
   "tray.quit": "Quit typo",
   "updates.up_to_date": "You're on the latest version (v{version})"
 }
