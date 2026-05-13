@@ -224,6 +224,8 @@ pub fn run() {
             autostart::cleanup_legacy_macos_login_item,
             autostart::ensure_legacy_macos_login_item,
             autostart::is_legacy_macos_login_item_enabled,
+            autostart::is_autostart_enabled,
+            autostart::set_autostart,
             get_system_info,
             get_selected_text,
             set_pending_selection_input,

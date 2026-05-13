@@ -1,5 +1,4 @@
 import { invoke } from '@tauri-apps/api/core'
-import { isEnabled } from '@tauri-apps/plugin-autostart'
 import { watch } from 'vue'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
@@ -17,7 +16,7 @@ export async function syncTrayMenu(): Promise<void> {
 
   async function push(): Promise<void> {
     try {
-      const autostartChecked = await isEnabled()
+      const autostartChecked = await invoke<boolean>('is_autostart_enabled')
       await invoke('update_tray_menu', {
         labels: {
           show: t('tray.show'),

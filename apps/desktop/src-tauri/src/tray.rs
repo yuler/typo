@@ -2,7 +2,6 @@ use serde::Deserialize;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Wry};
-use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_opener::OpenerExt;
 
 pub const TRAY_ID: &str = "main";
@@ -59,7 +58,6 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
-    let separator = PredefinedMenuItem::separator(handle)?;
     let about = MenuItem::with_id(
         handle,
         ID_ABOUT,
@@ -74,8 +72,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
-    let autostart_checked = handle.autolaunch().is_enabled().unwrap_or(false)
-        || crate::autostart::is_legacy_macos_login_item_enabled(handle.clone()).unwrap_or(false);
+    let autostart_checked = crate::autostart::is_autostart_enabled(handle.clone()).unwrap_or(false);
     let autostart = CheckMenuItem::with_id(
         handle,
         ID_AUTOSTART,
@@ -169,53 +166,25 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
 }
 
 fn toggle_autostart_action(app: &AppHandle) {
-    let autostart_manager = app.autolaunch();
     let Some(state) = app.try_state::<TrayMenuHandles>() else {
         log::error!("tray menu handles not found");
         return;
     };
 
-    match autostart_manager.is_enabled() {
+    match crate::autostart::is_autostart_enabled(app.clone()) {
         Ok(enabled) => {
             let next_state = !enabled;
-            if enabled {
-                if let Err(err) = autostart_manager.disable() {
-                    log::error!("failed to disable autostart: {}", err);
-                    return;
-                }
-                log::info!("autostart disabled via tray");
-                #[cfg(target_os = "macos")]
-                let _ = crate::autostart::cleanup_legacy_macos_login_item(app.clone());
-            } else {
-                let mut success = true;
-                if let Err(err) = autostart_manager.enable() {
-                    log::warn!("failed to enable autostart via plugin: {}", err);
-                    success = false;
-                }
-
-                #[cfg(target_os = "macos")]
-                {
-                    // Fallback to legacy method if plugin fails or is unreliable
-                    if !success || !autostart_manager.is_enabled().unwrap_or(false) {
-                        if let Err(err) = crate::autostart::ensure_legacy_macos_login_item(app.clone()) {
-                            log::error!("failed to ensure legacy macos login item: {}", err);
-                            if !success { return; }
-                        } else {
-                            log::info!("autostart enabled via legacy macos login item");
-                        }
-                    }
-                }
-
-                if success {
-                    log::info!("autostart enabled via tray");
-                }
+            if let Err(err) = crate::autostart::set_autostart(app.clone(), next_state) {
+                log::error!("failed to toggle autostart: {}", err);
+                return;
             }
+            log::info!(
+                "autostart {} via tray",
+                if next_state { "enabled" } else { "disabled" }
+            );
 
             // Sync tray menu checkmark
             let _ = state.autostart.set_checked(next_state);
-            // Notify frontend
-            let _ = app.emit("tray:autostart-changed", next_state);
-            let _ = app.emit(EV_TOGGLE_CLICKED, ());
         }
         Err(err) => {
             log::error!("failed to check autostart status: {}", err);

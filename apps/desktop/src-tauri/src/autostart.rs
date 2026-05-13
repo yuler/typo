@@ -2,12 +2,14 @@
 use std::process::Command;
 #[cfg(target_os = "macos")]
 use std::path::{Path, PathBuf};
+use tauri::Emitter;
+use tauri_plugin_autostart::ManagerExt;
 
 #[tauri::command]
-pub fn cleanup_legacy_macos_login_item(app: tauri::AppHandle) -> Result<(), String> {
+pub fn cleanup_legacy_macos_login_item(_app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        let app_name = escape_applescript_string(&app.package_info().name);
+        let app_name = escape_applescript_string(&_app.package_info().name);
         let script = format!(
             r#"
 tell application "System Events"
@@ -40,14 +42,14 @@ end tell
 }
 
 #[tauri::command]
-pub fn is_legacy_macos_login_item_enabled(app: tauri::AppHandle) -> Result<bool, String> {
+pub fn is_legacy_macos_login_item_enabled(_app: tauri::AppHandle) -> Result<bool, String> {
     #[cfg(target_os = "macos")]
     {
-        let app_name = escape_applescript_string(&app.package_info().name);
+        let app_name = escape_applescript_string(&_app.package_info().name);
         let script = format!(
             r#"
 tell application "System Events"
-    return exists login item "{}"
+    return exists login item "{0}"
 end tell
 "#,
             app_name
@@ -94,10 +96,10 @@ fn app_bundle_path(executable_path: &Path) -> PathBuf {
 }
 
 #[tauri::command]
-pub fn ensure_legacy_macos_login_item(app: tauri::AppHandle) -> Result<(), String> {
+pub fn ensure_legacy_macos_login_item(_app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        let app_name = escape_applescript_string(&app.package_info().name);
+        let app_name = escape_applescript_string(&_app.package_info().name);
         let executable_path = std::env::current_exe()
             .map_err(|error| format!("failed to resolve executable path: {}", error))?;
         let login_path = app_bundle_path(&executable_path);
@@ -132,4 +134,54 @@ end tell
     {
         Ok(())
     }
+}
+
+#[tauri::command]
+pub fn is_autostart_enabled(app: tauri::AppHandle) -> Result<bool, String> {
+    let plugin_enabled = app.autolaunch().is_enabled().map_err(|e| e.to_string())?;
+    #[cfg(target_os = "macos")]
+    let legacy_enabled = is_legacy_macos_login_item_enabled(app.clone())?;
+    #[cfg(not(target_os = "macos"))]
+    let legacy_enabled = false;
+
+    Ok(plugin_enabled || legacy_enabled)
+}
+
+#[tauri::command]
+pub fn set_autostart(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
+    let manager = app.autolaunch();
+    if enabled {
+        let mut plugin_success = true;
+        if let Err(e) = manager.enable() {
+            log::warn!("failed to enable autostart plugin: {}", e);
+            plugin_success = false;
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            if !plugin_success || !manager.is_enabled().unwrap_or(false) {
+                log::info!("falling back to legacy macos login item");
+                let _ = ensure_legacy_macos_login_item(app.clone());
+            }
+            else {
+                let _ = cleanup_legacy_macos_login_item(app.clone());
+            }
+        }
+
+        if !plugin_success {
+            #[cfg(not(target_os = "macos"))]
+            {
+                return Err("Failed to enable autostart".to_string());
+            }
+        }
+    }
+    else {
+        let _ = manager.disable();
+        #[cfg(target_os = "macos")]
+        let _ = cleanup_legacy_macos_login_item(app.clone());
+    }
+
+    let _ = app.emit("autostart-changed", enabled);
+
+    Ok(())
 }

@@ -3,7 +3,6 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { disable, enable, isEnabled } from '@tauri-apps/plugin-autostart'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -205,11 +204,8 @@ async function loadOllamaModels() {
 }
 
 onMounted(async () => {
-  const [pluginEnabled, legacyEnabled] = await Promise.all([
-    isEnabled(),
-    invoke<boolean>('is_legacy_macos_login_item_enabled'),
-  ])
-  form.value.autostart = pluginEnabled || legacyEnabled
+  const autostartEnabled = await invoke<boolean>('is_autostart_enabled')
+  form.value.autostart = autostartEnabled
   form.value.autoselect = await store.get('autoselect')
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
@@ -235,7 +231,7 @@ onMounted(async () => {
     }
   })
 
-  unlistenAutostart = await listen<boolean>('tray:autostart-changed', (event) => {
+  unlistenAutostart = await listen<boolean>('autostart-changed', (event) => {
     form.value.autostart = event.payload
   })
 })
@@ -269,37 +265,11 @@ function removePromptSlash(index: number) {
 async function onAutostartToggle(value: boolean) {
   form.value.autostart = value
   try {
-    if (value) {
-      let success = true
-      try {
-        await enable()
-      }
-      catch (error) {
-        console.warn('Failed to enable autostart via plugin:', error)
-        success = false
-      }
-
-      if (isMacOS.value && (!success || !(await isEnabled()))) {
-        // Fallback for environments where LaunchAgent doesn't register reliably or plugin fails.
-        try {
-          await invoke('ensure_legacy_macos_login_item')
-        }
-        catch (error) {
-          console.error('Failed to enable autostart via legacy method:', error)
-          if (!success)
-            throw error
-        }
-      }
-    }
-    else {
-      await disable()
-      // Compatibility cleanup: remove legacy Login Items created by older AppleScript launcher mode.
-      await invoke('cleanup_legacy_macos_login_item')
-    }
+    await invoke('set_autostart', { enabled: value })
     await updateTrayMenu()
   }
   catch (error) {
-    console.error('Failed to update autostart setting:', error)
+    logger.error('Settings', 'Failed to update autostart setting:', error)
     // Revert on failure
     form.value.autostart = !value
   }
