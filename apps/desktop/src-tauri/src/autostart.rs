@@ -138,7 +138,10 @@ end tell
 
 #[tauri::command]
 pub fn is_autostart_enabled(app: tauri::AppHandle) -> Result<bool, String> {
-    let plugin_enabled = app.autolaunch().is_enabled().map_err(|e| e.to_string())?;
+    let plugin_enabled = app.autolaunch().is_enabled().unwrap_or_else(|e| {
+        log::warn!("failed to check autostart plugin status: {}", e);
+        false
+    });
     #[cfg(target_os = "macos")]
     let legacy_enabled = is_legacy_macos_login_item_enabled(app.clone())?;
     #[cfg(not(target_os = "macos"))]
@@ -161,10 +164,14 @@ pub fn set_autostart(app: tauri::AppHandle, enabled: bool) -> Result<(), String>
         {
             if !plugin_success || !manager.is_enabled().unwrap_or(false) {
                 log::info!("falling back to legacy macos login item");
-                let _ = ensure_legacy_macos_login_item(app.clone());
-            }
-            else {
-                let _ = cleanup_legacy_macos_login_item(app.clone());
+                if let Err(e) = ensure_legacy_macos_login_item(app.clone()) {
+                    log::error!("failed to enable legacy macos login item: {}", e);
+                    return Err(format!("Failed to enable autostart (plugin and fallback failed): {}", e));
+                }
+            } else {
+                if let Err(e) = cleanup_legacy_macos_login_item(app.clone()) {
+                    log::warn!("failed to cleanup legacy login item during autostart enable: {}", e);
+                }
             }
         }
 
@@ -174,11 +181,14 @@ pub fn set_autostart(app: tauri::AppHandle, enabled: bool) -> Result<(), String>
                 return Err("Failed to enable autostart".to_string());
             }
         }
-    }
-    else {
-        let _ = manager.disable();
+    } else {
+        if let Err(e) = manager.disable() {
+            log::warn!("failed to disable autostart plugin: {}", e);
+        }
         #[cfg(target_os = "macos")]
-        let _ = cleanup_legacy_macos_login_item(app.clone());
+        if let Err(e) = cleanup_legacy_macos_login_item(app.clone()) {
+            log::warn!("failed to cleanup legacy login item during autostart disable: {}", e);
+        }
     }
 
     let _ = app.emit("autostart-changed", enabled);
