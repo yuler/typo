@@ -19,7 +19,7 @@ import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
 import * as store from '@/store'
-import { formatShortcut, sleep } from '@/utils'
+import { sleep } from '@/utils'
 import { initializeWindow } from '@/window'
 
 const isMacOS = ref(false)
