@@ -162,7 +162,7 @@ function openSettings() {
 
 <template>
   <div
-    class="capsule-container glass h-full w-full flex items-center px-4 gap-3 cursor-move select-none overflow-hidden"
+    class="capsule-container glass h-full w-full flex items-center px-4 gap-3 select-none overflow-hidden"
     :class="{
       'border-blue-500/50': state === 'processing',
       'border-green-500/50': state === 'result',
