@@ -27,7 +27,7 @@ function getMainWindowPos(): LogicalPosition | null {
   return null
 }
 
-export async function initializeWindow() {
+export async function initializeWindow(show = true) {
   logger.info('window', 'initializeWindow')
   const appWindow = getCurrentWindow()
   await appWindow?.setAlwaysOnTop(true)
@@ -73,7 +73,9 @@ export async function initializeWindow() {
     }
   })
 
-  await appWindow.show()
+  if (show) {
+    await appWindow.show()
+  }
 }
 
 export const MAIN_WINDOW_WIDTH = 300

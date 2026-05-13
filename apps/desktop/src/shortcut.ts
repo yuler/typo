@@ -21,13 +21,28 @@ async function handleShortcut() {
   }
 
   if (payload) {
-    const appWindow = WebviewWindow.getCurrent()
-    await appWindow?.show()
-    // await appWindow?.setFocus()
+    // Create/show the indicator window
+    await invoke('open_indicator_window')
 
     await invoke('set_pending_selection_input', { payload })
-    logger.info('shortcut', 'emit set-input', payload)
-    await appWindow?.emit('set-input', payload)
+
+    // Emit to the indicator window specifically
+    const indicatorWindow = await WebviewWindow.getByLabel('indicator')
+    if (indicatorWindow) {
+      logger.info('shortcut', 'emit set-input to indicator', payload)
+      await indicatorWindow.emit('set-input', payload)
+    }
+    else {
+      logger.error('shortcut', 'indicator window not found after creation')
+    }
+  }
+  else {
+    // No text selected, show the Home window (main)
+    const mainWindow = await WebviewWindow.getByLabel('main')
+    if (mainWindow) {
+      await mainWindow.show()
+      await mainWindow.setFocus()
+    }
   }
 }
 

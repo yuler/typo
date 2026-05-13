@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { relaunch } from '@tauri-apps/plugin-process'
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import UpgradeProgress from '@/components/UpgradeProgress.vue'
 import { useGlobalState } from '@/composables/useGlobalState'
 import { useI18n } from '@/composables/useI18n'
 
-const { updateInfo, setCurrentWindow } = useGlobalState()
+const { updateInfo } = useGlobalState()
+const appWindow = getCurrentWebviewWindow()
 const { t, locale } = useI18n()
 
 const isUpgrading = ref(false)
@@ -47,7 +49,7 @@ async function onUpgradeConfirm() {
 }
 
 function onCancel() {
-  setCurrentWindow('Main')
+  appWindow.close()
 }
 </script>
 

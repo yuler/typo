@@ -4,9 +4,10 @@ import { onMounted } from 'vue'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeStore } from '@/store'
-import CapsuleMain from '@/views/CapsuleMain.vue'
-import SettingsView from '@/views/SettingsView.vue'
-import UpgradeView from '@/views/UpgradeView.vue'
+import Home from '@/windows/Home.vue'
+import Indicator from '@/windows/Indicator.vue'
+import Settings from '@/windows/Settings.vue'
+import Upgrade from '@/windows/Upgrade.vue'
 
 const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
@@ -27,9 +28,10 @@ onMounted(async () => {
 
 <template>
   <main class="h-screen w-screen overflow-hidden bg-transparent">
-    <CapsuleMain v-if="currentLabel === 'main'" />
-    <SettingsView v-else-if="currentLabel === 'settings'" />
-    <UpgradeView v-else-if="currentLabel === 'upgrade'" />
+    <Home v-if="currentLabel === 'main'" />
+    <Indicator v-else-if="currentLabel === 'indicator'" />
+    <Settings v-else-if="currentLabel === 'settings'" />
+    <Upgrade v-else-if="currentLabel === 'upgrade'" />
     <div v-else class="flex items-center justify-center h-full text-white">
       Unknown window label: {{ currentLabel }}
     </div>

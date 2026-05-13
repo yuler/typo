@@ -238,6 +238,7 @@ pub fn run() {
             tray::update_tray_menu,
             windows::open_settings_window,
             windows::open_upgrade_window,
+            windows::open_indicator_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

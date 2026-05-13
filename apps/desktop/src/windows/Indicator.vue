@@ -7,7 +7,7 @@ import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'luc
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
 import Logo from '@/components/Logo.vue'
-import { useGlobalState } from '@/composables/useGlobalState'
+
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { parseSlashCommands, resolveSlashCommand } from '@/slashCommands'
@@ -16,7 +16,7 @@ import * as store from '@/store'
 import { formatShortcut, sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
-const { setCurrentWindow } = useGlobalState()
+
 const { t } = useI18n()
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
@@ -32,7 +32,6 @@ const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const STATUS_DISPLAY_DURATION_MS = 2500
 
 let unlistenSetInput: UnlistenFn
-let unlistenTrayToggle: UnlistenFn
 
 interface SetInputPayload {
   text: string
@@ -45,7 +44,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   const { text, mode } = payload
 
-  logger.info('Main', { text, mode })
+  logger.info('Indicator', { text, mode })
 
   if (!text.trim().length) {
     errorText.value = t('main.error.no_text')
@@ -116,34 +115,11 @@ async function processSetInputPayload(payload: SetInputPayload) {
   }
 }
 
-let unlistenFocus: UnlistenFn
-let suppressBlurHideUntil = 0
-const TRAY_TOGGLE_BLUR_GUARD_MS = 250
+
 
 onMounted(async () => {
-  // Show Settings window if AI key is missing
-  const aiProvider = await store.get('ai_provider')
-  if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
-    await sleep(500)
-    gotoSettings()
-    return
-  }
-
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
   isMacOS.value = systemInfo.os === 'macos'
-
-  if (isMacOS.value) {
-    try {
-      const trusted = await invoke('request_mac_accessibility_permissions')
-      if (!trusted) {
-        errorText.value = t('main.error.accessibility')
-        state.value = 'error'
-      }
-    }
-    catch (err) {
-      logger.error('Main', 'accessibility error', err)
-    }
-  }
 
   globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
 
@@ -157,18 +133,9 @@ onMounted(async () => {
     await processSetInputPayload(event.payload)
   })
 
-  unlistenTrayToggle = await appWindow.listen('tray:toggle-clicked', () => {
-    suppressBlurHideUntil = Date.now() + TRAY_TOGGLE_BLUR_GUARD_MS
-  })
 
-  unlistenFocus = await appWindow.onFocusChanged(({ payload: focused }) => {
-    if (Date.now() < suppressBlurHideUntil) {
-      return
-    }
-    if (!focused && state.value !== 'processing') {
-      appWindow.hide()
-    }
-  })
+
+
 
   const pendingPayload = await invoke<SetInputPayload | null>('consume_pending_selection_input')
   if (pendingPayload) {
@@ -178,8 +145,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unlistenSetInput?.()
-  unlistenTrayToggle?.()
-  unlistenFocus?.()
 })
 
 let abortController: AbortController | null = null
@@ -216,7 +181,7 @@ async function onESC() {
 }
 
 function gotoSettings() {
-  setCurrentWindow('Settings')
+  invoke('open_settings_window')
 }
 </script>
 

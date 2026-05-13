@@ -3,6 +3,7 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -12,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { useGlobalState } from '@/composables/useGlobalState'
+
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
@@ -21,7 +22,7 @@ import * as store from '@/store'
 import { updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
-const { setCurrentWindow } = useGlobalState()
+const appWindow = getCurrentWebviewWindow()
 
 type SettingsTab = 'basic' | 'prompts'
 
@@ -302,13 +303,13 @@ async function onSubmit() {
   await store.save()
 
   if (!shortcutConflictError.value) {
-    setCurrentWindow('Main')
+    appWindow.close()
   }
 }
 </script>
 
 <template>
-  <div class="h-full w-full border-t" @keydown.esc="setCurrentWindow('Main')">
+  <div class="h-full w-full border-t" @keydown.esc="appWindow.close()">
     <div class="flex h-full">
       <aside class="w-44 border-r bg-muted/20 px-3 py-4 space-y-2">
         <h2 class="text-sm font-semibold px-2 text-muted-foreground uppercase tracking-wide">
