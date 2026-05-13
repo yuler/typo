@@ -213,3 +213,9 @@ You can verify if autostart is correctly configured:
 
 - Ensure Ollama is running (`ollama serve`).
 - See the [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) for more details.
+
+## Release flow
+
+- `pnpm bump` to version and tag the release.
+- `pnpm release:notes` to update the release notes in `latest.json`.
+- `pnpm releases:pull` to `packages/releases`, edit the data, then `pnpm releases:push` to update the marketing website.
