@@ -219,3 +219,4 @@ You can verify if autostart is correctly configured:
 - `pnpm bump` to version and tag the release.
 - `pnpm release:notes` to update the release notes in `latest.json`.
 - `pnpm releases:pull` to `packages/releases`, edit the data, then `pnpm releases:push` to update the marketing website.
+- `pnpm www:deploy` to deploy the www website
