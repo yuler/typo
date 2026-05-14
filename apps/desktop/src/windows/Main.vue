@@ -32,13 +32,13 @@ const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('history')
 
 const navItems = [
-  { id: 'home', label: 'Home', icon: HomeIcon },
+  { id: 'main', label: 'Main', icon: HomeIcon },
   { id: 'history', label: 'History', icon: HistoryIcon },
   // { id: 'dictionary', label: 'Dictionary', icon: BookIcon },
 ]
 
 onMounted(async () => {
-  logger.info('Home', 'onMounted')
+  logger.info('Main', 'onMounted')
 
   await initializeWindow(true)
 
@@ -49,11 +49,11 @@ onMounted(async () => {
     try {
       const trusted = await invoke('request_mac_accessibility_permissions')
       if (!trusted) {
-        logger.warn('Home', 'accessibility not trusted')
+        logger.warn('Main', 'accessibility not trusted')
       }
     }
     catch (err) {
-      logger.error('Home', 'accessibility error', err)
+      logger.error('Main', 'accessibility error', err)
     }
   }
 
@@ -107,7 +107,7 @@ function openSettings() {
       <!-- Main Content -->
       <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
         <!-- Content based on activeTab -->
-        <div v-if="activeTab === 'home'" class="flex-1 flex flex-col min-h-0 bg-muted/20 rounded-xl border border-border overflow-hidden p-4">
+        <div v-if="activeTab === 'main'" class="flex-1 flex flex-col min-h-0 bg-muted/20 rounded-xl border border-border overflow-hidden p-4">
           <p>Press <kbd class="kbd">{{ globalShortcut }}</kbd> to start</p>
           Or you can change the global shortcut in the settings
         </div>

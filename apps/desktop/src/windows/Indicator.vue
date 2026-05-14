@@ -6,7 +6,7 @@ import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { deepSeekProcess, ollamaProcess } from '@/ai'
-import Logo from '@/components/Logo.vue'
+import AppLogo from '@/components/AppLogo.vue'
 
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
@@ -185,7 +185,7 @@ function gotoSettings() {
     tabindex="0"
     @keydown.esc="onESC"
   >
-    <Logo :drag="false" />
+    <AppLogo version />
 
     <!-- Center: Status -->
     <div class="flex-1 flex overflow-hidden min-w-0 h-full items-center">

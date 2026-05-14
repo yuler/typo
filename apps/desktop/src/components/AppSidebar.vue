@@ -7,10 +7,12 @@ import {
   CreditCard,
   LogIn,
   LogOut,
+  Settings2,
   Sparkles,
 } from 'lucide-vue-next'
 import { ref } from 'vue'
-import Logo from '@/components/Logo.vue'
+import AppLogo from '@/components/AppLogo.vue'
+import AppVersion from '@/components/AppVersion.vue'
 import {
   Avatar,
   AvatarFallback,
@@ -30,6 +32,8 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -65,35 +69,60 @@ function handleLogin() {
 </script>
 
 <template>
-  <Sidebar collapsible="icon" class="pt-8">
-    <SidebarHeader class="p-4">
+  <Sidebar collapsible="icon" class="group-data-[state=expanded]:min-w-64">
+    <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg">
-            <Logo :drag="true" class="h-8" />
+          <SidebarMenuButton size="lg" class="hover:bg-transparent cursor-default">
+            <AppLogo drag class="size-12 group-data-[collapsible=icon]:size-8 transition-[width,height]" />
+            <div class="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+              <div class="flex items-center">
+                <AppVersion />
+              </div>
+            </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>
 
-    <SidebarContent class="px-2">
+    <SidebarContent>
       <SidebarGroup>
-        <SidebarMenu>
-          <SidebarMenuItem v-for="item in navItems" :key="item.id">
-            <SidebarMenuButton
-              :tooltip="item.label"
-              :is-active="activeTab === item.id"
-              @click="emit('update:activeTab', item.id)"
-            >
-              <component :is="item.icon" />
-              <span>{{ item.label }}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <SidebarGroupLabel>General</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem v-for="item in navItems" :key="item.id">
+              <SidebarMenuButton
+                :tooltip="item.label"
+                :is-active="activeTab === item.id"
+                @click="emit('update:activeTab', item.id)"
+              >
+                <component :is="item.icon" />
+                <span>{{ item.label }}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <SidebarGroup>
+        <SidebarGroupLabel>Advanced</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip="Settings"
+                @click="emit('openSettings')"
+              >
+                <Settings2 />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
 
-    <SidebarFooter class="p-4">
+    <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem v-if="isLoggedIn">
           <DropdownMenu>
@@ -167,17 +196,11 @@ function handleLogin() {
         </SidebarMenuItem>
         <SidebarMenuItem v-else>
           <SidebarMenuButton
-            size="lg"
-            class="w-full justify-start gap-2"
+            tooltip="Sign in"
             @click="handleLogin"
           >
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <LogIn class="size-4" />
-            </div>
-            <div class="grid flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-semibold">Sign in</span>
-              <span class="truncate text-xs">Login to sync your data</span>
-            </div>
+            <LogIn />
+            <span>Sign in</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

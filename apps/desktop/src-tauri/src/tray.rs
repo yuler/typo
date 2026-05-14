@@ -132,13 +132,13 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
         if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
             log::error!("failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
         }
-        show_and_focus_home(app);
+        show_and_focus_main(app);
     }
 }
 
 fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
-        ID_SHOW => show_and_focus_home(app),
+        ID_SHOW => show_and_focus_main(app),
         ID_SETTINGS => {
             crate::windows::create_settings_window(app);
         }
@@ -191,17 +191,17 @@ fn open_log_folder_action(app: &AppHandle) {
     }
 }
 
-fn show_and_focus_home(app: &AppHandle) {
-    crate::windows::create_home_window(app);
-    let Some(window) = app.get_webview_window("home") else {
+fn show_and_focus_main(app: &AppHandle) {
+    crate::windows::create_main_window(app);
+    let Some(window) = app.get_webview_window("main") else {
         return;
     };
 
     if let Err(err) = window.show() {
-        log::error!("failed to show home window: {}", err);
+        log::error!("failed to show main window: {}", err);
     }
     if let Err(err) = window.set_focus() {
-        log::error!("failed to focus home window: {}", err);
+        log::error!("failed to focus main window: {}", err);
     }
 }
 

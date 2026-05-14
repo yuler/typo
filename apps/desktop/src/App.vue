@@ -4,8 +4,8 @@ import { onMounted } from 'vue'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeStore } from '@/store'
-import Home from '@/windows/Home.vue'
 import Indicator from '@/windows/Indicator.vue'
+import Main from '@/windows/Main.vue'
 import Settings from '@/windows/Settings.vue'
 import Upgrade from '@/windows/Upgrade.vue'
 
@@ -13,7 +13,7 @@ const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
 
 const windows: Record<string, any> = {
-  home: Home,
+  main: Main,
   indicator: Indicator,
   settings: Settings,
   upgrade: Upgrade,
@@ -26,8 +26,8 @@ onMounted(async () => {
   await initializeStore()
   await initializeI18n()
 
-  // 对于 home 和 indicator 窗口，确保它在所有工作区可见
-  if (currentLabel === 'home' || currentLabel === 'indicator') {
+  // 对于 main 和 indicator 窗口，确保它在所有工作区可见
+  if (currentLabel === 'main' || currentLabel === 'indicator') {
     await appWindow.setVisibleOnAllWorkspaces(true)
   }
 })

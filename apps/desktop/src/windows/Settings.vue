@@ -5,12 +5,22 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { localeNames, locales } from '@typo/languages'
-import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
+import { EyeIcon, EyeOffIcon, MessageSquare, PlusIcon, RotateCcwIcon, SaveIcon, Settings2, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from '@/components/ui/sidebar'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -310,26 +320,38 @@ async function onSubmit() {
 
 <template>
   <div class="h-full w-full border-t bg-background" @keydown.esc="appWindow.close()">
-    <div class="flex h-full">
-      <aside class="w-44 border-r bg-muted/20 px-3 py-4 space-y-2">
-        <h2 class="text-sm font-semibold px-2 text-muted-foreground uppercase tracking-wide">
-          {{ t('settings.title') }}
-        </h2>
-        <button
-          class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
-          :class="activeTab === 'basic' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
-          @click="activeTab = 'basic'"
-        >
-          {{ t('settings.tabs.basic') }}
-        </button>
-        <button
-          class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
-          :class="activeTab === 'prompts' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
-          @click="activeTab = 'prompts'"
-        >
-          {{ t('settings.tabs.prompts') }}
-        </button>
-      </aside>
+    <SidebarProvider>
+      <Sidebar collapsible="none" class="w-48 border-r">
+        <SidebarContent class="px-2 pt-4">
+          <SidebarGroup>
+            <SidebarGroupLabel class="px-4 uppercase tracking-wider text-[10px] font-bold">
+              {{ t('settings.title') }}
+            </SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  :is-active="activeTab === 'basic'"
+                  tooltip="Basic Settings"
+                  @click="activeTab = 'basic'"
+                >
+                  <Settings2 />
+                  <span>{{ t('settings.tabs.basic') }}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  :is-active="activeTab === 'prompts'"
+                  tooltip="AI Prompts"
+                  @click="activeTab = 'prompts'"
+                >
+                  <MessageSquare />
+                  <span>{{ t('settings.tabs.prompts') }}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
 
       <main class="flex-1 overflow-y-auto px-8 py-6">
         <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
@@ -544,6 +566,6 @@ async function onSubmit() {
           </div>
         </form>
       </main>
-    </div>
+    </SidebarProvider>
   </div>
 </template>

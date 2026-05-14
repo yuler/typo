@@ -19,8 +19,8 @@ pub fn open_indicator_window(app: AppHandle) {
     create_indicator_window(&app, true);
 }
 
-pub fn create_home_window(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("home") {
+pub fn create_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
         let _ = window.set_focus();
         return;
     }
@@ -28,7 +28,7 @@ pub fn create_home_window(app: &AppHandle) {
     let win_width = 1000.0;
     let win_height = 800.0;
 
-    let win_builder = WebviewWindowBuilder::new(app, "home", WebviewUrl::App("index.html".into()))
+    let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
         .inner_size(win_width, win_height)
         .center()
         .decorations(true);

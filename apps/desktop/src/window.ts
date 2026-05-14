@@ -9,17 +9,17 @@ const APP_WINDOW_HEIGHT = 56
 const WINDOW_RIGHT_OFFSET = 20
 const WINDOW_BOTTOM_OFFSET = 20
 
-const STORAGE_HOME_WINDOW_X = 'typo_home_window_x'
-const STORAGE_HOME_WINDOW_Y = 'typo_home_window_y'
+const STORAGE_MAIN_WINDOW_X = 'typo_main_window_x'
+const STORAGE_MAIN_WINDOW_Y = 'typo_main_window_y'
 
-function saveHomeWindowPos(pos: LogicalPosition) {
-  localStorage.setItem(STORAGE_HOME_WINDOW_X, pos.x.toString())
-  localStorage.setItem(STORAGE_HOME_WINDOW_Y, pos.y.toString())
+function saveMainWindowPos(pos: LogicalPosition) {
+  localStorage.setItem(STORAGE_MAIN_WINDOW_X, pos.x.toString())
+  localStorage.setItem(STORAGE_MAIN_WINDOW_Y, pos.y.toString())
 }
 
-function getHomeWindowPos(): LogicalPosition | null {
-  const x = localStorage.getItem(STORAGE_HOME_WINDOW_X)
-  const y = localStorage.getItem(STORAGE_HOME_WINDOW_Y)
+function getMainWindowPos(): LogicalPosition | null {
+  const x = localStorage.getItem(STORAGE_MAIN_WINDOW_X)
+  const y = localStorage.getItem(STORAGE_MAIN_WINDOW_Y)
   if (x !== null && y !== null) {
     return new LogicalPosition(Number.parseFloat(x), Number.parseFloat(y))
   }
@@ -30,8 +30,8 @@ export async function initializeWindow(show = true) {
   logger.info('window', 'initializeWindow')
   const appWindow = getCurrentWindow()
 
-  if (appWindow.label === 'home') {
-    await setupHomeWindow()
+  if (appWindow.label === 'main') {
+    await setupMainWindow()
     if (show) {
       await appWindow.show()
       await appWindow.center()
@@ -42,10 +42,10 @@ export async function initializeWindow(show = true) {
   await appWindow?.setAlwaysOnTop(true)
   await appWindow?.setVisibleOnAllWorkspaces(true)
 
-  await setupHomeWindow()
+  await setupMainWindow()
 
   const monitor = await currentMonitor()
-  const savedPos = getHomeWindowPos()
+  const savedPos = getMainWindowPos()
   let targetPos: LogicalPosition | null = null
 
   if (savedPos) {
@@ -74,11 +74,11 @@ export async function initializeWindow(show = true) {
     const factor = await appWindow.scaleFactor()
     const sizePhysical = await appWindow.outerSize()
     const size = sizePhysical.toLogical(factor)
-    // Only save position if the window is currently strictly in Home Window size
+    // Only save position if the window is currently strictly in Main Window size
     if (size.width <= APP_WINDOW_WIDTH + 10) {
       const posPhysical = await appWindow.outerPosition()
       const pos = posPhysical.toLogical(factor)
-      saveHomeWindowPos(pos)
+      saveMainWindowPos(pos)
     }
   })
 
@@ -87,15 +87,15 @@ export async function initializeWindow(show = true) {
   }
 }
 
-export const HOME_WINDOW_WIDTH = 1000
-export const HOME_WINDOW_HEIGHT = 800
-export async function setupHomeWindow() {
+export const MAIN_WINDOW_WIDTH = 1000
+export const MAIN_WINDOW_HEIGHT = 800
+export async function setupMainWindow() {
   const appWindow = getCurrentWindow()
-  if (appWindow.label !== 'home')
+  if (appWindow.label !== 'main')
     return
 
-  logger.info('window', 'setupHomeWindow')
-  const size = new LogicalSize(HOME_WINDOW_WIDTH, HOME_WINDOW_HEIGHT)
+  logger.info('window', 'setupMainWindow')
+  const size = new LogicalSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
   await appWindow.setSize(size)
   await appWindow.setMinSize(new LogicalSize(800, 600))
   await appWindow.setMaxSize(null)
