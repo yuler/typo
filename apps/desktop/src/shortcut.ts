@@ -20,14 +20,20 @@ async function handleShortcut() {
     }
   }
 
-  if (payload) {
-    const appWindow = WebviewWindow.getCurrent()
-    await appWindow?.show()
-    // await appWindow?.setFocus()
+  // Always show the indicator window
+  await invoke('open_indicator_window')
 
-    await invoke('set_pending_selection_input', { payload })
-    logger.info('shortcut', 'emit set-input', payload)
-    await appWindow?.emit('set-input', payload)
+  const indicatorWindow = await WebviewWindow.getByLabel('indicator')
+  if (indicatorWindow) {
+    if (payload) {
+      await invoke('set_pending_selection_input', { payload })
+      logger.info('shortcut', 'emit set-input to indicator', payload)
+      await indicatorWindow.emit('set-input', payload)
+    }
+    else {
+      // Just show it if no payload
+      await indicatorWindow.show()
+    }
   }
 }
 

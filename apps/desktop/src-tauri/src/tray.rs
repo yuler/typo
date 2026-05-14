@@ -18,8 +18,6 @@ const ID_AUTOSTART: &str = "autostart";
 const ID_QUIT: &str = "quit";
 
 // Events emitted to the frontend.
-const EV_OPEN_SETTINGS: &str = "tray:open-settings";
-const EV_CHECK_UPDATES: &str = "tray:check-updates";
 const EV_TOGGLE_CLICKED: &str = "tray:toggle-clicked";
 
 /// Handles to mutable menu items so update_tray_menu can relabel them.
@@ -143,14 +141,10 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         ID_SHOW => show_and_focus_main(app),
         ID_SETTINGS => {
             show_and_focus_main(app);
-            if let Err(err) = app.emit(EV_OPEN_SETTINGS, ()) {
-                log::error!("failed to emit {}: {}", EV_OPEN_SETTINGS, err);
-            }
+            let _ = app.emit("open-settings", ());
         }
         ID_CHECK_UPDATES => {
-            if let Err(err) = app.emit(EV_CHECK_UPDATES, ()) {
-                log::error!("failed to emit {}: {}", EV_CHECK_UPDATES, err);
-            }
+            crate::windows::create_upgrade_window(app);
         }
         ID_ABOUT => {
             let releases_url = format!("{}{}", RELEASES_URL_BASE, env!("CARGO_PKG_VERSION"));
@@ -199,6 +193,7 @@ fn open_log_folder_action(app: &AppHandle) {
 }
 
 fn show_and_focus_main(app: &AppHandle) {
+    crate::windows::create_main_window(app);
     let Some(window) = app.get_webview_window("main") else {
         return;
     };

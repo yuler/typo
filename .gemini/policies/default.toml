@@ -10,9 +10,12 @@ toolName = [
 decision = "allow"
 priority = 100
 
-# Allow specific shell commands via run_shell_command
+# Allow specific shell commands via run_command
 [[rule]]
-toolName = "run_shell_command"
+toolName = [
+  "run_command",
+  "run_shell_command"
+]
 # Allow commands starting with rtk or other common tools
 commandPrefix = [
   "rtk",
@@ -23,14 +26,18 @@ commandPrefix = [
   "pnpm",
   "ls",
   "rm",
-  "npx"
+  "npx",
+  "cd"
 ]
 decision = "allow"
 priority = 100
 
 # Ensure rtk specifically is allowed with its subcommands and redirection
 [[rule]]
-toolName = "run_shell_command"
+toolName = [
+  "run_command",
+  "run_shell_command"
+]
 commandRegex = "^rtk.*"
 allowRedirection = true
 decision = "allow"
@@ -39,5 +46,11 @@ priority = 200
 # Allow sending input to commands
 [[rule]]
 toolName = "send_command_input"
+decision = "allow"
+priority = 100
+
+# Allow activating skills automatically
+[[rule]]
+toolName = "activate_skill"
 decision = "allow"
 priority = 100

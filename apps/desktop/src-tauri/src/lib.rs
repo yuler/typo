@@ -10,6 +10,7 @@ mod cli;
 mod keyboard;
 mod logging;
 mod tray;
+mod windows;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
@@ -208,6 +209,8 @@ pub fn run() {
         }))
         .setup(move |app| {
             log::info!("in_linux_wayland={}", in_linux_wayland());
+            windows::create_main_window(&app.handle());
+            windows::create_indicator_window(&app.handle(), false);
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
@@ -234,6 +237,8 @@ pub fn run() {
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
             tray::update_tray_menu,
+            windows::open_upgrade_window,
+            windows::open_indicator_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

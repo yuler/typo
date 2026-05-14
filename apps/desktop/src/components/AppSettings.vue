@@ -4,15 +4,25 @@ import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { localeNames, locales } from '@typo/languages'
-import { EyeIcon, EyeOffIcon, PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
+import { EyeIcon, EyeOffIcon, MessageSquare, PlusIcon, RotateCcwIcon, SaveIcon, Settings2, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from '@/components/ui/sidebar'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { useGlobalState } from '@/composables/useGlobalState'
+
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
@@ -21,7 +31,7 @@ import * as store from '@/store'
 import { updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
-const { setCurrentWindow } = useGlobalState()
+const emit = defineEmits(['close'])
 
 type SettingsTab = 'basic' | 'prompts'
 
@@ -63,6 +73,7 @@ const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
 const recordedCaptureKeys = new Set<string>()
 let unlistenAutostart: UnlistenFn | undefined
+let isMounted = true
 
 function normalizeCaptureKey(e: KeyboardEvent): string {
   const code = e.code
@@ -205,25 +216,46 @@ async function loadOllamaModels() {
 
 onMounted(async () => {
   const autostartEnabled = await invoke<boolean>('is_autostart_enabled')
+  if (!isMounted) {
+    return
+  }
   form.value.autostart = autostartEnabled
   form.value.autoselect = await store.get('autoselect')
+  if (!isMounted) {
+    return
+  }
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
   form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_GLOBAL_SHORTCUT
+  if (!isMounted) {
+    return
+  }
 
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  if (!isMounted) {
+    return
+  }
   isMacOS.value = systemInfo.os === 'macos'
 
   const shortcuts = await store.get('slash_commands')
+  if (!isMounted) {
+    return
+  }
   form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
 
   if (form.value.ai_provider === 'ollama') {
     await loadOllamaModels()
+    if (!isMounted) {
+      return
+    }
   }
 
   nextTick(() => {
+    if (!isMounted) {
+      return
+    }
     const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
     if (textarea) {
       textarea.focus()
@@ -231,12 +263,20 @@ onMounted(async () => {
     }
   })
 
-  unlistenAutostart = await listen<boolean>('autostart-changed', (event) => {
+  const unlisten = await listen<boolean>('autostart-changed', (event) => {
     form.value.autostart = event.payload
   })
+
+  if (!isMounted) {
+    unlisten()
+  }
+  else {
+    unlistenAutostart = unlisten
+  }
 })
 
 onUnmounted(() => {
+  isMounted = false
   // Clean up keydown listener if component is unmounted while capturing shortcut
   if (isCapturingShortcut.value) {
     stopCapture()
@@ -302,33 +342,45 @@ async function onSubmit() {
   await store.save()
 
   if (!shortcutConflictError.value) {
-    setCurrentWindow('Main')
+    emit('close')
   }
 }
 </script>
 
 <template>
-  <div class="h-full w-full border-t" @keydown.esc="setCurrentWindow('Main')">
-    <div class="flex h-full">
-      <aside class="w-44 border-r bg-muted/20 px-3 py-4 space-y-2">
-        <h2 class="text-sm font-semibold px-2 text-muted-foreground uppercase tracking-wide">
-          {{ t('settings.title') }}
-        </h2>
-        <button
-          class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
-          :class="activeTab === 'basic' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
-          @click="activeTab = 'basic'"
-        >
-          {{ t('settings.tabs.basic') }}
-        </button>
-        <button
-          class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors"
-          :class="activeTab === 'prompts' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
-          @click="activeTab = 'prompts'"
-        >
-          {{ t('settings.tabs.prompts') }}
-        </button>
-      </aside>
+  <div class="h-full w-full bg-background flex overflow-hidden">
+    <SidebarProvider :default-open="true">
+      <Sidebar collapsible="none" class="w-48 border-r bg-muted/20">
+        <SidebarContent class="px-2 pt-4">
+          <SidebarGroup>
+            <SidebarGroupLabel class="px-4 uppercase tracking-wider text-[10px] font-bold">
+              {{ t('settings.title') }}
+            </SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  :is-active="activeTab === 'basic'"
+                  tooltip="Basic Settings"
+                  @click="activeTab = 'basic'"
+                >
+                  <Settings2 />
+                  <span>{{ t('settings.tabs.basic') }}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  :is-active="activeTab === 'prompts'"
+                  tooltip="AI Prompts"
+                  @click="activeTab = 'prompts'"
+                >
+                  <MessageSquare />
+                  <span>{{ t('settings.tabs.prompts') }}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
 
       <main class="flex-1 overflow-y-auto px-8 py-6">
         <form class="w-full flex flex-col gap-5 pb-24" @submit.prevent="onSubmit">
@@ -535,7 +587,7 @@ async function onSubmit() {
             </div>
           </template>
 
-          <div class="fixed bottom-4 right-8 flex justify-end">
+          <div class="fixed bottom-6 right-8 flex justify-end">
             <Button variant="secondary" type="submit">
               <SaveIcon class="w-4 h-4" />
               {{ t('settings.save') }}
@@ -543,6 +595,6 @@ async function onSubmit() {
           </div>
         </form>
       </main>
-    </div>
+    </SidebarProvider>
   </div>
 </template>
