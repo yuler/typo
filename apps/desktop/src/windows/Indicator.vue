@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
+import { emit } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
@@ -214,7 +215,7 @@ async function onESC() {
 }
 
 function gotoSettings() {
-  invoke('open_settings_window')
+  emit('open-settings')
 }
 </script>
 

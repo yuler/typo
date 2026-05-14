@@ -55,7 +55,7 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
         return;
     }
 
-    // 获取主显示器工作区信息（排除 Dock 和 菜单栏）
+    // Get primary monitor work area information (excluding Dock and menu bar)
     let monitor = app.primary_monitor().ok().flatten();
     let (width, height, _scale) = if let Some(m) = monitor {
         let area = m.work_area();
@@ -68,7 +68,7 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
     let win_width = 360.0;
     let win_height = 56.0;
     let x = (width - win_width) / 2.0;
-    let y = height - win_height - 20.0; // 在工作区底部上方 20px
+    let y = height - win_height - 20.0; // 20px above the bottom of the work area
 
     if let Err(e) = WebviewWindowBuilder::new(app, "indicator", WebviewUrl::App("index.html".into()))
         .title("typo - Indicator")

@@ -28,6 +28,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/composables/useAuth'
+import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
@@ -36,15 +37,15 @@ import { sleep } from '@/utils'
 import { initializeWindow } from '@/window'
 
 const { isLoggedIn } = useAuth()
+const { t } = useI18n()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('history')
 const isSettingsOpen = ref(false)
 
 const navItems = [
-  { id: 'main', label: 'Main', icon: HomeIcon },
-  { id: 'history', label: 'History', icon: HistoryIcon },
-  // { id: 'dictionary', label: 'Dictionary', icon: BookIcon },
+  { id: 'main', label: t('main.nav.main'), icon: HomeIcon },
+  { id: 'history', label: t('main.nav.history'), icon: HistoryIcon },
 ]
 
 let unlistenOpenSettings: (() => void) | undefined
@@ -149,12 +150,12 @@ function openSettings() {
             <BreadcrumbList>
               <BreadcrumbItem class="hidden md:block">
                 <BreadcrumbLink href="#">
-                  Typo
+                  {{ t('main.breadcrumb.typo') }}
                   <span
                     class="text-[10px] ml-1 px-1 py-0.5 rounded uppercase font-bold"
                     :class="isLoggedIn ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'"
                   >
-                    {{ isLoggedIn ? 'Pro' : 'Free' }}
+                    {{ isLoggedIn ? t('main.breadcrumb.pro') : t('main.breadcrumb.free') }}
                   </span>
                 </BreadcrumbLink>
               </BreadcrumbItem>

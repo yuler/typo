@@ -10,6 +10,7 @@ import {
   Settings2,
   Sparkles,
 } from 'lucide-vue-next'
+import { computed } from 'vue'
 import AppLogo from '@/components/AppLogo.vue'
 import AppVersion from '@/components/AppVersion.vue'
 import {
@@ -40,6 +41,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/composables/useAuth'
+import { useI18n } from '@/composables/useI18n'
 import { showNotification } from '@/utils'
 
 interface NavItem {
@@ -56,6 +58,18 @@ defineProps<{
 const emit = defineEmits(['update:activeTab', 'openSettings'])
 
 const { isLoggedIn, user, login, logout } = useAuth()
+const { t } = useI18n()
+
+const userInitials = computed(() => {
+  if (!user.value?.name)
+    return 'YU'
+  return user.value.name
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+})
 
 function handleLogin() {
   login()
@@ -82,7 +96,7 @@ function handleLogin() {
 
     <SidebarContent>
       <SidebarGroup>
-        <SidebarGroupLabel>General</SidebarGroupLabel>
+        <SidebarGroupLabel>{{ t('main.sidebar.general') }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in navItems" :key="item.id">
@@ -100,16 +114,16 @@ function handleLogin() {
       </SidebarGroup>
 
       <SidebarGroup>
-        <SidebarGroupLabel>Advanced</SidebarGroupLabel>
+        <SidebarGroupLabel>{{ t('main.sidebar.advanced') }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                tooltip="Settings"
+                :tooltip="t('main.sidebar.settings')"
                 @click="emit('openSettings')"
               >
                 <Settings2 />
-                <span>Settings</span>
+                <span>{{ t('main.sidebar.settings') }}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -129,7 +143,7 @@ function handleLogin() {
                 <Avatar class="h-8 w-8 rounded-lg">
                   <AvatarImage :src="user.avatar" :alt="user.name" />
                   <AvatarFallback class="rounded-lg">
-                    YU
+                    {{ userInitials }}
                   </AvatarFallback>
                 </Avatar>
                 <div class="grid flex-1 text-left text-sm leading-tight">
@@ -150,7 +164,7 @@ function handleLogin() {
                   <Avatar class="h-8 w-8 rounded-lg">
                     <AvatarImage :src="user.avatar" :alt="user.name" />
                     <AvatarFallback class="rounded-lg">
-                      YU
+                      {{ userInitials }}
                     </AvatarFallback>
                   </Avatar>
                   <div class="grid flex-1 text-left text-sm leading-tight">
@@ -163,39 +177,39 @@ function handleLogin() {
               <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <Sparkles class="mr-2 size-4" />
-                  Upgrade to Pro
+                  {{ t('main.sidebar.upgrade') }}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem @click="emit('openSettings')">
                   <BadgeCheck class="mr-2 size-4" />
-                  Account
+                  {{ t('main.sidebar.account') }}
                 </DropdownMenuItem>
                 <DropdownMenuItem @click="emit('openSettings')">
                   <CreditCard class="mr-2 size-4" />
-                  Billing
+                  {{ t('main.sidebar.billing') }}
                 </DropdownMenuItem>
                 <DropdownMenuItem @click="emit('openSettings')">
                   <Bell class="mr-2 size-4" />
-                  Notifications
+                  {{ t('main.sidebar.notifications') }}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem @click="logout">
                 <LogOut class="mr-2 size-4" />
-                Log out
+                {{ t('main.sidebar.logout') }}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
         <SidebarMenuItem v-else>
           <SidebarMenuButton
-            tooltip="Sign in"
+            :tooltip="t('main.sidebar.login')"
             @click="handleLogin"
           >
             <LogIn />
-            <span>Sign in</span>
+            <span>{{ t('main.sidebar.login') }}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
