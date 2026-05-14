@@ -1,5 +1,8 @@
 // apps/desktop/src-tauri/src/windows.rs
-use tauri::{AppHandle, WebviewWindowBuilder, WebviewUrl, Manager, TitleBarStyle};
+use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+
+#[cfg(target_os = "macos")]
+use tauri::TitleBarStyle;
 
 #[tauri::command]
 pub fn open_settings_window(app: AppHandle) {
@@ -28,10 +31,16 @@ pub fn create_home_window(app: &AppHandle) {
     let win_builder = WebviewWindowBuilder::new(app, "home", WebviewUrl::App("index.html".into()))
         .inner_size(win_width, win_height)
         .center()
-        .decorations(true)
+        .decorations(true);
+
+    #[cfg(target_os = "macos")]
+    let win_builder = win_builder
         .title_bar_style(TitleBarStyle::Overlay)
-        .hidden_title(true)
+        .hidden_title(true);
+
+    let win_builder = win_builder
         .transparent(false)
+        .title("Typo")
         .always_on_top(false)
         .skip_taskbar(false)
         .visible(true);
@@ -50,7 +59,7 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
 
     // 获取主显示器工作区信息（排除 Dock 和 菜单栏）
     let monitor = app.primary_monitor().ok().flatten();
-    let (width, height, scale) = if let Some(m) = monitor {
+    let (width, height, _scale) = if let Some(m) = monitor {
         let area = m.work_area();
         let scale = m.scale_factor();
         (area.size.width as f64 / scale, area.size.height as f64 / scale, scale)

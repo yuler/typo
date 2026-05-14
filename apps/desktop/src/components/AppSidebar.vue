@@ -3,14 +3,13 @@ import type { LucideIcon } from 'lucide-vue-next'
 import {
   BadgeCheck,
   Bell,
-  BookIcon,
   ChevronsUpDown,
   CreditCard,
-  HistoryIcon,
-  HomeIcon,
+  LogIn,
   LogOut,
   Sparkles,
 } from 'lucide-vue-next'
+import { ref } from 'vue'
 import Logo from '@/components/Logo.vue'
 import {
   Avatar,
@@ -31,13 +30,13 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { showNotification } from '@/utils'
 
 interface NavItem {
   id: string
@@ -45,7 +44,7 @@ interface NavItem {
   icon: LucideIcon
 }
 
-const props = defineProps<{
+defineProps<{
   navItems: NavItem[]
   activeTab: string
 }>()
@@ -56,6 +55,12 @@ const user = {
   name: 'Yule',
   email: 'yule@example.com',
   avatar: 'https://github.com/yuler.png',
+}
+
+const isLoggedIn = ref(false)
+
+function handleLogin() {
+  showNotification('typo', 'Coming soon')
 }
 </script>
 
@@ -88,10 +93,9 @@ const user = {
       </SidebarGroup>
     </SidebarContent>
 
-    <!-- TODO: Next version for user login  -->
-    <!-- <SidebarFooter class="p-4">
+    <SidebarFooter class="p-4">
       <SidebarMenu>
-        <SidebarMenuItem>
+        <SidebarMenuItem v-if="isLoggedIn">
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <SidebarMenuButton
@@ -154,15 +158,30 @@ const user = {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem @click="isLoggedIn = false">
                 <LogOut class="mr-2 size-4" />
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
+        <SidebarMenuItem v-else>
+          <SidebarMenuButton
+            size="lg"
+            class="w-full justify-start gap-2"
+            @click="handleLogin"
+          >
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <LogIn class="size-4" />
+            </div>
+            <div class="grid flex-1 text-left text-sm leading-tight">
+              <span class="truncate font-semibold">Sign in</span>
+              <span class="truncate text-xs">Login to sync your data</span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       </SidebarMenu>
-    </SidebarFooter> -->
+    </SidebarFooter>
     <SidebarRail />
   </Sidebar>
 </template>

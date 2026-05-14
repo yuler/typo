@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
 import {
-  BookIcon,
   HistoryIcon,
   HomeIcon,
-  MoreHorizontalIcon,
 } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import AppSidebar from '@/components/AppSidebar.vue'
@@ -37,15 +35,6 @@ const navItems = [
   { id: 'home', label: 'Home', icon: HomeIcon },
   { id: 'history', label: 'History', icon: HistoryIcon },
   // { id: 'dictionary', label: 'Dictionary', icon: BookIcon },
-]
-
-const historyItems = [
-  { time: '03:16 PM', text: '你前面不要加贴纸，加一个大头针（图钉）的样式，大头针就用 emoji 表情就好了', pinned: true },
-  { time: '03:16 PM', text: '改一下，改成那种打印机的样式，打印出来的一个 receipt 的样式', pinned: false },
-  { time: '03:16 PM', text: '背景颜色改成透明色', pinned: false },
-  { time: '03:14 PM', text: '我把这个页面的背景改一下，让它看起来更像是一个无限画布。加点网格效果，以及放大缩小的按钮指示器吧。', pinned: false },
-  { time: '03:13 PM', text: '一边框和 sticker，然后其中', pinned: false },
-  { time: '03:12 PM', text: '不需要背景颜色，还是保持一个白色的吧。然后，边框改成更像贴纸的风格，我们的主题设计主要还是黑白灰', pinned: false },
 ]
 
 onMounted(async () => {
