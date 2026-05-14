@@ -4,10 +4,6 @@ use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 #[cfg(target_os = "macos")]
 use tauri::TitleBarStyle;
 
-#[tauri::command]
-pub fn open_settings_window(app: AppHandle) {
-    create_settings_window(&app);
-}
 
 #[tauri::command]
 pub fn open_upgrade_window(app: AppHandle) {
@@ -25,7 +21,7 @@ pub fn create_main_window(app: &AppHandle) {
         return;
     }
 
-    let win_width = 1000.0;
+    let win_width = 1200.0;
     let win_height = 800.0;
 
     let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
@@ -85,17 +81,6 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
         .build();
 }
 
-pub fn create_settings_window(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("settings") {
-        let _ = window.set_focus();
-        return;
-    }
-
-    let _ = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("index.html".into()))
-        .title("typo - Settings")
-        .inner_size(800.0, 600.0)
-        .build();
-}
 
 pub fn create_upgrade_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("upgrade") {

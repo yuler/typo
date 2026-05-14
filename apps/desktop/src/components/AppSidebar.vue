@@ -10,7 +10,6 @@ import {
   Settings2,
   Sparkles,
 } from 'lucide-vue-next'
-import { ref } from 'vue'
 import AppLogo from '@/components/AppLogo.vue'
 import AppVersion from '@/components/AppVersion.vue'
 import {
@@ -40,6 +39,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { useAuth } from '@/composables/useAuth'
 import { showNotification } from '@/utils'
 
 interface NavItem {
@@ -55,16 +55,11 @@ defineProps<{
 
 const emit = defineEmits(['update:activeTab', 'openSettings'])
 
-const user = {
-  name: 'Yule',
-  email: 'yule@example.com',
-  avatar: 'https://github.com/yuler.png',
-}
-
-const isLoggedIn = ref(false)
+const { isLoggedIn, user, login, logout } = useAuth()
 
 function handleLogin() {
-  showNotification('typo', 'Coming soon')
+  login()
+  showNotification('typo', 'Logged in (Demo)')
 }
 </script>
 
@@ -187,7 +182,7 @@ function handleLogin() {
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem @click="isLoggedIn = false">
+              <DropdownMenuItem @click="logout">
                 <LogOut class="mr-2 size-4" />
                 Log out
               </DropdownMenuItem>

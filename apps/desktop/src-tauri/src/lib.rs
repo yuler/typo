@@ -237,7 +237,6 @@ pub fn run() {
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
             tray::update_tray_menu,
-            windows::open_settings_window,
             windows::open_upgrade_window,
             windows::open_indicator_window,
         ])

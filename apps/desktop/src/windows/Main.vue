@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import {
   HistoryIcon,
   HomeIcon,
 } from 'lucide-vue-next'
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import AppHome from '@/components/AppHome.vue'
+import AppSettings from '@/components/AppSettings.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import {
   Breadcrumb,
@@ -14,12 +17,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import {
+  Dialog,
+  DialogContent,
+} from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { useAuth } from '@/composables/useAuth'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
@@ -27,9 +35,11 @@ import * as store from '@/store'
 import { sleep } from '@/utils'
 import { initializeWindow } from '@/window'
 
+const { isLoggedIn } = useAuth()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('history')
+const isSettingsOpen = ref(false)
 
 const navItems = [
   { id: 'main', label: 'Main', icon: HomeIcon },
@@ -37,8 +47,13 @@ const navItems = [
   // { id: 'dictionary', label: 'Dictionary', icon: BookIcon },
 ]
 
+let unlistenOpenSettings: (() => void) | undefined
 onMounted(async () => {
   logger.info('Main', 'onMounted')
+
+  unlistenOpenSettings = await listen('open-settings', () => {
+    isSettingsOpen.value = true
+  })
 
   await initializeWindow(true)
 
@@ -66,12 +81,18 @@ onMounted(async () => {
   const aiProvider = await store.get('ai_provider')
   if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
     await sleep(500)
-    invoke('open_settings_window')
+    isSettingsOpen.value = true
+  }
+})
+
+onUnmounted(() => {
+  if (unlistenOpenSettings) {
+    unlistenOpenSettings()
   }
 })
 
 function openSettings() {
-  invoke('open_settings_window')
+  isSettingsOpen.value = true
 }
 </script>
 
@@ -92,7 +113,12 @@ function openSettings() {
               <BreadcrumbItem class="hidden md:block">
                 <BreadcrumbLink href="#">
                   Typo
-                  <span class="text-[10px] ml-1 bg-muted px-1 py-0.5 rounded text-muted-foreground uppercase">Free</span>
+                  <span
+                    class="text-[10px] ml-1 px-1 py-0.5 rounded uppercase font-bold"
+                    :class="isLoggedIn ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'"
+                  >
+                    {{ isLoggedIn ? 'Pro' : 'Free' }}
+                  </span>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator class="hidden md:block" />
@@ -107,10 +133,10 @@ function openSettings() {
       <!-- Main Content -->
       <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
         <!-- Content based on activeTab -->
-        <div v-if="activeTab === 'main'" class="flex-1 flex flex-col min-h-0 bg-muted/20 rounded-xl border border-border overflow-hidden p-4">
-          <p>Press <kbd class="kbd">{{ globalShortcut }}</kbd> to start</p>
-          Or you can change the global shortcut in the settings
-        </div>
+        <AppHome
+          v-if="activeTab === 'main'"
+          :global-shortcut="globalShortcut"
+        />
 
         <!-- Placeholder for other tabs -->
         <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
@@ -128,5 +154,11 @@ function openSettings() {
         </div>
       </main>
     </SidebarInset>
+
+    <Dialog v-model:open="isSettingsOpen">
+      <DialogContent class="max-w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] p-0 overflow-hidden">
+        <AppSettings @close="isSettingsOpen = false" />
+      </DialogContent>
+    </Dialog>
   </SidebarProvider>
 </template>

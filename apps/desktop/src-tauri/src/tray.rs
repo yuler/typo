@@ -140,7 +140,8 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
         ID_SHOW => show_and_focus_main(app),
         ID_SETTINGS => {
-            crate::windows::create_settings_window(app);
+            show_and_focus_main(app);
+            let _ = app.emit("open-settings", ());
         }
         ID_CHECK_UPDATES => {
             crate::windows::create_upgrade_window(app);

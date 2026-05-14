@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { onMounted } from 'vue'
+import AppSettings from '@/components/AppSettings.vue'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeStore } from '@/store'
 import Indicator from '@/windows/Indicator.vue'
 import Main from '@/windows/Main.vue'
-import Settings from '@/windows/Settings.vue'
 import Upgrade from '@/windows/Upgrade.vue'
 
 const appWindow = getCurrentWebviewWindow()
@@ -15,7 +15,7 @@ const currentLabel = appWindow.label
 const windows: Record<string, any> = {
   main: Main,
   indicator: Indicator,
-  settings: Settings,
+  settings: AppSettings,
   upgrade: Upgrade,
 }
 

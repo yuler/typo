@@ -3,7 +3,6 @@ import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { Locale } from '@typo/languages'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { localeNames, locales } from '@typo/languages'
 import { EyeIcon, EyeOffIcon, MessageSquare, PlusIcon, RotateCcwIcon, SaveIcon, Settings2, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -32,7 +31,7 @@ import * as store from '@/store'
 import { updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
-const appWindow = getCurrentWebviewWindow()
+const emit = defineEmits(['close'])
 
 type SettingsTab = 'basic' | 'prompts'
 
@@ -313,15 +312,15 @@ async function onSubmit() {
   await store.save()
 
   if (!shortcutConflictError.value) {
-    appWindow.close()
+    emit('close')
   }
 }
 </script>
 
 <template>
-  <div class="h-full w-full border-t bg-background" @keydown.esc="appWindow.close()">
-    <SidebarProvider>
-      <Sidebar collapsible="none" class="w-48 border-r">
+  <div class="h-full w-full bg-background flex overflow-hidden">
+    <SidebarProvider :default-open="true">
+      <Sidebar collapsible="none" class="w-48 border-r bg-muted/20">
         <SidebarContent class="px-2 pt-4">
           <SidebarGroup>
             <SidebarGroupLabel class="px-4 uppercase tracking-wider text-[10px] font-bold">
@@ -558,7 +557,7 @@ async function onSubmit() {
             </div>
           </template>
 
-          <div class="fixed bottom-4 right-8 flex justify-end">
+          <div class="fixed bottom-6 right-8 flex justify-end">
             <Button variant="secondary" type="submit">
               <SaveIcon class="w-4 h-4" />
               {{ t('settings.save') }}
