@@ -121,7 +121,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
       commandName.value = ''
       return
     }
-    errorText.value = err.message || t('main.error.generic')
+    errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
     state.value = 'error'
     await sleep(STATUS_DISPLAY_DURATION_MS)
     if (!isMounted) {
