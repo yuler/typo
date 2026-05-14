@@ -73,6 +73,7 @@ const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
 const recordedCaptureKeys = new Set<string>()
 let unlistenAutostart: UnlistenFn | undefined
+let isMounted = true
 
 function normalizeCaptureKey(e: KeyboardEvent): string {
   const code = e.code
@@ -215,25 +216,46 @@ async function loadOllamaModels() {
 
 onMounted(async () => {
   const autostartEnabled = await invoke<boolean>('is_autostart_enabled')
+  if (!isMounted) {
+    return
+  }
   form.value.autostart = autostartEnabled
   form.value.autoselect = await store.get('autoselect')
+  if (!isMounted) {
+    return
+  }
   form.value.deepseek_api_key = await store.get('deepseek_api_key')
   form.value.ai_provider = await store.get('ai_provider')
   form.value.ollama_model = await store.get('ollama_model')
   form.value.system_prompt = await store.get('ai_system_prompt')
   form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_GLOBAL_SHORTCUT
+  if (!isMounted) {
+    return
+  }
 
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  if (!isMounted) {
+    return
+  }
   isMacOS.value = systemInfo.os === 'macos'
 
   const shortcuts = await store.get('slash_commands')
+  if (!isMounted) {
+    return
+  }
   form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
 
   if (form.value.ai_provider === 'ollama') {
     await loadOllamaModels()
+    if (!isMounted) {
+      return
+    }
   }
 
   nextTick(() => {
+    if (!isMounted) {
+      return
+    }
     const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
     if (textarea) {
       textarea.focus()
@@ -241,12 +263,20 @@ onMounted(async () => {
     }
   })
 
-  unlistenAutostart = await listen<boolean>('autostart-changed', (event) => {
+  const unlisten = await listen<boolean>('autostart-changed', (event) => {
     form.value.autostart = event.payload
   })
+
+  if (!isMounted) {
+    unlisten()
+  }
+  else {
+    unlistenAutostart = unlisten
+  }
 })
 
 onUnmounted(() => {
+  isMounted = false
   // Clean up keydown listener if component is unmounted while capturing shortcut
   if (isCapturingShortcut.value) {
     stopCapture()

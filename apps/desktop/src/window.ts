@@ -87,7 +87,7 @@ export async function initializeWindow(show = true) {
   }
 }
 
-export const MAIN_WINDOW_WIDTH = 1000
+export const MAIN_WINDOW_WIDTH = 1200
 export const MAIN_WINDOW_HEIGHT = 800
 export async function setupMainWindow() {
   const appWindow = getCurrentWindow()

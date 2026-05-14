@@ -48,21 +48,39 @@ const navItems = [
 ]
 
 let unlistenOpenSettings: (() => void) | undefined
+let isMounted = true
+
 onMounted(async () => {
   logger.info('Main', 'onMounted')
 
-  unlistenOpenSettings = await listen('open-settings', () => {
+  const unlisten = await listen('open-settings', () => {
     isSettingsOpen.value = true
   })
 
+  if (!isMounted) {
+    unlisten()
+  }
+  else {
+    unlistenOpenSettings = unlisten
+  }
+
   await initializeWindow(true)
+  if (!isMounted) {
+    return
+  }
 
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  if (!isMounted) {
+    return
+  }
   isMacOS.value = systemInfo.os === 'macos'
 
   if (isMacOS.value) {
     try {
       const trusted = await invoke('request_mac_accessibility_permissions')
+      if (!isMounted) {
+        return
+      }
       if (!trusted) {
         logger.warn('Main', 'accessibility not trusted')
       }
@@ -72,20 +90,39 @@ onMounted(async () => {
     }
   }
 
+  if (!isMounted) {
+    return
+  }
   globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
+  if (!isMounted) {
+    return
+  }
 
   // Initialize the global shortcut
   await setupGlobalShortcut()
+  if (!isMounted) {
+    return
+  }
 
   // Show Settings window if AI key is missing
   const aiProvider = await store.get('ai_provider')
+  if (!isMounted) {
+    return
+  }
   if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
+    if (!isMounted) {
+      return
+    }
     await sleep(500)
+    if (!isMounted) {
+      return
+    }
     isSettingsOpen.value = true
   }
 })
 
 onUnmounted(() => {
+  isMounted = false
   if (unlistenOpenSettings) {
     unlistenOpenSettings()
   }

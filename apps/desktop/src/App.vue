@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import AppSettings from '@/components/AppSettings.vue'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
@@ -19,17 +19,28 @@ const windows: Record<string, any> = {
   upgrade: Upgrade,
 }
 
+let isMounted = true
 onMounted(async () => {
   logger.info('App', `onMounted for window: ${currentLabel}`)
 
   // 基础初始化在每个窗口都需要执行
   await initializeStore()
+  if (!isMounted) {
+    return
+  }
   await initializeI18n()
+  if (!isMounted) {
+    return
+  }
 
   // 对于 main 和 indicator 窗口，确保它在所有工作区可见
   if (currentLabel === 'main' || currentLabel === 'indicator') {
     await appWindow.setVisibleOnAllWorkspaces(true)
   }
+})
+
+onUnmounted(() => {
+  isMounted = false
 })
 </script>
 

@@ -32,6 +32,7 @@ const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const STATUS_DISPLAY_DURATION_MS = 1000
 
 let unlistenSetInput: UnlistenFn
+let isMounted = true
 
 interface SetInputPayload {
   text: string
@@ -39,8 +40,9 @@ interface SetInputPayload {
 }
 
 async function processSetInputPayload(payload: SetInputPayload) {
-  if (processing.value)
+  if (processing.value || !isMounted) {
     return
+  }
 
   const { text, mode } = payload
 
@@ -51,6 +53,9 @@ async function processSetInputPayload(payload: SetInputPayload) {
     state.value = 'error'
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
+    if (!isMounted) {
+      return
+    }
     state.value = 'idle'
     errorText.value = ''
     commandName.value = ''
@@ -67,6 +72,10 @@ async function processSetInputPayload(payload: SetInputPayload) {
       store.get('slash_commands'),
     ])
 
+    if (!isMounted) {
+      return
+    }
+
     const resolved = resolveSlashCommand(
       text,
       systemPrompt,
@@ -78,6 +87,10 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
     const output = await fetchCorrection(text, resolved)
 
+    if (!isMounted) {
+      return
+    }
+
     resultText.value = output
     state.value = 'result'
 
@@ -88,6 +101,9 @@ async function processSetInputPayload(payload: SetInputPayload) {
     await writeText(output)
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
+    if (!isMounted) {
+      return
+    }
     if (state.value === 'result') {
       state.value = 'idle'
       inputText.value = ''
@@ -97,6 +113,9 @@ async function processSetInputPayload(payload: SetInputPayload) {
     }
   }
   catch (err: any) {
+    if (!isMounted) {
+      return
+    }
     if (err.name === 'AbortError') {
       state.value = 'idle'
       commandName.value = ''
@@ -105,6 +124,9 @@ async function processSetInputPayload(payload: SetInputPayload) {
     errorText.value = err.message || t('main.error.generic')
     state.value = 'error'
     await sleep(STATUS_DISPLAY_DURATION_MS)
+    if (!isMounted) {
+      return
+    }
     state.value = 'idle'
     errorText.value = ''
     commandName.value = ''
@@ -117,11 +139,17 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
 onMounted(async () => {
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  if (!isMounted) {
+    return
+  }
   isMacOS.value = systemInfo.os === 'macos'
 
   globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
+  if (!isMounted) {
+    return
+  }
 
-  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
+  const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     // Force show and focus when event received
     await appWindow.show()
     // TODO: option in settings
@@ -131,13 +159,24 @@ onMounted(async () => {
     await processSetInputPayload(event.payload)
   })
 
+  if (!isMounted) {
+    unlisten()
+  }
+  else {
+    unlistenSetInput = unlisten
+  }
+
   const pendingPayload = await invoke<SetInputPayload | null>('consume_pending_selection_input')
+  if (!isMounted) {
+    return
+  }
   if (pendingPayload) {
     await processSetInputPayload(pendingPayload)
   }
 })
 
 onUnmounted(() => {
+  isMounted = false
   unlistenSetInput?.()
 })
 
