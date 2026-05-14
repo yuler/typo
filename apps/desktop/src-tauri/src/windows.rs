@@ -41,7 +41,9 @@ pub fn create_main_window(app: &AppHandle) {
         .skip_taskbar(false)
         .visible(true);
 
-    let _ = win_builder.build();
+    if let Err(e) = win_builder.build() {
+        log::error!("failed to build main window: {}", e);
+    }
 }
 
 pub fn create_indicator_window(app: &AppHandle, show: bool) {
@@ -68,7 +70,7 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
     let x = (width - win_width) / 2.0;
     let y = height - win_height - 20.0; // 在工作区底部上方 20px
 
-    let _ = WebviewWindowBuilder::new(app, "indicator", WebviewUrl::App("index.html".into()))
+    if let Err(e) = WebviewWindowBuilder::new(app, "indicator", WebviewUrl::App("index.html".into()))
         .title("typo - Indicator")
         .inner_size(win_width, win_height)
         .position(x, y)
@@ -78,7 +80,10 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
         .skip_taskbar(true)
         .visible_on_all_workspaces(true)
         .visible(show)
-        .build();
+        .build()
+    {
+        log::error!("failed to build indicator window: {}", e);
+    }
 }
 
 
@@ -88,11 +93,14 @@ pub fn create_upgrade_window(app: &AppHandle) {
         return;
     }
 
-    let _ = WebviewWindowBuilder::new(app, "upgrade", WebviewUrl::App("index.html".into()))
+    if let Err(e) = WebviewWindowBuilder::new(app, "upgrade", WebviewUrl::App("index.html".into()))
         .title("typo - Upgrade")
         .inner_size(400.0, 300.0)
         .decorations(false)
         .transparent(true)
         .always_on_top(true)
-        .build();
+        .build()
+    {
+        log::error!("failed to build upgrade window: {}", e);
+    }
 }
