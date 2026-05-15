@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { Loader2, ExternalLink } from 'lucide-vue-next'
+import { ExternalLink, Loader2 } from 'lucide-vue-next'
 import { computed } from 'vue'
-import { useAuth } from '@/composables/useAuth'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog'
+import { useAuth } from '@/composables/useAuth'
 
 const { authStatus, deviceCode, cancel } = useAuth()
 
 const isOpen = computed({
   get: () => authStatus.value === 'authorizing',
-  set: (val) => { if (!val) cancel() },
+  set: (val) => {
+    if (!val)
+      cancel()
+  },
 })
 
 async function openBrowser() {

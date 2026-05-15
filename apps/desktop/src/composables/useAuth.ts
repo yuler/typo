@@ -1,8 +1,8 @@
 import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
-import * as store from '@/store'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/logger'
+import * as store from '@/store'
 
 export type AuthStatus = 'idle' | 'authorizing' | 'success' | 'error'
 
