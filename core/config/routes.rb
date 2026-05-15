@@ -8,8 +8,10 @@ Rails.application.routes.draw do
   end
 
   resource :onboarding, only: %i[ new create ]
-  scope :device, module: :device, as: :device do
-    resource :authorization, only: [ :show, :update ], path: "authorization(/:user_code)"
+  resource :device, only: [] do
+    scope module: :devices do
+      resource :authorization, only: [ :show, :update ], path: "authorization(/:user_code)"
+    end
   end
 
 
@@ -34,9 +36,11 @@ Rails.application.routes.draw do
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
 
-      scope :device, module: :devices, as: :device do
-        resource :authorization, only: :create
-        resource :token, only: :show
+      resource :device, only: [] do
+        scope module: :devices do
+          resource :authorization, only: :create
+          resource :token, only: :show
+        end
       end
       namespace :test do
         get :private, to: "private#show"
