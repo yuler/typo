@@ -57,13 +57,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     state.value = 'error'
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
-    if (!isMounted) {
-      return
-    }
-    state.value = 'idle'
-    errorText.value = ''
-    commandName.value = ''
-    await appWindow.hide()
+    await hideIndicator()
     return
   }
 
@@ -114,15 +108,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
     }
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
-    if (!isMounted) {
-      return
-    }
     if (state.value === 'result') {
-      state.value = 'idle'
-      inputText.value = ''
-      resultText.value = ''
-      commandName.value = ''
-      await appWindow.hide()
+      await hideIndicator()
     }
   }
   catch (err: any) {
@@ -137,13 +124,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
     state.value = 'error'
     await sleep(STATUS_DISPLAY_DURATION_MS)
-    if (!isMounted) {
-      return
-    }
-    state.value = 'idle'
-    errorText.value = ''
-    commandName.value = ''
-    await appWindow.hide()
+    await hideIndicator()
   }
   finally {
     processing.value = false
@@ -155,6 +136,7 @@ onMounted(async () => {
   if (!isMounted) {
     return
   }
+
   isMacOS.value = systemInfo.os === 'macos'
 
   const [shortcut, copy] = await Promise.all([
@@ -163,9 +145,6 @@ onMounted(async () => {
   ])
   globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
   copyResult.value = copy as boolean
-  if (!isMounted) {
-    return
-  }
 
   const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     // Force show and focus when event received
@@ -217,6 +196,18 @@ async function fetchCorrection(text: string, preResolved?: { text: string, syste
   return process(text, abortController.signal, preResolved)
 }
 
+async function hideIndicator() {
+  if (!isMounted)
+    return
+
+  state.value = 'idle'
+  inputText.value = ''
+  resultText.value = ''
+  errorText.value = ''
+  commandName.value = ''
+  await appWindow.hide()
+}
+
 async function onESC() {
   if (processing.value) {
     abortController?.abort()
@@ -225,10 +216,7 @@ async function onESC() {
     commandName.value = ''
     return
   }
-  state.value = 'idle'
-  resultText.value = ''
-  commandName.value = ''
-  await appWindow.hide()
+  await hideIndicator()
 }
 
 function gotoSettings() {
