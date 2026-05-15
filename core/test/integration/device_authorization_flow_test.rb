@@ -25,6 +25,9 @@ class DeviceAuthorizationFlowTest < ActionDispatch::IntegrationTest
     assert_response :bad_request
     assert_equal "authorization_pending", JSON.parse(response.body)["error"]
 
+    # Wait for interval to satisfy rate limiting in tests
+    travel 6.seconds
+
     # 3. User authorizes in browser
     # Simulate login if necessary. Here we assume Current.identity is set via some mechanism or we mock it.
     # In a real integration test, we might use a helper to sign in.
