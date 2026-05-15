@@ -3,6 +3,7 @@ class DeviceAuthorization < ApplicationRecord
 
   validates :device_code, :user_code, :expires_at, presence: true
   validates :status, inclusion: { in: %w[pending approved denied expired consumed] }
+  validates :identity, presence: true, if: -> { status == "approved" }
 
   before_validation :set_defaults, on: :create
 
