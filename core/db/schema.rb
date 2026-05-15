@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
+ActiveRecord::Schema[8.2].define(version: 2026_05_15_000002) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -19,6 +19,19 @@ ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_accounts_on_slug", unique: true
+  end
+
+  create_table "device_authorizations", id: :uuid, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "device_code", null: false
+    t.datetime "expires_at", null: false
+    t.uuid "identity_id"
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_code", null: false
+    t.index ["device_code"], name: "index_device_authorizations_on_device_code", unique: true
+    t.index ["identity_id"], name: "index_device_authorizations_on_identity_id"
+    t.index ["user_code"], name: "index_device_authorizations_on_user_code", unique: true
   end
 
   create_table "identities", id: :uuid, force: :cascade do |t|
@@ -43,6 +56,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
     t.datetime "created_at", null: false
     t.uuid "identity_id"
     t.string "ip_address"
+    t.string "kind", default: "web", null: false
     t.datetime "last_active_at"
     t.datetime "updated_at", null: false
     t.string "user_agent"
@@ -61,4 +75,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_04_26_081755) do
     t.index ["account_id"], name: "index_users_on_account_id"
     t.index ["identity_id"], name: "index_users_on_identity_id"
   end
+
+  add_foreign_key "device_authorizations", "identities"
 end
