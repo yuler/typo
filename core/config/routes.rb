@@ -39,7 +39,7 @@ Rails.application.routes.draw do
       resource :device, only: [] do
         scope module: :devices do
           resource :authorization, only: :create
-          resource :token, only: :show
+          resource :token, only: :create
         end
       end
       namespace :test do
