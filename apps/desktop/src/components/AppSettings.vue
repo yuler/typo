@@ -56,6 +56,7 @@ async function openLogFolder(): Promise<void> {
 const form = ref({
   autostart: false,
   autoselect: false,
+  copy_to_clipboard: false,
   ai_provider: 'deepseek' as store.AI_PROVIDER,
   deepseek_api_key: '',
   ollama_model: '',
@@ -221,6 +222,7 @@ onMounted(async () => {
   }
   form.value.autostart = autostartEnabled
   form.value.autoselect = await store.get('autoselect')
+  form.value.copy_to_clipboard = await store.get('copy_to_clipboard')
   if (!isMounted) {
     return
   }
@@ -332,6 +334,7 @@ async function onSubmit() {
 
   await Promise.all([
     store.set('autoselect', form.value.autoselect),
+    store.set('copy_to_clipboard', form.value.copy_to_clipboard),
     store.set('ai_provider', form.value.ai_provider),
     store.set('deepseek_api_key', form.value.deepseek_api_key),
     store.set('ollama_model', form.value.ollama_model),
@@ -422,6 +425,17 @@ async function onSubmit() {
               </div>
               <p class="text-xs text-muted-foreground">
                 {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <Label>{{ t('settings.basic.copy_to_clipboard.label') }}</Label>
+              <div class="flex items-center space-x-2">
+                <Switch id="copy_to_clipboard" v-model="form.copy_to_clipboard" />
+                <Label for="copy_to_clipboard">{{ form.copy_to_clipboard ? t('action.enable') : t('action.disable') }}</Label>
+              </div>
+              <p class="text-xs text-muted-foreground">
+                {{ t('settings.basic.copy_to_clipboard.description') }}
               </p>
             </div>
 
