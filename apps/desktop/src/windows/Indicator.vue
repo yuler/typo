@@ -29,7 +29,7 @@ const resultText = ref('')
 const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
-const copyToClipboard = ref(false)
+const copyResult = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const STATUS_DISPLAY_DURATION_MS = 1000
 
@@ -99,7 +99,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     // Paste the corrected text back into the original input area
     await invoke('keyboard_paste_text', { text: output })
 
-    if (await store.get('copy_to_clipboard')) {
+    if (await store.get('copy_result')) {
       await writeText(output)
     }
 
@@ -149,10 +149,10 @@ onMounted(async () => {
 
   const [shortcut, copy] = await Promise.all([
     store.get('global_shortcut'),
-    store.get('copy_to_clipboard'),
+    store.get('copy_result'),
   ])
   globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
-  copyToClipboard.value = copy
+  copyResult.value = copy as boolean
   if (!isMounted) {
     return
   }
@@ -250,7 +250,7 @@ function gotoSettings() {
 
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
         <span class="truncate text-sm text-green-400 font-medium">{{ resultText }}</span>
-        <template v-if="copyToClipboard">
+        <template v-if="copyResult">
           <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
           <span class="text-[10px] text-green-400/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
         </template>
