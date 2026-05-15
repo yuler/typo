@@ -101,12 +101,17 @@ async function processSetInputPayload(payload: SetInputPayload) {
     resultText.value = output
     state.value = 'result'
 
-    if (copyResult.value) {
-      await writeText(output)
-    }
-
     // Paste the corrected text back into the original input area
     await invoke('keyboard_paste_text', { text: output })
+
+    if (copyResult.value) {
+      try {
+        await writeText(output)
+      }
+      catch (err) {
+        logger.error('Indicator', 'Failed to copy to clipboard', err)
+      }
+    }
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
     if (!isMounted) {
