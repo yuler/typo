@@ -7,7 +7,7 @@ class Devices::AuthorizationsController < ApplicationController
 
   def update
     @device_authorization = Device::Authorization.find_by!(user_code: params[:user_code])
-    if params[:commit] == "approve"
+    if params[:decision] == "approve"
       @device_authorization.update!(identity: Current.identity, status: "approved")
       redirect_to root_path, notice: "Device successfully authorized."
     else

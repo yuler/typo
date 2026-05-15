@@ -53,6 +53,14 @@ pnpm desktop:dev
 2. **Press** `Ctrl/Cmd + Shift + X` to activate the application.
 3. **Wait** for the AI response and let it replace the selected content automatically.
 
+## Authentication
+
+typo uses the **OAuth 2.0 Device Authorization Grant** ([RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628)) flow for desktop login.
+
+1. **Initiate**: Click **Login** in the desktop app. It will display a user code and open your default browser.
+2. **Authorize**: Log in to your account in the browser and enter/confirm the code.
+3. **Success**: The desktop app will automatically detect the approval and establish a secure session.
+
 ## How it works
 
 1. **Capture**: Gets the currently selected text.

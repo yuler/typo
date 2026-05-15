@@ -33,7 +33,7 @@ class DeviceAuthorizationFlowTest < ActionDispatch::IntegrationTest
     get device_authorization_url(user_code: user_code)
     assert_response :success
 
-    patch device_authorization_url(user_code: user_code), params: { commit: "approve" }
+    patch device_authorization_url(user_code: user_code), params: { decision: "approve" }
     assert_redirected_to root_url
 
     # 4. Poll token (success)

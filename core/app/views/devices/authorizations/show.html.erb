@@ -6,8 +6,8 @@
 
     <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch do |f| %>
       <div class="flex gap-4">
-        <%= f.submit "approve", class: "px-4 py-2 bg-zinc-900 text-white rounded-md hover:bg-zinc-800" %>
-        <%= f.submit "deny", class: "px-4 py-2 bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-md hover:bg-zinc-200" %>
+        <%= f.submit "Approve", name: "decision", value: "approve", class: "px-4 py-2 bg-zinc-900 text-white rounded-md hover:bg-zinc-800" %>
+        <%= f.submit "Deny", name: "decision", value: "deny", class: "px-4 py-2 bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-md hover:bg-zinc-200" %>
       </div>
     <% end %>
   <% else %>
