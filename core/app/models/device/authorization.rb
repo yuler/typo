@@ -15,10 +15,9 @@ class Device::Authorization < ApplicationRecord
   end
 
   private
-
-  def set_defaults
-    self.device_code ||= SecureRandom.hex(32)
-    self.user_code ||= SecureRandom.alphanumeric(8).upcase.insert(4, "-")
-    self.expires_at ||= 15.minutes.from_now
-  end
+    def set_defaults
+      self.device_code ||= SecureRandom.hex(32)
+      self.user_code ||= SecureRandom.alphanumeric(8).upcase.insert(4, "-")
+      self.expires_at ||= 15.minutes.from_now
+    end
 end

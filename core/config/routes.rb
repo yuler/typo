@@ -8,7 +8,11 @@ Rails.application.routes.draw do
   end
 
   resource :onboarding, only: %i[ new create ]
-  resource :device, only: %i[ show update ]
+  namespace :device do
+    resource :authorization, only: %i[ update ], controller: "/devices" do
+      get "(/:code)", action: :show, on: :member
+    end
+  end
 
   # Dashboard is now at the "root" of the mounted slug
   # Because the middleware moves the slug to SCRIPT_NAME,

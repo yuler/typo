@@ -30,10 +30,10 @@ class DeviceAuthorizationFlowTest < ActionDispatch::IntegrationTest
     # In a real integration test, we might use a helper to sign in.
     sign_in_as(@identity)
 
-    get device_url(user_code: user_code)
+    get device_authorization_url(code: user_code)
     assert_response :success
 
-    patch device_url(user_code: user_code), params: { commit: "approve" }
+    patch device_authorization_url(code: user_code), params: { commit: "approve" }
     assert_redirected_to root_url
 
     # 4. Poll token (success)

@@ -3,11 +3,11 @@ class DevicesController < ApplicationController
   disallow_account_scope
 
   def show
-    @device_auth = Device::Authorization.find_by(user_code: params[:user_code]) if params[:user_code]
+    @device_auth = Device::Authorization.find_by(user_code: params[:code]) if params[:code]
   end
 
   def update
-    @device_auth = Device::Authorization.find_by!(user_code: params[:user_code])
+    @device_auth = Device::Authorization.find_by!(user_code: params[:code])
     if params[:commit] == "approve"
       @device_auth.update!(identity: Current.identity, status: "approved")
       redirect_to root_path, notice: "Device successfully authorized."
