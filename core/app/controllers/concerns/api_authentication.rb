@@ -38,13 +38,8 @@ module ApiAuthentication
 
     def authenticate_by_bearer_token
       if request.authorization.to_s.include?("Bearer")
-        p request
-        p request.format
         if bearer_token_authenticatable_request?
           authenticate_or_request_with_http_token do |token|
-            p "----"
-            p token
-            p "----"
             if session = Session.find_signed(token)
               Current.session = session
             elsif identity = Identity.find_by_permissable_access_token(token, method: request.method)
