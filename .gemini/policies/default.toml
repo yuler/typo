@@ -8,10 +8,16 @@
 
 # Auto-accept file edits in auto_edit mode
 [[rule]]
-toolName = ["write_file", "replace"]
+toolName = [
+  "write_file",
+  "replace"
+]
 decision = "allow"
 priority = 100
-modes = ["autoEdit", "yolo"]
+modes = [
+  "autoEdit",
+  "yolo"
+]
 
 # Auto-accept common shell commands (rtk wraps most of these in this repo)
 [[rule]]
@@ -34,7 +40,11 @@ commandPrefix = [
 decision = "allow"
 priority = 100
 allowRedirection = true
-modes = ["autoEdit", "default", "yolo"]
+modes = [
+  "autoEdit",
+  "default",
+  "yolo"
+]
 
 # rtk subcommands and pipes (higher priority than default ask_user rules)
 [[rule]]
@@ -43,7 +53,11 @@ commandRegex = "rtk"
 decision = "allow"
 priority = 200
 allowRedirection = true
-modes = ["autoEdit", "default", "yolo"]
+modes = [
+  "autoEdit",
+  "default",
+  "yolo"
+]
 
 [[rule]]
 toolName = "send_command_input"
