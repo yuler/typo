@@ -33,7 +33,7 @@ Rails.application.routes.draw do
 
       scope :device, module: :devices, as: :device do
         resource :authorization, only: :create
-        resources :tokens, only: :index
+        resource :token, only: :show
       end
       namespace :test do
         get :private, to: "private#show"

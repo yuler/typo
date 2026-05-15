@@ -1,4 +1,4 @@
-class DeviceAuthorization < ApplicationRecord
+class Device::Authorization < ApplicationRecord
   belongs_to :identity, optional: true
 
   validates :device_code, :user_code, :expires_at, presence: true

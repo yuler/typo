@@ -1,6 +1,6 @@
 require "test_helper"
 
-class DeviceFlowTest < ActionDispatch::IntegrationTest
+class DeviceAuthorizationFlowTest < ActionDispatch::IntegrationTest
   setup do
     @identity = Identity.find_or_create_by!(email: "test@example.com")
     @account = @identity.personal_account || Account.create!(name: "Test Account", personal: true)
@@ -21,7 +21,7 @@ class DeviceFlowTest < ActionDispatch::IntegrationTest
     assert user_code.present?
 
     # 2. Poll token (pending)
-    get api_v1_device_tokens_url, params: { device_code: device_code }
+    get api_v1_device_token_url, params: { device_code: device_code }
     assert_response :precondition_required
     assert_equal "authorization_pending", JSON.parse(response.body)["error"]
 
@@ -37,7 +37,7 @@ class DeviceFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
 
     # 4. Poll token (success)
-    get api_v1_device_tokens_url, params: { device_code: device_code }
+    get api_v1_device_token_url, params: { device_code: device_code }
     assert_response :success
     json = JSON.parse(response.body)
     access_token = json["access_token"]

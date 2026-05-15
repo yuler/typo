@@ -2,8 +2,8 @@ class Api::V1::Devices::TokensController < ApplicationController
   allow_unauthenticated_access
   disallow_account_scope
 
-  def index
-    device_auth = DeviceAuthorization.find_by!(device_code: params[:device_code])
+  def show
+    device_auth = Device::Authorization.find_by!(device_code: params[:device_code])
 
     if device_auth.expired?
       render json: { error: "expired_token" }, status: :gone

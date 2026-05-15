@@ -3,7 +3,7 @@ class Api::V1::Devices::AuthorizationsController < ApplicationController
   disallow_account_scope
 
   def create
-    device_auth = DeviceAuthorization.create!
+    device_auth = Device::Authorization.create!
     render json: {
       device_code: device_auth.device_code,
       user_code: device_auth.user_code,
