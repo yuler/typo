@@ -29,6 +29,7 @@ const resultText = ref('')
 const errorText = ref('')
 const processing = ref(false)
 const isMacOS = ref(false)
+const copyResult = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const STATUS_DISPLAY_DURATION_MS = 1000
 
@@ -54,13 +55,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     state.value = 'error'
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
-    if (!isMounted) {
-      return
-    }
-    state.value = 'idle'
-    errorText.value = ''
-    commandName.value = ''
-    await appWindow.hide()
+    await hideIndicator()
     return
   }
 
@@ -68,10 +63,13 @@ async function processSetInputPayload(payload: SetInputPayload) {
     state.value = 'processing'
     processing.value = true
 
-    const [systemPrompt, shortcuts] = await Promise.all([
+    const [systemPrompt, shortcuts, copy] = await Promise.all([
       store.get('ai_system_prompt'),
       store.get('slash_commands'),
+      store.get('copy_result'),
     ])
+
+    copyResult.value = copy as boolean
 
     if (!isMounted) {
       return
@@ -98,19 +96,18 @@ async function processSetInputPayload(payload: SetInputPayload) {
     // Paste the corrected text back into the original input area
     await invoke('keyboard_paste_text', { text: output })
 
-    // TODO: add option for this， Copy result to clipboard
-    await writeText(output)
+    if (copyResult.value) {
+      try {
+        await writeText(output)
+      }
+      catch (err) {
+        logger.error('Indicator', 'Failed to copy to clipboard', err)
+      }
+    }
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
-    if (!isMounted) {
-      return
-    }
     if (state.value === 'result') {
-      state.value = 'idle'
-      inputText.value = ''
-      resultText.value = ''
-      commandName.value = ''
-      await appWindow.hide()
+      await hideIndicator()
     }
   }
   catch (err: any) {
@@ -125,13 +122,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
     state.value = 'error'
     await sleep(STATUS_DISPLAY_DURATION_MS)
-    if (!isMounted) {
-      return
-    }
-    state.value = 'idle'
-    errorText.value = ''
-    commandName.value = ''
-    await appWindow.hide()
+    await hideIndicator()
   }
   finally {
     processing.value = false
@@ -143,12 +134,15 @@ onMounted(async () => {
   if (!isMounted) {
     return
   }
+
   isMacOS.value = systemInfo.os === 'macos'
 
-  globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
-  if (!isMounted) {
-    return
-  }
+  const [shortcut, copy] = await Promise.all([
+    store.get('global_shortcut'),
+    store.get('copy_result'),
+  ])
+  globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
+  copyResult.value = copy as boolean
 
   const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     // Force show and focus when event received
@@ -200,6 +194,18 @@ async function fetchCorrection(text: string, preResolved?: { text: string, syste
   return process(text, abortController.signal, preResolved)
 }
 
+async function hideIndicator() {
+  if (!isMounted)
+    return
+
+  state.value = 'idle'
+  inputText.value = ''
+  resultText.value = ''
+  errorText.value = ''
+  commandName.value = ''
+  await appWindow.hide()
+}
+
 async function onESC() {
   if (processing.value) {
     abortController?.abort()
@@ -208,10 +214,7 @@ async function onESC() {
     commandName.value = ''
     return
   }
-  state.value = 'idle'
-  resultText.value = ''
-  commandName.value = ''
-  await appWindow.hide()
+  await hideIndicator()
 }
 
 function gotoSettings() {
@@ -243,9 +246,10 @@ function gotoSettings() {
 
       <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
         <span class="truncate text-sm text-green-400 font-medium">{{ resultText }}</span>
-        <!-- TODO: Add option for this -->
-        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
-        <span class="text-[10px] text-green-400/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
+        <template v-if="copyResult">
+          <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
+          <span class="text-[10px] text-green-400/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
+        </template>
       </div>
 
       <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2 font-medium">

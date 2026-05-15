@@ -54,6 +54,7 @@ export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
 
 const DEFAULT_STORE = {
   autoselect: false,
+  copy_result: false,
   ai_provider: 'deepseek' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',

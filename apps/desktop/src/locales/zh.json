@@ -1,4 +1,6 @@
 {
+  "action.enable": "已启用",
+  "action.disable": "已禁用",
   "settings.language.title": "显示语言",
   "settings.title": "设置",
   "settings.tabs.basic": "基础",
@@ -6,6 +8,8 @@
   "settings.basic.title": "基础设置",
   "settings.basic.autoselect.label": "自动全选",
   "settings.basic.autoselect.description": "如果未选中任何内容，启用此项将先触发 {shortcut}。",
+  "settings.basic.copy_result.label": "自动复制结果",
+  "settings.basic.copy_result.description": "润色完成后，自动将结果复制到剪贴板。",
   "settings.basic.autostart.label": "开机自启动",
   "settings.basic.autostart.description": "登录系统时自动启动应用。",
   "settings.basic.shortcut.label": "全局快捷键",
