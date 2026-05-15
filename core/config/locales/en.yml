@@ -29,3 +29,14 @@
 
 en:
   hello: Hello world
+  devices:
+    authorizations:
+      show:
+        title: "Authorize Device"
+        prompt_with_code_html: "Do you want to authorize the device with code <strong>%{code}</strong>?"
+        approve: "approve"
+        deny: "deny"
+        prompt_enter_code: "Please enter the authorization code shown on your device:"
+        placeholder_code: "ABCD-1234"
+        next: "Next"
+

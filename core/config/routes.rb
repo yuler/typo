@@ -8,6 +8,12 @@ Rails.application.routes.draw do
   end
 
   resource :onboarding, only: %i[ new create ]
+  resource :device, only: [] do
+    scope module: :devices do
+      resource :authorization, only: [ :show, :update ], path: "authorization(/:user_code)"
+    end
+  end
+
 
   # Dashboard is now at the "root" of the mounted slug
   # Because the middleware moves the slug to SCRIPT_NAME,
@@ -29,6 +35,13 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
+
+      resource :device, only: [] do
+        scope module: :devices do
+          resource :authorization, only: :create
+          resource :token, only: :create
+        end
+      end
       namespace :test do
         get :private, to: "private#show"
         get :public, to: "public#show"

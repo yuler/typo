@@ -1,0 +1,22 @@
+<div class="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+  <h1 class="text-2xl font-bold mb-4">Authorize Device</h1>
+
+  <% if @device_authorization %>
+    <p class="mb-4">Do you want to authorize the device with code <strong><%= @device_authorization.user_code %></strong>?</p>
+
+    <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch do |f| %>
+      <div class="flex gap-4">
+        <%= f.submit "Approve", name: "decision", value: "approve", class: "px-4 py-2 bg-zinc-900 text-white rounded-md hover:bg-zinc-800" %>
+        <%= f.submit "Deny", name: "decision", value: "deny", class: "px-4 py-2 bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-md hover:bg-zinc-200" %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="mb-4">Please enter the authorization code shown on your device:</p>
+    <%= form_with url: device_authorization_path, method: :get, local: true do |f| %>
+      <div class="flex gap-2">
+        <%= f.text_field :user_code, class: "flex-1 px-3 py-2 border rounded-md", placeholder: "ABCD-1234" %>
+        <%= f.submit "Next", class: "px-4 py-2 bg-zinc-900 text-white rounded-md" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

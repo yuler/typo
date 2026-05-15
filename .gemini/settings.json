@@ -5,6 +5,8 @@
   "security": {
     "allowedExtensions": [
       "superpowers*"
-    ]
+    ],
+    "enablePermanentToolApproval": true,
+    "autoAddToPolicyByDefault": true
   }
 }
