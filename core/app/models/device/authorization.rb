@@ -16,6 +16,10 @@ class Device::Authorization < ApplicationRecord
     expires_at < Time.current || status == "expired"
   end
 
+  def polling_too_fast?
+    last_polled_at.present? && last_polled_at > POLLING_INTERVAL.seconds.ago
+  end
+
   private
     def set_defaults
       self.device_code ||= SecureRandom.hex(32)

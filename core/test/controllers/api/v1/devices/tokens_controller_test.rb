@@ -27,8 +27,16 @@ class Api::V1::Devices::TokensControllerTest < ActionDispatch::IntegrationTest
     @device_authorization.update!(expires_at: 1.minute.ago)
 
     post api_v1_device_token_url, params: { device_code: @device_authorization.device_code }
-    assert_response :bad_request
+    assert_response :unauthorized
     assert_equal "expired_token", JSON.parse(response.body)["error"]
+  end
+
+  test "should get slow_down when polling too fast" do
+    @device_authorization.update!(last_polled_at: Time.current)
+
+    post api_v1_device_token_url, params: { device_code: @device_authorization.device_code }
+    assert_response :bad_request
+    assert_equal "slow_down", JSON.parse(response.body)["error"]
   end
 
   test "should get invalid_grant for invalid device_code" do

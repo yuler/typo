@@ -7,8 +7,15 @@ class Api::V1::Devices::TokensController < Api::V1::BaseController
     return render json: { error: "invalid_grant" }, status: :bad_request unless device_authorization
 
     if device_authorization.expired?
-      return render json: { error: "expired_token" }, status: :bad_request
+      return render json: { error: "expired_token" }, status: :unauthorized
     end
+
+    if device_authorization.polling_too_fast?
+      device_authorization.update_column(:last_polled_at, Time.current)
+      return render json: { error: "slow_down" }, status: :bad_request
+    end
+
+    device_authorization.update_column(:last_polled_at, Time.current)
 
     case device_authorization.status
     when "approved"
