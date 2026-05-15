@@ -1,6 +1,6 @@
-class Api::V1::Devices::TokensController < ApplicationController
-  allow_unauthenticated_access
+class Api::V1::Devices::TokensController < Api::V1::BaseController
   disallow_account_scope
+  allow_unauthenticated_access
 
   def create
     device_authorization = Device::Authorization.find_by(device_code: params[:device_code])

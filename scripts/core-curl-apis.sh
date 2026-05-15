@@ -100,8 +100,33 @@ api_v1_device_token() {
   rm -f response.json
 }
 
+api_v1_test_private() {
+  local URL="${BASE_URL}/test/private"
+
+  local TOKEN=$(gum input --placeholder "Enter token..." --header "🔑 Please enter the token:")
+
+  printf "\n"
+  gum style --foreground 212 "🚀 Curl Command:"
+  gum style --foreground 245 "curl -X GET ${URL} -H 'Content-Type: application/json' -H 'Authorization: Bearer ${TOKEN}'"
+
+  printf "\n"
+  start_time=$(date +%s%3N)
+  gum spin --spinner minidot --title "Sending request to $URL..." -- \
+    curl -s -X GET "$URL" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" > response.json
+  end_time=$(date +%s%3N)
+  duration=$((end_time - start_time))
+
+  printf "\n"
+  gum style --foreground 82 "✅ Response (took $((duration))ms):"
+  jq . response.json
+
+  rm -f response.json
+}
+
 gum style --foreground 212 "🛠️ Select API action:"
-ACTION=$(gum choose "api_v1_completions" "api_v1_device_authorization" "api_v1_device_token")
+ACTION=$(gum choose "api_v1_completions" "api_v1_device_authorization" "api_v1_device_token" "api_v1_test_private")
 
 case $ACTION in
   "api_v1_completions")
@@ -112,5 +137,8 @@ case $ACTION in
     ;;
   "api_v1_device_token")
     api_v1_device_token
+    ;;
+  "api_v1_test_private")
+    api_v1_test_private
     ;;
 esac
