@@ -99,7 +99,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
     // Paste the corrected text back into the original input area
     await invoke('keyboard_paste_text', { text: output })
 
-    if (await store.get('copy_result')) {
+    copyResult.value = await store.get('copy_result')
+    if (copyResult.value) {
       await writeText(output)
     }
 
