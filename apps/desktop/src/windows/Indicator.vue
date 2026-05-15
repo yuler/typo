@@ -50,6 +50,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   logger.info('Indicator', { text, mode })
 
+  copyResult.value = false
+
   if (!text.trim().length) {
     errorText.value = t('main.error.no_text')
     state.value = 'error'
@@ -69,10 +71,13 @@ async function processSetInputPayload(payload: SetInputPayload) {
     state.value = 'processing'
     processing.value = true
 
-    const [systemPrompt, shortcuts] = await Promise.all([
+    const [systemPrompt, shortcuts, copy] = await Promise.all([
       store.get('ai_system_prompt'),
       store.get('slash_commands'),
+      store.get('copy_result'),
     ])
+
+    copyResult.value = copy as boolean
 
     if (!isMounted) {
       return
@@ -96,13 +101,12 @@ async function processSetInputPayload(payload: SetInputPayload) {
     resultText.value = output
     state.value = 'result'
 
-    // Paste the corrected text back into the original input area
-    await invoke('keyboard_paste_text', { text: output })
-
-    copyResult.value = await store.get('copy_result')
     if (copyResult.value) {
       await writeText(output)
     }
+
+    // Paste the corrected text back into the original input area
+    await invoke('keyboard_paste_text', { text: output })
 
     await sleep(STATUS_DISPLAY_DURATION_MS)
     if (!isMounted) {
