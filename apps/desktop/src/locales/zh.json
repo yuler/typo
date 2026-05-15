@@ -1,4 +1,6 @@
 {
+  "action.enable": "已启用",
+  "action.disable": "已禁用",
   "settings.language.title": "显示语言",
   "settings.title": "设置",
   "settings.tabs.basic": "基础",

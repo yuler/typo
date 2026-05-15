@@ -50,8 +50,6 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   logger.info('Indicator', { text, mode })
 
-  copyResult.value = false
-
   if (!text.trim().length) {
     errorText.value = t('main.error.no_text')
     state.value = 'error'

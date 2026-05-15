@@ -1,4 +1,6 @@
 {
+  "action.enable": "Enabled",
+  "action.disable": "Disabled",
   "settings.language.title": "Display language",
   "settings.title": "Settings",
   "settings.tabs.basic": "Basic",

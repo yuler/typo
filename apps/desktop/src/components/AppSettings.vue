@@ -221,19 +221,25 @@ onMounted(async () => {
     return
   }
   form.value.autostart = autostartEnabled
-  form.value.autoselect = await store.get('autoselect')
-  form.value.copy_result = await store.get('copy_result')
+  const [autoselect, copyResult, deepseekApiKey, aiProvider, ollamaModel, systemPrompt, globalShortcut] = await Promise.all([
+    store.get('autoselect'),
+    store.get('copy_result'),
+    store.get('deepseek_api_key'),
+    store.get('ai_provider'),
+    store.get('ollama_model'),
+    store.get('ai_system_prompt'),
+    store.get('global_shortcut'),
+  ])
   if (!isMounted) {
     return
   }
-  form.value.deepseek_api_key = await store.get('deepseek_api_key')
-  form.value.ai_provider = await store.get('ai_provider')
-  form.value.ollama_model = await store.get('ollama_model')
-  form.value.system_prompt = await store.get('ai_system_prompt')
-  form.value.global_shortcut = await store.get('global_shortcut') || DEFAULT_GLOBAL_SHORTCUT
-  if (!isMounted) {
-    return
-  }
+  form.value.autoselect = autoselect
+  form.value.copy_result = copyResult
+  form.value.deepseek_api_key = deepseekApiKey
+  form.value.ai_provider = aiProvider
+  form.value.ollama_model = ollamaModel
+  form.value.system_prompt = systemPrompt
+  form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
 
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
   if (!isMounted) {
