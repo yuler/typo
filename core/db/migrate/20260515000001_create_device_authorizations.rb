@@ -6,6 +6,7 @@ class CreateDeviceAuthorizations < ActiveRecord::Migration[8.0]
       t.references :identity, type: :uuid
       t.string :status, default: "pending", null: false
       t.datetime :expires_at, null: false
+      t.datetime :last_polled_at
 
       t.timestamps
     end

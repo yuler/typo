@@ -26,6 +26,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_15_000002) do
     t.string "device_code", null: false
     t.datetime "expires_at", null: false
     t.uuid "identity_id"
+    t.datetime "last_polled_at"
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.string "user_code", null: false
