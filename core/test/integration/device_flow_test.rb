@@ -12,7 +12,7 @@ class DeviceFlowTest < ActionDispatch::IntegrationTest
 
   test "full device authorization flow" do
     # 1. Initiate authorization
-    post api_auth_device_url
+    post api_v1_device_authorization_url
     assert_response :success
     json = JSON.parse(response.body)
     device_code = json["device_code"]
@@ -21,7 +21,7 @@ class DeviceFlowTest < ActionDispatch::IntegrationTest
     assert user_code.present?
 
     # 2. Poll token (pending)
-    post api_auth_device_token_url, params: { device_code: device_code }
+    get api_v1_device_tokens_url, params: { device_code: device_code }
     assert_response :precondition_required
     assert_equal "authorization_pending", JSON.parse(response.body)["error"]
 
@@ -37,7 +37,7 @@ class DeviceFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
 
     # 4. Poll token (success)
-    post api_auth_device_token_url, params: { device_code: device_code }
+    get api_v1_device_tokens_url, params: { device_code: device_code }
     assert_response :success
     json = JSON.parse(response.body)
     access_token = json["access_token"]

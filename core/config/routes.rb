@@ -28,13 +28,14 @@ Rails.application.routes.draw do
 
   # API
   namespace :api do
-    namespace :auth do
-      post "device", to: "devices#authorize"
-      post "device/token", to: "devices#token"
-    end
 
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
+
+      scope :device, module: :devices, as: :device do
+        resource :authorization, only: :create
+        resources :tokens, only: :index
+      end
       namespace :test do
         get :private, to: "private#show"
         get :public, to: "public#show"
