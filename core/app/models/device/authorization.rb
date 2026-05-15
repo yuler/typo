@@ -1,4 +1,6 @@
 class Device::Authorization < ApplicationRecord
+  POLLING_INTERVAL = 5
+
   belongs_to :identity, optional: true
 
   validates :device_code, :user_code, :expires_at, presence: true
