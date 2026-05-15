@@ -27,6 +27,11 @@ Rails.application.routes.draw do
 
   # API
   namespace :api do
+    namespace :auth do
+      post "device", to: "devices#authorize"
+      post "device/token", to: "devices#token"
+    end
+
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
       namespace :test do
