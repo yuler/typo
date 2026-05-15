@@ -75,6 +75,4 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_15_000002) do
     t.index ["account_id"], name: "index_users_on_account_id"
     t.index ["identity_id"], name: "index_users_on_identity_id"
   end
-
-  add_foreign_key "device_authorizations", "identities"
 end

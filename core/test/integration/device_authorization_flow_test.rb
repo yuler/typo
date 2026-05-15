@@ -21,8 +21,8 @@ class DeviceAuthorizationFlowTest < ActionDispatch::IntegrationTest
     assert user_code.present?
 
     # 2. Poll token (pending)
-    get api_v1_device_token_url, params: { device_code: device_code }
-    assert_response :precondition_required
+    post api_v1_device_token_url, params: { device_code: device_code }
+    assert_response :bad_request
     assert_equal "authorization_pending", JSON.parse(response.body)["error"]
 
     # 3. User authorizes in browser
@@ -37,7 +37,7 @@ class DeviceAuthorizationFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
 
     # 4. Poll token (success)
-    get api_v1_device_token_url, params: { device_code: device_code }
+    post api_v1_device_token_url, params: { device_code: device_code }
     assert_response :success
     json = JSON.parse(response.body)
     access_token = json["access_token"]

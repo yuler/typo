@@ -1,10 +1,10 @@
 <div class="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
   <h1 class="text-2xl font-bold mb-4">Authorize Device</h1>
 
-  <% if @device_auth %>
-    <p class="mb-4">Do you want to authorize the device with code <strong><%= @device_auth.user_code %></strong>?</p>
+  <% if @device_authorization %>
+    <p class="mb-4">Do you want to authorize the device with code <strong><%= @device_authorization.user_code %></strong>?</p>
 
-    <%= form_with url: device_authorization_path(user_code: @device_auth.user_code), method: :patch do |f| %>
+    <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch do |f| %>
       <div class="flex gap-4">
         <%= f.submit "approve", class: "px-4 py-2 bg-zinc-900 text-white rounded-md hover:bg-zinc-800" %>
         <%= f.submit "deny", class: "px-4 py-2 bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-md hover:bg-zinc-200" %>
