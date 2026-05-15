@@ -2,6 +2,7 @@ module Api
   module Auth
     class DevicesController < ApplicationController
       allow_unauthenticated_access
+      disallow_account_scope
 
       def authorize
         device_auth = DeviceAuthorization.create!
