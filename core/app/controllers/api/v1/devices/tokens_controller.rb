@@ -1,5 +1,5 @@
 class Api::V1::Devices::TokensController < Api::V1::BaseController
-  disallow_account_scope
+  skip_account_scope
   allow_unauthenticated_access
 
   def create

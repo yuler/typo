@@ -1,5 +1,5 @@
 class Api::V1::Devices::AuthorizationsController < Api::V1::BaseController
-  disallow_account_scope
+  skip_account_scope
   allow_unauthenticated_access
 
   rate_limit to: 10, within: 3.minutes, only: :create

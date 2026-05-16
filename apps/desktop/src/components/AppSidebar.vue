@@ -42,7 +42,6 @@ import {
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
-import { showNotification } from '@/utils'
 
 interface NavItem {
   id: string
@@ -73,7 +72,6 @@ const userInitials = computed(() => {
 
 function handleLogin() {
   login()
-  showNotification('typo', 'Logged in (Demo)')
 }
 </script>
 

@@ -9,6 +9,7 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import AppHome from '@/components/AppHome.vue'
 import AppSettings from '@/components/AppSettings.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
+import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
