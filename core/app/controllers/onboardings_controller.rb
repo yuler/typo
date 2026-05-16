@@ -16,7 +16,7 @@ class OnboardingsController < ApplicationController
     @signup = Signup.new(signup_params.merge(identity: Current.identity))
 
     if @signup.create_personal_account
-      redirect_to root_url(script_name: "/#{@signup.account.slug}")
+      redirect_to after_authentication_url(fallback: root_url(script_name: "/#{@signup.account.slug}"))
     else
       render :new, status: :unprocessable_entity
     end
@@ -25,7 +25,7 @@ class OnboardingsController < ApplicationController
   private
     def redirect_if_onboarded
       if personal_account = Current.identity.personal_account
-        redirect_to root_url(script_name: "/#{personal_account.slug}")
+        redirect_to after_authentication_url(fallback: root_url(script_name: "/#{personal_account.slug}"))
       end
     end
 
