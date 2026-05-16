@@ -52,6 +52,41 @@ class DeviceAuthorizationFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "device authorization flow for unauthenticated new user with onboarding redirect" do
+    post api_v1_device_authorization_url
+    assert_response :success
+    json = JSON.parse(response.body)
+    user_code = json["user_code"]
+
+    target_url = device_authorization_url(user_code: user_code)
+
+    # 1. Unauthenticated user attempts to visit authorization page directly
+    get target_url
+    assert_redirected_to new_session_url
+    follow_redirect!
+
+    # 2. New user submits email to sign up / login
+    new_email = "newbie@example.com"
+    post session_url, params: { email: new_email }
+    assert_redirected_to session_magic_link_url
+
+    identity = Identity.find_by!(email: new_email)
+    magic_link = identity.magic_links.last
+
+    # 3. User consumes magic link
+    post session_magic_link_url, params: { code: magic_link.code }
+    # Since new user has no accounts, they are redirected to onboarding
+    assert_redirected_to new_onboarding_url
+    follow_redirect!
+
+    # 4. User submits onboarding form
+    post onboarding_url, params: { signup: { username: "newbie", nickname: "Newbie" } }
+    # After onboarding, user should be redirected back to the device authorization page!
+    assert_redirected_to target_url
+    follow_redirect!
+    assert_response :success
+  end
+
   private
 
   def sign_in_as(identity)

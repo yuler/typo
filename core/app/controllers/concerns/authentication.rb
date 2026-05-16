@@ -74,15 +74,12 @@ module Authentication
     end
 
     def request_authentication
-      if Current.account.present?
-        session[:return_to_after_authenticating] = request.url
-      end
-
+      session[:return_to_after_authenticating] = request.url
       redirect_to_login_url
     end
 
-    def after_authentication_url
-      session.delete(:return_to_after_authenticating) || root_url
+    def after_authentication_url(fallback: root_url)
+      session.delete(:return_to_after_authenticating) || fallback
     end
 
     def redirect_authenticated_user
