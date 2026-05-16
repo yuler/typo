@@ -78,8 +78,8 @@ module Authentication
       redirect_to_login_url
     end
 
-    def after_authentication_url(fallback_url = root_url)
-      session.delete(:return_to_after_authenticating) || fallback_url
+    def after_authentication_url(fallback: root_url)
+      session.delete(:return_to_after_authenticating) || fallback
     end
 
     def redirect_authenticated_user
