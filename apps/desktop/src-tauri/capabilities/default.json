@@ -35,6 +35,13 @@
     "process:default",
     "process:allow-restart",
     "log:default",
-    "autostart:default"
+    "autostart:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://*.typo.yuler.cc" },
+        { "url": "https://*.typo.yuler.cc/*" }
+      ]
+    }
   ]
 }

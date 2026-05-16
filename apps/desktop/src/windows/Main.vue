@@ -198,5 +198,7 @@ function openSettings() {
         <AppSettings @close="isSettingsOpen = false" />
       </DialogContent>
     </Dialog>
+
+    <DeviceAuthModal />
   </SidebarProvider>
 </template>

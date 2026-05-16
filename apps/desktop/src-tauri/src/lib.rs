@@ -190,6 +190,7 @@ pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .plugin(logging::log_plugin_builder().build())
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
         .plugin(tauri_plugin_updater::Builder::new().build())

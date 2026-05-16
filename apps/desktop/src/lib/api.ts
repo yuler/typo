@@ -1,3 +1,5 @@
+import { fetch } from '@tauri-apps/plugin-http'
+
 export const API_BASE_URL = 'https://app.typo.yuler.cc'
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
