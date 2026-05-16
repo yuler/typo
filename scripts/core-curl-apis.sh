@@ -2,6 +2,14 @@
 
 set -e
 
+get_now_ms() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    perl -MTime::HiRes=time -e 'printf "%.0f\n", time * 1000'
+  else
+    date +%s%3N
+  fi
+}
+
 gum style --foreground 212 "🌍 Select environment:"
 ENV=$(gum choose "local" "production")
 
@@ -30,12 +38,12 @@ api_v1_completions() {
     -d '${PAYLOAD}'"
 
   printf "\n"
-  start_time=$(date +%s%3N)
+  start_time=$(get_now_ms)
   gum spin --spinner minidot --title "Sending request to $URL..." -- \
     curl -s -X POST "$URL" \
     -H "Content-Type: application/json" \
     -d "$PAYLOAD" > response.json
-  end_time=$(date +%s%3N)
+  end_time=$(get_now_ms)
   duration=$((end_time - start_time))
 
   printf "\n"
@@ -53,11 +61,11 @@ api_v1_device_authorization() {
   gum style --foreground 245 "curl -X POST ${URL} -H 'Content-Type: application/json'"
 
   printf "\n"
-  start_time=$(date +%s%3N)
+  start_time=$(get_now_ms)
   gum spin --spinner minidot --title "Sending request to $URL..." -- \
     curl -s -X POST "$URL" \
     -H "Content-Type: application/json" > response.json
-  end_time=$(date +%s%3N)
+  end_time=$(get_now_ms)
   duration=$((end_time - start_time))
 
   printf "\n"
@@ -85,12 +93,12 @@ api_v1_device_token() {
     -d '${PAYLOAD}'"
 
   printf "\n"
-  start_time=$(date +%s%3N)
+  start_time=$(get_now_ms)
   gum spin --spinner minidot --title "Sending request to $URL..." -- \
     curl -s -X POST "$URL" \
     -H "Content-Type: application/json" \
     -d "$PAYLOAD" > response.json
-  end_time=$(date +%s%3N)
+  end_time=$(get_now_ms)
   duration=$((end_time - start_time))
 
   printf "\n"
@@ -110,12 +118,12 @@ api_v1_test_private() {
   gum style --foreground 245 "curl -X GET ${URL} -H 'Content-Type: application/json' -H 'Authorization: Bearer ${TOKEN}'"
 
   printf "\n"
-  start_time=$(date +%s%3N)
+  start_time=$(get_now_ms)
   gum spin --spinner minidot --title "Sending request to $URL..." -- \
     curl -s -X GET "$URL" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" > response.json
-  end_time=$(date +%s%3N)
+  end_time=$(get_now_ms)
   duration=$((end_time - start_time))
 
   printf "\n"
