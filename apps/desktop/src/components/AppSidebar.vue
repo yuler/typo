@@ -180,15 +180,15 @@ function onLogin() {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem @click="emit('openSettings')">
+                <DropdownMenuItem @click="emit('update:activeTab', 'basic')">
                   <BadgeCheck class="mr-2 size-4" />
                   {{ t('main.sidebar.account') }}
                 </DropdownMenuItem>
-                <DropdownMenuItem @click="emit('openSettings')">
+                <DropdownMenuItem @click="emit('update:activeTab', 'basic')">
                   <CreditCard class="mr-2 size-4" />
                   {{ t('main.sidebar.billing') }}
                 </DropdownMenuItem>
-                <DropdownMenuItem @click="emit('openSettings')">
+                <DropdownMenuItem @click="emit('update:activeTab', 'basic')">
                   <Bell class="mr-2 size-4" />
                   {{ t('main.sidebar.notifications') }}
                 </DropdownMenuItem>
@@ -209,6 +209,13 @@ function onLogin() {
             <LogIn />
             <span>{{ t('main.sidebar.login') }}</span>
           </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarFooter>
+    <SidebarRail />
+  </Sidebar>
+</template>
+ebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarFooter>
