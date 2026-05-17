@@ -1,27 +1,157 @@
 import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
+import { api } from '@/api'
+import { logger } from '@/logger'
+import * as authStore from '@/stores/auth'
+import { gravatar } from '@/utils'
+
+export type AuthStatus = 'idle' | 'authorizing' | 'success' | 'error'
+
+export interface DeviceCodeResponse {
+  device_code: string
+  user_code: string
+  verification_uri: string
+  interval: number
+  expires_in: number
+}
 
 export const useAuth = createGlobalState(() => {
   const isLoggedIn = ref(false)
+  const authStatus = ref<AuthStatus>('idle')
+  const deviceCode = ref<DeviceCodeResponse | null>(null)
   const user = ref({
-    name: 'Yule',
-    email: 'yule@example.com',
-    avatar: 'https://github.com/yuler.png',
+    name: '',
+    email: '',
+    avatar: '',
   })
 
-  function login() {
-    // For now, just toggle for demo
-    isLoggedIn.value = true
+  let pollTimer: ReturnType<typeof setTimeout> | null = null
+
+  async function initialize() {
+    const token = await authStore.getAuth('access_token')
+    const userEmail = await authStore.getAuth('email')
+    if (token && userEmail) {
+      isLoggedIn.value = true
+      user.value = {
+        name: userEmail.split('@')[0],
+        email: userEmail,
+        avatar: await gravatar(userEmail),
+      }
+    }
   }
 
-  function logout() {
-    isLoggedIn.value = false
+  async function login() {
+    try {
+      authStatus.value = 'authorizing'
+      const data = await api<DeviceCodeResponse>('/api/v1/device/authorization', {
+        method: 'POST',
+      })
+      deviceCode.value = data
+      const expiresAt = Date.now() + data.expires_in * 1000
+      startPolling(data.device_code, data.interval, expiresAt)
+    }
+    catch (err) {
+      logger.error('Auth', 'Failed to start login', err)
+      authStatus.value = 'error'
+    }
   }
+
+  function startPolling(code: string, interval: number, expiresAt: number) {
+    if (pollTimer)
+      clearTimeout(pollTimer)
+
+    async function poll() {
+      if (Date.now() >= expiresAt) {
+        authStatus.value = 'error'
+        return
+      }
+
+      try {
+        const data = await api<{ access_token: string, identity: any }>('/api/v1/device/token', {
+          method: 'POST',
+          body: JSON.stringify({ device_code: code }),
+        })
+
+        if (data.access_token) {
+          await onSuccess(data.access_token, data.identity)
+        }
+      }
+      catch (err: any) {
+        if (err.message === 'expired_token') {
+          authStatus.value = 'error'
+        }
+        else if (err.message === 'authorization_pending') {
+          scheduleNextPoll(interval)
+        }
+        else if (err.message === 'slow_down') {
+          startPolling(code, interval + 5, expiresAt)
+        }
+        else {
+          authStatus.value = 'error'
+        }
+      }
+    }
+
+    function scheduleNextPoll(currentInterval: number) {
+      const nextPollDelay = currentInterval * 1000
+      if (Date.now() + nextPollDelay < expiresAt) {
+        pollTimer = setTimeout(poll, nextPollDelay)
+      }
+      else {
+        pollTimer = setTimeout(() => {
+          authStatus.value = 'error'
+        }, Math.max(0, expiresAt - Date.now()))
+      }
+    }
+
+    scheduleNextPoll(interval)
+  }
+
+  async function onSuccess(token: string, identity: any) {
+    isLoggedIn.value = true
+    authStatus.value = 'success'
+    user.value = {
+      name: identity.name || identity.email.split('@')[0],
+      email: identity.email,
+      avatar: identity.avatar_url || await gravatar(identity.email),
+    }
+    await authStore.setAuth('access_token', token)
+    await authStore.setAuth('email', identity.email)
+    await authStore.saveAuth()
+    if (pollTimer)
+      clearTimeout(pollTimer)
+  }
+
+  async function logout() {
+    cancel()
+    // TODO: Invoke API to remove current session on server once endpoint is available
+    isLoggedIn.value = false
+    user.value = {
+      name: '',
+      email: '',
+      avatar: '',
+    }
+    await authStore.setAuth('access_token', '')
+    await authStore.setAuth('email', '')
+    await authStore.saveAuth()
+  }
+
+  function cancel() {
+    if (pollTimer)
+      clearTimeout(pollTimer)
+    authStatus.value = 'idle'
+    deviceCode.value = null
+  }
+
+  initialize()
 
   return {
     isLoggedIn,
+    authStatus,
+    deviceCode,
     user,
     login,
     logout,
+    cancel,
   }
 })

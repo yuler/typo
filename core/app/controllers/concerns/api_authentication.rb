@@ -12,7 +12,13 @@ module ApiAuthentication
   end
 
   class_methods do
-    def disallow_account_scope(**options)
+    # Note: Save this method temporarily for now.
+    # def disallow_account_scope(**options)
+    #   skip_before_action :require_account, **options
+    #   before_action :redirect_accounted_request, **options
+    # end
+
+    def skip_account_scope(**options)
       skip_before_action :require_account, **options
     end
 

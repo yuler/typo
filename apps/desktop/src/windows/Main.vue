@@ -9,6 +9,7 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import AppHome from '@/components/AppHome.vue'
 import AppSettings from '@/components/AppSettings.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
+import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -31,8 +32,8 @@ import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
-import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
-import * as store from '@/store'
+import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
+import * as store from '@/stores/settings'
 import { sleep } from '@/utils'
 import { initializeWindow } from '@/window'
 
@@ -198,5 +199,7 @@ function openSettings() {
         <AppSettings @close="isSettingsOpen = false" />
       </DialogContent>
     </Dialog>
+
+    <DeviceAuthModal />
   </SidebarProvider>
 </template>

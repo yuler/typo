@@ -4,7 +4,7 @@ import { generateText } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
 import { logger } from '@/logger'
 import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
-import { get } from './store'
+import { get } from './stores/settings'
 
 async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: string, command?: string, abortSignal?: AbortSignal): Promise<string> {
   logger.info('ai', 'aiProcess', { text, systemPrompt, command })
