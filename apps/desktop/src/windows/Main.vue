@@ -10,7 +10,7 @@ import {
   Settings2Icon,
   SparklesIcon,
 } from 'lucide-vue-next'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import AIProviderSettings from '@/components/AIProviderSettings.vue'
 import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
@@ -47,14 +47,16 @@ const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 
-const navItems: NavItem[] = [
+const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
   { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
   { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
   { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
   { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
-]
+])
+
+const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))
 
 let unlistenOpenSettings: (() => void) | undefined
 let isMounted = true
@@ -164,7 +166,7 @@ onUnmounted(() => {
               </BreadcrumbItem>
               <BreadcrumbSeparator class="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>{{ navItems.find(i => i.id === activeTab)?.label }}</BreadcrumbPage>
+                <BreadcrumbPage>{{ activeNavItem?.label }}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -188,13 +190,13 @@ onUnmounted(() => {
         <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
           <div class="text-center space-y-4">
             <div class="p-4 bg-muted/20 rounded-full inline-block">
-              <component :is="navItems.find(i => i.id === activeTab)?.icon" class="w-12 h-12 text-muted-foreground/30" />
+              <component :is="activeNavItem?.icon" class="w-12 h-12 text-muted-foreground/30" />
             </div>
             <h2 class="text-xl font-semibold text-foreground/40">
-              {{ activeTab.charAt(0).toUpperCase() + activeTab.slice(1) }}
+              {{ activeNavItem?.label }}
             </h2>
             <p class="text-sm text-muted-foreground/40">
-              Coming soon
+              {{ t('main.common.coming_soon') }}
             </p>
           </div>
         </div>
