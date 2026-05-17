@@ -69,6 +69,7 @@
   "main.hint.change_shortcut": "Change Shortcut",
   "main.error.no_text": "No text to improve",
   "main.error.generic": "Something went wrong",
+  "main.error.rate_limit": "Rate limit exceeded. Sign in for Unlimited Access",
   "main.error.accessibility": "Enable Accessibility in System Preferences",
   "main.error.invalid_ai": "Invalid AI provider",
   "upgrade.title": "New version {version} available",

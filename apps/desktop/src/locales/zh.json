@@ -69,6 +69,7 @@
   "main.hint.change_shortcut": "修改快捷键",
   "main.error.no_text": "没有待润色的文本",
   "main.error.generic": "出错了",
+  "main.error.rate_limit": "请求过于频繁。登录以获取无限制访问",
   "main.error.accessibility": "请在系统偏好设置中开启辅助功能权限",
   "main.error.invalid_ai": "无效的 AI 服务商",
   "upgrade.title": "新版本 {version} 可用",

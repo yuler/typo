@@ -6,9 +6,10 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { deepSeekProcess, ollamaProcess } from '@/ai'
+import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
 import AppLogo from '@/components/AppLogo.vue'
 
+import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { parseSlashCommands, resolveSlashCommand } from '@/slashCommands'
@@ -19,6 +20,7 @@ import { formatShortcut, sleep } from '@/utils'
 const appWindow = getCurrentWindow()
 
 const { t } = useI18n()
+const { login } = useAuth()
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 
@@ -119,9 +121,16 @@ async function processSetInputPayload(payload: SetInputPayload) {
       commandName.value = ''
       return
     }
-    errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
+
+    if (err.message?.includes('Rate limit exceeded')) {
+      errorText.value = t('main.error.rate_limit')
+    }
+    else {
+      errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
+    }
+
     state.value = 'error'
-    await sleep(STATUS_DISPLAY_DURATION_MS)
+    await sleep(STATUS_DISPLAY_DURATION_MS * 2)
     await hideIndicator()
   }
   finally {
@@ -182,6 +191,9 @@ async function fetchCorrection(text: string, preResolved?: { text: string, syste
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }) => Promise<string>
   switch (aiProvider) {
+    case 'typo':
+      process = typoProcess
+      break
     case 'deepseek':
       process = deepSeekProcess
       break
@@ -252,7 +264,11 @@ function gotoSettings() {
         </template>
       </div>
 
-      <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2 font-medium">
+      <p
+        v-else-if="state === 'error'"
+        class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
+        @click="errorText === t('main.error.rate_limit') ? login() : null"
+      >
         {{ errorText }}
       </p>
 
