@@ -248,41 +248,8 @@ async function onSubmit() {
 <template>
   <div class="w-full flex flex-col gap-5 pb-24 h-full overflow-y-auto">
     <h1 class="text-2xl font-bold">
-      {{ t('settings.basic.title') }}
+      {{ t('main.nav.settings') }}
     </h1>
-
-    <div class="space-y-2">
-      <Label>{{ t('settings.basic.autostart.label') }}</Label>
-      <div class="flex items-center space-x-2">
-        <Switch id="autostart" :model-value="form.autostart" @update:model-value="onAutostartToggle" />
-        <Label for="autostart">{{ form.autostart ? t('action.enable') : t('action.disable') }}</Label>
-      </div>
-      <p class="text-xs text-muted-foreground">
-        {{ t('settings.basic.autostart.description') }}
-      </p>
-    </div>
-
-    <div class="space-y-2">
-      <Label>{{ t('settings.basic.autoselect.label') }}</Label>
-      <div class="flex items-center space-x-2">
-        <Switch id="autoselect" v-model="form.autoselect" />
-        <Label for="autoselect">{{ form.autoselect ? t('action.enable') : t('action.disable') }}</Label>
-      </div>
-      <p class="text-xs text-muted-foreground">
-        {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
-      </p>
-    </div>
-
-    <div class="space-y-2">
-      <Label>{{ t('settings.basic.copy_result.label') }}</Label>
-      <div class="flex items-center space-x-2">
-        <Switch id="copy_result" v-model="form.copy_result" />
-        <Label for="copy_result">{{ form.copy_result ? t('action.enable') : t('action.disable') }}</Label>
-      </div>
-      <p class="text-xs text-muted-foreground">
-        {{ t('settings.basic.copy_result.description') }}
-      </p>
-    </div>
 
     <div class="space-y-2">
       <Label for="global_shortcut">{{ t('settings.basic.shortcut.label') }}</Label>
@@ -319,6 +286,39 @@ async function onSubmit() {
           {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
         </p>
       </div>
+    </div>
+
+    <div class="space-y-2">
+      <Label>{{ t('settings.basic.autostart.label') }}</Label>
+      <div class="flex items-center space-x-2">
+        <Switch id="autostart" :model-value="form.autostart" @update:model-value="onAutostartToggle" />
+        <Label for="autostart">{{ form.autostart ? t('action.enable') : t('action.disable') }}</Label>
+      </div>
+      <p class="text-xs text-muted-foreground">
+        {{ t('settings.basic.autostart.description') }}
+      </p>
+    </div>
+
+    <div class="space-y-2">
+      <Label>{{ t('settings.basic.autoselect.label') }}</Label>
+      <div class="flex items-center space-x-2">
+        <Switch id="autoselect" v-model="form.autoselect" />
+        <Label for="autoselect">{{ form.autoselect ? t('action.enable') : t('action.disable') }}</Label>
+      </div>
+      <p class="text-xs text-muted-foreground">
+        {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
+      </p>
+    </div>
+
+    <div class="space-y-2">
+      <Label>{{ t('settings.basic.copy_result.label') }}</Label>
+      <div class="flex items-center space-x-2">
+        <Switch id="copy_result" v-model="form.copy_result" />
+        <Label for="copy_result">{{ form.copy_result ? t('action.enable') : t('action.disable') }}</Label>
+      </div>
+      <p class="text-xs text-muted-foreground">
+        {{ t('settings.basic.copy_result.description') }}
+      </p>
     </div>
 
     <div class="grid w-full items-center gap-2">
