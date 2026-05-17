@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
 import { logger } from '@/logger'
-import { DEFAULT_GLOBAL_SHORTCUT, get } from './store'
+import { DEFAULT_GLOBAL_SHORTCUT, get } from './stores/settings'
 
 async function onShortcut() {
   logger.info('shortcut', 'onShortcut')

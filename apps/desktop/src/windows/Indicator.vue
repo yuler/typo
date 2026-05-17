@@ -12,8 +12,8 @@ import AppLogo from '@/components/AppLogo.vue'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { parseSlashCommands, resolveSlashCommand } from '@/slashCommands'
-import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
-import * as store from '@/store'
+import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
+import * as store from '@/stores/settings'
 import { formatShortcut, sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()

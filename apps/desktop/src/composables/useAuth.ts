@@ -2,7 +2,7 @@ import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/logger'
-import * as store from '@/store'
+import * as authStore from '@/stores/auth'
 
 export type AuthStatus = 'idle' | 'authorizing' | 'success' | 'error'
 
@@ -27,8 +27,8 @@ export const useAuth = createGlobalState(() => {
   let pollTimer: ReturnType<typeof setTimeout> | null = null
 
   async function initialize() {
-    const token = await store.get('access_token')
-    const userInfo = await store.get('user_info')
+    const token = await authStore.getAuth('access_token')
+    const userInfo = await authStore.getAuth('user_info')
     if (token && userInfo) {
       isLoggedIn.value = true
       user.value = userInfo
@@ -89,9 +89,9 @@ export const useAuth = createGlobalState(() => {
       email: identity.email,
       avatar: identity.avatar_url || `https://github.com/${identity.email.split('@')[0]}.png`,
     }
-    await store.set('access_token', token)
-    await store.set('user_info', user.value)
-    await store.save()
+    await authStore.setAuth('access_token', token)
+    await authStore.setAuth('user_info', user.value)
+    await authStore.saveAuth()
     if (pollTimer)
       clearTimeout(pollTimer)
   }
@@ -99,9 +99,9 @@ export const useAuth = createGlobalState(() => {
   async function logout() {
     isLoggedIn.value = false
     authStatus.value = 'idle'
-    await store.set('access_token', '')
-    await store.set('user_info', null)
-    await store.save()
+    await authStore.setAuth('access_token', '')
+    await authStore.setAuth('user_info', null)
+    await authStore.saveAuth()
   }
 
   function cancel() {

@@ -5,7 +5,8 @@ import { onMounted, onUnmounted } from 'vue'
 import AppSettings from '@/components/AppSettings.vue'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
-import { initializeStore } from '@/store'
+import { initializeAuthStore } from '@/stores/auth'
+import { initializeStore } from '@/stores/settings'
 import Indicator from '@/windows/Indicator.vue'
 import Main from '@/windows/Main.vue'
 import Upgrade from '@/windows/Upgrade.vue'
@@ -26,6 +27,7 @@ onMounted(async () => {
 
   // Basic initialization is required for every window
   await initializeStore()
+  await initializeAuthStore()
   if (!isMounted) {
     return
   }
