@@ -33,7 +33,6 @@ onMounted(async () => {
   form.value.ai_provider = aiProvider
   form.value.ollama_model = ollamaModel
 
-  // Always load Ollama models if we want to allow configuring it
   await loadOllamaModels()
 })
 
@@ -54,88 +53,97 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="w-full flex flex-col gap-5 pb-24 h-full overflow-y-auto">
-    <h1 class="text-2xl font-bold">
-      {{ t('main.nav.ai_provider') }}
-    </h1>
+  <div class="h-full flex flex-col overflow-hidden px-1">
+    <div class="flex-1 overflow-y-auto pr-4 -mr-4">
+      <div class="flex flex-col gap-6 pb-24">
+        <h1 class="text-2xl font-bold">
+          {{ t('main.nav.ai_provider') }}
+        </h1>
 
-    <div class="space-y-4">
-      <Label>{{ t('settings.basic.ai_provider.label') }}</Label>
-      <RadioGroup v-model="form.ai_provider" class="flex flex-col gap-4">
-        <!-- Typo Cloud -->
-        <div class="flex flex-col gap-2 rounded-lg border p-4" :class="{ 'border-primary bg-primary/5': form.ai_provider === 'typo' }">
-          <div class="flex items-center gap-3">
-            <RadioGroupItem id="provider-typo" value="typo" />
-            <Label for="provider-typo" class="text-base font-semibold cursor-pointer">
-              {{ t('settings.basic.typo.label') }}
-            </Label>
-          </div>
-          <p class="text-sm text-muted-foreground pl-7">
-            {{ t('settings.basic.typo.description') }}
-          </p>
-        </div>
-
-        <!-- DeepSeek -->
-        <div class="flex flex-col gap-4 rounded-lg border p-4" :class="{ 'border-primary bg-primary/5': form.ai_provider === 'deepseek' }">
-          <div class="flex items-center gap-3">
-            <RadioGroupItem id="provider-deepseek" value="deepseek" />
-            <Label for="provider-deepseek" class="text-base font-semibold cursor-pointer">
-              DeepSeek
-            </Label>
-          </div>
-          <div class="grid w-full items-center gap-2 pl-7">
-            <Label for="deepseek_api_key">{{ t('settings.basic.deepseek.api_key_label') }}</Label>
-            <div class="relative w-full">
-              <Input
-                id="deepseek_api_key"
-                v-model="form.deepseek_api_key"
-                :type="showApiKey ? 'text' : 'password'"
-                autocomplete="off"
-                :placeholder="t('settings.basic.deepseek.api_key_placeholder')"
-                class="pr-10 bg-background"
-              />
-              <button
-                type="button"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground cursor-pointer"
-                @click="showApiKey = !showApiKey"
-              >
-                <EyeIcon v-if="!showApiKey" class="h-4 w-4" />
-                <EyeOffIcon v-else class="h-4 w-4" />
-              </button>
+        <div class="space-y-4">
+          <Label class="text-base font-semibold">{{ t('settings.basic.ai_provider.label') }}</Label>
+          <RadioGroup v-model="form.ai_provider" class="flex flex-col gap-4">
+            <!-- Typo Cloud -->
+            <div class="flex flex-col gap-2 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'typo' }">
+              <div class="flex items-center gap-3">
+                <RadioGroupItem value="typo" id="provider-typo" />
+                <Label for="provider-typo" class="text-lg font-bold cursor-pointer">
+                  {{ t('settings.basic.typo.label') }}
+                </Label>
+              </div>
+              <p class="text-sm text-muted-foreground pl-7">
+                {{ t('settings.basic.typo.description') }}
+              </p>
             </div>
-          </div>
-        </div>
 
-        <!-- Ollama -->
-        <div class="flex flex-col gap-4 rounded-lg border p-4" :class="{ 'border-primary bg-primary/5': form.ai_provider === 'ollama' }">
-          <div class="flex items-center gap-3">
-            <RadioGroupItem id="provider-ollama" value="ollama" />
-            <Label for="provider-ollama" class="text-base font-semibold cursor-pointer">
-              Ollama
-            </Label>
-          </div>
-          <div class="grid w-full items-center gap-2 pl-7">
-            <Label for="ollama_model">{{ t('settings.basic.ollama.model_label') }}</Label>
-            <Select id="ollama_model" v-model="form.ollama_model">
-              <SelectTrigger class="w-full bg-background">
-                <SelectValue :placeholder="t('settings.basic.ollama.model_placeholder')" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem v-for="model in ollamaModels" :key="model.name" :value="model.name">
-                    {{ model.name }} ({{ model.details?.parameter_size ?? 'Unknown' }})
-                  </SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+            <!-- DeepSeek -->
+            <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'deepseek' }">
+              <div class="flex items-center gap-3">
+                <RadioGroupItem value="deepseek" id="provider-deepseek" />
+                <Label for="provider-deepseek" class="text-lg font-bold cursor-pointer">
+                  DeepSeek
+                </Label>
+              </div>
+              <div class="grid w-full items-center gap-4 pl-7">
+                <div class="space-y-2">
+                  <Label for="deepseek_api_key" class="text-sm font-medium">{{ t('settings.basic.deepseek.api_key_label') }}</Label>
+                  <div class="relative w-full">
+                    <Input
+                      id="deepseek_api_key"
+                      v-model="form.deepseek_api_key"
+                      :type="showApiKey ? 'text' : 'password'"
+                      autocomplete="off"
+                      :placeholder="t('settings.basic.deepseek.api_key_placeholder')"
+                      class="pr-10 bg-background h-11"
+                    />
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground cursor-pointer"
+                      @click="showApiKey = !showApiKey"
+                    >
+                      <EyeIcon v-if="!showApiKey" class="h-4 w-4" />
+                      <EyeOffIcon v-else class="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ollama -->
+            <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'ollama' }">
+              <div class="flex items-center gap-3">
+                <RadioGroupItem value="ollama" id="provider-ollama" />
+                <Label for="provider-ollama" class="text-lg font-bold cursor-pointer">
+                  Ollama
+                </Label>
+              </div>
+              <div class="grid w-full items-center gap-4 pl-7">
+                <div class="space-y-2">
+                  <Label for="ollama_model" class="text-sm font-medium">{{ t('settings.basic.ollama.model_label') }}</Label>
+                  <Select id="ollama_model" v-model="form.ollama_model">
+                    <SelectTrigger class="w-full bg-background h-11">
+                      <SelectValue :placeholder="t('settings.basic.ollama.model_placeholder')" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem v-for="model in ollamaModels" :key="model.name" :value="model.name">
+                          {{ model.name }} ({{ model.details?.parameter_size ?? 'Unknown' }})
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </RadioGroup>
         </div>
-      </RadioGroup>
+      </div>
     </div>
 
-    <div class="fixed bottom-6 right-8 flex justify-end">
-      <Button variant="secondary" @click="onSubmit">
-        <SaveIcon class="w-4 h-4" />
+    <!-- Sticky Footer for Save Button -->
+    <div class="shrink-0 flex justify-end py-4 border-t bg-background/80 backdrop-blur-sm -mx-1 px-4">
+      <Button variant="secondary" size="lg" @click="onSubmit">
+        <SaveIcon class="w-4 h-4 mr-2" />
         {{ t('settings.save') }}
       </Button>
     </div>

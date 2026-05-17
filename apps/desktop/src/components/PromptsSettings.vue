@@ -58,68 +58,110 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="w-full flex flex-col gap-5 pb-24 h-full overflow-y-auto">
-    <h1 class="text-2xl font-bold">
-      {{ t('settings.prompts.title') }}
-    </h1>
+  <div class="h-full flex flex-col overflow-hidden px-1">
+    <div class="flex-1 overflow-y-auto pr-4 -mr-4">
+      <div class="flex flex-col gap-6 pb-24">
+        <h1 class="text-2xl font-bold">
+          {{ t('settings.prompts.title') }}
+        </h1>
 
-    <div class="grid w-full items-center gap-2">
-      <Label for="system_prompt">{{ t('settings.prompts.system.label') }}</Label>
-      <Textarea id="system_prompt" v-model="form.system_prompt" autofocus :rows="12" :placeholder="t('settings.prompts.system.placeholder')" />
+        <!-- System Prompt Card -->
+        <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <div class="p-6 space-y-4">
+            <div class="space-y-2">
+              <Label for="system_prompt" class="text-base font-semibold">{{ t('settings.prompts.system.label') }}</Label>
+              <p class="text-sm text-muted-foreground">{{ t('settings.prompts.system.placeholder') }}</p>
+            </div>
+            <Textarea
+              id="system_prompt"
+              v-model="form.system_prompt"
+              autofocus
+              :rows="12"
+              class="min-h-[300px] resize-none bg-muted/20"
+              placeholder="You are a helpful assistant..."
+            />
+          </div>
+        </div>
+
+        <!-- Slash Commands Section -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1">
+              <Label class="text-base font-semibold">{{ t('settings.prompts.slash.label') }}</Label>
+              <p class="text-xs text-muted-foreground">
+                <template v-for="(part, i) in t('settings.prompts.slash.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
+                  <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
+                  <template v-else>
+                    {{ part }}
+                  </template>
+                </template>
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              :disabled="form.slash_commands.length >= 5"
+              @click="addPromptSlash"
+            >
+              <PlusIcon class="w-4 h-4 mr-2" />
+              {{ t('settings.prompts.slash.add') }}
+            </Button>
+          </div>
+
+          <div class="grid gap-4">
+            <div
+              v-for="(item, index) in form.slash_commands"
+              :key="item.id"
+              class="group relative rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md"
+            >
+              <div class="grid gap-6">
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <Label :for="`prompt-key-${index}`" class="text-sm font-medium">{{ t('settings.prompts.slash.key_label') }}</Label>
+                    <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" class="bg-muted/20" />
+                  </div>
+                  <div class="space-y-2">
+                    <Label :for="`prompt-aliases-${index}`" class="text-sm font-medium">{{ t('settings.prompts.slash.aliases_label') }}</Label>
+                    <Input
+                      :id="`prompt-aliases-${index}`"
+                      :model-value="item.aliases?.join(', ')"
+                      placeholder="/tr, /zh"
+                      class="bg-muted/20"
+                      @update:model-value="(val) => item.aliases = String(val).split(',').map(s => s.trim()).filter(Boolean)"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <Label :for="`prompt-value-${index}`" class="text-sm font-medium">{{ t('settings.prompts.slash.instruction_label') }}</Label>
+                  <Textarea
+                    :id="`prompt-value-${index}`"
+                    v-model="item.value"
+                    :rows="4"
+                    class="resize-none bg-muted/20"
+                    :placeholder="t('settings.prompts.slash.instruction_placeholder')"
+                  />
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                @click="removePromptSlash(index)"
+              >
+                <Trash2Icon class="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="grid w-full gap-3">
-      <div class="flex items-center justify-between">
-        <Label>{{ t('settings.prompts.slash.label') }}</Label>
-        <Button type="button" variant="outline" :disabled="form.slash_commands.length >= 5" @click="addPromptSlash">
-          <PlusIcon class="w-4 h-4" />
-          {{ t('settings.prompts.slash.add') }}
-        </Button>
-      </div>
-
-      <div
-        v-for="(item, index) in form.slash_commands"
-        :key="item.id"
-        class="rounded-lg border p-3 grid gap-2"
-      >
-        <div class="grid gap-1">
-          <Label :for="`prompt-key-${index}`">{{ t('settings.prompts.slash.key_label') }}</Label>
-          <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" />
-        </div>
-        <div class="grid gap-1">
-          <Label :for="`prompt-aliases-${index}`">{{ t('settings.prompts.slash.aliases_label') }}</Label>
-          <Input
-            :id="`prompt-aliases-${index}`"
-            :model-value="item.aliases?.join(', ')"
-            placeholder="/tr, /zh"
-            @update:model-value="(val) => item.aliases = String(val).split(',').map(s => s.trim()).filter(Boolean)"
-          />
-        </div>
-        <div class="grid gap-1">
-          <Label :for="`prompt-value-${index}`">{{ t('settings.prompts.slash.instruction_label') }}</Label>
-          <Textarea :id="`prompt-value-${index}`" v-model="item.value" :rows="3" :placeholder="t('settings.prompts.slash.instruction_placeholder')" />
-        </div>
-        <div class="flex justify-end">
-          <Button type="button" variant="ghost" @click="removePromptSlash(index)">
-            <Trash2Icon class="w-4 h-4" />
-            {{ t('settings.prompts.slash.remove') }}
-          </Button>
-        </div>
-      </div>
-
-      <p class="text-xs text-muted-foreground">
-        <template v-for="(part, i) in t('settings.prompts.slash.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
-          <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
-          <template v-else>
-            {{ part }}
-          </template>
-        </template>
-      </p>
-    </div>
-
-    <div class="fixed bottom-6 right-8 flex justify-end">
-      <Button variant="secondary" @click="onSubmit">
-        <SaveIcon class="w-4 h-4" />
+    <!-- Sticky Footer for Save Button -->
+    <div class="shrink-0 flex justify-end py-4 border-t bg-background/80 backdrop-blur-sm -mx-1 px-4">
+      <Button variant="secondary" size="lg" @click="onSubmit">
+        <SaveIcon class="w-4 h-4 mr-2" />
         {{ t('settings.save') }}
       </Button>
     </div>

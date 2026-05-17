@@ -139,7 +139,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <SidebarProvider>
+  <SidebarProvider class="h-screen overflow-hidden">
     <AppSidebar
       v-model:active-tab="activeTab"
       :nav-items="navItems"
