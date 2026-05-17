@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import {
   BadgeCheck,
   Bell,
@@ -46,7 +47,7 @@ import { useI18n } from '@/composables/useI18n'
 export interface NavItem {
   id: string
   label: string
-  icon: any
+  icon: Component
   group: 'workspace' | 'preferences'
 }
 

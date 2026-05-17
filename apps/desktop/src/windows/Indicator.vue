@@ -135,7 +135,12 @@ async function processSetInputPayload(payload: SetInputPayload) {
     }
 
     state.value = 'error'
-    await sleep(STATUS_DISPLAY_DURATION_MS * 2)
+    if (isRateLimited.value) {
+      await sleep(STATUS_DISPLAY_DURATION_MS * 15)
+    }
+    else {
+      await sleep(STATUS_DISPLAY_DURATION_MS * 2)
+    }
     await hideIndicator()
   }
   finally {
@@ -273,7 +278,7 @@ function gotoSettings() {
       <p
         v-else-if="state === 'error'"
         class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
-        @click="isRateLimited ? login() : null"
+        @click="isRateLimited ? (login(), hideIndicator()) : null"
       >
         {{ errorText }}
       </p>
