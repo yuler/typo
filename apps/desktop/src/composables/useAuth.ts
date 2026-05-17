@@ -47,7 +47,8 @@ export const useAuth = createGlobalState(() => {
         method: 'POST',
       })
       deviceCode.value = data
-      startPolling(data.device_code, data.interval)
+      const expiresAt = Date.now() + data.expires_in * 1000
+      startPolling(data.device_code, data.interval, expiresAt)
     }
     catch (err) {
       logger.error('Auth', 'Failed to start login', err)
@@ -55,11 +56,16 @@ export const useAuth = createGlobalState(() => {
     }
   }
 
-  function startPolling(code: string, interval: number) {
+  function startPolling(code: string, interval: number, expiresAt: number) {
     if (pollTimer)
       clearTimeout(pollTimer)
 
-    const poll = async () => {
+    async function poll() {
+      if (Date.now() >= expiresAt) {
+        authStatus.value = 'error'
+        return
+      }
+
       try {
         const data = await apiFetch<{ access_token: string, identity: any }>('/api/v1/device/token', {
           method: 'POST',
@@ -71,11 +77,14 @@ export const useAuth = createGlobalState(() => {
         }
       }
       catch (err: any) {
-        if (err.message === 'authorization_pending') {
-          pollTimer = setTimeout(poll, interval * 1000)
+        if (err.message === 'expired_token') {
+          authStatus.value = 'error'
+        }
+        else if (err.message === 'authorization_pending') {
+          scheduleNextPoll(interval)
         }
         else if (err.message === 'slow_down') {
-          startPolling(code, interval + 5)
+          startPolling(code, interval + 5, expiresAt)
         }
         else {
           authStatus.value = 'error'
@@ -83,7 +92,19 @@ export const useAuth = createGlobalState(() => {
       }
     }
 
-    pollTimer = setTimeout(poll, interval * 1000)
+    function scheduleNextPoll(currentInterval: number) {
+      const nextPollDelay = currentInterval * 1000
+      if (Date.now() + nextPollDelay < expiresAt) {
+        pollTimer = setTimeout(poll, nextPollDelay)
+      }
+      else {
+        pollTimer = setTimeout(() => {
+          authStatus.value = 'error'
+        }, Math.max(0, expiresAt - Date.now()))
+      }
+    }
+
+    scheduleNextPoll(interval)
   }
 
   async function onSuccess(token: string, identity: any) {
