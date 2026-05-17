@@ -40,7 +40,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
-import { showNotification } from '@/utils'
+import { toast } from 'vue-sonner'
 
 export interface NavItem {
   id: string
@@ -59,8 +59,8 @@ const emit = defineEmits(['update:activeTab'])
 const { isLoggedIn, user, login, logout } = useAuth()
 const { t } = useI18n()
 
-async function onUpgrade() {
-  await showNotification('typo', t('main.sidebar.upgrade_toast'))
+function onUpgrade() {
+  toast.info(t('main.sidebar.upgrade_toast'))
 }
 
 const userInitials = computed(() => {

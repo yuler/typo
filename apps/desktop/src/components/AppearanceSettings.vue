@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
-import { showNotification } from '@/utils'
+import { toast } from 'vue-sonner'
 
 const { locale, setLocale, t } = useI18n()
 
@@ -17,7 +17,7 @@ async function onLocaleChange(next: Locale) {
 
 async function onSubmit() {
   await store.save()
-  await showNotification('typo', t('settings.save_success'))
+  toast.success(t('settings.save_success'))
 }
 </script>
 

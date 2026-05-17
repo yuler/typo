@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
-import { showNotification } from '@/utils'
+import { toast } from 'vue-sonner'
 
 const { t } = useI18n()
 
@@ -55,7 +55,7 @@ async function onSubmit() {
     store.set('slash_commands', slashCommands),
   ])
   await store.save()
-  await showNotification('typo', t('settings.save_success'))
+  toast.success(t('settings.save_success'))
 }
 </script>
 

@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
-import { showNotification } from '@/utils'
+import { toast } from 'vue-sonner'
 
 const { t } = useI18n()
 const showApiKey = ref(false)
@@ -50,7 +50,7 @@ async function onSubmit() {
     store.set('ollama_model', form.value.ollama_model),
   ])
   await store.save()
-  await showNotification('typo', t('settings.save_success'))
+  toast.success(t('settings.save_success'))
 }
 </script>
 

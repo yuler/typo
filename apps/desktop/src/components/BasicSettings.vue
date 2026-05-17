@@ -13,7 +13,8 @@ import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { updateTrayMenu } from '@/tray'
-import { formatShortcut, showNotification } from '@/utils'
+import { toast } from 'vue-sonner'
+import { formatShortcut } from '@/utils'
 
 const { t } = useI18n()
 const isMacOS = ref(false)
@@ -242,7 +243,7 @@ async function onSubmit() {
     store.set('global_shortcut', actualShortcut),
   ])
   await store.save()
-  await showNotification('typo', t('settings.save_success'))
+  toast.success(t('settings.save_success'))
 }
 </script>
 

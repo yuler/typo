@@ -9,6 +9,7 @@ import { initializeStore } from '@/stores/settings'
 import Indicator from '@/windows/Indicator.vue'
 import Main from '@/windows/Main.vue'
 import Upgrade from '@/windows/Upgrade.vue'
+import { Toaster } from '@/components/ui/sonner'
 
 const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
@@ -53,6 +54,7 @@ onUnmounted(() => {
     <div v-else class="flex items-center justify-center h-full text-white">
       Unknown window label: {{ currentLabel }}
     </div>
+    <Toaster />
   </main>
 </template>
 
