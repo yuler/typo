@@ -32,7 +32,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
@@ -41,7 +40,6 @@ import * as store from '@/stores/settings'
 import { sleep } from '@/utils'
 import { initializeWindow } from '@/window'
 
-const { isLoggedIn } = useAuth()
 const { t } = useI18n()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
@@ -156,12 +154,6 @@ onUnmounted(() => {
               <BreadcrumbItem class="hidden md:block">
                 <BreadcrumbLink href="#">
                   {{ t('main.breadcrumb.typo') }}
-                  <span
-                    class="text-[10px] ml-1 px-1 py-0.5 rounded uppercase font-bold"
-                    :class="isLoggedIn ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'"
-                  >
-                    {{ isLoggedIn ? t('main.breadcrumb.pro') : t('main.breadcrumb.free') }}
-                  </span>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator class="hidden md:block" />
