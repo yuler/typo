@@ -17,6 +17,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -185,17 +186,26 @@ function onLogin() {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem @click="emit('update:activeTab', 'settings')">
+                <DropdownMenuItem disabled>
                   <BadgeCheck class="mr-2 size-4" />
                   {{ t('main.sidebar.account') }}
+                  <Badge variant="secondary" class="ml-auto text-[10px] py-0 px-1.5 h-4">
+                    {{ t('main.common.coming_soon') }}
+                  </Badge>
                 </DropdownMenuItem>
-                <DropdownMenuItem @click="emit('update:activeTab', 'settings')">
+                <DropdownMenuItem disabled>
                   <CreditCard class="mr-2 size-4" />
                   {{ t('main.sidebar.billing') }}
+                  <Badge variant="secondary" class="ml-auto text-[10px] py-0 px-1.5 h-4">
+                    {{ t('main.common.coming_soon') }}
+                  </Badge>
                 </DropdownMenuItem>
-                <DropdownMenuItem @click="emit('update:activeTab', 'settings')">
+                <DropdownMenuItem disabled>
                   <Bell class="mr-2 size-4" />
                   {{ t('main.sidebar.notifications') }}
+                  <Badge variant="secondary" class="ml-auto text-[10px] py-0 px-1.5 h-4">
+                    {{ t('main.common.coming_soon') }}
+                  </Badge>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
