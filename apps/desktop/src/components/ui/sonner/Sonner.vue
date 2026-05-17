@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { ToasterProps } from 'vue-sonner'
-import { Toaster as Sonner } from 'vue-sonner'
+import { Toaster as Sonner, type ToasterProps } from 'vue-sonner'
 
 const props = defineProps<ToasterProps>()
 </script>
@@ -21,9 +20,44 @@ const props = defineProps<ToasterProps>()
 </template>
 
 <style>
-/* Sonner positioning and basic visibility fixes */
+/* 
+  Sonner basic styles for visibility when the default CSS is missing or restricted.
+  These provide basic positioning and animations.
+*/
 [data-sonner-toaster] {
   position: fixed;
+  width: var(--width);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --light-border: #f0f0f0;
+  --dark-border: #222;
+  --base-gap: 10px;
+  --toast-button-duration: 400ms;
+}
+
+[data-sonner-toaster][data-y-position="bottom"] {
+  bottom: var(--mobile-offset, 20px);
+}
+
+[data-sonner-toaster][data-x-position="right"] {
+  right: var(--mobile-offset, 20px);
+}
+
+[data-sonner-toast] {
+  display: flex;
+  align-items: center;
+  width: 356px;
+  background: white;
+  border: 1px solid var(--light-border);
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   z-index: 9999;
+  position: absolute;
+  transition: transform 400ms, opacity 400ms;
+}
+
+.dark [data-sonner-toast] {
+  background: #000;
+  border-color: var(--dark-border);
 }
 </style>
