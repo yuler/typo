@@ -57,9 +57,12 @@ export async function typoProcess(text: string, abortSignal?: AbortSignal, preRe
   const systemPrompt = preResolved?.systemPrompt || await get('ai_system_prompt')
   const token = await getAuth('access_token')
 
+  const finalText = preResolved?.text || text
+  const content = preResolved?.command ? finalText : `### Input\n${finalText}\n###`
+
   const response = await api<{ result: string }>('/api/v1/completions', {
     method: 'POST',
-    body: JSON.stringify({ text, prompt: systemPrompt }),
+    body: JSON.stringify({ text: content, prompt: systemPrompt }),
     signal: abortSignal,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
