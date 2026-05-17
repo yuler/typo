@@ -59,6 +59,7 @@
   "main.sidebar.advanced": "Advanced",
   "main.sidebar.settings": "Settings",
   "main.sidebar.upgrade": "Upgrade to Pro",
+  "main.sidebar.upgrade_toast": "Free trial in progress",
   "main.sidebar.account": "Account",
   "main.sidebar.billing": "Billing",
   "main.sidebar.notifications": "Notifications",

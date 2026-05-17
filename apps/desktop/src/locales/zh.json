@@ -59,6 +59,7 @@
   "main.sidebar.advanced": "高级",
   "main.sidebar.settings": "设置",
   "main.sidebar.upgrade": "升级到 Pro",
+  "main.sidebar.upgrade_toast": "免费试运行中",
   "main.sidebar.account": "账号",
   "main.sidebar.billing": "账单",
   "main.sidebar.notifications": "通知",

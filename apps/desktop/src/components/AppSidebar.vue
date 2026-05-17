@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
+import { showNotification } from '@/utils'
 
 export interface NavItem {
   id: string
@@ -57,6 +58,10 @@ const emit = defineEmits(['update:activeTab'])
 
 const { isLoggedIn, user, login, logout } = useAuth()
 const { t } = useI18n()
+
+async function onUpgrade() {
+  await showNotification('typo', t('main.sidebar.upgrade_toast'))
+}
 
 const userInitials = computed(() => {
   if (!user.value?.name)
@@ -173,7 +178,7 @@ function onLogin() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
+                <DropdownMenuItem @click="onUpgrade">
                   <Sparkles class="mr-2 size-4" />
                   {{ t('main.sidebar.upgrade') }}
                 </DropdownMenuItem>

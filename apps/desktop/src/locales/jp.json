@@ -59,6 +59,7 @@
   "main.sidebar.advanced": "詳細",
   "main.sidebar.settings": "設定",
   "main.sidebar.upgrade": "Proにアップグレード",
+  "main.sidebar.upgrade_toast": "無料試行期間中",
   "main.sidebar.account": "アカウント",
   "main.sidebar.billing": "お支払い",
   "main.sidebar.notifications": "通知",
