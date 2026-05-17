@@ -33,7 +33,7 @@ export async function getAuth<T extends keyof typeof DEFAULT_AUTH_STORE>(key: T)
 }
 
 export async function setAuth<T extends keyof typeof DEFAULT_AUTH_STORE>(key: T, value: typeof DEFAULT_AUTH_STORE[T] | undefined): Promise<void> {
-  logger.info('authStore', `set ${key}`, value)
+  logger.info('authStore', `set ${key}`)
   await authStore.set(key, value)
 }
 
