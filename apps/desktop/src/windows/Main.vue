@@ -119,7 +119,7 @@ onMounted(async () => {
     if (!isMounted) {
       return
     }
-    isSettingsOpen.value = true
+    activeTab.value = 'appearance'
   }
 })
 
@@ -129,10 +129,6 @@ onUnmounted(() => {
     unlistenOpenSettings()
   }
 })
-
-function openSettings() {
-  isSettingsOpen.value = true
-}
 </script>
 
 <template>
@@ -197,6 +193,21 @@ function openSettings() {
     <Dialog v-model:open="isSettingsOpen">
       <DialogContent class="max-w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] p-0 overflow-hidden">
         <AppSettings @close="isSettingsOpen = false" />
+      </DialogContent>
+    </Dialog>
+
+    <DeviceAuthModal />
+  </SidebarProvider>
+</template>
+    <DialogContent class="max-w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] p-0 overflow-hidden">
+        <AppSettings @close="isSettingsOpen = false" />
+      </DialogContent>
+    </Dialog>
+
+    <DeviceAuthModal />
+  </SidebarProvider>
+</template>
+/>
       </DialogContent>
     </Dialog>
 
