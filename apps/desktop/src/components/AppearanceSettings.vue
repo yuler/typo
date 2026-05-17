@@ -31,7 +31,9 @@ async function onSubmit() {
           <div class="space-y-4">
             <div class="space-y-1">
               <Label class="text-base font-semibold">{{ t('settings.language.title') }}</Label>
-              <p class="text-sm text-muted-foreground">{{ t('settings.appearance.language.description') }}</p>
+              <p class="text-sm text-muted-foreground">
+                {{ t('settings.appearance.language.description') }}
+              </p>
             </div>
             <Select :model-value="locale" @update:model-value="(val: any) => onLocaleChange(val as Locale)">
               <SelectTrigger class="w-full h-11 bg-muted/20">
