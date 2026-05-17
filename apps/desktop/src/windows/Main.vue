@@ -140,14 +140,14 @@ onUnmounted(() => {
 
 <template>
   <div class="h-screen flex flex-col overflow-hidden">
-    <div v-if="isMacOS" class="h-10 w-full shrink-0 bg-sidebar border-b border-sidebar-border select-none" data-tauri-drag-region />
     <SidebarProvider class="flex-1 overflow-hidden">
       <AppSidebar
         v-model:active-tab="activeTab"
         :nav-items="navItems"
+        :is-mac-os="isMacOS"
       />
       <SidebarInset>
-        <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12" data-tauri-drag-region>
           <div class="flex items-center gap-2 px-4">
             <SidebarTrigger class="-ml-1" />
             <Separator orientation="vertical" class="mr-2 h-4" />

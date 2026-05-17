@@ -53,6 +53,7 @@ export interface NavItem {
 defineProps<{
   navItems: NavItem[]
   activeTab: string
+  isMacOS?: boolean
 }>()
 
 const emit = defineEmits(['update:activeTab'])
@@ -82,7 +83,7 @@ function onLogin() {
 
 <template>
   <Sidebar collapsible="icon" class="group-data-[state=expanded]:min-w-64">
-    <SidebarHeader>
+    <SidebarHeader :class="{ 'pt-14': isMacOS }" :data-tauri-drag-region="isMacOS ? true : undefined">
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" class="hover:bg-transparent cursor-default">
