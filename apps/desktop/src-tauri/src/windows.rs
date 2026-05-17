@@ -32,7 +32,7 @@ pub fn create_main_window(app: &AppHandle) {
     #[cfg(target_os = "macos")]
     let win_builder = win_builder
         .title_bar_style(TitleBarStyle::Overlay)
-        .traffic_light_position(LogicalPosition::new(20.0, 20.0))
+        .traffic_light_position(LogicalPosition::new(16.0, 13.0))
         .hidden_title(true);
 
     let win_builder = win_builder
