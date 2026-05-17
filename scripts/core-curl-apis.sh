@@ -3,11 +3,7 @@
 set -e
 
 get_now_ms() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    perl -MTime::HiRes=time -e 'printf "%.0f\n", time * 1000'
-  else
-    date +%s%3N
-  fi
+  perl -MTime::HiRes=time -e 'printf "%.0f\n", time * 1000'
 }
 
 gum style --foreground 212 "🌍 Select environment:"
