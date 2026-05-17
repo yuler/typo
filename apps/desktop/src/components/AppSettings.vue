@@ -137,10 +137,10 @@ async function startCapture() {
   shortcutConflictError.value = ''
   pressedCaptureKeys.clear()
   recordedCaptureKeys.clear()
-  window.addEventListener('keydown', handleShortcutKeyDown)
-  window.addEventListener('keyup', handleShortcutKeyUp)
-  window.addEventListener('blur', handleCaptureWindowBlur)
-  window.addEventListener('pointerdown', handleCapturePointerDown, true)
+  window.addEventListener('keydown', onShortcutKeyDown)
+  window.addEventListener('keyup', onShortcutKeyUp)
+  window.addEventListener('blur', onCaptureWindowBlur)
+  window.addEventListener('pointerdown', onCapturePointerDown, true)
 }
 
 function stopCapture() {
@@ -148,19 +148,19 @@ function stopCapture() {
     return
 
   isCapturingShortcut.value = false
-  window.removeEventListener('keydown', handleShortcutKeyDown)
-  window.removeEventListener('keyup', handleShortcutKeyUp)
-  window.removeEventListener('blur', handleCaptureWindowBlur)
-  window.removeEventListener('pointerdown', handleCapturePointerDown, true)
+  window.removeEventListener('keydown', onShortcutKeyDown)
+  window.removeEventListener('keyup', onShortcutKeyUp)
+  window.removeEventListener('blur', onCaptureWindowBlur)
+  window.removeEventListener('pointerdown', onCapturePointerDown, true)
   pressedCaptureKeys.clear()
   recordedCaptureKeys.clear()
 }
 
-function handleCaptureWindowBlur() {
+function onCaptureWindowBlur() {
   stopCapture()
 }
 
-function handleCapturePointerDown(e: PointerEvent) {
+function onCapturePointerDown(e: PointerEvent) {
   const target = e.target
   if (!(target instanceof Node))
     return
@@ -171,7 +171,7 @@ function handleCapturePointerDown(e: PointerEvent) {
   stopCapture()
 }
 
-function handleShortcutKeyDown(e: KeyboardEvent) {
+function onShortcutKeyDown(e: KeyboardEvent) {
   e.preventDefault()
   e.stopPropagation()
   if (e.repeat)
@@ -187,7 +187,7 @@ function handleShortcutKeyDown(e: KeyboardEvent) {
   recordedCaptureKeys.add(normalizedKey)
 }
 
-function handleShortcutKeyUp(e: KeyboardEvent) {
+function onShortcutKeyUp(e: KeyboardEvent) {
   e.preventDefault()
   e.stopPropagation()
   const normalizedKey = normalizeCaptureKey(e)

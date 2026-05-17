@@ -4,8 +4,8 @@ import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-s
 import { logger } from '@/logger'
 import { DEFAULT_GLOBAL_SHORTCUT, get } from './store'
 
-async function handleShortcut() {
-  logger.info('shortcut', 'handleShortcut')
+async function onShortcut() {
+  logger.info('shortcut', 'onShortcut')
   const selectedText = (await invoke('get_selected_text')) as string
   let payload: { text: string, mode: string } | null = null
 
@@ -67,7 +67,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
     await register(shortcutToRegister, (event) => {
       logger.debug('shortcut', 'event', event)
       if (event.state === 'Released')
-        handleShortcut()
+        onShortcut()
     })
     logger.info('shortcut', 'registered', shortcutToRegister)
     return shortcutToRegister
@@ -79,7 +79,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
       try {
         await register(DEFAULT_GLOBAL_SHORTCUT, (event) => {
           if (event.state === 'Released')
-            handleShortcut()
+            onShortcut()
         })
         return DEFAULT_GLOBAL_SHORTCUT
       }

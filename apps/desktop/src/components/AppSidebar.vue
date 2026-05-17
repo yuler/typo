@@ -70,7 +70,7 @@ const userInitials = computed(() => {
     .slice(0, 2)
 })
 
-function handleLogin() {
+function onLogin() {
   login()
 }
 </script>
@@ -204,7 +204,7 @@ function handleLogin() {
         <SidebarMenuItem v-else>
           <SidebarMenuButton
             :tooltip="t('main.sidebar.login')"
-            @click="handleLogin"
+            @click="onLogin"
           >
             <LogIn />
             <span>{{ t('main.sidebar.login') }}</span>

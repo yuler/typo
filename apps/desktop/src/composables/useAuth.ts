@@ -62,7 +62,7 @@ export const useAuth = createGlobalState(() => {
         })
 
         if (data.access_token) {
-          await handleSuccess(data.access_token, data.identity)
+          await onSuccess(data.access_token, data.identity)
         }
       }
       catch (err: any) {
@@ -81,7 +81,7 @@ export const useAuth = createGlobalState(() => {
     pollTimer = setTimeout(poll, interval * 1000)
   }
 
-  async function handleSuccess(token: string, identity: any) {
+  async function onSuccess(token: string, identity: any) {
     isLoggedIn.value = true
     authStatus.value = 'success'
     user.value = {
