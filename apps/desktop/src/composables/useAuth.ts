@@ -123,8 +123,8 @@ export const useAuth = createGlobalState(() => {
   }
 
   async function logout() {
+    cancel()
     isLoggedIn.value = false
-    authStatus.value = 'idle'
     user.value = {
       name: '',
       email: '',
