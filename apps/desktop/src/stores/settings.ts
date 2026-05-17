@@ -35,7 +35,7 @@ The text to improve will be provided in the user message between ### markers:
 ###
 `.trim()
 
-export type AI_PROVIDER = 'deepseek' | 'ollama'
+export type AI_PROVIDER = 'typo' | 'deepseek' | 'ollama'
 
 export interface SlashCommand {
   id?: string
@@ -56,7 +56,7 @@ export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
 const DEFAULT_STORE = {
   autoselect: false,
   copy_result: false,
-  ai_provider: 'deepseek' as AI_PROVIDER,
+  ai_provider: 'typo' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',
   ollama_model: '',
