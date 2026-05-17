@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Toaster as Sonner, type ToasterProps } from 'vue-sonner'
+import type { ToasterProps } from 'vue-sonner'
+import { Toaster as Sonner } from 'vue-sonner'
 
 const props = defineProps<ToasterProps>()
 </script>
@@ -20,7 +21,7 @@ const props = defineProps<ToasterProps>()
 </template>
 
 <style>
-/* 
+/*
   Sonner basic styles for visibility when the default CSS is missing or restricted.
   These provide basic positioning and animations.
 */
