@@ -15,7 +15,7 @@ const showApiKey = ref(false)
 const ollamaModels = ref<any[]>([])
 
 const form = ref({
-  ai_provider: 'deepseek' as store.AI_PROVIDER,
+  ai_provider: 'typo' as store.AI_PROVIDER,
   deepseek_api_key: '',
   ollama_model: '',
 })
@@ -34,7 +34,9 @@ onMounted(async () => {
   form.value.ai_provider = aiProvider
   form.value.ollama_model = ollamaModel
 
-  await loadOllamaModels()
+  if (aiProvider === 'ollama') {
+    await loadOllamaModels()
+  }
 })
 
 watch(() => form.value.ai_provider, async (value: store.AI_PROVIDER) => {
