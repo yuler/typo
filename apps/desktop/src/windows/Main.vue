@@ -139,63 +139,65 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <SidebarProvider class="h-screen overflow-hidden">
-    <AppSidebar
-      v-model:active-tab="activeTab"
-      :nav-items="navItems"
-      :is-mac-os="isMacOS"
-    />
-    <SidebarInset>
-      <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-        <div class="flex items-center gap-2 px-4">
-          <SidebarTrigger class="-ml-1" />
-          <Separator orientation="vertical" class="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem class="hidden md:block">
-                <BreadcrumbLink href="#">
-                  {{ t('main.breadcrumb.typo') }}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator class="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{{ activeNavItem?.label }}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </header>
-
-      <!-- Main Content -->
-      <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
-        <!-- Content based on activeTab -->
-        <AppHome
-          v-if="activeTab === 'main'"
-          :global-shortcut="globalShortcut"
-        />
-
-        <BasicSettings v-else-if="activeTab === 'settings'" />
-        <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
-        <AppearanceSettings v-else-if="activeTab === 'appearance'" />
-        <PromptsSettings v-else-if="activeTab === 'prompts'" />
-
-        <!-- Placeholder for other tabs (History) -->
-        <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
-          <div class="text-center space-y-4">
-            <div class="p-4 bg-muted/20 rounded-full inline-block">
-              <component :is="activeNavItem?.icon" class="w-12 h-12 text-muted-foreground/30" />
-            </div>
-            <h2 class="text-xl font-semibold text-foreground/40">
-              {{ activeNavItem?.label }}
-            </h2>
-            <p class="text-sm text-muted-foreground/40">
-              {{ t('main.common.coming_soon') }}
-            </p>
+  <div class="h-screen flex flex-col overflow-hidden">
+    <div v-if="isMacOS" class="h-10 w-full shrink-0 bg-sidebar border-b border-sidebar-border select-none" data-tauri-drag-region />
+    <SidebarProvider class="flex-1 overflow-hidden">
+      <AppSidebar
+        v-model:active-tab="activeTab"
+        :nav-items="navItems"
+      />
+      <SidebarInset>
+        <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div class="flex items-center gap-2 px-4">
+            <SidebarTrigger class="-ml-1" />
+            <Separator orientation="vertical" class="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem class="hidden md:block">
+                  <BreadcrumbLink href="#">
+                    {{ t('main.breadcrumb.typo') }}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator class="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{{ activeNavItem?.label }}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
-        </div>
-      </main>
-    </SidebarInset>
+        </header>
 
-    <DeviceAuthModal />
-  </SidebarProvider>
+        <!-- Main Content -->
+        <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
+          <!-- Content based on activeTab -->
+          <AppHome
+            v-if="activeTab === 'main'"
+            :global-shortcut="globalShortcut"
+          />
+
+          <BasicSettings v-else-if="activeTab === 'settings'" />
+          <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
+          <AppearanceSettings v-else-if="activeTab === 'appearance'" />
+          <PromptsSettings v-else-if="activeTab === 'prompts'" />
+
+          <!-- Placeholder for other tabs (History) -->
+          <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
+            <div class="text-center space-y-4">
+              <div class="p-4 bg-muted/20 rounded-full inline-block">
+                <component :is="activeNavItem?.icon" class="w-12 h-12 text-muted-foreground/30" />
+              </div>
+              <h2 class="text-xl font-semibold text-foreground/40">
+                {{ activeNavItem?.label }}
+              </h2>
+              <p class="text-sm text-muted-foreground/40">
+                {{ t('main.common.coming_soon') }}
+              </p>
+            </div>
+          </div>
+        </main>
+      </SidebarInset>
+
+      <DeviceAuthModal />
+    </SidebarProvider>
+  </div>
 </template>
