@@ -175,7 +175,8 @@ function onShortcutKeyUp(e: KeyboardEvent) {
 
 onMounted(async () => {
   const autostartEnabled = await invoke<boolean>('is_autostart_enabled')
-  if (!isMounted) return
+  if (!isMounted)
+    return
   form.value.autostart = autostartEnabled
 
   const [autoselect, copyResult, globalShortcut] = await Promise.all([
@@ -183,13 +184,15 @@ onMounted(async () => {
     store.get('copy_result'),
     store.get('global_shortcut'),
   ])
-  if (!isMounted) return
+  if (!isMounted)
+    return
   form.value.autoselect = autoselect
   form.value.copy_result = copyResult
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
 
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
-  if (!isMounted) return
+  if (!isMounted)
+    return
   isMacOS.value = systemInfo.os === 'macos'
 
   const unlisten = await listen<boolean>('autostart-changed', (event) => {

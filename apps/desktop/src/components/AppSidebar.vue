@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { LucideIcon } from 'lucide-vue-next'
 import {
   BadgeCheck,
   Bell,
@@ -7,7 +6,6 @@ import {
   CreditCard,
   LogIn,
   LogOut,
-  Settings2,
   Sparkles,
 } from 'lucide-vue-next'
 import { computed } from 'vue'
@@ -43,10 +41,11 @@ import {
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 
-interface NavItem {
+export interface NavItem {
   id: string
   label: string
-  icon: LucideIcon
+  icon: any
+  group: 'workspace' | 'preferences'
 }
 
 defineProps<{
@@ -54,7 +53,7 @@ defineProps<{
   activeTab: string
 }>()
 
-const emit = defineEmits(['update:activeTab', 'openSettings'])
+const emit = defineEmits(['update:activeTab'])
 
 const { isLoggedIn, user, login, logout } = useAuth()
 const { t } = useI18n()
@@ -94,10 +93,10 @@ function onLogin() {
 
     <SidebarContent>
       <SidebarGroup>
-        <SidebarGroupLabel>{{ t('main.sidebar.general') }}</SidebarGroupLabel>
+        <SidebarGroupLabel>{{ t('main.sidebar.workspace') }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem v-for="item in navItems" :key="item.id">
+            <SidebarMenuItem v-for="item in navItems.filter(i => i.group === 'workspace')" :key="item.id">
               <SidebarMenuButton
                 :tooltip="item.label"
                 :is-active="activeTab === item.id"
@@ -112,16 +111,17 @@ function onLogin() {
       </SidebarGroup>
 
       <SidebarGroup>
-        <SidebarGroupLabel>{{ t('main.sidebar.advanced') }}</SidebarGroupLabel>
+        <SidebarGroupLabel>{{ t('main.sidebar.preferences') }}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem v-for="item in navItems.filter(i => i.group === 'preferences')" :key="item.id">
               <SidebarMenuButton
-                :tooltip="t('main.sidebar.settings')"
-                @click="emit('openSettings')"
+                :tooltip="item.label"
+                :is-active="activeTab === item.id"
+                @click="emit('update:activeTab', item.id)"
               >
-                <Settings2 />
-                <span>{{ t('main.sidebar.settings') }}</span>
+                <component :is="item.icon" />
+                <span>{{ item.label }}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -209,13 +209,6 @@ function onLogin() {
             <LogIn />
             <span>{{ t('main.sidebar.login') }}</span>
           </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarFooter>
-    <SidebarRail />
-  </Sidebar>
-</template>
-ebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarFooter>

@@ -2,7 +2,6 @@
 import type { Component } from 'vue'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { onMounted, onUnmounted } from 'vue'
-import AppSettings from '@/components/AppSettings.vue'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
@@ -17,7 +16,6 @@ const currentLabel = appWindow.label
 const windows: Record<string, Component> = {
   main: Main,
   indicator: Indicator,
-  settings: AppSettings,
   upgrade: Upgrade,
 }
 

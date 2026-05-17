@@ -4,12 +4,17 @@ import { listen } from '@tauri-apps/api/event'
 import {
   HistoryIcon,
   HomeIcon,
+  MessageSquareIcon,
+  PaletteIcon,
+  Settings2Icon,
 } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
+import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
-import AppSettings from '@/components/AppSettings.vue'
-import AppSidebar from '@/components/AppSidebar.vue'
+import AppSidebar, { type NavItem } from '@/components/AppSidebar.vue'
+import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
+import PromptsSettings from '@/components/PromptsSettings.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,10 +23,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
@@ -41,12 +42,14 @@ const { isLoggedIn } = useAuth()
 const { t } = useI18n()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
-const activeTab = ref('history')
-const isSettingsOpen = ref(false)
+const activeTab = ref('main')
 
-const navItems = [
-  { id: 'main', label: t('main.nav.main'), icon: HomeIcon },
-  { id: 'history', label: t('main.nav.history'), icon: HistoryIcon },
+const navItems: NavItem[] = [
+  { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
+  { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
+  { id: 'basic', label: t('main.nav.basic'), icon: Settings2Icon, group: 'preferences' },
+  { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
+  { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
 ]
 
 let unlistenOpenSettings: (() => void) | undefined
@@ -56,7 +59,7 @@ onMounted(async () => {
   logger.info('Main', 'onMounted')
 
   const unlisten = await listen('open-settings', () => {
-    isSettingsOpen.value = true
+    activeTab.value = 'basic'
   })
 
   if (!isMounted) {
@@ -136,7 +139,6 @@ onUnmounted(() => {
     <AppSidebar
       v-model:active-tab="activeTab"
       :nav-items="navItems"
-      @open-settings="openSettings"
     />
     <SidebarInset>
       <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
@@ -173,7 +175,11 @@ onUnmounted(() => {
           :global-shortcut="globalShortcut"
         />
 
-        <!-- Placeholder for other tabs -->
+        <BasicSettings v-else-if="activeTab === 'basic'" />
+        <AppearanceSettings v-else-if="activeTab === 'appearance'" />
+        <PromptsSettings v-else-if="activeTab === 'prompts'" />
+
+        <!-- Placeholder for other tabs (History) -->
         <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
           <div class="text-center space-y-4">
             <div class="p-4 bg-muted/20 rounded-full inline-block">
@@ -189,27 +195,6 @@ onUnmounted(() => {
         </div>
       </main>
     </SidebarInset>
-
-    <Dialog v-model:open="isSettingsOpen">
-      <DialogContent class="max-w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] p-0 overflow-hidden">
-        <AppSettings @close="isSettingsOpen = false" />
-      </DialogContent>
-    </Dialog>
-
-    <DeviceAuthModal />
-  </SidebarProvider>
-</template>
-    <DialogContent class="max-w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] p-0 overflow-hidden">
-        <AppSettings @close="isSettingsOpen = false" />
-      </DialogContent>
-    </Dialog>
-
-    <DeviceAuthModal />
-  </SidebarProvider>
-</template>
-/>
-      </DialogContent>
-    </Dialog>
 
     <DeviceAuthModal />
   </SidebarProvider>
