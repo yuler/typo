@@ -1,6 +1,6 @@
 class Api::V1::CompletionsController < Api::V1::BaseController
   allow_unauthenticated_access
-  disallow_account_scope
+  skip_account_scope
 
   before_action :validate_params!
   before_action :check_rate_limit
