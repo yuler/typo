@@ -1,15 +1,9 @@
 import { LazyStore } from '@tauri-apps/plugin-store'
 import { logger } from '@/logger'
 
-export interface UserInfo {
-  name: string
-  email: string
-  avatar: string
-}
-
 const DEFAULT_AUTH_STORE = {
   access_token: '',
-  user_info: null as UserInfo | null,
+  email: '',
 }
 
 const authStore = new LazyStore('auth.json', {
@@ -18,6 +12,15 @@ const authStore = new LazyStore('auth.json', {
 })
 
 export async function initializeAuthStore() {
+  if (await authStore.has('user_info')) {
+    const userInfo: any = await authStore.get('user_info')
+    if (userInfo && typeof userInfo === 'object' && userInfo.email) {
+      await authStore.set('email', userInfo.email)
+    }
+    await authStore.set('user_info', undefined)
+    await authStore.save()
+  }
+
   for (const [key, value] of Object.entries(DEFAULT_AUTH_STORE)) {
     if (!(await authStore.has(key))) {
       await authStore.set(key, value)

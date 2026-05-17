@@ -28,10 +28,14 @@ export const useAuth = createGlobalState(() => {
 
   async function initialize() {
     const token = await authStore.getAuth('access_token')
-    const userInfo = await authStore.getAuth('user_info')
-    if (token && userInfo) {
+    const userEmail = await authStore.getAuth('email')
+    if (token && userEmail) {
       isLoggedIn.value = true
-      user.value = userInfo
+      user.value = {
+        name: userEmail.split('@')[0],
+        email: userEmail,
+        avatar: `https://github.com/${userEmail.split('@')[0]}.png`,
+      }
     }
   }
 
@@ -90,7 +94,7 @@ export const useAuth = createGlobalState(() => {
       avatar: identity.avatar_url || `https://github.com/${identity.email.split('@')[0]}.png`,
     }
     await authStore.setAuth('access_token', token)
-    await authStore.setAuth('user_info', user.value)
+    await authStore.setAuth('email', identity.email)
     await authStore.saveAuth()
     if (pollTimer)
       clearTimeout(pollTimer)
@@ -99,8 +103,13 @@ export const useAuth = createGlobalState(() => {
   async function logout() {
     isLoggedIn.value = false
     authStatus.value = 'idle'
+    user.value = {
+      name: '',
+      email: '',
+      avatar: '',
+    }
     await authStore.setAuth('access_token', '')
-    await authStore.setAuth('user_info', null)
+    await authStore.setAuth('email', '')
     await authStore.saveAuth()
   }
 

@@ -91,8 +91,8 @@ async function migrateLegacyStore() {
       }
       if (await legacyStore.has('user_info')) {
         const userInfo = await legacyStore.get<any>('user_info')
-        if (userInfo !== undefined) {
-          await setAuth('user_info', userInfo)
+        if (userInfo?.email) {
+          await setAuth('email', userInfo.email)
         }
       }
       await saveAuth()
