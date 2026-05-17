@@ -41,7 +41,8 @@
       "allow": [
         { "url": "https://*.typo.yuler.cc" },
         { "url": "https://*.typo.yuler.cc/*" },
-        { "url": "https://*.typo.yuler.cc/**" }
+        { "url": "https://*.typo.yuler.cc/**" },
+        { "url": "http://localhost:3000" }
       ]
     }
   ]

@@ -1,6 +1,6 @@
 import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
-import { apiFetch } from '@/api'
+import { api } from '@/api'
 import { logger } from '@/logger'
 import * as authStore from '@/stores/auth'
 import { gravatar } from '@/utils'
@@ -43,7 +43,7 @@ export const useAuth = createGlobalState(() => {
   async function login() {
     try {
       authStatus.value = 'authorizing'
-      const data = await apiFetch<DeviceCodeResponse>('/api/v1/device/authorization', {
+      const data = await api<DeviceCodeResponse>('/api/v1/device/authorization', {
         method: 'POST',
       })
       deviceCode.value = data
@@ -67,7 +67,7 @@ export const useAuth = createGlobalState(() => {
       }
 
       try {
-        const data = await apiFetch<{ access_token: string, identity: any }>('/api/v1/device/token', {
+        const data = await api<{ access_token: string, identity: any }>('/api/v1/device/token', {
           method: 'POST',
           body: JSON.stringify({ device_code: code }),
         })
@@ -124,6 +124,7 @@ export const useAuth = createGlobalState(() => {
 
   async function logout() {
     cancel()
+    // TODO: Invoke API to remove current session on server once endpoint is available
     isLoggedIn.value = false
     user.value = {
       name: '',
