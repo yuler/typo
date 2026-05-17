@@ -48,6 +48,7 @@
   "main.nav.dictionary": "辞書",
   "main.nav.settings": "設定",
   "main.nav.appearance": "外観",
+  "main.nav.ai_provider": "AI プロバイダー",
   "main.nav.prompts": "プロンプト",
   "main.sidebar.workspace": "ワークスペース",
   "main.sidebar.preferences": "環境設定",

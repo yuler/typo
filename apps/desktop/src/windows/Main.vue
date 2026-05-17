@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { NavItem } from '@/components/AppSidebar.vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import {
@@ -8,11 +7,13 @@ import {
   MessageSquareIcon,
   PaletteIcon,
   Settings2Icon,
+  SparklesIcon,
 } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
+import AIProviderSettings from '@/components/AIProviderSettings.vue'
 import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
-import AppSidebar from '@/components/AppSidebar.vue'
+import AppSidebar, { type NavItem } from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
 import PromptsSettings from '@/components/PromptsSettings.vue'
@@ -49,6 +50,7 @@ const navItems: NavItem[] = [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
   { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
+  { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
   { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
   { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
 ]
@@ -123,7 +125,7 @@ onMounted(async () => {
     if (!isMounted) {
       return
     }
-    activeTab.value = 'appearance'
+    activeTab.value = 'ai_provider'
   }
 })
 
@@ -177,6 +179,7 @@ onUnmounted(() => {
         />
 
         <BasicSettings v-else-if="activeTab === 'settings'" />
+        <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
         <AppearanceSettings v-else-if="activeTab === 'appearance'" />
         <PromptsSettings v-else-if="activeTab === 'prompts'" />
 
