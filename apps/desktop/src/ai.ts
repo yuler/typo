@@ -2,7 +2,9 @@ import type { LanguageModelV1 } from 'ai'
 import { createDeepSeek } from '@ai-sdk/deepseek'
 import { generateText } from 'ai'
 import { createOllama } from 'ollama-ai-provider'
+import { api } from '@/api'
 import { logger } from '@/logger'
+import { getAuth } from '@/stores/auth'
 import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
 import { get } from './stores/settings'
 
@@ -48,6 +50,22 @@ async function resolveAndProcess(
   )
 
   return aiProcess(model, resolvedText, finalSystemPrompt, command, abortSignal)
+}
+
+export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
+  logger.debug('ai', 'typoProcess', { text, preResolved })
+  const systemPrompt = preResolved?.systemPrompt || await get('ai_system_prompt')
+  const token = await getAuth('access_token')
+
+  const response = await api<{ result: string }>('/api/v1/completions', {
+    method: 'POST',
+    body: JSON.stringify({ text, prompt: systemPrompt }),
+    signal: abortSignal,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  logger.info('ai', 'typoProcess result', response.result)
+  return response.result
 }
 
 export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
