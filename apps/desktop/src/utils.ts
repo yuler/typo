@@ -31,3 +31,12 @@ export function isUndefined(val: any): val is undefined {
 export function formatShortcut(shortcut: string, mac: boolean): string {
   return shortcut.replace('CommandOrControl', mac ? 'Command' : 'Ctrl')
 }
+
+export async function gravatar(email: string): Promise<string> {
+  const cleanEmail = email.trim().toLowerCase()
+  const buffer = new TextEncoder().encode(cleanEmail)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  return `https://www.gravatar.com/avatar/${hashHex}?d=mp`
+}

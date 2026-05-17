@@ -1,8 +1,9 @@
 import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/api'
 import { logger } from '@/logger'
 import * as authStore from '@/stores/auth'
+import { gravatar } from '@/utils'
 
 export type AuthStatus = 'idle' | 'authorizing' | 'success' | 'error'
 
@@ -34,7 +35,7 @@ export const useAuth = createGlobalState(() => {
       user.value = {
         name: userEmail.split('@')[0],
         email: userEmail,
-        avatar: `https://github.com/${userEmail.split('@')[0]}.png`,
+        avatar: await gravatar(userEmail),
       }
     }
   }
@@ -91,7 +92,7 @@ export const useAuth = createGlobalState(() => {
     user.value = {
       name: identity.name || identity.email.split('@')[0],
       email: identity.email,
-      avatar: identity.avatar_url || `https://github.com/${identity.email.split('@')[0]}.png`,
+      avatar: identity.avatar_url || await gravatar(identity.email),
     }
     await authStore.setAuth('access_token', token)
     await authStore.setAuth('email', identity.email)
