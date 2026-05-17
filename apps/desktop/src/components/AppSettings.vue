@@ -489,6 +489,9 @@ async function onSubmit() {
                   <SelectValue :placeholder="t('settings.basic.ai_provider.placeholder')" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="typo">
+                    {{ t('settings.basic.typo.label') }}
+                  </SelectItem>
                   <SelectItem value="deepseek">
                     DeepSeek
                   </SelectItem>
@@ -497,6 +500,10 @@ async function onSubmit() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div v-if="form.ai_provider === 'typo'" class="text-xs text-muted-foreground p-3 border border-dashed rounded-md bg-muted/20">
+              {{ t('settings.basic.typo.description') }}
             </div>
 
             <div v-if="form.ai_provider === 'ollama'" class="grid w-full items-center gap-2">

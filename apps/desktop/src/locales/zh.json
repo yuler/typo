@@ -21,6 +21,8 @@
   "settings.basic.shortcut.conflict": "检测到冲突！已回退至默认值：{shortcut}",
   "settings.basic.ai_provider.label": "AI 服务商",
   "settings.basic.ai_provider.placeholder": "选择 AI 服务商",
+  "settings.basic.typo.label": "Typo 云服务 (默认)",
+  "settings.basic.typo.description": "使用我们优化的云服务。登录用户享受无限制访问。",
   "settings.basic.ollama.model_label": "Ollama 模型",
   "settings.basic.ollama.model_placeholder": "选择 Ollama 模型",
   "settings.basic.deepseek.api_key_label": "DeepSeek API 密钥",

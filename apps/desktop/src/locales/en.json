@@ -21,6 +21,8 @@
   "settings.basic.shortcut.conflict": "Conflict detected! Fallback to default: {shortcut}",
   "settings.basic.ai_provider.label": "AI Provider",
   "settings.basic.ai_provider.placeholder": "Select an AI Provider",
+  "settings.basic.typo.label": "Typo Cloud (Default)",
+  "settings.basic.typo.description": "Use our optimized cloud service. Unlimited for signed-in users.",
   "settings.basic.ollama.model_label": "Ollama Model",
   "settings.basic.ollama.model_placeholder": "Select a Ollama Model",
   "settings.basic.deepseek.api_key_label": "DeepSeek API Key",
