@@ -25,6 +25,7 @@ const { login } = useAuth()
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 
 const state = ref<CapsuleState>('idle')
+const isRateLimited = ref(false)
 const inputText = ref('')
 const commandName = ref('')
 const resultText = ref('')
@@ -63,6 +64,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   try {
     state.value = 'processing'
+    isRateLimited.value = false
     processing.value = true
 
     const [systemPrompt, shortcuts, copy] = await Promise.all([
@@ -122,11 +124,14 @@ async function processSetInputPayload(payload: SetInputPayload) {
       return
     }
 
-    if (err.message?.includes('Rate limit exceeded')) {
+    const msg = typeof err === 'string' ? err : err?.message
+    if (msg?.includes('429') || msg?.includes('Rate limit exceeded')) {
       errorText.value = t('main.error.rate_limit')
+      isRateLimited.value = true
     }
     else {
-      errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
+      errorText.value = msg || t('main.error.generic')
+      isRateLimited.value = false
     }
 
     state.value = 'error'
@@ -211,6 +216,7 @@ async function hideIndicator() {
     return
 
   state.value = 'idle'
+  isRateLimited.value = false
   inputText.value = ''
   resultText.value = ''
   errorText.value = ''
@@ -267,7 +273,7 @@ function gotoSettings() {
       <p
         v-else-if="state === 'error'"
         class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
-        @click="errorText === t('main.error.rate_limit') ? login() : null"
+        @click="isRateLimited ? login() : null"
       >
         {{ errorText }}
       </p>

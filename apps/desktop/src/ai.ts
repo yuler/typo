@@ -54,7 +54,7 @@ async function resolveAndProcess(
 
 export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
   logger.debug('ai', 'typoProcess', { text, preResolved })
-  const systemPrompt = preResolved?.systemPrompt || await get('ai_system_prompt')
+  const systemPrompt = preResolved?.systemPrompt ?? await get('ai_system_prompt')
   const token = await getAuth('access_token')
 
   const finalText = preResolved?.text || text
