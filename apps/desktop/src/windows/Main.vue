@@ -48,8 +48,8 @@ const activeTab = ref('main')
 const navItems: NavItem[] = [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
   { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
-  { id: 'basic', label: t('main.nav.basic'), icon: Settings2Icon, group: 'preferences' },
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
+  { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
   { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
 ]
 
@@ -60,7 +60,7 @@ onMounted(async () => {
   logger.info('Main', 'onMounted')
 
   const unlisten = await listen('open-settings', () => {
-    activeTab.value = 'basic'
+    activeTab.value = 'settings'
   })
 
   if (!isMounted) {
@@ -176,7 +176,7 @@ onUnmounted(() => {
           :global-shortcut="globalShortcut"
         />
 
-        <BasicSettings v-else-if="activeTab === 'basic'" />
+        <BasicSettings v-else-if="activeTab === 'settings'" />
         <AppearanceSettings v-else-if="activeTab === 'appearance'" />
         <PromptsSettings v-else-if="activeTab === 'prompts'" />
 
