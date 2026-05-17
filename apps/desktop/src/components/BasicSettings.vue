@@ -13,7 +13,7 @@ import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { updateTrayMenu } from '@/tray'
-import { formatShortcut } from '@/utils'
+import { formatShortcut, showNotification } from '@/utils'
 
 const { t } = useI18n()
 const isMacOS = ref(false)
@@ -242,6 +242,7 @@ async function onSubmit() {
     store.set('global_shortcut', actualShortcut),
   ])
   await store.save()
+  await showNotification('typo', t('settings.save_success'))
 }
 </script>
 
@@ -334,9 +335,7 @@ async function onSubmit() {
             <div class="flex items-center justify-between">
               <div class="space-y-0.5">
                 <Label class="text-base font-semibold">{{ t('settings.basic.logs.label') }}</Label>
-                <p class="text-sm text-muted-foreground">
-                  {{ t('settings.basic.logs.description') }}
-                </p>
+                <p class="text-sm text-muted-foreground">{{ t('settings.basic.logs.description') }}</p>
               </div>
               <Button type="button" variant="outline" @click="openLogFolder">
                 {{ t('settings.basic.logs.open_button') }}

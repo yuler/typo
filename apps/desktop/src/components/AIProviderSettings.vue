@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
+import { showNotification } from '@/utils'
 
 const { t } = useI18n()
 const showApiKey = ref(false)
@@ -49,6 +50,7 @@ async function onSubmit() {
     store.set('ollama_model', form.value.ollama_model),
   ])
   await store.save()
+  await showNotification('typo', t('settings.save_success'))
 }
 </script>
 
@@ -66,7 +68,7 @@ async function onSubmit() {
             <!-- Typo Cloud -->
             <div class="flex flex-col gap-2 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'typo' }">
               <div class="flex items-center gap-3">
-                <RadioGroupItem id="provider-typo" value="typo" />
+                <RadioGroupItem value="typo" id="provider-typo" />
                 <Label for="provider-typo" class="text-lg font-bold cursor-pointer">
                   {{ t('settings.basic.typo.label') }}
                 </Label>
@@ -79,7 +81,7 @@ async function onSubmit() {
             <!-- DeepSeek -->
             <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'deepseek' }">
               <div class="flex items-center gap-3">
-                <RadioGroupItem id="provider-deepseek" value="deepseek" />
+                <RadioGroupItem value="deepseek" id="provider-deepseek" />
                 <Label for="provider-deepseek" class="text-lg font-bold cursor-pointer">
                   DeepSeek
                 </Label>
@@ -112,7 +114,7 @@ async function onSubmit() {
             <!-- Ollama -->
             <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'ollama' }">
               <div class="flex items-center gap-3">
-                <RadioGroupItem id="provider-ollama" value="ollama" />
+                <RadioGroupItem value="ollama" id="provider-ollama" />
                 <Label for="provider-ollama" class="text-lg font-bold cursor-pointer">
                   Ollama
                 </Label>

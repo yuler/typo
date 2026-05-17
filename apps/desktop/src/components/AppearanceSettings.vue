@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
+import { showNotification } from '@/utils'
 
 const { locale, setLocale, t } = useI18n()
 
@@ -16,6 +17,7 @@ async function onLocaleChange(next: Locale) {
 
 async function onSubmit() {
   await store.save()
+  await showNotification('typo', t('settings.save_success'))
 }
 </script>
 
@@ -31,9 +33,7 @@ async function onSubmit() {
           <div class="space-y-4">
             <div class="space-y-1">
               <Label class="text-base font-semibold">{{ t('settings.language.title') }}</Label>
-              <p class="text-sm text-muted-foreground">
-                {{ t('settings.appearance.language.description') }}
-              </p>
+              <p class="text-sm text-muted-foreground">{{ t('settings.appearance.language.description') }}</p>
             </div>
             <Select :model-value="locale" @update:model-value="(val: any) => onLocaleChange(val as Locale)">
               <SelectTrigger class="w-full h-11 bg-muted/20">

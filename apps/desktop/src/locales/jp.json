@@ -43,6 +43,7 @@
   "settings.prompts.slash.remove": "削除",
   "settings.prompts.slash.hint": "例：入力の末尾が <code>/tr:zh</code> であるか、<code>/prompt Translate to Japanese in polite style</code> のような行全体。",
   "settings.save": "保存",
+  "settings.save_success": "設定を保存しました",
   "main.status.copied": "コピー済み",
   "main.status.ready": "準備完了",
   "main.nav.main": "ホーム",

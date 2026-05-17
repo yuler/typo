@@ -43,6 +43,7 @@
   "settings.prompts.slash.remove": "Remove",
   "settings.prompts.slash.hint": "Example: input ends with <code>/tr:zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.",
   "settings.save": "Save",
+  "settings.save_success": "Settings saved successfully",
   "main.status.copied": "Copied",
   "main.status.ready": "Ready",
   "main.nav.main": "Main",

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
+import { showNotification } from '@/utils'
 
 const { t } = useI18n()
 
@@ -54,6 +55,7 @@ async function onSubmit() {
     store.set('slash_commands', slashCommands),
   ])
   await store.save()
+  await showNotification('typo', t('settings.save_success'))
 }
 </script>
 
@@ -70,9 +72,7 @@ async function onSubmit() {
           <div class="p-6 space-y-4">
             <div class="space-y-2">
               <Label for="system_prompt" class="text-base font-semibold">{{ t('settings.prompts.system.label') }}</Label>
-              <p class="text-sm text-muted-foreground">
-                {{ t('settings.prompts.system.placeholder') }}
-              </p>
+              <p class="text-sm text-muted-foreground">{{ t('settings.prompts.system.placeholder') }}</p>
             </div>
             <Textarea
               id="system_prompt"
