@@ -68,7 +68,7 @@ async function onSubmit() {
             <!-- Typo Cloud -->
             <div class="flex flex-col gap-2 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'typo' }">
               <div class="flex items-center gap-3">
-                <RadioGroupItem value="typo" id="provider-typo" />
+                <RadioGroupItem id="provider-typo" value="typo" />
                 <Label for="provider-typo" class="text-lg font-bold cursor-pointer">
                   {{ t('settings.basic.typo.label') }}
                 </Label>
@@ -81,7 +81,7 @@ async function onSubmit() {
             <!-- DeepSeek -->
             <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'deepseek' }">
               <div class="flex items-center gap-3">
-                <RadioGroupItem value="deepseek" id="provider-deepseek" />
+                <RadioGroupItem id="provider-deepseek" value="deepseek" />
                 <Label for="provider-deepseek" class="text-lg font-bold cursor-pointer">
                   DeepSeek
                 </Label>
@@ -114,7 +114,7 @@ async function onSubmit() {
             <!-- Ollama -->
             <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm transition-all" :class="{ 'border-primary ring-2 ring-primary/20 bg-primary/5': form.ai_provider === 'ollama' }">
               <div class="flex items-center gap-3">
-                <RadioGroupItem value="ollama" id="provider-ollama" />
+                <RadioGroupItem id="provider-ollama" value="ollama" />
                 <Label for="provider-ollama" class="text-lg font-bold cursor-pointer">
                   Ollama
                 </Label>
