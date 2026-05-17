@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { NavItem } from '@/components/AppSidebar.vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import {
@@ -13,7 +14,7 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import AIProviderSettings from '@/components/AIProviderSettings.vue'
 import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
-import AppSidebar, { type NavItem } from '@/components/AppSidebar.vue'
+import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
 import PromptsSettings from '@/components/PromptsSettings.vue'
