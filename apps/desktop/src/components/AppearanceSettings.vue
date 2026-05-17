@@ -2,12 +2,12 @@
 import type { Locale } from '@typo/languages'
 import { localeNames, locales } from '@typo/languages'
 import { SaveIcon } from 'lucide-vue-next'
+import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
-import { toast } from 'vue-sonner'
 
 const { locale, setLocale, t } = useI18n()
 

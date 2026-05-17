@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
 import { nextTick, onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useI18n } from '@/composables/useI18n'
 import * as store from '@/stores/settings'
-import { toast } from 'vue-sonner'
 
 const { t } = useI18n()
 

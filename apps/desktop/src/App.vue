@@ -2,6 +2,7 @@
 import type { Component } from 'vue'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { onMounted, onUnmounted } from 'vue'
+import { Toaster } from '@/components/ui/sonner'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
@@ -9,7 +10,6 @@ import { initializeStore } from '@/stores/settings'
 import Indicator from '@/windows/Indicator.vue'
 import Main from '@/windows/Main.vue'
 import Upgrade from '@/windows/Upgrade.vue'
-import { Toaster } from '@/components/ui/sonner'
 
 const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label

@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { RotateCcwIcon, SaveIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -13,7 +14,6 @@ import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { updateTrayMenu } from '@/tray'
-import { toast } from 'vue-sonner'
 import { formatShortcut } from '@/utils'
 
 const { t } = useI18n()

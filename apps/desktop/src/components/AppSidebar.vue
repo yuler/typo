@@ -9,6 +9,7 @@ import {
   Sparkles,
 } from 'lucide-vue-next'
 import { computed } from 'vue'
+import { toast } from 'vue-sonner'
 import AppLogo from '@/components/AppLogo.vue'
 import AppVersion from '@/components/AppVersion.vue'
 import {
@@ -40,7 +41,6 @@ import {
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
-import { toast } from 'vue-sonner'
 
 export interface NavItem {
   id: string
