@@ -334,7 +334,9 @@ async function onSubmit() {
             <div class="flex items-center justify-between">
               <div class="space-y-0.5">
                 <Label class="text-base font-semibold">{{ t('settings.basic.logs.label') }}</Label>
-                <p class="text-sm text-muted-foreground">Open the application log directory</p>
+                <p class="text-sm text-muted-foreground">
+                  Open the application log directory
+                </p>
               </div>
               <Button type="button" variant="outline" @click="openLogFolder">
                 {{ t('settings.basic.logs.open_button') }}

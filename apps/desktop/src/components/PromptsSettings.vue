@@ -70,7 +70,9 @@ async function onSubmit() {
           <div class="p-6 space-y-4">
             <div class="space-y-2">
               <Label for="system_prompt" class="text-base font-semibold">{{ t('settings.prompts.system.label') }}</Label>
-              <p class="text-sm text-muted-foreground">{{ t('settings.prompts.system.placeholder') }}</p>
+              <p class="text-sm text-muted-foreground">
+                {{ t('settings.prompts.system.placeholder') }}
+              </p>
             </div>
             <Textarea
               id="system_prompt"
