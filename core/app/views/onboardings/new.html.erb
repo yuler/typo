@@ -13,14 +13,14 @@
       </div>
     <% end %>
 
-    <div class="form-group">
+    <div class="form-group text-left">
       <%= form.label :username, class: "label" %>
       <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", 
           class: "input", placeholder: "your-username" %>
       <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<%= @signup.username.presence || "username" %></p>
     </div>
 
-    <div class="form-group">
+    <div class="form-group text-left">
       <%= form.label :nickname, class: "label" %>
       <%= form.text_field :nickname, required: true, placeholder: "Display name",
           class: "input" %>
