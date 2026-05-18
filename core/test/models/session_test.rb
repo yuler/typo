@@ -13,6 +13,6 @@ class SessionTest < ActiveSupport::TestCase
 
   test "desktop_version returns nil for web sessions" do
     session = Session.new(kind: :web, user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)")
-    assert_nil session.version
+    assert_nil session.desktop_version
   end
 end
