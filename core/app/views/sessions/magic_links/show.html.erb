@@ -15,4 +15,11 @@
         placeholder: "••••••" %>
     <%= form.submit "Verify Code", class: "btn btn-primary" %>
   <% end %>
+
+  <% if Rails.env.development? && flash[:magic_link_code].present? %>
+    <div class="mt-6 p-3 bg-zinc-100 rounded-md border border-dashed border-zinc-300">
+      <p class="text-xs font-bold uppercase text-muted mb-1">Development Code</p>
+      <code class="text-lg font-mono font-bold tracking-widest"><%= flash[:magic_link_code] %></code>
+    </div>
+  <% end %>
 </div>
