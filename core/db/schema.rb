@@ -22,7 +22,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_18_000000) do
   end
 
   create_table "completions", id: :uuid, force: :cascade do |t|
-    t.uuid "account_id", null: false
+    t.uuid "account_id"
     t.datetime "created_at", null: false
     t.integer "duration_ms"
     t.text "input"

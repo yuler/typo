@@ -1,7 +1,7 @@
 class CreateCompletions < ActiveRecord::Migration[8.2]
   def change
     create_table :completions, id: :uuid do |t|
-      t.references :account, type: :uuid, null: false, index: true
+      t.references :account, type: :uuid, null: true, index: true
       t.references :user, type: :uuid, null: true, index: true
       t.text :prompt
       t.text :input

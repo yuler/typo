@@ -69,11 +69,36 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :success
 
-    perform_enqueued_jobs
-
     completion = Completion.last
     assert_equal account, completion.account
     assert_equal "persist me", completion.input
+    assert_equal "pending", completion.status
+
+    perform_enqueued_jobs
+
+    completion.reload
     assert_equal "__success__", completion.output
+    assert_equal "success", completion.status
+  end
+
+  test "creates a Completion record for anonymous users" do
+    assert_enqueued_with(job: CompletionPersistenceJob) do
+      post api_v1_completions_url,
+           params: { text: "anonymous text" },
+           as: :json
+    end
+    assert_response :success
+
+    completion = Completion.last
+    assert_nil completion.account
+    assert_nil completion.user
+    assert_equal "anonymous text", completion.input
+    assert_equal "pending", completion.status
+
+    perform_enqueued_jobs
+
+    completion.reload
+    assert_equal "__success__", completion.output
+    assert_equal "success", completion.status
   end
 end

@@ -1,9 +1,9 @@
 class CompletionPersistenceJob < ApplicationJob
   queue_as :default
 
-  def perform(attributes)
-    Completion.create!(attributes)
-  rescue ActiveRecord::RecordInvalid => e
+  def perform(completion, attributes)
+    completion.update!(attributes)
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
     Rails.logger.error "Failed to persist completion: #{e.message}"
   end
 end

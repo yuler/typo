@@ -6,23 +6,30 @@ class Api::V1::CompletionsController < Api::V1::BaseController
   before_action :check_rate_limit
 
   def create
-    result = @completion.perform
-
     if authenticated?
       account = Current.account || Current.identity.personal_account
-      if account
-        CompletionPersistenceJob.perform_later(
-          account_id: account.id,
-          user_id: Current.user&.id || Current.identity.users.find_by(account: account)&.id,
-          prompt: @completion.prompt,
-          input: @completion.text,
-          output: result.content,
-          model: result.model_id,
-          tokens: result.tokens,
-          duration_ms: result.duration_ms,
-          status: result.status
-        )
-      end
+      user = Current.user || Current.identity.users.find_by(account: account)
+    end
+
+    completion = Completion.create!(
+      account: account,
+      user: user,
+      prompt: @ai_completion.prompt,
+      input: @ai_completion.text,
+      status: "pending"
+    )
+
+    result = @ai_completion.perform
+
+    if result && result.status == "success"
+      CompletionPersistenceJob.perform_later(
+        completion,
+        output: result.content,
+        model: result.model_id,
+        tokens: result.tokens,
+        duration_ms: result.duration_ms,
+        status: result.status
+      )
     end
 
     render json: { result: result.content }, status: :ok
@@ -30,9 +37,9 @@ class Api::V1::CompletionsController < Api::V1::BaseController
 
   private
     def validate_params!
-      @completion = Ai::Completion.new(text: params[:text], prompt: params[:prompt])
-      if @completion.invalid?
-        render json: { error: @completion.errors.full_messages.to_sentence }, status: :unprocessable_entity
+      @ai_completion = Ai::Completion.new(text: params[:text], prompt: params[:prompt])
+      if @ai_completion.invalid?
+        render json: { error: @ai_completion.errors.full_messages.to_sentence }, status: :unprocessable_entity
       end
     end
 

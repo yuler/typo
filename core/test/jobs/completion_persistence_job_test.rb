@@ -1,30 +1,29 @@
 require "test_helper"
 
 class CompletionPersistenceJobTest < ActiveJob::TestCase
-  test "creates a completion record" do
+  test "updates a completion record" do
     account = Account.create!(name: "Test Account")
+    completion = Completion.create!(account: account, input: "hello", status: "pending")
     attributes = {
-      account_id: account.id,
-      input: "hello",
       output: "hi",
       status: "success"
     }
 
-    assert_difference "Completion.count", 1 do
-      CompletionPersistenceJob.perform_now(attributes)
+    assert_no_difference "Completion.count" do
+      CompletionPersistenceJob.perform_now(completion, attributes)
     end
 
-    completion = Completion.last
-    assert_equal "hello", completion.input
-    assert_equal "hi", completion.output
+    assert_equal "hi", completion.reload.output
+    assert_equal "success", completion.status
   end
 
   test "logs error on invalid attributes" do
-    attributes = { input: nil }
+    completion = Completion.create!(input: "hello", status: "pending")
+    attributes = { status: nil }
 
     assert_no_difference "Completion.count" do
       # Should not raise error but log it
-      CompletionPersistenceJob.perform_now(attributes)
+      CompletionPersistenceJob.perform_now(completion, attributes)
     end
   end
 end
