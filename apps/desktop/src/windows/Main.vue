@@ -45,6 +45,7 @@ const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 const highlightShortcut = ref(false)
+let highlightTimeout: ReturnType<typeof setTimeout> | null = null
 
 const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
@@ -59,9 +60,13 @@ const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab
 
 function onNavigateToShortcut() {
   activeTab.value = 'settings'
+  if (highlightTimeout) {
+    clearTimeout(highlightTimeout)
+  }
   highlightShortcut.value = true
-  setTimeout(() => {
+  highlightTimeout = setTimeout(() => {
     highlightShortcut.value = false
+    highlightTimeout = null
   }, 3000)
 }
 

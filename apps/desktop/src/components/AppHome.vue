@@ -24,8 +24,12 @@ const totalCompletions = ref(0)
 const totalSlashCommands = ref(0)
 
 onMounted(async () => {
-  totalCompletions.value = await store.get('total_completions') as number
-  totalSlashCommands.value = await store.get('total_slash_commands') as number
+  const [completions, slashCommands] = await Promise.all([
+    store.get('total_completions'),
+    store.get('total_slash_commands'),
+  ])
+  totalCompletions.value = completions as number
+  totalSlashCommands.value = slashCommands as number
 })
 
 const stats = computed(() => [

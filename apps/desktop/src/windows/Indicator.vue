@@ -98,11 +98,13 @@ async function processSetInputPayload(payload: SetInputPayload) {
     state.value = 'result'
 
     // Increment stats
-    const completions = await store.get('total_completions') as number
-    await store.set('total_completions', completions + 1)
+    const [completions, slashCommands] = await Promise.all([
+      store.get('total_completions'),
+      store.get('total_slash_commands'),
+    ])
+    await store.set('total_completions', (completions as number) + 1)
     if (commandName.value) {
-      const slashCommands = await store.get('total_slash_commands') as number
-      await store.set('total_slash_commands', slashCommands + 1)
+      await store.set('total_slash_commands', (slashCommands as number) + 1)
     }
     await store.save()
 
