@@ -14,7 +14,7 @@
 .input:focus {
   outline: none;
   border-color: var(--color-zinc-400);
-  box-shadow: 0 0 0 2px var(--color-zinc-100);
+  box-shadow: 0 0 0 2px var(--color-border);
 }
 
 .input::placeholder {
