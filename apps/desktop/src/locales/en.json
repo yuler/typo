@@ -75,6 +75,8 @@
   "main.hero.login_hint": "Sign in to unlock history sync and advanced statistics.",
   "main.hero.pro_active": "Pro Features Active",
   "main.stats.total_polished": "Total Polished",
+  "main.stats.completions": "Completions",
+  "main.stats.slash_commands": "Slash Commands",
   "main.stats.time_saved": "Time Saved",
   "main.stats.history_items": "History Items",
   "main.hint.shortcut": "Global Shortcut",

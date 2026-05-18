@@ -97,6 +97,15 @@ async function processSetInputPayload(payload: SetInputPayload) {
     resultText.value = output
     state.value = 'result'
 
+    // Increment stats
+    const completions = await store.get('total_completions') as number
+    await store.set('total_completions', completions + 1)
+    if (commandName.value) {
+      const slashCommands = await store.get('total_slash_commands') as number
+      await store.set('total_slash_commands', slashCommands + 1)
+    }
+    await store.save()
+
     // Paste the corrected text back into the original input area
     await invoke('keyboard_paste_text', { text: output })
 
