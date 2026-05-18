@@ -63,8 +63,6 @@ const DEFAULT_STORE = {
   slash_commands: DEFAULT_SLASH_COMMANDS,
   global_shortcut: DEFAULT_GLOBAL_SHORTCUT,
   locale: defaultLocale satisfies Locale,
-  total_completions: 0,
-  total_slash_commands: 0,
 }
 
 const store = new LazyStore('settings.json', {

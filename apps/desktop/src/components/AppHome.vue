@@ -4,11 +4,12 @@ import {
   CheckCircleIcon,
   TerminalIcon,
 } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { api } from '@/api'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
-import * as store from '@/stores/settings'
+import { getAuth } from '@/stores/auth'
 import { formatShortcut } from '@/utils'
 
 defineProps<{
@@ -24,14 +25,23 @@ const { t } = useI18n()
 const totalCompletions = ref(0)
 const totalSlashCommands = ref(0)
 
-onMounted(async () => {
-  const [completions, slashCommands] = await Promise.all([
-    store.get('total_completions'),
-    store.get('total_slash_commands'),
-  ])
-  totalCompletions.value = completions as number
-  totalSlashCommands.value = slashCommands as number
-})
+watch(isLoggedIn, async (loggedIn) => {
+  if (loggedIn) {
+    try {
+      const token = await getAuth('access_token')
+      if (token) {
+        const data = await api<{ completions: number, slash_commands: number }>('/api/v1/stats', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        totalCompletions.value = data.completions ?? 0
+        totalSlashCommands.value = data.slash_commands ?? 0
+      }
+    }
+    catch (err) {
+      console.error('Failed to fetch stats', err)
+    }
+  }
+}, { immediate: true })
 
 const stats = computed(() => [
   {
