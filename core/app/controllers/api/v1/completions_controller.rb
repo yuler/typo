@@ -7,7 +7,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
 
   def create
     result = @completion.perform
-    render json: { result: result }, status: :ok
+    render json: { result: result.content }, status: :ok
   end
 
   private

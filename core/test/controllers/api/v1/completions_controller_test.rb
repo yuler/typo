@@ -4,7 +4,9 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
   setup do
     Rails.cache.clear
     @original_perform = Ai::Completion.instance_method(:perform)
-    Ai::Completion.define_method(:perform) { "__success__" }
+    Ai::Completion.define_method(:perform) do
+      Ai::Result.new("__success__", { "total" => 10 }, "test-model", 100, "success")
+    end
   end
 
   teardown do

@@ -11,7 +11,10 @@ class Ai::CompletionTest < ActiveSupport::TestCase
   test "Translate to English with default system prompt" do
     text = "你好，世界。"
     result = Ai::Completion.new(text: text).perform
-    assert_equal "Hello, world.", result
+    assert_equal "Hello, world.", result.content
+    assert_respond_to result, :tokens
+    assert_respond_to result, :model_id
+    assert_respond_to result, :duration_ms
   end
 
   test "Translate to Japanese" do
@@ -20,7 +23,7 @@ class Ai::CompletionTest < ActiveSupport::TestCase
       Translate to Japanese
     PROMPT
     result = Ai::Completion.new(text: text, prompt: prompt).perform
-    assert_equal "こんにちは、世界。", result
+    assert_equal "こんにちは、世界。", result.content
   end
 
   test "Translate to Chinese" do
@@ -29,6 +32,6 @@ class Ai::CompletionTest < ActiveSupport::TestCase
       Translate to Chinese
     PROMPT
     result = Ai::Completion.new(text: text, prompt: prompt).perform
-    assert_equal "你好，世界。", result
+    assert_equal "你好，世界。", result.content
   end
 end
