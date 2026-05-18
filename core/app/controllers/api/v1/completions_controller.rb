@@ -26,7 +26,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
         completion,
         output: result.content,
         model: result.model_id,
-        tokens: result.tokens,
+        tokens: result.tokens&.to_h,
         duration_ms: result.duration_ms,
         status: result.status
       )

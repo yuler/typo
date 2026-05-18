@@ -1,16 +1,22 @@
 <div class="flex justify-between items-center mb-8">
-  <h1 class="text-2xl font-bold"><%= t(".welcome_back", name: Current.user.name) %></h1>
+  <div class="flex items-center gap-3">
+    <%= image_tag Current.user.avatar_url(size: 40), class: "w-10 h-10 rounded-full border shadow-sm" %>
+    <div class="flex flex-col">
+      <h1 class="text-lg font-bold leading-tight"><%= Current.user.name %></h1>
+      <div class="text-xs text-muted"><%= Current.user.email %></div>
+    </div>
+  </div>
   <%= button_to t(".logout"), logout_url, method: :delete, class: "btn btn-secondary btn-sm" %>
 </div>
 
 <div class="grid grid-cols-2 gap-4 mb-8">
   <div class="p-6 border rounded-xl">
     <div class="text-xs text-muted uppercase mb-2"><%= t(".total_refinements") %></div>
-    <div class="text-3xl font-bold">0</div>
+    <div class="text-3xl font-bold"><%= @total_completions %></div>
   </div>
   <div class="p-6 border rounded-xl">
-    <div class="text-xs text-muted uppercase mb-2"><%= t(".active_prompts") %></div>
-    <div class="text-3xl font-bold">5</div>
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".slash_prompts") %></div>
+    <div class="text-sm font-medium text-muted flex items-center h-9"><%= t(".coming_soon") %></div>
   </div>
 </div>
 
