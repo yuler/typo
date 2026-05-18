@@ -11,9 +11,8 @@
 
   <%= form_with url: session_magic_link_path, method: :post, class: "flex flex-col gap-4" do |form| %>
     <%= form.text_field :code, required: true, autofocus: true, maxlength: "6",
-        class: "p-2 border rounded-md w-full text-center font-mono text-lg tracking-widest", 
+        class: "input text-center font-mono text-lg tracking-widest", 
         placeholder: "••••••" %>
-    <%= form.submit "Verify Code", 
-        class: "p-2 bg-zinc-900 text-white rounded-md font-medium cursor-pointer" %>
+    <%= form.submit "Verify Code", class: "btn btn-primary" %>
   <% end %>
 </div>

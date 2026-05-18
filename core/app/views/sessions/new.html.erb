@@ -4,8 +4,7 @@
 
   <%= form_with url: session_path, class: "flex flex-col gap-4" do |form| %>
     <%= form.email_field :email, required: true, autofocus: true, 
-        class: "p-2 border rounded-md w-full", placeholder: "email@example.com" %>
-    <%= form.submit "Continue", 
-        class: "p-2 bg-zinc-900 text-white rounded-md font-medium cursor-pointer" %>
+        class: "input", placeholder: "email@example.com" %>
+    <%= form.submit "Continue", class: "btn btn-primary" %>
   <% end %>
 </div>

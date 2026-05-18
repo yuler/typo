@@ -13,21 +13,20 @@
       </div>
     <% end %>
 
-    <div class="flex flex-col gap-1">
-      <%= form.label :username, class: "text-xs font-bold uppercase text-muted" %>
+    <div class="form-group">
+      <%= form.label :username, class: "label" %>
       <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", 
-          class: "p-2 border rounded-md w-full", placeholder: "your-username" %>
+          class: "input", placeholder: "your-username" %>
       <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<%= @signup.username.presence || "username" %></p>
     </div>
 
-    <div class="flex flex-col gap-1">
-      <%= form.label :nickname, class: "text-xs font-bold uppercase text-muted" %>
+    <div class="form-group">
+      <%= form.label :nickname, class: "label" %>
       <%= form.text_field :nickname, required: true, placeholder: "Display name",
-          class: "p-2 border rounded-md w-full" %>
+          class: "input" %>
       <p class="text-xs text-muted mt-1">This is how others will see you</p>
     </div>
 
-    <%= form.submit "Create Account", 
-        class: "p-2 bg-zinc-900 text-white rounded-md font-medium cursor-pointer mt-2" %>
+    <%= form.submit "Create Account", class: "btn btn-primary mt-2" %>
   <% end %>
 </div>

@@ -1,7 +1,6 @@
 <div class="flex justify-between items-center mb-8">
   <h1 class="text-2xl font-bold">Welcome back, <%= Current.identity.email.split('@').first %></h1>
-  <%= button_to "Logout", logout_url, method: :delete, 
-      class: "text-sm text-muted border px-3 py-1 rounded-md hover:bg-zinc-50 cursor-pointer" %>
+  <%= button_to "Logout", logout_url, method: :delete, class: "btn btn-secondary btn-sm" %>
 </div>
 
 <div class="grid grid-cols-2 gap-4">
