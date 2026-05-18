@@ -2,8 +2,8 @@ import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { api } from '@/api'
-import { logger } from '@/logger'
 import { useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 import * as authStore from '@/stores/auth'
 import { gravatar } from '@/utils'
 
@@ -51,7 +51,8 @@ export const useAuth = createGlobalState(() => {
 
     const performHeartbeat = async () => {
       const token = await authStore.getAuth('access_token')
-      if (!token) return
+      if (!token)
+        return
 
       try {
         const data = await api<{ name: string, email: string, avatar_url: string | null }>('/api/v1/my/heartbeat', {
