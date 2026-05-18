@@ -40,6 +40,10 @@ Rails.application.routes.draw do
       resources :completions, only: :create
       resource :session, only: :destroy
 
+      namespace :my do
+        resource :heartbeat, only: :show
+      end
+
       resource :device, only: [] do
         scope module: :devices do
           resource :authorization, only: :create
