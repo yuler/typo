@@ -31,6 +31,8 @@
 .font-bold { font-weight: 700; }
 .text-muted { color: var(--color-muted); }
 .text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
 
 /* Visuals */
 .rounded-md { border-radius: var(--radius-md); }
