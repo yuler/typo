@@ -45,5 +45,9 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(error.error || `HTTP error! status: ${response.status}`)
   }
 
+  if (response.status === 204) {
+    return null as T
+  }
+
   return response.json()
 }
