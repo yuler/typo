@@ -15,12 +15,11 @@ function getUserAgent(): Promise<string> {
   userAgentPromise = (async () => {
     try {
       const { os, version } = await invoke<{ os: string, version: string }>('get_system_info')
-      const platformMap: Record<string, string> = {
+      const platform = {
         macos: 'macOS',
         windows: 'Windows',
         linux: 'Linux',
-      }
-      const platform = platformMap[os] || os
+      }[os] || os
       return `Typo (${platform}; version ${version})`
     }
     catch (error) {
