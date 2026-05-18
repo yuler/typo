@@ -2,6 +2,7 @@
   <h1 class="text-2xl font-bold"><%= t(".title") %></h1>
 </div>
 
+<%= turbo_stream_from Current.identity, "sessions" %>
 <%= turbo_frame_tag "sessions", class: "flex flex-col gap-4" do %>
   <%= render partial: "my/sessions/session", collection: @sessions %>
 <% end %>

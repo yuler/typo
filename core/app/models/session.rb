@@ -3,6 +3,8 @@ class Session < ApplicationRecord
 
   enum :kind, { web: "web", desktop: "desktop" }
 
+  broadcasts_to ->(session) { [ session.identity, "sessions" ] }, inserts_by: :prepend, target: "sessions", partial: "my/sessions/session"
+
   def user_agent_summary
     return "Unknown Device" if user_agent.blank?
 
