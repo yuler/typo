@@ -36,15 +36,3 @@
   --radius-xl: 14px;
   --radius-2xl: 16px;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: var(--color-zinc-950);
-    --color-surface: var(--color-zinc-900);
-    --color-fg: var(--color-zinc-100);
-    --color-muted: var(--color-zinc-400);
-    --color-border: var(--color-zinc-800);
-    --color-accent: var(--color-zinc-100);
-    --color-accent-fg: var(--color-zinc-900);
-  }
-}
