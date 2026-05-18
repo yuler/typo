@@ -43,4 +43,18 @@ class My::SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to my_sessions_path(script_name: "/#{@account.slug}")
     assert_equal "Session revoked.", flash[:notice]
   end
+
+  test "should revoke current session" do
+    post session_url, params: { email: @identity.email }
+    magic_link = @identity.magic_links.last
+    post session_magic_link_url, params: { code: magic_link.code }
+
+    current_session = @identity.sessions.order(:created_at).last
+
+    assert_difference "Session.count", -1 do
+      delete my_session_url(current_session, script_name: "/#{@account.slug}")
+    end
+    assert_redirected_to new_session_path(script_name: nil)
+    assert_equal "Session revoked.", flash[:notice]
+  end
 end

@@ -11,7 +11,7 @@
   </div>
   <div>
     <% unless session == Current.session %>
-      <%= button_to t(".revoke"), my_session_path(session), method: :delete, data: { confirm: t(".confirm_revoke") }, class: "btn btn-secondary btn-sm" %>
+      <%= button_to t(".revoke"), my_session_path(session), method: :delete, form: { data: { turbo_confirm: t(".confirm_revoke") } }, class: "btn btn-secondary btn-sm" %>
     <% end %>
   </div>
 </div>
