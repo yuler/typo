@@ -46,6 +46,10 @@
 .w-full { width: 100%; }
 .max-w-sm { max-width: 24rem; }
 .max-w-md { max-width: 28rem; }
+.max-w-3xl { max-width: 48rem; }
+.max-w-4xl { max-width: 56rem; }
+.max-w-5xl { max-width: 64rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
 .min-height-screen { min-height: 100vh; }
 .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 .tracking-widest { letter-spacing: 0.1em; }
