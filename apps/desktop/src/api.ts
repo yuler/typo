@@ -20,11 +20,11 @@ function getUserAgent(): Promise<string> {
         windows: 'Windows',
         linux: 'Linux',
       }[os] || os
-      return `Typo (${platform}; version ${version})`
+      return `Typo Desktop/${version} (${platform})`
     }
     catch (error) {
       console.error('failed to get system info for user agent', error)
-      return 'Typo (Unknown; version Unknown)'
+      return 'Typo Desktop/Unknown (Unknown)'
     }
   })()
 
