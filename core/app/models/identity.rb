@@ -29,6 +29,6 @@ class Identity < ApplicationRecord
   end
 
   def display_name
-    email.split("@").first
+    email&.split("@")&.first
   end
 end

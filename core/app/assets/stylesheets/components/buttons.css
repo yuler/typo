@@ -38,12 +38,12 @@
 }
 
 .btn-destructive {
-  background-color: #ef4444;
+  background-color: var(--color-red-500, #ef4444);
   color: #ffffff;
 }
 
 .btn-destructive:hover {
-  background-color: #dc2626;
+  background-color: var(--color-red-600, #dc2626);
 }
 
 .btn-sm {

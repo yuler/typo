@@ -12,6 +12,10 @@
   --color-zinc-900: #18181b;
   --color-zinc-950: #09090b;
 
+  /* Red Palette */
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+
   /* Semantic Aliases */
   --color-bg: var(--color-zinc-50);
   --color-surface: #ffffff;
@@ -20,6 +24,7 @@
   --color-border: var(--color-zinc-200);
   --color-accent: var(--color-zinc-900);
   --color-accent-fg: #ffffff;
+  --color-error: var(--color-red-500);
 
   /* Spacing Scale */
   --space-1: 0.25rem;

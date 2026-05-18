@@ -33,16 +33,34 @@ en:
     authorizations:
       show:
         title: "Authorize Device"
-        prompt_with_code_html: "Do you want to authorize the device with code <strong>%{code}</strong>?"
-        approve: "approve"
-        deny: "deny"
+        prompt_with_code_html: "Do you want to authorize the device with code %{code}?"
+        approve: "Approve"
+        deny: "Deny"
         prompt_enter_code: "Please enter the authorization code shown on your device:"
         placeholder_code: "ABCD-1234"
         next: "Next"
   dashboards:
     show:
       welcome_back: "Welcome back, %{name}"
+      logout: "Logout"
+      total_refinements: "Total Refinements"
+      active_prompts: "Active Prompts"
   onboardings:
     new:
       title: "Create your account"
-
+      subtitle: "Complete your profile to get started."
+      username_placeholder: "your-username"
+      nickname_placeholder: "Display name"
+      nickname_hint: "This is how others will see you"
+      submit: "Create Account"
+  sessions:
+    new:
+      title: "Sign in to Typo"
+      subtitle: "Enter your email to receive a verification code."
+      submit: "Continue"
+    magic_links:
+      show:
+        title: "Check your email"
+        subtitle: "We've sent a 6-character code to your inbox."
+        submit: "Verify Code"
+        dev_code: "Development Code"

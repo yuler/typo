@@ -6,19 +6,19 @@
     </div>
   </div>
 
-  <h1 class="text-xl font-bold mb-2">Check your email</h1>
-  <p class="text-muted text-sm mb-6">We've sent a 6-character code to your inbox.</p>
+  <h1 class="text-xl font-bold mb-2"><%= t(".title") %></h1>
+  <p class="text-muted text-sm mb-6"><%= t(".subtitle") %></p>
 
   <%= form_with url: session_magic_link_path, method: :post, class: "flex flex-col gap-4" do |form| %>
     <%= form.text_field :code, required: true, autofocus: true, maxlength: "6",
         class: "input text-center font-mono text-lg tracking-widest", 
         placeholder: "••••••" %>
-    <%= form.submit "Verify Code", class: "btn btn-primary" %>
+    <%= form.submit t(".submit"), class: "btn btn-primary" %>
   <% end %>
 
   <% if Rails.env.development? && flash[:magic_link_code].present? %>
     <div class="mt-6 p-3 bg-zinc-100 rounded-md border border-dashed border-zinc-300">
-      <p class="text-xs font-bold uppercase text-muted mb-1">Development Code</p>
+      <p class="text-xs font-bold uppercase text-muted mb-1"><%= t(".dev_code") %></p>
       <code class="text-lg font-mono font-bold tracking-widest"><%= flash[:magic_link_code] %></code>
     </div>
   <% end %>

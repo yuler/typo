@@ -1,18 +1,18 @@
 <div class="bg-surface p-10 rounded-2xl border shadow-md w-full max-w-md">
-  <h1 class="text-xl font-bold mb-4 text-center">Authorize Device</h1>
+  <h1 class="text-xl font-bold mb-4 text-center"><%= t(".title") %></h1>
 
   <% if @device_authorization %>
-    <p class="mb-8 leading-relaxed text-center">Do you want to authorize the device with code <strong class="bg-zinc-100 px-2 py-0.5 rounded font-mono"><%= @device_authorization.user_code %></strong>?</p>
+    <p class="mb-8 leading-relaxed text-center"><%= t(".prompt_with_code_html", code: tag.strong(@device_authorization.user_code, class: "bg-zinc-100 px-2 py-0.5 rounded font-mono")) %></p>
 
     <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch, class: "flex gap-4" do |f| %>
-      <%= f.submit "Approve", name: "decision", value: "approve", class: "btn btn-primary flex-1" %>
-      <%= f.submit "Deny", name: "decision", value: "deny", class: "btn btn-secondary flex-1" %>
+      <%= f.submit t(".approve"), name: "decision", value: "approve", class: "btn btn-primary flex-1" %>
+      <%= f.submit t(".deny"), name: "decision", value: "deny", class: "btn btn-secondary flex-1" %>
     <% end %>
   <% else %>
-    <p class="mb-4 text-muted text-sm text-center">Please enter the authorization code shown on your device:</p>
+    <p class="mb-4 text-muted text-sm text-center"><%= t(".prompt_enter_code") %></p>
     <%= form_with url: device_authorization_path, method: :get, local: true, class: "flex gap-2" do |f| %>
-      <%= f.text_field :user_code, class: "input font-mono text-center flex-1", placeholder: "ABCD-1234" %>
-      <%= f.submit "Next", class: "btn btn-primary" %>
+      <%= f.text_field :user_code, class: "input font-mono text-center flex-1", placeholder: t(".placeholder_code") %>
+      <%= f.submit t(".next"), class: "btn btn-primary" %>
     <% end %>
   <% end %>
 </div>

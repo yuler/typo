@@ -1,10 +1,10 @@
 <div class="bg-surface p-10 rounded-xl border shadow-sm w-full max-w-sm text-center">
-  <h1 class="text-xl font-bold mb-2">Sign in to Typo</h1>
-  <p class="text-muted text-sm mb-6">Enter your email to receive a verification code.</p>
+  <h1 class="text-xl font-bold mb-2"><%= t(".title") %></h1>
+  <p class="text-muted text-sm mb-6"><%= t(".subtitle") %></p>
 
   <%= form_with url: session_path, class: "flex flex-col gap-4" do |form| %>
     <%= form.email_field :email, required: true, autofocus: true, 
         class: "input", placeholder: "email@example.com" %>
-    <%= form.submit "Continue", class: "btn btn-primary" %>
+    <%= form.submit t(".submit"), class: "btn btn-primary" %>
   <% end %>
 </div>
