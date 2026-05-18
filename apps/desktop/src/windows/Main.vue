@@ -1,15 +1,23 @@
 <script setup lang="ts">
+import type { NavItem } from '@/components/AppSidebar.vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import {
   HistoryIcon,
   HomeIcon,
+  MessageSquareIcon,
+  PaletteIcon,
+  Settings2Icon,
+  SparklesIcon,
 } from 'lucide-vue-next'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import AIProviderSettings from '@/components/AIProviderSettings.vue'
+import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
-import AppSettings from '@/components/AppSettings.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
+import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
+import PromptsSettings from '@/components/PromptsSettings.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,17 +26,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
@@ -37,17 +40,21 @@ import * as store from '@/stores/settings'
 import { sleep } from '@/utils'
 import { initializeWindow } from '@/window'
 
-const { isLoggedIn } = useAuth()
 const { t } = useI18n()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
-const activeTab = ref('history')
-const isSettingsOpen = ref(false)
+const activeTab = ref('main')
 
-const navItems = [
-  { id: 'main', label: t('main.nav.main'), icon: HomeIcon },
-  { id: 'history', label: t('main.nav.history'), icon: HistoryIcon },
-]
+const navItems = computed<NavItem[]>(() => [
+  { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
+  { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
+  { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
+  { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
+  { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
+  { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
+])
+
+const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))
 
 let unlistenOpenSettings: (() => void) | undefined
 let isMounted = true
@@ -56,7 +63,7 @@ onMounted(async () => {
   logger.info('Main', 'onMounted')
 
   const unlisten = await listen('open-settings', () => {
-    isSettingsOpen.value = true
+    activeTab.value = 'settings'
   })
 
   if (!isMounted) {
@@ -119,7 +126,7 @@ onMounted(async () => {
     if (!isMounted) {
       return
     }
-    isSettingsOpen.value = true
+    activeTab.value = 'ai_provider'
   }
 })
 
@@ -129,77 +136,68 @@ onUnmounted(() => {
     unlistenOpenSettings()
   }
 })
-
-function openSettings() {
-  isSettingsOpen.value = true
-}
 </script>
 
 <template>
-  <SidebarProvider>
-    <AppSidebar
-      v-model:active-tab="activeTab"
-      :nav-items="navItems"
-      @open-settings="openSettings"
-    />
-    <SidebarInset>
-      <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-        <div class="flex items-center gap-2 px-4">
-          <SidebarTrigger class="-ml-1" />
-          <Separator orientation="vertical" class="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem class="hidden md:block">
-                <BreadcrumbLink href="#">
-                  {{ t('main.breadcrumb.typo') }}
-                  <span
-                    class="text-[10px] ml-1 px-1 py-0.5 rounded uppercase font-bold"
-                    :class="isLoggedIn ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'"
-                  >
-                    {{ isLoggedIn ? t('main.breadcrumb.pro') : t('main.breadcrumb.free') }}
-                  </span>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator class="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{{ navItems.find(i => i.id === activeTab)?.label }}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </header>
-
-      <!-- Main Content -->
-      <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
-        <!-- Content based on activeTab -->
-        <AppHome
-          v-if="activeTab === 'main'"
-          :global-shortcut="globalShortcut"
-        />
-
-        <!-- Placeholder for other tabs -->
-        <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
-          <div class="text-center space-y-4">
-            <div class="p-4 bg-muted/20 rounded-full inline-block">
-              <component :is="navItems.find(i => i.id === activeTab)?.icon" class="w-12 h-12 text-muted-foreground/30" />
-            </div>
-            <h2 class="text-xl font-semibold text-foreground/40">
-              {{ activeTab.charAt(0).toUpperCase() + activeTab.slice(1) }}
-            </h2>
-            <p class="text-sm text-muted-foreground/40">
-              Coming soon
-            </p>
+  <div class="w-full h-screen flex flex-col overflow-hidden">
+    <div v-if="isMacOS" class="h-7 w-full shrink-0 bg-sidebar border-sidebar-border select-none cursor-move" data-tauri-drag-region />
+    <SidebarProvider class="flex-1 overflow-hidden">
+      <AppSidebar
+        v-model:active-tab="activeTab"
+        :nav-items="navItems"
+      />
+      <SidebarInset>
+        <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+          <div class="flex items-center gap-2 px-4">
+            <SidebarTrigger class="-ml-1" />
+            <Separator orientation="vertical" class="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem class="hidden md:block">
+                  <BreadcrumbLink href="#">
+                    {{ t('main.breadcrumb.typo') }}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator class="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{{ activeNavItem?.label }}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
-        </div>
-      </main>
-    </SidebarInset>
+        </header>
 
-    <Dialog v-model:open="isSettingsOpen">
-      <DialogContent class="max-w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] p-0 overflow-hidden">
-        <AppSettings @close="isSettingsOpen = false" />
-      </DialogContent>
-    </Dialog>
+        <!-- Main Content -->
+        <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
+          <!-- Content based on activeTab -->
+          <AppHome
+            v-if="activeTab === 'main'"
+            :global-shortcut="globalShortcut"
+          />
 
-    <DeviceAuthModal />
-  </SidebarProvider>
+          <BasicSettings v-else-if="activeTab === 'settings'" />
+          <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
+          <AppearanceSettings v-else-if="activeTab === 'appearance'" />
+          <PromptsSettings v-else-if="activeTab === 'prompts'" />
+
+          <!-- Placeholder for other tabs (History) -->
+          <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
+            <div class="text-center space-y-4">
+              <div class="p-4 bg-muted/20 rounded-full inline-block">
+                <component :is="activeNavItem?.icon" class="w-12 h-12 text-muted-foreground/30" />
+              </div>
+              <h2 class="text-xl font-semibold text-foreground/40">
+                {{ activeNavItem?.label }}
+              </h2>
+              <p class="text-sm text-muted-foreground/40">
+                {{ t('main.common.coming_soon') }}
+              </p>
+            </div>
+          </div>
+        </main>
+      </SidebarInset>
+
+      <DeviceAuthModal />
+    </SidebarProvider>
+  </div>
 </template>

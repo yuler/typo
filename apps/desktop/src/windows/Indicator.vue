@@ -6,9 +6,10 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { deepSeekProcess, ollamaProcess } from '@/ai'
+import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
 import AppLogo from '@/components/AppLogo.vue'
 
+import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { parseSlashCommands, resolveSlashCommand } from '@/slashCommands'
@@ -19,10 +20,12 @@ import { formatShortcut, sleep } from '@/utils'
 const appWindow = getCurrentWindow()
 
 const { t } = useI18n()
+const { login } = useAuth()
 
 type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
 
 const state = ref<CapsuleState>('idle')
+const isRateLimited = ref(false)
 const inputText = ref('')
 const commandName = ref('')
 const resultText = ref('')
@@ -61,6 +64,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   try {
     state.value = 'processing'
+    isRateLimited.value = false
     processing.value = true
 
     const [systemPrompt, shortcuts, copy] = await Promise.all([
@@ -119,9 +123,24 @@ async function processSetInputPayload(payload: SetInputPayload) {
       commandName.value = ''
       return
     }
-    errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
+
+    const msg = (typeof err === 'string' ? err : err?.message) || ''
+    if (msg.includes('429') || msg.toLowerCase().includes('rate limit exceeded')) {
+      errorText.value = t('main.error.rate_limit')
+      isRateLimited.value = true
+    }
+    else {
+      errorText.value = msg || t('main.error.generic')
+      isRateLimited.value = false
+    }
+
     state.value = 'error'
-    await sleep(STATUS_DISPLAY_DURATION_MS)
+    if (isRateLimited.value) {
+      await sleep(STATUS_DISPLAY_DURATION_MS * 15)
+    }
+    else {
+      await sleep(STATUS_DISPLAY_DURATION_MS * 2)
+    }
     await hideIndicator()
   }
   finally {
@@ -182,6 +201,9 @@ async function fetchCorrection(text: string, preResolved?: { text: string, syste
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }) => Promise<string>
   switch (aiProvider) {
+    case 'typo':
+      process = typoProcess
+      break
     case 'deepseek':
       process = deepSeekProcess
       break
@@ -199,6 +221,7 @@ async function hideIndicator() {
     return
 
   state.value = 'idle'
+  isRateLimited.value = false
   inputText.value = ''
   resultText.value = ''
   errorText.value = ''
@@ -252,7 +275,11 @@ function gotoSettings() {
         </template>
       </div>
 
-      <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2 font-medium">
+      <p
+        v-else-if="state === 'error'"
+        class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
+        @click="isRateLimited ? (login(), hideIndicator()) : null"
+      >
         {{ errorText }}
       </p>
 

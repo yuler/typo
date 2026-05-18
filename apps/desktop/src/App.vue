@@ -2,7 +2,7 @@
 import type { Component } from 'vue'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { onMounted, onUnmounted } from 'vue'
-import AppSettings from '@/components/AppSettings.vue'
+import { Toaster } from '@/components/ui/sonner'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
@@ -17,7 +17,6 @@ const currentLabel = appWindow.label
 const windows: Record<string, Component> = {
   main: Main,
   indicator: Indicator,
-  settings: AppSettings,
   upgrade: Upgrade,
 }
 
@@ -55,6 +54,7 @@ onUnmounted(() => {
     <div v-else class="flex items-center justify-center h-full text-white">
       Unknown window label: {{ currentLabel }}
     </div>
+    <Toaster position="top-right" />
   </main>
 </template>
 
