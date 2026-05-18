@@ -3,7 +3,12 @@
     <span class="absolute top-2 right-2 bg-zinc-900 text-white px-2 py-0.5 rounded-full text-xs font-medium"><%= t(".current") %></span>
   <% end %>
   <div class="flex flex-col gap-1 <%= 'pt-2' if session == Current.session %>">
-    <div class="font-bold text-base" title="<%= session.user_agent %>"><%= session.user_agent_summary %></div>
+    <div class="font-bold text-base flex items-center gap-2" title="<%= session.user_agent %>">
+      <%= session.user_agent_summary %>
+      <% if session.desktop? && session.desktop_version.present? %>
+        <span class="bg-zinc-100 px-2 py-0.5 rounded-md text-xs font-mono font-normal"><%= session.desktop_version %></span>
+      <% end %>
+    </div>
     <div class="text-sm text-muted mt-1">
       <span class="bg-zinc-100 px-2 py-0.5 rounded-md text-xs font-mono uppercase"><%= session.kind %></span>
       <%= t(".ip", ip: session.ip_address) %> • <%= t(".time_ago", time: time_ago_in_words(session.created_at)) %>
