@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.33.0",
   "scripts": {
     "core:dev": "cd core && bin/dev",
+    "core:setup": "cd core && bin/setup",
     "core:test": "cd core && bin/rails test",
     "core:test:controller": "cd core && bin/rails test:controllers",
     "core:lint": "cd core && bin/rubocop",

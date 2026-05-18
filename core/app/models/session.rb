@@ -1,11 +1,15 @@
 class Session < ApplicationRecord
   belongs_to :identity
 
+  enum :kind, { web: "web", desktop: "desktop" }
+
+  broadcasts_to ->(session) { [ session.identity, "sessions" ] }, inserts_by: :prepend, target: "sessions", partial: "my/sessions/session"
+
   def user_agent_summary
     return "Unknown Device" if user_agent.blank?
 
     os = case user_agent
-    when /Macintosh|Mac OS X/i then "macOS"
+    when /Macintosh|Mac OS X|macOS/i then "macOS"
     when /Windows/i then "Windows"
     when /Linux/i then "Linux"
     when /iPhone/i then "iPhone"
@@ -28,5 +32,12 @@ class Session < ApplicationRecord
     else
       user_agent.truncate(35)
     end
+  end
+
+  def desktop_version
+    return unless desktop? && user_agent.present?
+
+    match = user_agent[%r{Typo Desktop/([^\s]+)}, 1]
+    "v#{match}" if match.present?
   end
 end

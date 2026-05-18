@@ -149,7 +149,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 }
 
 onMounted(async () => {
-  const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
   if (!isMounted) {
     return
   }

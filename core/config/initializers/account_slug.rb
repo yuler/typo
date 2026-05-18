@@ -3,7 +3,7 @@ module AccountSlug
   FORMAT = /\A[a-z0-9\-_]+\z/
   LENGTH = 4..16
   PATH_INFO_MATCH = /\A(\/#{AccountSlug::PATTERN})/
-  RESERVED_SLUGS = %w[session dashboard onboarding dev admin api assets billing help jobs login logout magic_link rails settings setup static support typo device]
+  RESERVED_SLUGS = %w[session dashboard onboarding dev admin api assets billing help jobs login logout magic_link rails settings setup static support typo device cable]
 
   class Extractor
     def initialize(app)

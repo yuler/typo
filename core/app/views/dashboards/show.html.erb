@@ -25,6 +25,7 @@
     <h2 class="text-xl font-bold"><%= t(".my_sessions") %></h2>
     <%= link_to t(".manage_sessions"), my_sessions_path, class: "text-sm text-muted" %>
   </div>
+  <%= turbo_stream_from Current.identity, "sessions" %>
   <%= turbo_frame_tag "sessions", class: "flex flex-col gap-4" do %>
     <%= render partial: "my/sessions/session", collection: @sessions %>
   <% end %>

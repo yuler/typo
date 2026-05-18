@@ -124,7 +124,20 @@ export const useAuth = createGlobalState(() => {
 
   async function logout() {
     cancel()
-    // TODO: Invoke API to remove current session on server once endpoint is available
+    const token = await authStore.getAuth('access_token')
+    if (token) {
+      try {
+        await api('/api/v1/session', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      }
+      catch (err) {
+        logger.error('Auth', 'Failed to remove session on server', err)
+      }
+    }
     isLoggedIn.value = false
     user.value = {
       name: '',

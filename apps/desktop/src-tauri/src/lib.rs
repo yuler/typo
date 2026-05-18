@@ -38,13 +38,15 @@ fn request_mac_accessibility_permissions() -> Result<bool, String> {
 #[derive(Serialize)]
 struct SystemInfo {
     os: String,
+    version: String,
     is_wayland: bool,
 }
 
 #[tauri::command]
-fn get_system_info() -> SystemInfo {
+fn get_system_info(app: tauri::AppHandle) -> SystemInfo {
     SystemInfo {
         os: std::env::consts::OS.to_string(),
+        version: app.package_info().version.to_string(),
         is_wayland: in_linux_wayland(),
     }
 }
