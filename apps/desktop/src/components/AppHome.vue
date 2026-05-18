@@ -13,6 +13,7 @@ import { formatShortcut } from '@/utils'
 
 defineProps<{
   globalShortcut: string
+  isMacOS?: boolean
 }>()
 
 const emit = defineEmits(['navigateToShortcut'])
@@ -69,13 +70,6 @@ const stats = computed(() => [
             {{ t('main.hero.login_hint') }}
           </p>
         </div>
-
-        <div v-else class="flex items-center gap-4">
-          <div class="flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full border border-primary/10">
-            <div class="size-2 rounded-full bg-primary animate-pulse" />
-            <span class="text-sm font-medium text-primary">{{ t('main.hero.pro_active') }}</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -111,19 +105,19 @@ const stats = computed(() => [
       @click="emit('navigateToShortcut')"
     >
       <div class="flex items-center gap-4">
-        <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
-          <kbd class="text-xs font-bold text-primary">{{ formatShortcut(globalShortcut, globalShortcut.includes('Command')) }}</kbd>
+        <div class="px-3 py-1.5 h-10 min-w-10 rounded-xl bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110 shrink-0">
+          <kbd class="text-xs font-bold text-primary font-mono tracking-wider">{{ formatShortcut(globalShortcut, !!isMacOS) }}</kbd>
         </div>
         <div>
           <p class="font-medium">
             {{ t('main.hint.shortcut') }}
           </p>
           <p class="text-sm text-muted-foreground">
-            {{ t('main.hint.shortcut_desc', { shortcut: globalShortcut }) }}
+            {{ t('main.hint.shortcut_desc', { shortcut: formatShortcut(globalShortcut, !!isMacOS) }) }}
           </p>
         </div>
       </div>
-      <div class="size-8 rounded-full flex items-center justify-center bg-background border border-border/50 group-hover:border-primary/50 transition-colors">
+      <div class="size-8 rounded-full flex items-center justify-center bg-background border border-border/50 group-hover:border-primary/50 transition-colors shrink-0">
         <ArrowRight class="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
       </div>
     </button>

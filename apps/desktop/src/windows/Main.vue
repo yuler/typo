@@ -187,6 +187,7 @@ onUnmounted(() => {
           <AppHome
             v-if="activeTab === 'main'"
             :global-shortcut="globalShortcut"
+            :is-mac-os="isMacOS"
             @navigate-to-shortcut="onNavigateToShortcut"
           />
 

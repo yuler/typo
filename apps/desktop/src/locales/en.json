@@ -73,7 +73,6 @@
   "main.hero.subtitle": "Your AI-powered writing companion. Refine your thoughts, polish your prose, and communicate with confidence.",
   "main.hero.login_btn": "Sign in to Sync",
   "main.hero.login_hint": "Sign in to unlock history sync and advanced statistics.",
-  "main.hero.pro_active": "Pro Features Active",
   "main.stats.total_polished": "Total Polished",
   "main.stats.completions": "Completions",
   "main.stats.slash_commands": "Slash Commands",
