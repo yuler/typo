@@ -66,6 +66,8 @@
   "main.sidebar.notifications": "通知",
   "main.sidebar.logout": "ログアウト",
   "main.sidebar.login": "ログイン",
+  "auth.profile_updated": "プロフィールを更新しました",
+  "auth.session_expired": "セッションの期限が切れました。再度ログインしてください",
   "main.breadcrumb.typo": "Typo",
   "main.breadcrumb.pro": "Pro",
   "main.breadcrumb.free": "Free",

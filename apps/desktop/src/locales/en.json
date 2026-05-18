@@ -66,6 +66,8 @@
   "main.sidebar.notifications": "Notifications",
   "main.sidebar.logout": "Log out",
   "main.sidebar.login": "Sign in",
+  "auth.profile_updated": "Profile updated",
+  "auth.session_expired": "Session expired, please login again",
   "main.breadcrumb.typo": "Typo",
   "main.breadcrumb.pro": "Pro",
   "main.breadcrumb.free": "Free",

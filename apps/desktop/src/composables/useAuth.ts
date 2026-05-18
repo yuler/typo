@@ -1,7 +1,9 @@
 import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
+import { toast } from 'vue-sonner'
 import { api } from '@/api'
 import { logger } from '@/logger'
+import { useI18n } from '@/composables/useI18n'
 import * as authStore from '@/stores/auth'
 import { gravatar } from '@/utils'
 
@@ -25,7 +27,10 @@ export const useAuth = createGlobalState(() => {
     avatar: '',
   })
 
+  const { t } = useI18n()
+  const HEARTBEAT_INTERVAL = 2 * 60 * 1000 // 2 minutes
   let pollTimer: ReturnType<typeof setTimeout> | null = null
+  let heartbeatTimer: ReturnType<typeof setTimeout> | null = null
 
   async function initialize() {
     const token = await authStore.getAuth('access_token')
@@ -37,6 +42,50 @@ export const useAuth = createGlobalState(() => {
         email: userEmail,
         avatar: await gravatar(userEmail),
       }
+      startHeartbeat()
+    }
+  }
+
+  async function startHeartbeat() {
+    stopHeartbeat()
+
+    const performHeartbeat = async () => {
+      const token = await authStore.getAuth('access_token')
+      if (!token) return
+
+      try {
+        const data = await api<{ name: string, email: string, avatar_url: string | null }>('/api/v1/my/heartbeat', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        const hasChanged = data.name !== user.value.name || data.email !== user.value.email
+        if (hasChanged) {
+          user.value = {
+            name: data.name,
+            email: data.email,
+            avatar: data.avatar_url || await gravatar(data.email),
+          }
+          await authStore.setAuth('email', data.email)
+          await authStore.saveAuth()
+          toast.success(t('auth.profile_updated'))
+        }
+      }
+      catch (err: any) {
+        if (err.message.includes('401') || err.message === 'Unauthorized') {
+          toast.error(t('auth.session_expired'))
+          await logout()
+        }
+      }
+    }
+
+    await performHeartbeat()
+    heartbeatTimer = setInterval(performHeartbeat, HEARTBEAT_INTERVAL)
+  }
+
+  function stopHeartbeat() {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer)
+      heartbeatTimer = null
     }
   }
 
@@ -118,11 +167,13 @@ export const useAuth = createGlobalState(() => {
     await authStore.setAuth('access_token', token)
     await authStore.setAuth('email', identity.email)
     await authStore.saveAuth()
+    await startHeartbeat()
     if (pollTimer)
       clearTimeout(pollTimer)
   }
 
   async function logout() {
+    stopHeartbeat()
     cancel()
     const token = await authStore.getAuth('access_token')
     if (token) {
