@@ -7,6 +7,24 @@ class Api::V1::CompletionsController < Api::V1::BaseController
 
   def create
     result = @completion.perform
+
+    if authenticated?
+      account = Current.account || Current.identity.personal_account
+      if account
+        Completion.create!(
+          account: account,
+          user: Current.user || Current.identity.users.find_by(account: account),
+          prompt: @completion.prompt,
+          input: params[:text],
+          output: result.content,
+          model: result.model_id,
+          tokens: result.tokens,
+          duration_ms: result.duration_ms,
+          status: result.status
+        )
+      end
+    end
+
     render json: { result: result.content }, status: :ok
   end
 

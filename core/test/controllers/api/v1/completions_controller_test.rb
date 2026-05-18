@@ -52,4 +52,24 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
   end
+
+  test "creates a Completion record for authenticated users" do
+    account = Account.create!(name: "Personal", personal: true)
+    identity = Identity.create!(email: "test@example.com")
+    identity.users.create!(account: account, role: :owner, name: "Test User")
+    token = identity.signed_id(purpose: :api_token)
+
+    assert_difference "Completion.count", 1 do
+      post api_v1_completions_url,
+           params: { text: "persist me" },
+           headers: { "Authorization" => "Bearer #{token}" },
+           as: :json
+    end
+    assert_response :success
+
+    completion = Completion.last
+    assert_equal account, completion.account
+    assert_equal "persist me", completion.input
+    assert_equal "__success__", completion.output
+  end
 end
