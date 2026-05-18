@@ -12,12 +12,12 @@ class ActiveSessionsControllerTest < ActionDispatch::IntegrationTest
     # 1. Start login flow
     post session_url, params: { email: @identity.email }
     assert_response :redirect
-    
+
     # 2. Complete login flow
     magic_link = @identity.magic_links.last
     post session_magic_link_url, params: { code: magic_link.code }
     assert_response :redirect
-    
+
     # 3. Access active sessions with account slug
     get active_sessions_url(script_name: "/#{@account.slug}")
     assert_response :success
@@ -32,12 +32,12 @@ class ActiveSessionsControllerTest < ActionDispatch::IntegrationTest
 
   test "should revoke another session" do
     other_session = @identity.sessions.create!(user_agent: "OtherAgent", ip_address: "1.1.1.1")
-    
+
     # Sign in
     post session_url, params: { email: @identity.email }
     magic_link = @identity.magic_links.last
     post session_magic_link_url, params: { code: magic_link.code }
-    
+
     assert_difference "Session.count", -1 do
       delete active_session_url(other_session, script_name: "/#{@account.slug}")
     end
