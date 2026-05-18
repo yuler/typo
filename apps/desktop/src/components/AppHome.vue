@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { UnlistenFn } from '@tauri-apps/api/event'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import {
   ArrowRight,
   CheckCircleIcon,
   TerminalIcon,
 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { api } from '@/api'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
@@ -25,23 +27,51 @@ const { t } = useI18n()
 const totalCompletions = ref(0)
 const totalSlashCommands = ref(0)
 
-watch(isLoggedIn, async (loggedIn) => {
-  if (loggedIn) {
-    try {
-      const token = await getAuth('access_token')
-      if (token) {
-        const data = await api<{ completions: number, slash_commands: number }>('/api/v1/stats', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        totalCompletions.value = data.completions ?? 0
-        totalSlashCommands.value = data.slash_commands ?? 0
-      }
-    }
-    catch (err) {
-      console.error('Failed to fetch stats', err)
+let isFetchingStats = false
+
+async function fetchStats() {
+  if (!isLoggedIn.value || isFetchingStats)
+    return
+  isFetchingStats = true
+  try {
+    const token = await getAuth('access_token')
+    if (token) {
+      const data = await api<{ completions: number, slash_commands: number }>('/api/v1/stats', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      totalCompletions.value = data.completions ?? 0
+      totalSlashCommands.value = data.slash_commands ?? 0
     }
   }
+  catch (err) {
+    console.error('Failed to fetch stats', err)
+  }
+  finally {
+    isFetchingStats = false
+  }
+}
+
+watch(isLoggedIn, async (loggedIn) => {
+  if (loggedIn) {
+    await fetchStats()
+  }
 }, { immediate: true })
+
+let unlistenFocus: UnlistenFn | undefined
+
+onMounted(async () => {
+  window.addEventListener('focus', fetchStats)
+  unlistenFocus = await getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+    if (focused) {
+      fetchStats()
+    }
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('focus', fetchStats)
+  unlistenFocus?.()
+})
 
 const stats = computed(() => [
   {
