@@ -1,22 +1,20 @@
-<div class="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-  <h1 class="text-2xl font-bold mb-4">Authorize Device</h1>
+<div class="bg-surface p-8 rounded-2xl border shadow-md w-full max-w-md">
+  <h1 class="text-xl font-bold mb-4 text-center">Authorize Device</h1>
 
   <% if @device_authorization %>
-    <p class="mb-4">Do you want to authorize the device with code <strong><%= @device_authorization.user_code %></strong>?</p>
+    <p class="mb-6 leading-relaxed text-center">Do you want to authorize the device with code <strong class="bg-zinc-100 px-2 py-0.5 rounded font-mono"><%= @device_authorization.user_code %></strong>?</p>
 
-    <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch do |f| %>
-      <div class="flex gap-4">
-        <%= f.submit "Approve", name: "decision", value: "approve", class: "px-4 py-2 bg-zinc-900 text-white rounded-md hover:bg-zinc-800" %>
-        <%= f.submit "Deny", name: "decision", value: "deny", class: "px-4 py-2 bg-zinc-100 text-zinc-900 border border-zinc-200 rounded-md hover:bg-zinc-200" %>
-      </div>
+    <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch, class: "flex gap-3" do |f| %>
+      <%= f.submit "Approve", name: "decision", value: "approve", 
+          class: "flex-1 p-2 bg-zinc-900 text-white rounded-md font-medium cursor-pointer" %>
+      <%= f.submit "Deny", name: "decision", value: "deny", 
+          class: "flex-1 p-2 border rounded-md font-medium cursor-pointer hover:bg-zinc-50" %>
     <% end %>
   <% else %>
-    <p class="mb-4">Please enter the authorization code shown on your device:</p>
-    <%= form_with url: device_authorization_path, method: :get, local: true do |f| %>
-      <div class="flex gap-2">
-        <%= f.text_field :user_code, class: "flex-1 px-3 py-2 border rounded-md", placeholder: "ABCD-1234" %>
-        <%= f.submit "Next", class: "px-4 py-2 bg-zinc-900 text-white rounded-md" %>
-      </div>
+    <p class="mb-4 text-muted text-sm text-center">Please enter the authorization code shown on your device:</p>
+    <%= form_with url: device_authorization_path, method: :get, local: true, class: "flex gap-2" do |f| %>
+      <%= f.text_field :user_code, class: "flex-1 p-2 border rounded-md font-mono text-center", placeholder: "ABCD-1234" %>
+      <%= f.submit "Next", class: "px-4 py-2 bg-zinc-900 text-white rounded-md font-medium cursor-pointer" %>
     <% end %>
   <% end %>
 </div>
