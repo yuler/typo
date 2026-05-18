@@ -20,7 +20,7 @@
 
 .btn-primary {
   background-color: var(--color-zinc-900);
-  color: #ffffff;
+  color: var(--color-accent-fg);
 }
 
 .btn-primary:hover {
