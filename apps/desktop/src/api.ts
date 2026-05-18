@@ -6,21 +6,30 @@ export const API_BASE_URL = 'https://app.typo.yuler.cc'
 // TODO: Add switchable local and production api
 // export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:3000' : 'https://app.typo.yuler.cc')
 
-let cachedUserAgent: string | null = null
+let userAgentPromise: Promise<string> | null = null
 
-async function getUserAgent(): Promise<string> {
-  if (cachedUserAgent)
-    return cachedUserAgent
+function getUserAgent(): Promise<string> {
+  if (userAgentPromise)
+    return userAgentPromise
 
-  try {
-    const { os, version } = await invoke<{ os: string, version: string }>('get_system_info')
-    cachedUserAgent = `Typo (${os}; version ${version})`
-  }
-  catch (error) {
-    console.error('failed to get system info for user agent', error)
-    cachedUserAgent = 'Typo (Unknown; version Unknown)'
-  }
-  return cachedUserAgent
+  userAgentPromise = (async () => {
+    try {
+      const { os, version } = await invoke<{ os: string, version: string }>('get_system_info')
+      const platformMap: Record<string, string> = {
+        macos: 'macOS',
+        windows: 'Windows',
+        linux: 'Linux',
+      }
+      const platform = platformMap[os] || os
+      return `Typo (${platform}; version ${version})`
+    }
+    catch (error) {
+      console.error('failed to get system info for user agent', error)
+      return 'Typo (Unknown; version Unknown)'
+    }
+  })()
+
+  return userAgentPromise
 }
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {

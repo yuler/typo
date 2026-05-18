@@ -45,12 +45,7 @@ struct SystemInfo {
 #[tauri::command]
 fn get_system_info(app: tauri::AppHandle) -> SystemInfo {
     SystemInfo {
-        os: match std::env::consts::OS {
-            "macos" => "macOS".to_string(),
-            "windows" => "Windows".to_string(),
-            "linux" => "Linux".to_string(),
-            _ => std::env::consts::OS.to_string(),
-        },
+        os: std::env::consts::OS.to_string(),
         version: app.package_info().version.to_string(),
         is_wayland: in_linux_wayland(),
     }
