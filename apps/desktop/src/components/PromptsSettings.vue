@@ -81,7 +81,7 @@ async function onSubmit() {
               v-model="form.system_prompt"
               autofocus
               :rows="12"
-              class="min-h-[300px] resize-none bg-muted/20"
+              class="min-h-[300px] resize-y bg-muted/20"
               placeholder="You are a helpful assistant..."
             />
           </div>
@@ -142,7 +142,7 @@ async function onSubmit() {
                     :id="`prompt-value-${index}`"
                     v-model="item.value"
                     :rows="4"
-                    class="resize-none bg-muted/20"
+                    class="resize-y bg-muted/20"
                     :placeholder="t('settings.prompts.slash.instruction_placeholder')"
                   />
                 </div>

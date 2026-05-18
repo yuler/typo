@@ -124,8 +124,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
       return
     }
 
-    const msg = typeof err === 'string' ? err : err?.message
-    if (msg?.includes('429') || msg?.includes('Rate limit exceeded')) {
+    const msg = (typeof err === 'string' ? err : err?.message) || ''
+    if (msg.includes('429') || msg.toLowerCase().includes('rate limit exceeded')) {
       errorText.value = t('main.error.rate_limit')
       isRateLimited.value = true
     }

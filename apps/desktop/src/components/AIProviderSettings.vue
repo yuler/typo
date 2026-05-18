@@ -12,7 +12,7 @@ import * as store from '@/stores/settings'
 
 const { t } = useI18n()
 const showApiKey = ref(false)
-const ollamaModels = ref<any[]>([])
+const ollamaModels = ref<store.OllamaModel[]>([])
 
 const form = ref({
   ai_provider: 'typo' as store.AI_PROVIDER,

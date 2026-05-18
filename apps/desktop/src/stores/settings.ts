@@ -151,7 +151,14 @@ export async function existOllamaServer(): Promise<boolean> {
   }
 }
 
-export async function getOllamaModels(): Promise<any[]> {
+export interface OllamaModel {
+  name: string
+  details?: {
+    parameter_size?: string
+  }
+}
+
+export async function getOllamaModels(): Promise<OllamaModel[]> {
   try {
     const response = await fetch(`${OLLAMA_SERVER_URL}/api/tags`)
     const { models } = await response.json()
