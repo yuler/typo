@@ -44,7 +44,8 @@ en:
       welcome_back: "Welcome back, %{name}"
       logout: "Logout"
       total_refinements: "Total Refinements"
-      active_prompts: "Active Prompts"
+      slash_prompts: "Slash prompts"
+      coming_soon: "Coming soon"
       my_sessions: "My Sessions"
       manage_sessions: "Manage sessions"
   onboardings:

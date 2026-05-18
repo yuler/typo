@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_05_15_000002) do
+ActiveRecord::Schema[8.2].define(version: 2026_05_18_000000) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -19,6 +19,22 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_15_000002) do
     t.string "slug", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_accounts_on_slug", unique: true
+  end
+
+  create_table "completions", id: :uuid, force: :cascade do |t|
+    t.uuid "account_id"
+    t.datetime "created_at", null: false
+    t.integer "duration_ms"
+    t.text "input"
+    t.string "model"
+    t.text "output"
+    t.text "prompt"
+    t.string "status", default: "success", null: false
+    t.json "tokens"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id"
+    t.index ["account_id"], name: "index_completions_on_account_id"
+    t.index ["user_id"], name: "index_completions_on_user_id"
   end
 
   create_table "device_authorizations", id: :uuid, force: :cascade do |t|

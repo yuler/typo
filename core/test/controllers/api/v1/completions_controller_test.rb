@@ -1,10 +1,14 @@
 require "test_helper"
 
 class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+
   setup do
     Rails.cache.clear
     @original_perform = Ai::Completion.instance_method(:perform)
-    Ai::Completion.define_method(:perform) { "__success__" }
+    Ai::Completion.define_method(:perform) do
+      Ai::Result.new("__success__", { "total" => 10 }, "test-model", 100, "success")
+    end
   end
 
   teardown do
@@ -49,5 +53,52 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
       post api_v1_completions_url, params: { text: "some text" }, headers: { "Authorization" => "Bearer #{token}" }, as: :json
       assert_response :success
     end
+  end
+
+  test "creates a Completion record for authenticated users" do
+    account = Account.create!(name: "Personal", personal: true)
+    identity = Identity.create!(email: "test@example.com")
+    identity.users.create!(account: account, role: :owner, name: "Test User")
+    token = identity.signed_id(purpose: :api_token)
+
+    assert_enqueued_with(job: CompletionPersistenceJob) do
+      post api_v1_completions_url,
+           params: { text: "persist me" },
+           headers: { "Authorization" => "Bearer #{token}" },
+           as: :json
+    end
+    assert_response :success
+
+    completion = Completion.last
+    assert_equal account, completion.account
+    assert_equal "persist me", completion.input
+    assert_equal "pending", completion.status
+
+    perform_enqueued_jobs
+
+    completion.reload
+    assert_equal "__success__", completion.output
+    assert_equal "success", completion.status
+  end
+
+  test "creates a Completion record for anonymous users" do
+    assert_enqueued_with(job: CompletionPersistenceJob) do
+      post api_v1_completions_url,
+           params: { text: "anonymous text" },
+           as: :json
+    end
+    assert_response :success
+
+    completion = Completion.last
+    assert_nil completion.account
+    assert_nil completion.user
+    assert_equal "anonymous text", completion.input
+    assert_equal "pending", completion.status
+
+    perform_enqueued_jobs
+
+    completion.reload
+    assert_equal "__success__", completion.output
+    assert_equal "success", completion.status
   end
 end
