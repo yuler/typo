@@ -3,6 +3,7 @@ class Api::V1::StatsController < Api::V1::BaseController
     completions_count = Current.user.completions.count
     render json: {
       completions: completions_count,
+      # TODO: Current is saved in the desktop client. Consider persisting it on the server.
       slash_commands: 0
     }
   end
