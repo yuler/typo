@@ -1,4 +1,6 @@
 class My::SessionsController < ApplicationController
+  skip_account_scope
+
   def index
     @sessions = Current.identity.sessions.order(created_at: :desc)
   end
@@ -14,9 +16,4 @@ class My::SessionsController < ApplicationController
       redirect_to my_sessions_path, notice: t(".revoked")
     end
   end
-
-  private
-    def require_account
-      # Global sessions management does not require an account scope
-    end
 end
