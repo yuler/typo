@@ -1,10 +1,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { fetch } from '@tauri-apps/plugin-http'
 
-export const API_BASE_URL = 'https://app.typo.yuler.cc'
-
-// TODO: Add switchable local and production api
-// export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:3000' : 'https://app.typo.yuler.cc')
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.typo.yuler.cc'
 
 let userAgentPromise: Promise<string> | null = null
 
