@@ -1,3 +1,5 @@
 @import "base/variables.css";
 @import "base/reset.css";
 @import "base/utilities.css";
+@import "components/buttons.css";
+@import "components/forms.css";
