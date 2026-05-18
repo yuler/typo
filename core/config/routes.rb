@@ -6,6 +6,9 @@ Rails.application.routes.draw do
       resource :menu
     end
   end
+  namespace :my do
+    resources :sessions, only: [ :index, :destroy ]
+  end
 
   resource :onboarding, only: %i[ new create ]
   resource :device, only: [] do
@@ -35,6 +38,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
+      resource :session, only: :destroy
 
       resource :device, only: [] do
         scope module: :devices do

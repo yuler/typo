@@ -3,7 +3,7 @@
   <%= button_to t(".logout"), logout_url, method: :delete, class: "btn btn-secondary btn-sm" %>
 </div>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-2 gap-4 mb-8">
   <div class="p-6 border rounded-xl">
     <div class="text-xs text-muted uppercase mb-2"><%= t(".total_refinements") %></div>
     <div class="text-3xl font-bold">0</div>
@@ -12,4 +12,14 @@
     <div class="text-xs text-muted uppercase mb-2"><%= t(".active_prompts") %></div>
     <div class="text-3xl font-bold">5</div>
   </div>
+</div>
+
+<div class="mt-8">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold"><%= t(".my_sessions") %></h2>
+    <%= link_to t(".manage_sessions"), my_sessions_path, class: "text-sm text-muted" %>
+  </div>
+  <%= turbo_frame_tag "sessions", class: "flex flex-col gap-4" do %>
+    <%= render partial: "my/sessions/session", collection: @sessions %>
+  <% end %>
 </div>
