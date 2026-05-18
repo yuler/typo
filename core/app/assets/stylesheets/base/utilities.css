@@ -70,7 +70,7 @@
 .w-6 { width: 1.5rem; }
 .rounded-full { border-radius: 9999px; }
 .rounded-sm { border-radius: 2px; }
-.bg-red-500 { background-color: #ef4444; }
+.bg-red-500 { background-color: var(--color-red-500); }
 .grid { display: grid; }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .w-64 { width: 16rem; }
