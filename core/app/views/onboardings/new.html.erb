@@ -18,7 +18,7 @@
       <%= form.label :username, class: "label" %>
       <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", 
           class: "input", placeholder: t(".username_placeholder") %>
-      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<%= @signup.username.presence || "username" %></p>
+      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<%= @signup.username.presence || t(".username_fallback") %></p>
     </div>
 
     <div class="form-group text-left">

@@ -5,7 +5,7 @@
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: var(--color-fg);
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: border-color 0.2s, box-shadow 0.2s;

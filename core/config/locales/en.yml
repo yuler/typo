@@ -52,11 +52,13 @@ en:
       username_placeholder: "your-username"
       nickname_placeholder: "Display name"
       nickname_hint: "This is how others will see you"
+      username_fallback: "username"
       submit: "Create Account"
   sessions:
     new:
       title: "Sign in to Typo"
       subtitle: "Enter your email to receive a verification code."
+      email_placeholder: "email@example.com"
       submit: "Continue"
     magic_links:
       show:
