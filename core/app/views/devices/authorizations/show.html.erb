@@ -1,10 +1,10 @@
-<div class="bg-surface p-8 rounded-2xl border shadow-md w-full max-w-md">
+<div class="bg-surface p-10 rounded-2xl border shadow-md w-full max-w-md">
   <h1 class="text-xl font-bold mb-4 text-center">Authorize Device</h1>
 
   <% if @device_authorization %>
-    <p class="mb-6 leading-relaxed text-center">Do you want to authorize the device with code <strong class="bg-zinc-100 px-2 py-0.5 rounded font-mono"><%= @device_authorization.user_code %></strong>?</p>
+    <p class="mb-8 leading-relaxed text-center">Do you want to authorize the device with code <strong class="bg-zinc-100 px-2 py-0.5 rounded font-mono"><%= @device_authorization.user_code %></strong>?</p>
 
-    <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch, class: "flex gap-3" do |f| %>
+    <%= form_with url: device_authorization_path(user_code: @device_authorization.user_code), method: :patch, class: "flex gap-4" do |f| %>
       <%= f.submit "Approve", name: "decision", value: "approve", class: "btn btn-primary flex-1" %>
       <%= f.submit "Deny", name: "decision", value: "deny", class: "btn btn-secondary flex-1" %>
     <% end %>
