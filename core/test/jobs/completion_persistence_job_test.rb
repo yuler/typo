@@ -21,7 +21,7 @@ class CompletionPersistenceJobTest < ActiveJob::TestCase
 
   test "logs error on invalid attributes" do
     attributes = { input: nil }
-    
+
     assert_no_difference "Completion.count" do
       # Should not raise error but log it
       CompletionPersistenceJob.perform_now(attributes)
