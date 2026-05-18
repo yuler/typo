@@ -11,11 +11,11 @@ class Api::V1::CompletionsController < Api::V1::BaseController
     if authenticated?
       account = Current.account || Current.identity.personal_account
       if account
-        Completion.create!(
-          account: account,
-          user: Current.user || Current.identity.users.find_by(account: account),
+        CompletionPersistenceJob.perform_later(
+          account_id: account.id,
+          user_id: Current.user&.id || Current.identity.users.find_by(account: account)&.id,
           prompt: @completion.prompt,
-          input: params[:text],
+          input: @completion.text,
           output: result.content,
           model: result.model_id,
           tokens: result.tokens,

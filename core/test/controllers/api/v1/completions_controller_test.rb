@@ -1,6 +1,8 @@
 require "test_helper"
 
 class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+
   setup do
     Rails.cache.clear
     @original_perform = Ai::Completion.instance_method(:perform)
@@ -59,13 +61,15 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     identity.users.create!(account: account, role: :owner, name: "Test User")
     token = identity.signed_id(purpose: :api_token)
 
-    assert_difference "Completion.count", 1 do
+    assert_enqueued_with(job: CompletionPersistenceJob) do
       post api_v1_completions_url,
            params: { text: "persist me" },
            headers: { "Authorization" => "Bearer #{token}" },
            as: :json
     end
     assert_response :success
+
+    perform_enqueued_jobs
 
     completion = Completion.last
     assert_equal account, completion.account
