@@ -1,0 +1,24 @@
+<h1>Active Sessions</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Device/Browser</th>
+      <th>IP Address</th>
+      <th>Created</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @sessions.each do |session| %>
+      <tr>
+        <td><%= session.user_agent %></td>
+        <td><%= session.ip_address %></td>
+        <td><%= time_ago_in_words(session.created_at) %> ago</td>
+        <td>
+          <%= button_to "Revoke", active_session_path(session), method: :delete, data: { confirm: "Are you sure?" } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

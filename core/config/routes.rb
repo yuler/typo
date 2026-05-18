@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       resource :menu
     end
   end
+  resources :active_sessions, only: [ :index, :destroy ]
 
   resource :onboarding, only: %i[ new create ]
   resource :device, only: [] do
