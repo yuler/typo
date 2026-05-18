@@ -1,5 +1,5 @@
 <div class="bg-surface p-10 rounded-xl border shadow-sm w-full max-w-sm text-center">
-  <h1 class="text-xl font-bold mb-2">Create your account</h1>
+  <h1 class="text-xl font-bold mb-2"><%= t(".title") %></h1>
   <p class="text-muted text-sm mb-6">Complete your profile to get started.</p>
 
   <%= form_with model: @signup, url: onboarding_path, class: "flex flex-col gap-4 text-left" do |form| %>
