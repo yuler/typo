@@ -191,7 +191,7 @@ onMounted(async () => {
   form.value.copy_result = copyResult
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
 
-  const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
   if (!isMounted)
     return
   isMacOS.value = systemInfo.os === 'macos'
