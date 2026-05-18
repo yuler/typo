@@ -1,0 +1,17 @@
+<div class="p-6 border rounded-xl bg-surface flex items-end justify-between gap-4 shadow-sm relative">
+  <% if session == Current.session %>
+    <span class="absolute top-2 right-2 bg-zinc-900 text-white px-2 py-0.5 rounded-full text-xs font-medium"><%= t(".current") %></span>
+  <% end %>
+  <div class="flex flex-col gap-1 <%= 'pt-2' if session == Current.session %>">
+    <div class="font-bold text-base" title="<%= session.user_agent %>"><%= session.user_agent_summary %></div>
+    <div class="text-sm text-muted mt-1">
+      <span class="bg-zinc-100 px-2 py-0.5 rounded-md text-xs font-mono uppercase"><%= session.kind %></span>
+      <%= t(".ip", ip: session.ip_address) %> • <%= t(".time_ago", time: time_ago_in_words(session.created_at)) %>
+    </div>
+  </div>
+  <div>
+    <% unless session == Current.session %>
+      <%= button_to t(".revoke"), my_session_path(session), method: :delete, data: { confirm: t(".confirm_revoke") }, class: "btn btn-secondary btn-sm" %>
+    <% end %>
+  </div>
+</div>

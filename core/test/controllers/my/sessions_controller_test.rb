@@ -21,7 +21,7 @@ class My::SessionsControllerTest < ActionDispatch::IntegrationTest
     # 3. Access sessions with account slug
     get my_sessions_url(script_name: "/#{@account.slug}")
     assert_response :success
-    assert_select "h1", "Active Sessions"
+    assert_select "h1", "My Sessions"
   end
 
   test "should redirect to login when not signed in" do

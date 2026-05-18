@@ -1,0 +1,44 @@
+.flash {
+  position: fixed;
+  top: var(--space-6, 1.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+  animation: flash-appear-and-fade 4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.flash__inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem) var(--space-6, 1.5rem);
+  background-color: var(--color-zinc-900, #18181b);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-xl, 14px);
+  border: 1px solid var(--color-zinc-800, #27272a);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes flash-appear-and-fade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -1rem) scale(0.95);
+  }
+  8% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  92% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -1rem) scale(0.95);
+  }
+}
