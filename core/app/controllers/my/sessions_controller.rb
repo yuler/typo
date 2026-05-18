@@ -1,5 +1,5 @@
 class My::SessionsController < ApplicationController
-  skip_account_scope
+  disallow_account_scope
 
   def index
     @sessions = Current.identity.sessions.order(created_at: :desc)
