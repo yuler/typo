@@ -5,20 +5,20 @@ class Session < ApplicationRecord
     return "Unknown Device" if user_agent.blank?
 
     os = case user_agent
-         when /Macintosh|Mac OS X/i then "macOS"
-         when /Windows/i then "Windows"
-         when /Linux/i then "Linux"
-         when /iPhone/i then "iPhone"
-         when /iPad/i then "iPad"
-         when /Android/i then "Android"
+    when /Macintosh|Mac OS X/i then "macOS"
+    when /Windows/i then "Windows"
+    when /Linux/i then "Linux"
+    when /iPhone/i then "iPhone"
+    when /iPad/i then "iPad"
+    when /Android/i then "Android"
     end
 
     client = case user_agent
-             when /Typo/i then "Typo Client"
-             when /Edg/i then "Edge"
-             when /Chrome/i then "Chrome"
-             when /Firefox/i then "Firefox"
-             when /Safari/i then "Safari"
+    when /Typo/i then "Typo Client"
+    when /Edg/i then "Edge"
+    when /Chrome/i then "Chrome"
+    when /Firefox/i then "Firefox"
+    when /Safari/i then "Safari"
     end
 
     if client && os
