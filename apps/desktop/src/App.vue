@@ -54,7 +54,7 @@ onUnmounted(() => {
     <div v-else class="flex items-center justify-center h-full text-white">
       Unknown window label: {{ currentLabel }}
     </div>
-    <Toaster expand rich-colors position="bottom-right" />
+    <Toaster position="top-right" />
   </main>
 </template>
 
