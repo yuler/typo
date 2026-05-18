@@ -18,14 +18,14 @@ class My::SessionsControllerTest < ActionDispatch::IntegrationTest
     post session_magic_link_url, params: { code: magic_link.code }
     assert_response :redirect
 
-    # 3. Access sessions with account slug
-    get my_sessions_url(script_name: "/#{@account.slug}")
+    # 3. Access sessions without account slug
+    get my_sessions_url(script_name: nil)
     assert_response :success
     assert_select "h1", "My Sessions"
   end
 
   test "should redirect to login when not signed in" do
-    get my_sessions_url(script_name: "/#{@account.slug}")
+    get my_sessions_url(script_name: nil)
     assert_redirected_to new_session_path(script_name: nil)
   end
 
@@ -38,9 +38,9 @@ class My::SessionsControllerTest < ActionDispatch::IntegrationTest
     post session_magic_link_url, params: { code: magic_link.code }
 
     assert_difference "Session.count", -1 do
-      delete my_session_url(other_session, script_name: "/#{@account.slug}")
+      delete my_session_url(other_session, script_name: nil)
     end
-    assert_redirected_to my_sessions_path(script_name: "/#{@account.slug}")
+    assert_redirected_to my_sessions_path(script_name: nil)
     assert_equal "Session revoked.", flash[:notice]
   end
 
@@ -52,7 +52,7 @@ class My::SessionsControllerTest < ActionDispatch::IntegrationTest
     current_session = @identity.sessions.order(:created_at).last
 
     assert_difference "Session.count", -1 do
-      delete my_session_url(current_session, script_name: "/#{@account.slug}")
+      delete my_session_url(current_session, script_name: nil)
     end
     assert_redirected_to new_session_path(script_name: nil)
     assert_equal "Session revoked.", flash[:notice]

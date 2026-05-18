@@ -1,4 +1,4 @@
-<div class="p-6 border rounded-xl bg-surface flex items-end justify-between gap-4 shadow-sm relative">
+<%= tag.div id: dom_id(session), class: "p-6 border rounded-xl bg-surface flex items-end justify-between gap-4 shadow-sm relative" do %>
   <% if session == Current.session %>
     <span class="absolute top-2 right-2 bg-zinc-900 text-white px-2 py-0.5 rounded-full text-xs font-medium"><%= t(".current") %></span>
   <% end %>
@@ -14,4 +14,4 @@
       <%= button_to t(".revoke"), my_session_path(session, script_name: nil), method: :delete, form: { data: { turbo_confirm: t(".confirm_revoke") } }, class: "btn btn-secondary btn-sm" %>
     <% end %>
   </div>
-</div>
+<% end %>
