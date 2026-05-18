@@ -1,29 +1,33 @@
-<% @page_title = "Welcome to Typo" %>
+<div class="bg-surface p-6 rounded-xl border shadow-sm w-full max-w-sm text-center">
+  <h1 class="text-xl font-bold mb-2">Create your account</h1>
+  <p class="text-muted text-sm mb-6">Complete your profile to get started.</p>
 
-<h1>Create your account</h1>
+  <%= form_with model: @signup, url: onboarding_path, class: "flex flex-col gap-4 text-left" do |form| %>
+    <% if @signup.errors.any? %>
+      <div id="error_explanation" class="p-3 bg-red-50 text-red-500 text-sm rounded-md mb-2">
+        <ul class="list-none">
+          <% @signup.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
 
-<%= form_with model: @signup, url: onboarding_path do |form| %>
-  <% if @signup.errors.any? %>
-    <div id="error_explanation">
-      <ul>
-        <% @signup.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+    <div class="flex flex-col gap-1">
+      <%= form.label :username, class: "text-xs font-bold uppercase text-muted" %>
+      <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", 
+          class: "p-2 border rounded-md w-full", placeholder: "your-username" %>
+      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<%= @signup.username.presence || "username" %></p>
     </div>
+
+    <div class="flex flex-col gap-1">
+      <%= form.label :nickname, class: "text-xs font-bold uppercase text-muted" %>
+      <%= form.text_field :nickname, required: true, placeholder: "Display name",
+          class: "p-2 border rounded-md w-full" %>
+      <p class="text-xs text-muted mt-1">This is how others will see you</p>
+    </div>
+
+    <%= form.submit "Create Account", 
+        class: "p-2 bg-zinc-900 text-white rounded-md font-medium cursor-pointer mt-2" %>
   <% end %>
-
-  <div>
-    <%= form.label :username %>
-    <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", placeholder: "your-username" %>
-    <p><small><%= request.host_with_port %>/<%= @signup.username.presence || "username" %></small></p>
-  </div>
-
-  <div>
-    <%= form.label :nickname %>
-    <%= form.text_field :nickname, required: true, placeholder: "Display name" %>
-    <p><small>This is how others will see you</small></p>
-  </div>
-
-  <%= form.submit "Create Account" %>
-<% end %>
+</div>
