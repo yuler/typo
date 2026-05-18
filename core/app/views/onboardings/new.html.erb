@@ -1,29 +1,34 @@
-<% @page_title = "Welcome to Typo" %>
+<% content_for :title, t(".title") %>
+<div class="bg-surface p-10 rounded-xl border shadow-sm w-full max-w-sm text-center">
+  <h1 class="text-xl font-bold mb-2"><%= t(".title") %></h1>
+  <p class="text-muted text-sm mb-6"><%= t(".subtitle") %></p>
 
-<h1>Create your account</h1>
+  <%= form_with model: @signup, url: onboarding_path, class: "flex flex-col gap-4 text-left" do |form| %>
+    <% if @signup.errors.any? %>
+      <div id="error_explanation" class="p-4 bg-red-50 text-red-500 text-sm rounded-md mb-2">
+        <ul class="list-none">
+          <% @signup.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
 
-<%= form_with model: @signup, url: onboarding_path do |form| %>
-  <% if @signup.errors.any? %>
-    <div id="error_explanation">
-      <ul>
-        <% @signup.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+    <div class="form-group text-left" data-controller="input-mirror" data-input-mirror-fallback-value="<%= t(".username_fallback") %>">
+      <%= form.label :username, class: "label" %>
+      <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username",
+          class: "input", placeholder: t(".username_placeholder"),
+          data: { input_mirror_target: "input", action: "input->input-mirror#update" } %>
+      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<span data-input-mirror-target="output"><%= @signup.username.presence || t(".username_fallback") %></span></p>
     </div>
+
+    <div class="form-group text-left">
+      <%= form.label :nickname, class: "label" %>
+      <%= form.text_field :nickname, required: true, placeholder: t(".nickname_placeholder"),
+          class: "input" %>
+      <p class="text-xs text-muted mt-1"><%= t(".nickname_hint") %></p>
+    </div>
+
+    <%= form.submit t(".submit"), class: "btn btn-primary mt-2" %>
   <% end %>
-
-  <div>
-    <%= form.label :username %>
-    <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", placeholder: "your-username" %>
-    <p><small><%= request.host_with_port %>/<%= @signup.username.presence || "username" %></small></p>
-  </div>
-
-  <div>
-    <%= form.label :nickname %>
-    <%= form.text_field :nickname, required: true, placeholder: "Display name" %>
-    <p><small>This is how others will see you</small></p>
-  </div>
-
-  <%= form.submit "Create Account" %>
-<% end %>
+</div>

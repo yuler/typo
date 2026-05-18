@@ -1,6 +1,8 @@
 class Devices::AuthorizationsController < ApplicationController
   disallow_account_scope
 
+  layout "public"
+
   def show
     @device_authorization = Device::Authorization.find_by(user_code: params[:user_code]) if params[:user_code]
   end
