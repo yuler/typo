@@ -45,6 +45,8 @@ en:
       logout: "Logout"
       total_refinements: "Total Refinements"
       active_prompts: "Active Prompts"
+      my_sessions: "My Sessions"
+      manage_sessions: "Manage sessions"
   onboardings:
     new:
       title: "Create your account"
@@ -66,3 +68,16 @@ en:
         subtitle: "We've sent a 6-character code to your inbox."
         submit: "Verify Code"
         dev_code: "Development Code"
+  my:
+    sessions:
+      index:
+        title: "My Sessions"
+      session:
+        current: "Current"
+        ip: "IP: %{ip}"
+        time_ago: "%{time} ago"
+        revoke: "Revoke"
+        confirm_revoke: "Are you sure?"
+      destroy:
+        revoked: "Session revoked."
+
