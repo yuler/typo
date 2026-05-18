@@ -42,9 +42,9 @@ module Ai
         .with_params(thinking: { type: "disabled" }, stream: false)
       # Note: I will test it later.
       # .with_params(  thinking: { type: "enabled" }, reasoning_effort: "high" )
-      response = chat.with_instructions(@prompt).ask("###\n#{@text}\n###")
+      response = chat.with_instructions(prompt).ask("###\n#{text}\n###")
 
-      Rails.logger.info({ model: chat.model.id, prompt: @prompt, text: @text, output: response.content, tokens: response.tokens, cost: response.cost&.total }.to_json)
+      Rails.logger.info({ model: chat.model.id, prompt: prompt, text: text, output: response.content, tokens: response.tokens, cost: response.cost&.total }.to_json)
 
       response.content
     end

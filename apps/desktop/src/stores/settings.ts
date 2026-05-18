@@ -2,6 +2,7 @@ import type { Locale } from '@typo/languages'
 import { LazyStore } from '@tauri-apps/plugin-store'
 import { defaultLocale } from '@typo/languages'
 import { logger } from '@/logger'
+import { saveAuth, setAuth } from './auth'
 
 export const SYSTEM_PROMPT = `
 You are an expert English writing and translation assistant with native-level proficiency.
@@ -34,7 +35,7 @@ The text to improve will be provided in the user message between ### markers:
 ###
 `.trim()
 
-export type AI_PROVIDER = 'deepseek' | 'ollama'
+export type AI_PROVIDER = 'typo' | 'deepseek' | 'ollama'
 
 export interface SlashCommand {
   id?: string
@@ -54,7 +55,8 @@ export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
 
 const DEFAULT_STORE = {
   autoselect: false,
-  ai_provider: 'deepseek' as AI_PROVIDER,
+  copy_result: false,
+  ai_provider: 'typo' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',
   ollama_model: '',
@@ -63,13 +65,61 @@ const DEFAULT_STORE = {
   locale: defaultLocale satisfies Locale,
 }
 
-const store = new LazyStore('store.json', {
+const store = new LazyStore('settings.json', {
   autoSave: false,
   defaults: DEFAULT_STORE,
 })
 
+const legacyStore = new LazyStore('store.json', { autoSave: false, defaults: {} })
+
+/**
+ * Backward compatibility migration for legacy `store.json`.
+ * Automatically moves credentials to `auth.json` and preferences to `settings.json`.
+ * TODO: Remove in the next major release (v2.0) once legacy migration is fully transitioned.
+ */
+async function migrateLegacyStore() {
+  try {
+    const keys = await legacyStore.keys()
+    if (keys.length > 0) {
+      logger.info('store', 'Migrating legacy store.json data to settings.json and auth.json')
+
+      if (await legacyStore.has('access_token')) {
+        const token = await legacyStore.get<string>('access_token')
+        if (token) {
+          await setAuth('access_token', token)
+        }
+      }
+      if (await legacyStore.has('user_info')) {
+        const userInfo = await legacyStore.get<any>('user_info')
+        if (userInfo?.email) {
+          await setAuth('email', userInfo.email)
+        }
+      }
+      await saveAuth()
+
+      for (const key of Object.keys(DEFAULT_STORE)) {
+        if (await legacyStore.has(key)) {
+          const val = await legacyStore.get(key)
+          if (val !== undefined) {
+            await store.set(key, val)
+          }
+        }
+      }
+      await store.save()
+
+      await legacyStore.clear()
+      await legacyStore.save()
+      logger.info('store', 'Legacy store migration successfully completed')
+    }
+  }
+  catch (err) {
+    logger.error('store', 'Failed to migrate legacy store', err)
+  }
+}
+
 // only set default when key not exists
 export async function initializeStore() {
+  await migrateLegacyStore()
   for (const [key, value] of Object.entries(DEFAULT_STORE)) {
     if (!(await store.has(key))) {
       await store.set(key, value)
@@ -101,7 +151,14 @@ export async function existOllamaServer(): Promise<boolean> {
   }
 }
 
-export async function getOllamaModels(): Promise<any[]> {
+export interface OllamaModel {
+  name: string
+  details?: {
+    parameter_size?: string
+  }
+}
+
+export async function getOllamaModels(): Promise<OllamaModel[]> {
   try {
     const response = await fetch(`${OLLAMA_SERVER_URL}/api/tags`)
     const { models } = await response.json()

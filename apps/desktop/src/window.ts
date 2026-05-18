@@ -12,7 +12,6 @@ const WINDOW_BOTTOM_OFFSET = 20
 const STORAGE_MAIN_WINDOW_X = 'typo_main_window_x'
 const STORAGE_MAIN_WINDOW_Y = 'typo_main_window_y'
 
-// TODO: abstract this
 function saveMainWindowPos(pos: LogicalPosition) {
   localStorage.setItem(STORAGE_MAIN_WINDOW_X, pos.x.toString())
   localStorage.setItem(STORAGE_MAIN_WINDOW_Y, pos.y.toString())
@@ -27,9 +26,19 @@ function getMainWindowPos(): LogicalPosition | null {
   return null
 }
 
-export async function initializeWindow() {
+export async function initializeWindow(show = true) {
   logger.info('window', 'initializeWindow')
   const appWindow = getCurrentWindow()
+
+  if (appWindow.label === 'main') {
+    await setupMainWindow()
+    if (show) {
+      await appWindow.show()
+      await appWindow.center()
+    }
+    return
+  }
+
   await appWindow?.setAlwaysOnTop(true)
   await appWindow?.setVisibleOnAllWorkspaces(true)
 
@@ -73,24 +82,23 @@ export async function initializeWindow() {
     }
   })
 
-  await appWindow.show()
+  if (show) {
+    await appWindow.show()
+  }
 }
 
-export const MAIN_WINDOW_WIDTH = 300
-export const MAIN_WINDOW_HEIGHT = 56
+export const MAIN_WINDOW_WIDTH = 1200
+export const MAIN_WINDOW_HEIGHT = 800
 export async function setupMainWindow() {
-  logger.info('window', 'setupMainWindow')
   const appWindow = getCurrentWindow()
+  if (appWindow.label !== 'main')
+    return
+
+  logger.info('window', 'setupMainWindow')
   const size = new LogicalSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
   await appWindow.setSize(size)
-  await appWindow.setMinSize(size)
-  await appWindow.setMaxSize(size)
-
-  const savedPos = getMainWindowPos()
-  if (savedPos) {
-    await sleep(50)
-    await appWindow.setPosition(savedPos)
-  }
+  await appWindow.setMinSize(new LogicalSize(800, 600))
+  await appWindow.setMaxSize(null)
 }
 
 export const SETTINGS_WINDOW_WIDTH = 600

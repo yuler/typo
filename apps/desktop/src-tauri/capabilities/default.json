@@ -3,7 +3,9 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": [
-    "main"
+    "main",
+    "indicator",
+    "upgrade"
   ],
   "permissions": [
     "core:default",
@@ -32,6 +34,16 @@
     "notification:default",
     "process:default",
     "process:allow-restart",
-    "log:default"
+    "log:default",
+    "autostart:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://*.typo.yuler.cc" },
+        { "url": "https://*.typo.yuler.cc/*" },
+        { "url": "https://*.typo.yuler.cc/**" },
+        { "url": "http://localhost:3000" }
+      ]
+    }
   ]
 }

@@ -27,4 +27,8 @@ class Identity < ApplicationRecord
   def personal_account
     accounts.find_by(personal: true)
   end
+
+  def display_name
+    email&.split("@")&.first
+  end
 end

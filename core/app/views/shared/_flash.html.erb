@@ -1,5 +1,6 @@
 <%= turbo_frame_tag :flash do %>
-  <% if notice = flash[:notice] || flash[:alert] %>
+  <% notice ||= flash[:notice] || flash[:alert] %>
+  <% if notice %>
     <div class="flash" data-controller="element-removal" data-action="animationend->element-removal#remove">
       <div class="flash__inner shadow">
         <%= notice %>

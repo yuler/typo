@@ -2,10 +2,10 @@ import { invoke } from '@tauri-apps/api/core'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
 import { logger } from '@/logger'
-import { DEFAULT_GLOBAL_SHORTCUT, get } from './store'
+import { DEFAULT_GLOBAL_SHORTCUT, get } from './stores/settings'
 
-async function handleShortcut() {
-  logger.info('shortcut', 'handleShortcut')
+async function onShortcut() {
+  logger.info('shortcut', 'onShortcut')
   const selectedText = (await invoke('get_selected_text')) as string
   let payload: { text: string, mode: string } | null = null
 
@@ -20,14 +20,20 @@ async function handleShortcut() {
     }
   }
 
-  if (payload) {
-    const appWindow = WebviewWindow.getCurrent()
-    await appWindow?.show()
-    // await appWindow?.setFocus()
+  // Always show the indicator window
+  await invoke('open_indicator_window')
 
-    await invoke('set_pending_selection_input', { payload })
-    logger.info('shortcut', 'emit set-input', payload)
-    await appWindow?.emit('set-input', payload)
+  const indicatorWindow = await WebviewWindow.getByLabel('indicator')
+  if (indicatorWindow) {
+    if (payload) {
+      await invoke('set_pending_selection_input', { payload })
+      logger.info('shortcut', 'emit set-input to indicator', payload)
+      await indicatorWindow.emit('set-input', payload)
+    }
+    else {
+      // Just show it if no payload
+      await indicatorWindow.show()
+    }
   }
 }
 
@@ -61,7 +67,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
     await register(shortcutToRegister, (event) => {
       logger.debug('shortcut', 'event', event)
       if (event.state === 'Released')
-        handleShortcut()
+        onShortcut()
     })
     logger.info('shortcut', 'registered', shortcutToRegister)
     return shortcutToRegister
@@ -73,7 +79,7 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
       try {
         await register(DEFAULT_GLOBAL_SHORTCUT, (event) => {
           if (event.state === 'Released')
-            handleShortcut()
+            onShortcut()
         })
         return DEFAULT_GLOBAL_SHORTCUT
       }

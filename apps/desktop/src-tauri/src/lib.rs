@@ -5,10 +5,12 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
 use std::sync::{Mutex, OnceLock};
 
+mod autostart;
 mod cli;
 mod keyboard;
 mod logging;
 mod tray;
+mod windows;
 
 #[cfg(target_os = "macos")]
 use macos_accessibility_client;
@@ -188,7 +190,9 @@ pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .plugin(logging::log_plugin_builder().build())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -206,6 +210,8 @@ pub fn run() {
         }))
         .setup(move |app| {
             log::info!("in_linux_wayland={}", in_linux_wayland());
+            windows::create_main_window(&app.handle());
+            windows::create_indicator_window(&app.handle(), false);
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
@@ -219,6 +225,11 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             request_mac_accessibility_permissions,
+            autostart::cleanup_legacy_macos_login_item,
+            autostart::ensure_legacy_macos_login_item,
+            autostart::is_legacy_macos_login_item_enabled,
+            autostart::is_autostart_enabled,
+            autostart::set_autostart,
             get_system_info,
             get_selected_text,
             set_pending_selection_input,
@@ -227,6 +238,8 @@ pub fn run() {
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
             tray::update_tray_menu,
+            windows::open_upgrade_window,
+            windows::open_indicator_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

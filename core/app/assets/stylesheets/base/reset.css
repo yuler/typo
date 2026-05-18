@@ -1,0 +1,22 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-fg);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+input, button, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}

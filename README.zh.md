@@ -53,6 +53,14 @@ pnpm desktop:dev
 2. **按下** `Ctrl/Cmd + Shift + X` 激活应用程序。
 3. **等待** AI 响应，让它自动替换所选内容。
 
+## 认证
+
+typo 使用 **OAuth 2.0 设备授权许可** ([RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628)) 流程进行桌面端登录。
+
+1. **发起**: 在桌面应用中点击 **登录 (Login)**。它将显示一个用户代码并打开您的默认浏览器。
+2. **授权**: 在浏览器中登录您的账户并输入/确认代码。
+3. **成功**: 桌面应用将自动检测到授权通过并建立安全的会话。
+
 ## 工作原理
 
 1. **捕获**: 获取当前选中的文本。
@@ -184,6 +192,22 @@ Exec=/usr/bin/ydotoold
 # 强制 VS Code 使用 X11
 code --ozone-platform=x11
 ```
+
+#### 4. 系统托盘支持
+
+在 Wayland/GNOME 环境下（如 Ubuntu 24.04 或 Omakub），系统托盘图标可能默认不会显示。
+
+1. **安装必要库**:
+   ```bash
+   sudo apt update
+   sudo apt install libayatana-appindicator3-dev libayatana-appindicator3-1
+   ```
+2. **启用 GNOME 扩展**:
+   安装 AppIndicator 扩展：
+   ```bash
+   sudo apt install gnome-shell-extension-appindicator
+   ```
+   打开 **Extensions (扩展)** 应用，确保 **Ubuntu AppIndicators** 或 **AppIndicator and KStatusNotifierItem Support** 处于 **开启 (ON)** 状态。
 
 ### Ollama
 

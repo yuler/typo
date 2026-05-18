@@ -53,6 +53,14 @@ pnpm desktop:dev
 2. **Press** `Ctrl/Cmd + Shift + X` to activate the application.
 3. **Wait** for the AI response and let it replace the selected content automatically.
 
+## Authentication
+
+typo uses the **OAuth 2.0 Device Authorization Grant** ([RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628)) flow for desktop login.
+
+1. **Initiate**: Click **Login** in the desktop app. It will display a user code and open your default browser.
+2. **Authorize**: Log in to your account in the browser and enter/confirm the code.
+3. **Success**: The desktop app will automatically detect the approval and establish a secure session.
+
 ## How it works
 
 1. **Capture**: Gets the currently selected text.
@@ -116,7 +124,7 @@ Add the following content (replace `<$USER>` with your username):
 [Desktop Entry]
 Name=Typo
 Comment=AI-powered text improvement tool
-Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
+Exec=env GDK_BACKEND=x11 /home/<$USER>/Applications/typo.appimage --no-sandbox
 Icon=typo
 Type=Application
 Categories=Utility;TextEditor;
@@ -185,7 +193,28 @@ If selection capture still fails in specific apps (like some Electron apps), run
 code --ozone-platform=x11
 ```
 
+#### 4. System Tray Support
+
+On Wayland/GNOME environments (like Ubuntu 24.04 or Omakub), the system tray icon might be hidden by default.
+
+We recommend using the [Status Tray](https://extensions.gnome.org/extension/9164/status-tray/) GNOME extension to enable system tray support.
+
+#### 5. Autostart Configuration and Testing
+
+You can verify if autostart is correctly configured:
+
+- **macOS**: System Settings -> General -> Login Items.
+- **Linux**: Check if `~/.config/autostart/typo.desktop` exists.
+- **Windows**: Task Manager -> Startup.
+
 ### Ollama
 
 - Ensure Ollama is running (`ollama serve`).
 - See the [Ollama API Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) for more details.
+
+## Release flow
+
+- `pnpm bump` to version and tag the release.
+- `pnpm release:notes` to update the release notes in `latest.json`.
+- `pnpm releases:pull` to `packages/releases`, edit the data, then `pnpm releases:push` to update the marketing website.
+- `pnpm www:deploy` to deploy the www website

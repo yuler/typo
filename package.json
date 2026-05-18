@@ -1,12 +1,13 @@
 {
   "name": "typo",
   "type": "module",
-  "version": "1.2.3",
+  "version": "1.4.0",
   "private": true,
   "packageManager": "pnpm@10.33.0",
   "scripts": {
     "core:dev": "cd core && bin/dev",
     "core:test": "cd core && bin/rails test",
+    "core:test:controller": "cd core && bin/rails test:controllers",
     "core:lint": "cd core && bin/rubocop",
     "core:lint:fix": "cd core && bin/rubocop -A",
     "core:commands": "./scripts/core-commands.sh",

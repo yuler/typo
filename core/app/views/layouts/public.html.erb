@@ -22,9 +22,11 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body class="bg-zinc-50">
     <%= render "shared/flash" %>
 
-    <%= yield %>
+    <main class="flex flex-col items-center justify-center min-height-screen p-4">
+      <%= yield %>
+    </main>
   </body>
 </html>

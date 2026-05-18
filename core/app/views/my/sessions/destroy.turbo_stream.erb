@@ -1,0 +1,5 @@
+<%= turbo_stream.remove dom_id(@session) %>
+
+<%= turbo_stream.update :flash do %>
+  <%= render "shared/flash", notice: t(".revoked") %>
+<% end %>

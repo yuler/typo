@@ -1,4 +1,4 @@
-import type { SlashCommand } from './store'
+import type { SlashCommand } from './stores/settings'
 import { logger } from '@/logger'
 
 export type SlashCommandMap = Record<string, string>

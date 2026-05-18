@@ -1,7 +1,7 @@
 {
   "name": "@typo/desktop",
   "type": "module",
-  "version": "1.2.3",
+  "version": "1.4.0",
   "private": true,
   "scripts": {
     "dev": "tauri dev",
@@ -17,8 +17,10 @@
   "dependencies": {
     "@ai-sdk/deepseek": "^0.2.14",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-autostart": "^2.5.1",
     "@tauri-apps/plugin-clipboard-manager": "~2.3.2",
     "@tauri-apps/plugin-global-shortcut": "~2.3.1",
+    "@tauri-apps/plugin-http": "~2.5.9",
     "@tauri-apps/plugin-log": "~2.8.0",
     "@tauri-apps/plugin-notification": "~2.3.3",
     "@tauri-apps/plugin-opener": "^2",
@@ -32,7 +34,8 @@
     "lucide-vue-next": "^0.516.0",
     "ollama-ai-provider": "^1.2.0",
     "reka-ui": "^2.3.1",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.10",

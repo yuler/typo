@@ -1,143 +1,97 @@
 <script setup lang="ts">
-import type { UnlistenFn } from '@tauri-apps/api/event'
+import type { NavItem } from '@/components/AppSidebar.vue'
 import { invoke } from '@tauri-apps/api/core'
-import { getCurrentWindow } from '@tauri-apps/api/window'
-import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
-import { onMounted, onUnmounted, ref } from 'vue'
-import { deepSeekProcess, ollamaProcess } from '@/ai'
-import Logo from '@/components/Logo.vue'
-import { useGlobalState } from '@/composables/useGlobalState'
+import { listen } from '@tauri-apps/api/event'
+import {
+  HistoryIcon,
+  HomeIcon,
+  MessageSquareIcon,
+  PaletteIcon,
+  Settings2Icon,
+  SparklesIcon,
+} from 'lucide-vue-next'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import AIProviderSettings from '@/components/AIProviderSettings.vue'
+import AppearanceSettings from '@/components/AppearanceSettings.vue'
+import AppHome from '@/components/AppHome.vue'
+import AppSidebar from '@/components/AppSidebar.vue'
+import BasicSettings from '@/components/BasicSettings.vue'
+import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
+import PromptsSettings from '@/components/PromptsSettings.vue'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import { Separator } from '@/components/ui/separator'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
-import { parseSlashCommands, resolveSlashCommand } from '@/slashCommands'
-import { DEFAULT_GLOBAL_SHORTCUT } from '@/store'
-import * as store from '@/store'
-import { formatShortcut, sleep } from '@/utils'
+import { setupGlobalShortcut } from '@/shortcut'
+import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
+import * as store from '@/stores/settings'
+import { sleep } from '@/utils'
+import { initializeWindow } from '@/window'
 
-const appWindow = getCurrentWindow()
-const { setCurrentWindow } = useGlobalState()
 const { t } = useI18n()
-
-type CapsuleState = 'idle' | 'processing' | 'result' | 'error'
-
-const state = ref<CapsuleState>('idle')
-const inputText = ref('')
-const commandName = ref('')
-const resultText = ref('')
-const errorText = ref('')
-const processing = ref(false)
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
-const STATUS_DISPLAY_DURATION_MS = 2500
+const activeTab = ref('main')
 
-let unlistenSetInput: UnlistenFn
-let unlistenTrayToggle: UnlistenFn
+const navItems = computed<NavItem[]>(() => [
+  { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
+  { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
+  { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
+  { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
+  { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
+  { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
+])
 
-interface SetInputPayload {
-  text: string
-  mode: string
-}
+const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))
 
-async function processSetInputPayload(payload: SetInputPayload) {
-  if (processing.value)
-    return
-
-  const { text, mode } = payload
-
-  logger.info('Main', { text, mode })
-
-  if (!text.trim().length) {
-    errorText.value = t('main.error.no_text')
-    state.value = 'error'
-
-    await sleep(STATUS_DISPLAY_DURATION_MS)
-    state.value = 'idle'
-    errorText.value = ''
-    commandName.value = ''
-    await appWindow.hide()
-    return
-  }
-
-  try {
-    state.value = 'processing'
-    processing.value = true
-
-    const [systemPrompt, shortcuts] = await Promise.all([
-      store.get('ai_system_prompt'),
-      store.get('slash_commands'),
-    ])
-
-    const resolved = resolveSlashCommand(
-      text,
-      systemPrompt,
-      parseSlashCommands(shortcuts),
-    )
-
-    inputText.value = resolved.text
-    commandName.value = resolved.command ?? ''
-
-    const output = await fetchCorrection(text, resolved)
-
-    resultText.value = output
-    state.value = 'result'
-
-    // Paste the corrected text back into the original input area
-    await invoke('keyboard_paste_text', { text: output })
-
-    // TODO: add option for this， Copy result to clipboard
-    await writeText(output)
-
-    await sleep(STATUS_DISPLAY_DURATION_MS)
-    if (state.value === 'result') {
-      state.value = 'idle'
-      inputText.value = ''
-      resultText.value = ''
-      commandName.value = ''
-      await appWindow.hide()
-    }
-  }
-  catch (err: any) {
-    if (err.name === 'AbortError') {
-      state.value = 'idle'
-      commandName.value = ''
-      return
-    }
-    errorText.value = err.message || t('main.error.generic')
-    state.value = 'error'
-    await sleep(STATUS_DISPLAY_DURATION_MS)
-    state.value = 'idle'
-    errorText.value = ''
-    commandName.value = ''
-    await appWindow.hide()
-  }
-  finally {
-    processing.value = false
-  }
-}
-
-let unlistenFocus: UnlistenFn
-let suppressBlurHideUntil = 0
-const TRAY_TOGGLE_BLUR_GUARD_MS = 250
+let unlistenOpenSettings: (() => void) | undefined
+let isMounted = true
 
 onMounted(async () => {
-  // Show Settings window if AI key is missing
-  const aiProvider = await store.get('ai_provider')
-  if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
-    await sleep(500)
-    gotoSettings()
+  logger.info('Main', 'onMounted')
+
+  const unlisten = await listen('open-settings', () => {
+    activeTab.value = 'settings'
+  })
+
+  if (!isMounted) {
+    unlisten()
+  }
+  else {
+    unlistenOpenSettings = unlisten
+  }
+
+  await initializeWindow(true)
+  if (!isMounted) {
     return
   }
 
   const systemInfo = await invoke<{ os: string, is_wayland: boolean }>('get_system_info')
+  if (!isMounted) {
+    return
+  }
   isMacOS.value = systemInfo.os === 'macos'
 
   if (isMacOS.value) {
     try {
       const trusted = await invoke('request_mac_accessibility_permissions')
+      if (!isMounted) {
+        return
+      }
       if (!trusted) {
-        errorText.value = t('main.error.accessibility')
-        state.value = 'error'
+        logger.warn('Main', 'accessibility not trusted')
       }
     }
     catch (err) {
@@ -145,150 +99,105 @@ onMounted(async () => {
     }
   }
 
+  if (!isMounted) {
+    return
+  }
   globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
+  if (!isMounted) {
+    return
+  }
 
-  unlistenSetInput = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
-    // Force show and focus when event received
-    await appWindow.show()
-    // TODO: option in settings
-    // await appWindow.setFocus()
-    // Clear pending input since we are processing it now via event
-    await invoke('consume_pending_selection_input')
-    await processSetInputPayload(event.payload)
-  })
+  // Initialize the global shortcut
+  await setupGlobalShortcut()
+  if (!isMounted) {
+    return
+  }
 
-  unlistenTrayToggle = await appWindow.listen('tray:toggle-clicked', () => {
-    suppressBlurHideUntil = Date.now() + TRAY_TOGGLE_BLUR_GUARD_MS
-  })
-
-  unlistenFocus = await appWindow.onFocusChanged(({ payload: focused }) => {
-    if (Date.now() < suppressBlurHideUntil) {
+  // Show Settings window if AI key is missing
+  const aiProvider = await store.get('ai_provider')
+  if (!isMounted) {
+    return
+  }
+  if (aiProvider === 'deepseek' && (await store.get('deepseek_api_key')) === '') {
+    if (!isMounted) {
       return
     }
-    if (!focused && state.value !== 'processing') {
-      appWindow.hide()
+    await sleep(500)
+    if (!isMounted) {
+      return
     }
-  })
-
-  const pendingPayload = await invoke<SetInputPayload | null>('consume_pending_selection_input')
-  if (pendingPayload) {
-    await processSetInputPayload(pendingPayload)
+    activeTab.value = 'ai_provider'
   }
 })
 
 onUnmounted(() => {
-  unlistenSetInput?.()
-  unlistenTrayToggle?.()
-  unlistenFocus?.()
+  isMounted = false
+  if (unlistenOpenSettings) {
+    unlistenOpenSettings()
+  }
 })
-
-let abortController: AbortController | null = null
-
-async function fetchCorrection(text: string, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
-  abortController = new AbortController()
-  const aiProvider = await store.get('ai_provider')
-  let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }) => Promise<string>
-  switch (aiProvider) {
-    case 'deepseek':
-      process = deepSeekProcess
-      break
-    case 'ollama':
-      process = ollamaProcess
-      break
-    default:
-      throw new Error(t('main.error.invalid_ai'))
-  }
-  return process(text, abortController.signal, preResolved)
-}
-
-async function onESC() {
-  if (processing.value) {
-    abortController?.abort()
-    state.value = 'idle'
-    processing.value = false
-    commandName.value = ''
-    return
-  }
-  state.value = 'idle'
-  resultText.value = ''
-  commandName.value = ''
-  await appWindow.hide()
-}
-
-function gotoSettings() {
-  setCurrentWindow('Settings')
-}
 </script>
 
 <template>
-  <div
-    class="h-full w-full flex items-center px-3 gap-3 cursor-move transition-shadow duration-300 select-none"
-    :class="{
-      'capsule-processing': state === 'processing',
-      'capsule-result': state === 'result',
-      'capsule-error': state === 'error',
-    }"
-    tabindex="0"
-    @keydown.esc="onESC"
-  >
-    <Logo />
+  <div class="w-full h-screen flex flex-col overflow-hidden">
+    <div v-if="isMacOS" class="h-7 w-full shrink-0 bg-sidebar border-sidebar-border select-none cursor-move" data-tauri-drag-region />
+    <SidebarProvider class="flex-1 overflow-hidden">
+      <AppSidebar
+        v-model:active-tab="activeTab"
+        :nav-items="navItems"
+      />
+      <SidebarInset>
+        <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+          <div class="flex items-center gap-2 px-4">
+            <SidebarTrigger class="-ml-1" />
+            <Separator orientation="vertical" class="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem class="hidden md:block">
+                  <BreadcrumbLink href="#">
+                    {{ t('main.breadcrumb.typo') }}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator class="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{{ activeNavItem?.label }}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        </header>
 
-    <!-- Center: Status -->
-    <div class="flex-1 flex overflow-hidden min-w-0 h-full items-center">
-      <div v-if="state === 'processing'" class="flex items-center gap-2 px-2 overflow-hidden w-full">
-        <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-400/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-400/20">
-          <TerminalIcon class="w-3 h-3 text-blue-400/60" />
-          <span class="text-[10px] font-bold text-blue-400/80 tracking-tight uppercase">
-            {{ commandName.startsWith('/') ? commandName.slice(1) : commandName }}
-          </span>
-        </div>
-        <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
-        <span class="truncate text-sm text-blue-400/70 shrink min-w-0">{{ inputText }}</span>
-        <span class="text-[10px] text-blue-400/40 font-mono shrink-0">{{ inputText?.length }}</span>
-      </div>
+        <!-- Main Content -->
+        <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
+          <!-- Content based on activeTab -->
+          <AppHome
+            v-if="activeTab === 'main'"
+            :global-shortcut="globalShortcut"
+          />
 
-      <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden">
-        <span class="truncate text-sm text-green-400">{{ resultText }}</span>
-        <!-- TODO: Add option for this -->
-        <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" />
-        <span class="text-[10px] text-green-400/50 font-mono shrink-0">{{ t('main.status.copied') }}</span>
-      </div>
+          <BasicSettings v-else-if="activeTab === 'settings'" />
+          <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
+          <AppearanceSettings v-else-if="activeTab === 'appearance'" />
+          <PromptsSettings v-else-if="activeTab === 'prompts'" />
 
-      <p v-else-if="state === 'error'" class="truncate text-sm text-red-400 px-2">
-        {{ errorText }}
-      </p>
+          <!-- Placeholder for other tabs (History) -->
+          <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
+            <div class="text-center space-y-4">
+              <div class="p-4 bg-muted/20 rounded-full inline-block">
+                <component :is="activeNavItem?.icon" class="w-12 h-12 text-muted-foreground/30" />
+              </div>
+              <h2 class="text-xl font-semibold text-foreground/40">
+                {{ activeNavItem?.label }}
+              </h2>
+              <p class="text-sm text-muted-foreground/40">
+                {{ t('main.common.coming_soon') }}
+              </p>
+            </div>
+          </div>
+        </main>
+      </SidebarInset>
 
-      <kbd v-else class="px-1.5 py-0.5 rounded border border-border/50 bg-muted/30 font-mono text-[10px] text-muted-foreground/60">
-        {{ formatShortcut(globalShortcut, isMacOS) }}
-      </kbd>
-    </div>
-
-    <!-- Right: Settings -->
-    <button
-      class="shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-      @click="gotoSettings"
-    >
-      <SettingsIcon class="w-4 h-4 text-muted-foreground" />
-    </button>
+      <DeviceAuthModal />
+    </SidebarProvider>
   </div>
 </template>
-
-<style scoped>
-.capsule-processing {
-  box-shadow:
-    0 0 20px rgba(59, 130, 246, 0.3),
-    inset 0 0 20px rgba(59, 130, 246, 0.05);
-}
-
-.capsule-result {
-  box-shadow:
-    0 0 20px rgba(34, 197, 94, 0.3),
-    inset 0 0 20px rgba(34, 197, 94, 0.05);
-}
-
-.capsule-error {
-  box-shadow:
-    0 0 20px rgba(239, 68, 68, 0.3),
-    inset 0 0 20px rgba(239, 68, 68, 0.05);
-}
-</style>

@@ -9,18 +9,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "label": "main",
-        "title": "typo",
-        "transparent": true,
-        "decorations": false,
-        "resizable": true,
-        "alwaysOnTop": true,
-        "visible": false,
-        "visibleOnAllWorkspaces": true
-      }
-    ],
+    "windows": [],
     "macOSPrivateApi": true,
     "security": {
       "csp": null

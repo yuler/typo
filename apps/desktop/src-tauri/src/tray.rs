@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_opener::OpenerExt;
@@ -14,11 +14,10 @@ const ID_SETTINGS: &str = "settings";
 const ID_CHECK_UPDATES: &str = "check-updates";
 const ID_ABOUT: &str = "about";
 const ID_OPEN_LOG_FOLDER: &str = "open-log-folder";
+const ID_AUTOSTART: &str = "autostart";
 const ID_QUIT: &str = "quit";
 
 // Events emitted to the frontend.
-const EV_OPEN_SETTINGS: &str = "tray:open-settings";
-const EV_CHECK_UPDATES: &str = "tray:check-updates";
 const EV_TOGGLE_CLICKED: &str = "tray:toggle-clicked";
 
 /// Handles to mutable menu items so update_tray_menu can relabel them.
@@ -28,6 +27,7 @@ pub struct TrayMenuHandles {
     pub check_updates: MenuItem<Wry>,
     pub about: MenuItem<Wry>,
     pub open_log_folder: MenuItem<Wry>,
+    pub autostart: CheckMenuItem<Wry>,
     pub quit: MenuItem<Wry>,
 }
 
@@ -38,6 +38,8 @@ pub struct TrayLabels {
     pub check_updates: Option<String>,
     pub about: Option<String>,
     pub open_log_folder: Option<String>,
+    pub autostart: Option<String>,
+    pub autostart_checked: Option<bool>,
     pub quit: Option<String>,
     pub tooltip: Option<String>,
 }
@@ -54,7 +56,6 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
-    let separator = PredefinedMenuItem::separator(handle)?;
     let about = MenuItem::with_id(
         handle,
         ID_ABOUT,
@@ -69,11 +70,30 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         true,
         None::<&str>,
     )?;
+    let autostart_checked = crate::autostart::is_autostart_enabled(handle.clone()).unwrap_or(false);
+    let autostart = CheckMenuItem::with_id(
+        handle,
+        ID_AUTOSTART,
+        "Launch at login",
+        true,
+        autostart_checked,
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(handle, ID_QUIT, "Quit typo", true, Some("CmdOrCtrl+Q"))?;
 
     let menu = Menu::with_items(
         handle,
-        &[&show, &settings, &check_updates, &separator, &about, &open_log_folder, &quit],
+        &[
+            &show,
+            &settings,
+            &check_updates,
+            &PredefinedMenuItem::separator(handle)?,
+            &autostart,
+            &open_log_folder,
+            &PredefinedMenuItem::separator(handle)?,
+            &about,
+            &quit,
+        ],
     )?;
 
     let icon_bytes = include_bytes!("../icons/tray.png");
@@ -95,6 +115,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         check_updates,
         about,
         open_log_folder,
+        autostart,
         quit,
     });
 
@@ -120,14 +141,10 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         ID_SHOW => show_and_focus_main(app),
         ID_SETTINGS => {
             show_and_focus_main(app);
-            if let Err(err) = app.emit(EV_OPEN_SETTINGS, ()) {
-                log::error!("failed to emit {}: {}", EV_OPEN_SETTINGS, err);
-            }
+            let _ = app.emit("open-settings", ());
         }
         ID_CHECK_UPDATES => {
-            if let Err(err) = app.emit(EV_CHECK_UPDATES, ()) {
-                log::error!("failed to emit {}: {}", EV_CHECK_UPDATES, err);
-            }
+            crate::windows::create_upgrade_window(app);
         }
         ID_ABOUT => {
             let releases_url = format!("{}{}", RELEASES_URL_BASE, env!("CARGO_PKG_VERSION"));
@@ -136,8 +153,36 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
             }
         }
         ID_OPEN_LOG_FOLDER => open_log_folder_action(app),
+        ID_AUTOSTART => toggle_autostart_action(app),
         ID_QUIT => app.exit(0),
         other => log::error!("unknown tray menu event id: {}", other),
+    }
+}
+
+fn toggle_autostart_action(app: &AppHandle) {
+    let Some(state) = app.try_state::<TrayMenuHandles>() else {
+        log::error!("tray menu handles not found");
+        return;
+    };
+
+    match crate::autostart::is_autostart_enabled(app.clone()) {
+        Ok(enabled) => {
+            let next_state = !enabled;
+            if let Err(err) = crate::autostart::set_autostart(app.clone(), next_state) {
+                log::error!("failed to toggle autostart: {}", err);
+                return;
+            }
+            log::info!(
+                "autostart {} via tray",
+                if next_state { "enabled" } else { "disabled" }
+            );
+
+            // Sync tray menu checkmark
+            let _ = state.autostart.set_checked(next_state);
+        }
+        Err(err) => {
+            log::error!("failed to check autostart status: {}", err);
+        }
     }
 }
 
@@ -148,6 +193,7 @@ fn open_log_folder_action(app: &AppHandle) {
 }
 
 fn show_and_focus_main(app: &AppHandle) {
+    crate::windows::create_main_window(app);
     let Some(window) = app.get_webview_window("main") else {
         return;
     };
@@ -189,6 +235,15 @@ pub fn update_tray_menu(
             .open_log_folder
             .set_text(text)
             .map_err(|e| e.to_string())?;
+    }
+    if let Some(text) = labels.autostart.as_deref() {
+        state
+            .autostart
+            .set_text(text)
+            .map_err(|e| e.to_string())?;
+    }
+    if let Some(checked) = labels.autostart_checked {
+        state.autostart.set_checked(checked).map_err(|e| e.to_string())?;
     }
     if let Some(text) = labels.quit.as_deref() {
         state.quit.set_text(text).map_err(|e| e.to_string())?;

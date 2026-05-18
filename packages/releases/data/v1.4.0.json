@@ -1,0 +1,33 @@
+{
+  "version": "1.4.0",
+  "date": "2026-05-18",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.4.0",
+  "notes": "✨ [desktop]: integrate core service as default AI provider and refactor settings UI (#60)\r\n✨ [desktop]: Implement OAuth 2.0 device authorization flow (#57)\r\n🐛 [core]: Fix device authorization redirect after onboarding (#58)\r\n✨ [core/desktop]: OAuth 2.0 Device Flow (RFC 8628) and UI enhancements (#55)\r\n✨ [desktop]: implement 'copy result' setting and behavior (#56)\r\n✨ [desktop]: implement capsule UI, sidebar navigation, and dynamic window management (#54)\r\n📝 [docs]: Update readme for linux system tray setup [skip ci]\r\n📝 [docs] Update readme for release workflow [skip ci]\r\n📝 [releases]: Add v1.3.0 release data and document release flow",
+  "notes_i18n": {
+    "en": "✨ Implement capsule UI, sidebar navigation, and dynamic window management\r\n✨ Implement 'copy result' setting and behavior\r\n✨ Implement OAuth 2.0 device authorization flow\r\n✨ Integrate core service as default AI provider and refactor settings UI\r\n",
+    "zh": "✨ 实现胶囊 UI、侧边栏导航和动态窗口管理\r\n✨ 实现“复制结果”设置与功能\r\n✨ 实现 OAuth 2.0 设备授权流程\r\n✨ 接入 Core 服务作为默认 AI 供应商并重构设置 UI\r\n",
+    "jp": "✨ カプセルUI、サイドバーナビゲーション、動的ウィンドウ管理の実装\r\n✨ 「結果をコピー」設定と機能の実装\r\n✨ OAuth 2.0 デバイス承認フローの実装\r\n✨ CoreサービスをデフォルトAIプロバイダーとして統合し、設定UIをリファクタリング\r\n"
+  },
+  "assets": [
+    {
+      "name": "typo_1.4.0_aarch64.dmg",
+      "platform": "macos"
+    },
+    {
+      "name": "typo_1.4.0_amd64.AppImage",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.4.0_amd64.deb",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.4.0_x64-setup.exe",
+      "platform": "windows"
+    },
+    {
+      "name": "typo_1.4.0_x64.dmg",
+      "platform": "macos"
+    }
+  ]
+}

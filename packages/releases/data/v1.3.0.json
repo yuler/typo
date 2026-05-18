@@ -1,0 +1,33 @@
+{
+  "version": "1.3.0",
+  "date": "2026-05-13",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.3.0",
+  "notes": "✨ [desktop]: Add launch-at-login with unified backend logic and state sync (#41)\r\n📝 [docs]: add system tray support documentation for Wayland/GNOME [skip ci]\r\n📝 [agents]: introduce DESIGN.md using @google/design.md spec (#48)\r\n🔨 [scripts]: Improve core-curl-apis.sh UI with styling and timing [skip ci]\r\n✨ [core]: Implement text length validation and refactor AI completion model (#53)\r\n✨ [core]: Implement completions API with DeepSeek and rate limiting (#52)\r\n✨ [desktop]: implement unified logging utility and replace console logs (#51)\r\n✨ [core]: Add recurring job for stale magic link cleanup (#50)\r\n🔧 [core]: Fix Ruby version references in Docker and lockfile\r\n🔨 [core]: Add job dashboard, email sent previews for dev, and remote console script (#49)\r\n✨ [core]: Implement magic link email templates and configure SMTP delivery (#47)\r\n🔧 [core]: Update encrypted credentials\r\n➕ [core]: Enable image_processing gem for Active Storage variants\r\n👷 [core]: Update push-image workflow triggers and action versions\r\n✨ [core]: Implement API Auth infrastructure with security fixes and automated deployment (#46)\r\n✨ [desktop]: unified logging with tauri-plugin-log and rename bundle to cc.yuler.typo (#43)\r\n✨ [core]: Add multi-tenant accounts with magic link auth and onboarding (#45)\r\n✨ [core]: Add Fizzy-style SQLite UUID defaults for new tables (#44)\r\n📦 [releases]: Add v1.2.3 release data and fix null safety",
+  "notes_i18n": {
+    "en": "✨ Add launch-at-login \r\n✨ Implement unified logging utility and replace console logs\r\n✨ Rename bundle to cc.yuler.typo",
+    "zh": "✨ 添加开机自启动支持\r\n✨ 实现统一的日志工具并替换控制台日志\r\n✨ 将应用包名重命名为 cc.yuler.typo",
+    "jp": "✨ ログイン時の自動起動を追加\r\n✨ 統合されたロギングユーティリティを実装し、コンソールログを置き換え\r\n✨ バンドル名を cc.yuler.typo に変更"
+  },
+  "assets": [
+    {
+      "name": "typo_1.3.0_aarch64.dmg",
+      "platform": "macos"
+    },
+    {
+      "name": "typo_1.3.0_amd64.AppImage",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.3.0_amd64.deb",
+      "platform": "linux"
+    },
+    {
+      "name": "typo_1.3.0_x64-setup.exe",
+      "platform": "windows"
+    },
+    {
+      "name": "typo_1.3.0_x64.dmg",
+      "platform": "macos"
+    }
+  ]
+}

@@ -12,7 +12,13 @@ module ApiAuthentication
   end
 
   class_methods do
-    def disallow_account_scope(**options)
+    # Note: Save this method temporarily for now.
+    # def disallow_account_scope(**options)
+    #   skip_before_action :require_account, **options
+    #   before_action :redirect_accounted_request, **options
+    # end
+
+    def skip_account_scope(**options)
       skip_before_action :require_account, **options
     end
 
@@ -37,9 +43,17 @@ module ApiAuthentication
     end
 
     def authenticate_by_bearer_token
-      authenticate_with_http_token do |token|
-        if identity = Identity.find_by_permissable_access_token(token, method: request.method)
-          Current.identity = identity
+      if request.authorization.to_s.include?("Bearer")
+        if bearer_token_authenticatable_request?
+          authenticate_or_request_with_http_token do |token|
+            if session = Session.find_signed(token)
+              Current.session = session
+            elsif identity = Identity.find_by_permissable_access_token(token, method: request.method)
+              Current.identity = identity
+            end
+          end
+        else
+          request_http_token_authentication
         end
       end
     end
@@ -48,11 +62,13 @@ module ApiAuthentication
       request.format.json?
     end
 
+    # NOTE: Query parameter tokens are convenient for testing but can be leaked via server logs
+    # and browser history. Consider disabling this in production for sensitive applications.
     def authenticate_by_query_token
-      # NOTE: Query parameter tokens are convenient for testing but can be leaked via server logs
-      # and browser history. Consider disabling this in production for sensitive applications.
       if token = params[:token]
-        if identity = Identity.find_by_permissable_access_token(token, method: request.method)
+        if session = Session.find_signed(token)
+          Current.session = session
+        elsif identity = Identity.find_by_permissable_access_token(token, method: request.method)
           Current.identity = identity
         end
       end
