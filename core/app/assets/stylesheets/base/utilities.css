@@ -85,3 +85,11 @@
 .text-2xl { font-size: 1.5rem; }
 .text-3xl { font-size: 1.875rem; }
 .hover\:bg-zinc-50:hover { background-color: var(--color-zinc-50); }
+.bg-red-50 { background-color: var(--color-red-50); }
+.text-red-500 { color: var(--color-red-500); }
+.border-zinc-300 { border-color: var(--color-zinc-300); }
+.rounded-2xl { border-radius: var(--radius-2xl); }
+.mt-1 { margin-top: var(--space-1); }
+.mt-2 { margin-top: var(--space-2); }
+.px-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
+.py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
