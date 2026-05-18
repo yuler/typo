@@ -6,7 +6,9 @@ Rails.application.routes.draw do
       resource :menu
     end
   end
-  resources :active_sessions, only: [ :index, :destroy ]
+  namespace :my do
+    resources :sessions, only: [ :index, :destroy ]
+  end
 
   resource :onboarding, only: %i[ new create ]
   resource :device, only: [] do
