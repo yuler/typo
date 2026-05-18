@@ -1,5 +1,5 @@
 <div class="flex justify-between items-center mb-8">
-  <h1 class="text-2xl font-bold"><%= t(".welcome_back", name: Current.identity.display_name) %></h1>
+  <h1 class="text-2xl font-bold"><%= t(".welcome_back", name: Current.user.name) %></h1>
   <%= button_to "Logout", logout_url, method: :delete, class: "btn btn-secondary btn-sm" %>
 </div>
 
