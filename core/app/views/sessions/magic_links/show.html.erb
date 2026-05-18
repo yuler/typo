@@ -1,7 +1,7 @@
 <div class="bg-surface p-10 rounded-xl border shadow-sm w-full max-w-sm text-center">
   <div class="mb-6 flex justify-center">
     <!-- Simple Mail Icon Placeholder -->
-    <div class="p-3 bg-zinc-100 rounded-full text-muted">
+    <div class="p-4 bg-zinc-100 rounded-full text-muted flex">
        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
     </div>
   </div>
@@ -11,13 +11,13 @@
 
   <%= form_with url: session_magic_link_path, method: :post, class: "flex flex-col gap-4" do |form| %>
     <%= form.text_field :code, required: true, autofocus: true, maxlength: "6",
-        class: "input text-center font-mono text-lg tracking-widest", 
+        class: "input text-center font-mono text-lg tracking-widest",
         placeholder: "••••••" %>
     <%= form.submit t(".submit"), class: "btn btn-primary" %>
   <% end %>
 
   <% if Rails.env.development? && flash[:magic_link_code].present? %>
-    <div class="mt-6 p-3 bg-zinc-100 rounded-md border border-dashed border-zinc-300">
+    <div class="mt-6 p-4 bg-zinc-100 rounded-md border border-dashed border-zinc-300">
       <p class="text-xs font-bold uppercase text-muted mb-1"><%= t(".dev_code") %></p>
       <code class="text-lg font-mono font-bold tracking-widest"><%= flash[:magic_link_code] %></code>
     </div>

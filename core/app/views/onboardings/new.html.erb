@@ -5,7 +5,7 @@
 
   <%= form_with model: @signup, url: onboarding_path, class: "flex flex-col gap-4 text-left" do |form| %>
     <% if @signup.errors.any? %>
-      <div id="error_explanation" class="p-3 bg-red-50 text-red-500 text-sm rounded-md mb-2">
+      <div id="error_explanation" class="p-4 bg-red-50 text-red-500 text-sm rounded-md mb-2">
         <ul class="list-none">
           <% @signup.errors.full_messages.each do |message| %>
             <li><%= message %></li>
@@ -14,11 +14,12 @@
       </div>
     <% end %>
 
-    <div class="form-group text-left">
+    <div class="form-group text-left" data-controller="input-mirror" data-input-mirror-fallback-value="<%= t(".username_fallback") %>">
       <%= form.label :username, class: "label" %>
-      <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username", 
-          class: "input", placeholder: t(".username_placeholder") %>
-      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<%= @signup.username.presence || t(".username_fallback") %></p>
+      <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username",
+          class: "input", placeholder: t(".username_placeholder"),
+          data: { input_mirror_target: "input", action: "input->input-mirror#update" } %>
+      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<span data-input-mirror-target="output"><%= @signup.username.presence || t(".username_fallback") %></span></p>
     </div>
 
     <div class="form-group text-left">
