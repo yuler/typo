@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import UpgradeProgress from '@/components/UpgradeProgress.vue'
 import { useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 
 const appWindow = getCurrentWebviewWindow()
 const { t, locale } = useI18n()
@@ -29,11 +30,11 @@ async function fetchRemoteNotes(version: string) {
     if (response.ok) {
       const data = await response.json()
       const rawNotes = data.notes_i18n?.[currentLocale] || data.notes || ''
-      remoteNotes.value = Array.isArray(rawNotes) ? rawNotes.join('\n') : rawNotes
+      remoteNotes.value = Array.isArray(rawNotes) ? rawNotes.map(n => `• ${n}`).join('\n') : rawNotes
     }
   }
   catch (e) {
-    console.error('Failed to fetch i18n notes from typo.yuler.cc', e)
+    logger.error('Update', 'Failed to fetch i18n notes from typo.yuler.cc', e)
   }
 }
 
@@ -46,7 +47,7 @@ onMounted(async () => {
     }
   }
   catch (e) {
-    console.error('Failed to get update info', e)
+    logger.error('Update', 'Failed to get update info', e)
   }
   finally {
     isLoading.value = false
@@ -63,7 +64,7 @@ const notes = computed(() => {
 
   const i18nNotes = (info.rawJson as any)?.notes_i18n
   const rawNotes = i18nNotes?.[locale.value] || info.body || t('upgrade.no_notes')
-  return Array.isArray(rawNotes) ? rawNotes.join('\n') : rawNotes
+  return Array.isArray(rawNotes) ? rawNotes.map(n => `• ${n}`).join('\n') : rawNotes
 })
 
 async function onUpgradeConfirm() {

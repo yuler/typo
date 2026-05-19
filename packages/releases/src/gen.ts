@@ -81,7 +81,7 @@ async function generateReleaseNotes(commits: string, envKey: string): Promise<De
       'Authorization': `Bearer ${envKey}`,
     },
     body: JSON.stringify({
-      model: 'deepseek-chat',
+      model: 'deepseek-v4-flash',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
     }),
