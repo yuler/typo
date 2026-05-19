@@ -30,9 +30,15 @@ class Signup
       true
     end
   rescue ActiveRecord::RecordInvalid => error
-    if error.record.is_a?(Account)
+    case error.record
+    when Account
       error.record.errors.each do |error_obj|
         attribute = error_obj.attribute == :slug ? :username : error_obj.attribute
+        errors.add(attribute, error_obj.message)
+      end
+    when User
+      error.record.errors.each do |error_obj|
+        attribute = error_obj.attribute == :name ? :nickname : error_obj.attribute
         errors.add(attribute, error_obj.message)
       end
     else

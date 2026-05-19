@@ -23,4 +23,34 @@ class SignupTest < ActiveSupport::TestCase
     assert_not signup.create_personal_account
     assert signup.errors[:username].include?("has already been taken")
   end
+
+  test "promotes validation errors from user to signup" do
+    signup = Signup.new(@signup_params)
+    mock_user = User.new
+    mock_user.errors.add(:name, "is invalid")
+
+    mock_user.define_singleton_method(:save!) do |*args|
+      raise ActiveRecord::RecordInvalid.new(mock_user)
+    end
+
+    class << User
+      alias_method :original_new, :new
+      def new(*args, &block)
+        @mock_user || original_new(*args, &block)
+      end
+    end
+
+    User.instance_variable_set(:@mock_user, mock_user)
+
+    begin
+      assert_not signup.create_personal_account
+      assert signup.errors[:nickname].include?("is invalid")
+    ensure
+      User.instance_variable_set(:@mock_user, nil)
+      class << User
+        alias_method :new, :original_new
+        remove_method :original_new
+      end
+    end
+  end
 end

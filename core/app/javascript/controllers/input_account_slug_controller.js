@@ -6,7 +6,8 @@ export default class extends Controller {
 
   update() {
     const val = this.inputTarget.value.trim()
-    const slugified = val.toLowerCase()
+    const slugified = val.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
     
