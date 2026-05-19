@@ -55,7 +55,7 @@ export const useAuth = createGlobalState(() => {
         return
 
       try {
-        const data = await api<{ name: string, email: string, avatar_url: string | null }>('/api/v1/my/heartbeat', {
+        const data = await api<{ name: string, email: string, avatar_url: string | null }>('/api/v1/session/heartbeat', {
           headers: { Authorization: `Bearer ${token}` },
         })
 

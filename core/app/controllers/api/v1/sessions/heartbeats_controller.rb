@@ -1,4 +1,4 @@
-class Api::V1::My::HeartbeatsController < Api::V1::BaseController
+class Api::V1::Sessions::HeartbeatsController < Api::V1::BaseController
   # Ensure we don't need a specific account slug for the heartbeat
   skip_account_scope
 
