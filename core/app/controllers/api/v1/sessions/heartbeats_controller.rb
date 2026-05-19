@@ -1,4 +1,6 @@
 class Api::V1::Sessions::HeartbeatsController < Api::V1::BaseController
+  skip_account_scope
+
   def show
     Current.session.update!(last_active_at: Time.current)
     render json: {
