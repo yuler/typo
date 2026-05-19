@@ -18,7 +18,7 @@ class SignupTest < ActiveSupport::TestCase
       account: { name: "Existing", slug: "existing-slug", personal: false },
       owner: { name: "Owner", identity: Identity.create!(email: "owner@example.com") }
     )
-    
+
     signup = Signup.new(@signup_params.merge(username: "Existing Slug"))
     assert_not signup.create_personal_account
     assert signup.errors[:username].include?("has already been taken")
