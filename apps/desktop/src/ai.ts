@@ -18,7 +18,7 @@ async function aiProcess(model: LanguageModelV1, text: string, instruction: stri
     messages: [
       {
         role: 'user',
-        content: `${instruction}\n\n${text}`.trim(),
+        content: `${instruction}\n\n### Input\n${text}\n###`.trim(),
       },
     ],
     abortSignal,
@@ -58,7 +58,7 @@ export async function typoProcess(text: string, abortSignal?: AbortSignal, preRe
   const token = await getAuth('access_token')
 
   const finalText = preResolved?.text || text
-  const combinedContent = `${instruction}\n\n${finalText}`.trim()
+  const combinedContent = `${instruction}\n\n### Input\n${finalText}\n###`.trim()
 
   const response = await api<{ result: string }>('/api/v1/completions', {
     method: 'POST',

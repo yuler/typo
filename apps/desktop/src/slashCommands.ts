@@ -99,7 +99,7 @@ export function resolveSlashCommand(text: string, baseInstruction: string, comma
 
     const result = {
       text: finalText,
-      instruction: instruction || baseInstruction,
+      instruction: instruction ? `${baseInstruction}\n\n${instruction}` : baseInstruction,
       command: key,
     }
     logger.info('slash', 'resolved', result)

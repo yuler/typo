@@ -27,7 +27,7 @@ module Ai
         .with_params(thinking: { type: "disabled" }, stream: false)
       # Note: I will test it later.
       # .with_params(  thinking: { type: "enabled" }, reasoning_effort: "high" )
-      response = chat.with_instructions(prompt).ask(text)
+      response = chat.with_instructions(prompt).ask("### Input\n#{text}\n###")
       duration_ms = ((Time.current - start_time) * 1000).to_i
 
       Rails.logger.info({ model: chat.model.id, prompt: prompt, text: text, output: response.content, tokens: response.tokens, cost: response.cost&.total }.to_json)
