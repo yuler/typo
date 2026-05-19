@@ -24,7 +24,7 @@ export const useAuth = createGlobalState(() => {
   const user = ref({
     name: '',
     email: '',
-    avatar: '',
+    avatar_url: '',
   })
 
   const { t } = useI18n()
@@ -41,7 +41,7 @@ export const useAuth = createGlobalState(() => {
       user.value = {
         name: userEmail.split('@')[0],
         email: userEmail,
-        avatar: await gravatar(userEmail),
+        avatar_url: await gravatar(userEmail),
       }
       startHeartbeat()
     }
@@ -64,14 +64,9 @@ export const useAuth = createGlobalState(() => {
         if (!isLoggedIn.value || generation !== heartbeatGeneration)
           return
 
-        const newAvatar = data.avatar_url || (data.email === user.value.email ? user.value.avatar : await gravatar(data.email))
-        const hasChanged = data.name !== user.value.name || data.email !== user.value.email || newAvatar !== user.value.avatar
-        if (hasChanged) {
-          user.value = {
-            name: data.name,
-            email: data.email,
-            avatar: newAvatar,
-          }
+        const avatar_url = data.avatar_url || (data.email === user.value.email ? user.value.avatar_url : await gravatar(data.email))
+        if (data.name !== user.value.name || data.email !== user.value.email || avatar_url !== user.value.avatar_url) {
+          user.value = { name: data.name, email: data.email, avatar_url }
           await authStore.setAuth('email', data.email)
           await authStore.saveAuth()
         }
@@ -174,7 +169,7 @@ export const useAuth = createGlobalState(() => {
     user.value = {
       name: identity.name || identity.email.split('@')[0],
       email: identity.email,
-      avatar: identity.avatar_url || await gravatar(identity.email),
+      avatar_url: identity.avatar_url || await gravatar(identity.email),
     }
     await authStore.setAuth('access_token', token)
     await authStore.setAuth('email', identity.email)
@@ -205,7 +200,7 @@ export const useAuth = createGlobalState(() => {
     user.value = {
       name: '',
       email: '',
-      avatar: '',
+      avatar_url: '',
     }
     await authStore.setAuth('access_token', '')
     await authStore.setAuth('email', '')
