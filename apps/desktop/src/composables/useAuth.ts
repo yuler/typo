@@ -31,6 +31,7 @@ export const useAuth = createGlobalState(() => {
   const HEARTBEAT_INTERVAL = 2 * 60 * 1000 // 2 minutes
   let pollTimer: ReturnType<typeof setTimeout> | null = null
   let heartbeatTimer: ReturnType<typeof setTimeout> | null = null
+  let heartbeatGeneration = 0
 
   async function initialize() {
     const token = await authStore.getAuth('access_token')
@@ -48,10 +49,11 @@ export const useAuth = createGlobalState(() => {
 
   async function startHeartbeat() {
     stopHeartbeat()
+    const generation = ++heartbeatGeneration
 
     const performHeartbeat = async () => {
       const token = await authStore.getAuth('access_token')
-      if (!token || !isLoggedIn.value)
+      if (!token || !isLoggedIn.value || generation !== heartbeatGeneration)
         return
 
       try {
@@ -59,10 +61,10 @@ export const useAuth = createGlobalState(() => {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        if (!isLoggedIn.value)
+        if (!isLoggedIn.value || generation !== heartbeatGeneration)
           return
 
-        const newAvatar = data.avatar_url || await gravatar(data.email)
+        const newAvatar = data.avatar_url || (data.email === user.value.email ? user.value.avatar : await gravatar(data.email))
         const hasChanged = data.name !== user.value.name || data.email !== user.value.email || newAvatar !== user.value.avatar
         if (hasChanged) {
           user.value = {
@@ -72,7 +74,6 @@ export const useAuth = createGlobalState(() => {
           }
           await authStore.setAuth('email', data.email)
           await authStore.saveAuth()
-          toast.success(t('auth.profile_updated'))
         }
       }
       catch (err: any) {
@@ -83,7 +84,7 @@ export const useAuth = createGlobalState(() => {
         }
       }
 
-      if (isLoggedIn.value) {
+      if (isLoggedIn.value && generation === heartbeatGeneration) {
         heartbeatTimer = setTimeout(performHeartbeat, HEARTBEAT_INTERVAL)
       }
     }
@@ -92,6 +93,7 @@ export const useAuth = createGlobalState(() => {
   }
 
   function stopHeartbeat() {
+    heartbeatGeneration++
     if (heartbeatTimer) {
       clearTimeout(heartbeatTimer)
       heartbeatTimer = null
