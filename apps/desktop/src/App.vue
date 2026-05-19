@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { invoke } from '@tauri-apps/api/core'
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { check } from '@tauri-apps/plugin-updater'
 import { onMounted, onUnmounted } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
@@ -47,26 +48,9 @@ onMounted(async () => {
   if (currentLabel === 'main') {
     try {
       const update = await check()
-      if (update?.available) {
+      if (update) {
         setUpdateInfo(update)
-        const upgradeWindow = new WebviewWindow('upgrade', {
-          url: '/upgrade',
-          title: 'Typo Upgrade',
-          width: 400,
-          height: 300,
-          resizable: false,
-          fullscreen: false,
-          alwaysOnTop: true,
-          center: true,
-          skipTaskbar: true,
-          decorations: false,
-          transparent: true,
-          visible: false,
-        })
-        await upgradeWindow.once('tauri://created', async () => {
-          await upgradeWindow.show()
-          await upgradeWindow.setFocus()
-        })
+        await invoke('open_upgrade_window')
       }
     }
     catch (e) {
