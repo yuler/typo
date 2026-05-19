@@ -8,17 +8,17 @@ import { getAuth } from '@/stores/auth'
 import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
 import { get } from './stores/settings'
 
-async function aiProcess(model: LanguageModelV1, text: string, systemPrompt: string, command?: string, abortSignal?: AbortSignal): Promise<string> {
-  logger.info('ai', 'aiProcess', { text, systemPrompt, command })
+const DEFAULT_SYSTEM_PROMPT = 'You are Typo assistant.'
+
+async function aiProcess(model: LanguageModelV1, text: string, instruction: string, _command?: string, abortSignal?: AbortSignal): Promise<string> {
+  logger.info('ai', 'aiProcess', { text, instruction })
   const { text: result } = await generateText({
     model,
-    system: systemPrompt,
+    system: DEFAULT_SYSTEM_PROMPT,
     messages: [
       {
         role: 'user',
-        // If a slash command is used, we send the raw text to be more compatible with the custom instructions
-        // If not, we use our standard wrapper
-        content: command ? text : `### Input\n${text}\n###`,
+        content: `${instruction}\n\n${text}`.trim(),
       },
     ],
     abortSignal,
@@ -31,38 +31,41 @@ async function resolveAndProcess(
   model: LanguageModelV1,
   text: string,
   abortSignal?: AbortSignal,
-  preResolved?: { text: string, systemPrompt: string, command?: string },
+  preResolved?: { text: string, instruction: string, command?: string },
 ): Promise<string> {
   logger.debug('ai', 'resolveAndProcess', { text, preResolved })
   if (preResolved) {
-    return aiProcess(model, preResolved.text, preResolved.systemPrompt, preResolved.command, abortSignal)
+    return aiProcess(model, preResolved.text, preResolved.instruction, preResolved.command, abortSignal)
   }
 
-  const [systemPrompt, shortcuts] = await Promise.all([
+  const [baseInstruction, shortcuts] = await Promise.all([
     get('ai_system_prompt'),
     get('slash_commands'),
   ])
 
-  const { text: resolvedText, systemPrompt: finalSystemPrompt, command } = resolveSlashCommand(
+  const { text: resolvedText, instruction: finalInstruction, command } = resolveSlashCommand(
     text,
-    systemPrompt,
+    baseInstruction,
     parseSlashCommands(shortcuts),
   )
 
-  return aiProcess(model, resolvedText, finalSystemPrompt, command, abortSignal)
+  return aiProcess(model, resolvedText, finalInstruction, command, abortSignal)
 }
 
-export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
+export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
   logger.debug('ai', 'typoProcess', { text, preResolved })
-  const systemPrompt = preResolved?.systemPrompt ?? await get('ai_system_prompt')
+  const instruction = preResolved?.instruction ?? await get('ai_system_prompt')
   const token = await getAuth('access_token')
 
   const finalText = preResolved?.text || text
-  const content = preResolved?.command ? finalText : `### Input\n${finalText}\n###`
+  const combinedContent = `${instruction}\n\n${finalText}`.trim()
 
   const response = await api<{ result: string }>('/api/v1/completions', {
     method: 'POST',
-    body: JSON.stringify({ text: content, prompt: systemPrompt }),
+    body: JSON.stringify({
+      text: combinedContent,
+      prompt: DEFAULT_SYSTEM_PROMPT,
+    }),
     signal: abortSignal,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
@@ -71,13 +74,13 @@ export async function typoProcess(text: string, abortSignal?: AbortSignal, preRe
   return response.result
 }
 
-export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
+export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
   const apiKey = await get('deepseek_api_key')
   const model = createDeepSeek({ apiKey }).chat('deepseek-chat')
   return resolveAndProcess(model, text, abortSignal, preResolved)
 }
 
-export async function ollamaProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
+export async function ollamaProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
   const modelName = await get('ollama_model')
   const model = createOllama().chat(modelName)
   return resolveAndProcess(model, text, abortSignal, preResolved)

@@ -196,10 +196,10 @@ onUnmounted(() => {
 
 let abortController: AbortController | null = null
 
-async function fetchCorrection(text: string, preResolved?: { text: string, systemPrompt: string, command?: string }): Promise<string> {
+async function fetchCorrection(text: string, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
   abortController = new AbortController()
   const aiProvider = await store.get('ai_provider')
-  let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, systemPrompt: string, command?: string }) => Promise<string>
+  let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }) => Promise<string>
   switch (aiProvider) {
     case 'typo':
       process = typoProcess

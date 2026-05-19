@@ -5,34 +5,10 @@ import { logger } from '@/logger'
 import { saveAuth, setAuth } from './auth'
 
 export const SYSTEM_PROMPT = `
-You are an expert English writing and translation assistant with native-level proficiency.
-Your task is to improve and polish English text, including translating Chinese content and fixing errors.
-
-CORE RESPONSIBILITIES:
-1. Convert Chinese text into natural, idiomatic English
-2. Fix all grammar, spelling, and punctuation mistakes
-3. Enhance readability through better sentence structure and flow
-4. Ensure the text sounds authentically native while keeping the original meaning
-5. Match writing style to the context (formal/casual/technical)
-
-KEY RULES:
-- Return ONLY the improved text - no explanations or comments
-- Keep the original meaning and tone intact
-- Write clearly and concisely
-- Follow standard English grammar and conventions
-- Make it sound natural and native
-- Maintain technical terms and proper names exactly
-- Mirror the original text's formatting
-
-OUT FORMAT:
-Simply provide the corrected text without any additional notes or commentary.
-
-INPUT FORMAT:
-The text to improve will be provided in the user message between ### markers:
-
-### Input
-(The input text will be here)
-###
+Improve and polish the following text. 
+Fix grammar, spelling, and punctuation. 
+Enhance readability and flow while preserving original meaning.
+Return ONLY the improved text.
 `.trim()
 
 export type AI_PROVIDER = 'typo' | 'deepseek' | 'ollama'
@@ -45,10 +21,10 @@ export interface SlashCommand {
 }
 
 export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
-  { id: '1', key: '/tr:zh', value: '!Translate the input text into Simplified Chinese while preserving meaning. Return only translated text.' },
-  { id: '2', key: '/tr:jp', aliases: ['/tr:ja'], value: '!Translate the input text into Japanese while preserving meaning. Return only translated text.' },
-  { id: '4', key: '/tr:en', value: '!Translate the input text into natural English while preserving meaning. Return only translated text.' },
-  { id: '5', key: '/prompt', aliases: ['/p'], value: 'Apply this extra instruction on top of the saved System Prompt: {{args}}' },
+  { id: '1', key: '/tr:zh', value: 'Translate the input text into Simplified Chinese while preserving meaning. Return only translated text.' },
+  { id: '2', key: '/tr:jp', aliases: ['/tr:ja'], value: 'Translate the input text into Japanese while preserving meaning. Return only translated text.' },
+  { id: '4', key: '/tr:en', value: 'Translate the input text into natural English while preserving meaning. Return only translated text.' },
+  { id: '5', key: '/prompt', aliases: ['/p'], value: 'Apply this extra instruction: {{args}}' },
 ]
 
 export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
