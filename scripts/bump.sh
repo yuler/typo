@@ -53,6 +53,12 @@ cargo update --package typo --precise $package_version
 last_tag=$(git tag --sort=version:refname | tail -n 1)
 notes=$(git log --pretty="%s" $last_tag..HEAD)
 
+# Return to workspace root for node script
+cd ../../../
+
+echo "Generating AI release notes..."
+node ./scripts/generate-notes.js "$package_version" || echo "Warning: AI notes generation failed, proceeding with standard bump."
+
 git add -A
 git commit --message "🚀 Release v$package_version"
 
