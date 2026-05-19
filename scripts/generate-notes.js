@@ -19,7 +19,8 @@ async function main() {
   try {
     // 1. Get git log since last tag
     const lastTag = execSync('git tag --sort=version:refname | tail -n 1').toString().trim();
-    const commits = execSync(`git log --pretty="%s" ${lastTag}..HEAD`).toString().trim();
+    const logRange = lastTag ? `${lastTag}..HEAD` : 'HEAD';
+    const commits = execSync(`git log --pretty="%s" ${logRange}`).toString().trim();
 
     if (!commits) {
       console.log("No commits found since last tag. Skipping AI generation.");
@@ -49,7 +50,7 @@ async function main() {
     }
 
     const data = await response.json();
-    const resultJson = data.choices[0].message.content;
+    const resultJson = data.choices[0].message.content.replace(/```json\n?|```/g, '').trim();
     const parsed = JSON.parse(resultJson);
 
     // 3. Format final payload
@@ -70,6 +71,7 @@ async function main() {
 
     // 4. Write file
     const outPath = path.join(process.cwd(), 'packages/releases/data', `v${version}.json`);
+    await fs.mkdir(path.dirname(outPath), { recursive: true });
     await fs.writeFile(outPath, JSON.stringify(finalPayload, null, 2), 'utf-8');
     console.log(`Successfully wrote ${outPath}`);
 
