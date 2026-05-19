@@ -30,8 +30,10 @@ pub fn set_dock_icon_visible(app: tauri::AppHandle, visible: bool) -> Result<(),
 
     #[cfg(not(target_os = "macos"))]
     {
-        if let Some(window) = app.get_webview_window("main") {
-            window.set_skip_taskbar(!visible).map_err(|e| e.to_string())?;
+        for window in app.webview_windows().values() {
+            if window.label() != "indicator" {
+                window.set_skip_taskbar(!visible).map_err(|e| e.to_string())?;
+            }
         }
     }
     Ok(())
