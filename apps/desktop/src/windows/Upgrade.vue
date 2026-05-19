@@ -4,8 +4,8 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { fetch } from '@tauri-apps/plugin-http'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
-import { ArrowUpCircleIcon, SparklesIcon, XIcon } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { ArrowUpCircleIcon, SparklesIcon } from 'lucide-vue-next'
+import { computed, onMounted, ref, shallowRef, toRaw } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -15,7 +15,7 @@ import { useI18n } from '@/composables/useI18n'
 const appWindow = getCurrentWebviewWindow()
 const { t, locale } = useI18n()
 
-const updateInfo = ref<Update | null>(null)
+const updateInfo = shallowRef<Update | null>(null)
 const isUpgrading = ref(false)
 const downloadProgress = ref(0)
 const isLoading = ref(true)
@@ -67,11 +67,12 @@ const notes = computed(() => {
 })
 
 async function onUpgradeConfirm() {
-  if (updateInfo.value) {
+  const rawUpdate = toRaw(updateInfo.value)
+  if (rawUpdate) {
     isUpgrading.value = true
     let downloaded = 0
     let contentLength = 0
-    await updateInfo.value.downloadAndInstall((event) => {
+    await rawUpdate.downloadAndInstall((event) => {
       switch (event.event) {
         case 'Started':
           contentLength = event.data.contentLength || 0
@@ -102,16 +103,8 @@ function onCancel() {
     <div class="h-8 w-full flex items-center justify-between select-none shrink-0 z-10" data-tauri-drag-region>
       <div class="flex items-center gap-2 pointer-events-none">
         <SparklesIcon class="w-4 h-4 text-zinc-400" />
-        <span class="text-xs font-bold text-zinc-400 tracking-wider uppercase">Typo Updater</span>
+        <span class="text-xs font-bold text-zinc-400 tracking-wider uppercase">{{ t('upgrade.updater') }}</span>
       </div>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        class="h-7 w-7 rounded-full text-zinc-400 hover:text-zinc-900 outline-none cursor-pointer"
-        @click="onCancel"
-      >
-        <XIcon class="w-4 h-4" />
-      </Button>
     </div>
 
     <!-- Main Content Area -->
@@ -124,24 +117,24 @@ function onCancel() {
           <SparklesIcon class="w-4 h-4 text-zinc-400 animate-pulse" />
         </div>
         <div class="flex flex-col items-center gap-1 text-center">
-          <span class="text-sm font-medium text-zinc-600 animate-pulse">Checking for updates...</span>
-          <span class="text-xs text-zinc-400">Fetching release details from typo.yuler.cc</span>
+          <span class="text-sm font-medium text-zinc-600 animate-pulse">{{ t('upgrade.checking') }}</span>
+          <span class="text-xs text-zinc-400">{{ t('upgrade.checking_details') }}</span>
         </div>
       </div>
       <div v-else-if="!updateInfo" class="flex-1 flex items-center justify-center text-sm text-zinc-500">
-        No update information available.
+        {{ t('upgrade.no_update_info') }}
       </div>
       <div v-else class="flex-1 flex flex-col min-h-0">
         <!-- Header -->
         <div class="flex flex-col gap-1.5 shrink-0">
           <h1 class="text-xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
-            New Version Available
+            {{ t('upgrade.new_version') }}
             <Badge variant="secondary" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-900">
               v{{ updateInfo?.version }}
             </Badge>
           </h1>
           <p class="text-sm text-zinc-500">
-            A new release of Typo is ready to install.
+            {{ t('upgrade.ready_to_install') }}
           </p>
         </div>
 
