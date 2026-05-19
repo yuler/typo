@@ -178,7 +178,7 @@ export const useAuth = createGlobalState(() => {
     await authStore.setAuth('access_token', token)
     await authStore.setAuth('email', identity.email)
     await authStore.saveAuth()
-    await startHeartbeat()
+    startHeartbeat()
     if (pollTimer)
       clearTimeout(pollTimer)
   }
