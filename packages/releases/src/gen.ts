@@ -102,7 +102,7 @@ async function getReleaseAssets(version: string): Promise<ReleaseAsset[]> {
   const productName = (tauriConfig.productName || 'typo') as string
   const targets = (tauriConfig.bundle?.targets || []) as string[]
 
-  const targetToAssets: Record<string, (name: string, ver: string) => ReleaseAsset[]> = {
+  const targetToAssets: Record<string, (name: string, ver: string) => Omit<ReleaseAsset, 'url'>[]> = {
     deb: (name, ver) => [{ name: `${name}_${ver}_amd64.deb`, platform: 'linux' }],
     appimage: (name, ver) => [{ name: `${name}_${ver}_amd64.AppImage`, platform: 'linux' }],
     dmg: (name, ver) => [
@@ -115,8 +115,12 @@ async function getReleaseAssets(version: string): Promise<ReleaseAsset[]> {
   const assets: ReleaseAsset[] = []
   for (const target of targets) {
     const assetGenerator = targetToAssets[target]
-    if (assetGenerator)
-      assets.push(...assetGenerator(productName, version))
+    if (assetGenerator) {
+      assets.push(...assetGenerator(productName, version).map(a => ({
+        ...a,
+        url: `https://github.com/yuler/typo/releases/download/v${version}/${a.name}`,
+      })))
+    }
   }
 
   return assets.sort((a, b) => a.name.localeCompare(b.name))

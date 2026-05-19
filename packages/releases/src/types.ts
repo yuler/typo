@@ -1,5 +1,6 @@
 export interface ReleaseAsset {
   name: string
+  url: string
   platform: 'macos' | 'linux' | 'windows'
 }
 

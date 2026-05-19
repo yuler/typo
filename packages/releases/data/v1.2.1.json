@@ -17,23 +17,28 @@
   "assets": [
     {
       "name": "typo_1.2.1_aarch64.dmg",
-      "platform": "macos"
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.2.1/typo_1.2.1_aarch64.dmg"
     },
     {
       "name": "typo_1.2.1_amd64.AppImage",
-      "platform": "linux"
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.2.1/typo_1.2.1_amd64.AppImage"
     },
     {
       "name": "typo_1.2.1_amd64.deb",
-      "platform": "linux"
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.2.1/typo_1.2.1_amd64.deb"
     },
     {
       "name": "typo_1.2.1_x64-setup.exe",
-      "platform": "windows"
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.2.1/typo_1.2.1_x64-setup.exe"
     },
     {
       "name": "typo_1.2.1_x64.dmg",
-      "platform": "macos"
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.2.1/typo_1.2.1_x64.dmg"
     }
   ]
 }
