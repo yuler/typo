@@ -12,6 +12,8 @@
   "settings.basic.copy_result.description": "校正完了後、結果を自動的にクリップボードにコピーします。",
   "settings.basic.autostart.label": "ログイン時に起動",
   "settings.basic.autostart.description": "ログイン時にアプリを自動的に起動します。",
+  "settings.basic.show_dock_icon.label": "Dock / タスクバーにアイコンを表示",
+  "settings.basic.show_dock_icon.description": "システムタスクバーまたは Dock にアプリケーションアイコンを表示します。",
   "settings.basic.shortcut.label": "グローバルショートカット",
   "settings.basic.shortcut.listening": "入力待ち...",
   "settings.basic.shortcut.reset": "リセット",

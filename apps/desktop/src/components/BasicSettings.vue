@@ -32,6 +32,7 @@ const form = ref({
   autostart: false,
   autoselect: false,
   copy_result: false,
+  show_dock_icon: true,
   global_shortcut: '',
 })
 
@@ -184,16 +185,18 @@ onMounted(async () => {
     return
   form.value.autostart = autostartEnabled
 
-  const [autoselect, copyResult, globalShortcut] = await Promise.all([
+  const [autoselect, copyResult, globalShortcut, showDockIcon] = await Promise.all([
     store.get('autoselect'),
     store.get('copy_result'),
     store.get('global_shortcut'),
+    store.get('show_dock_icon'),
   ])
   if (!isMounted)
     return
   form.value.autoselect = autoselect
   form.value.copy_result = copyResult
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
+  form.value.show_dock_icon = showDockIcon
 
   const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
   if (!isMounted)
@@ -229,6 +232,19 @@ async function onAutostartToggle(value: boolean) {
   catch (error) {
     logger.error('BasicSettings', 'Failed to update autostart setting:', error)
     form.value.autostart = !value
+  }
+}
+
+async function onShowDockIconToggle(value: boolean) {
+  form.value.show_dock_icon = value
+  try {
+    await invoke('set_dock_icon_visible', { visible: value })
+    await store.set('show_dock_icon', value)
+    await store.save()
+  }
+  catch (error) {
+    logger.error('BasicSettings', 'Failed to update dock icon visibility setting:', error)
+    form.value.show_dock_icon = !value
   }
 }
 
@@ -314,6 +330,16 @@ async function onSubmit() {
                   </p>
                 </div>
                 <Switch id="autostart" :model-value="form.autostart" @update:model-value="onAutostartToggle" />
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="space-y-0.5">
+                  <Label class="text-base font-semibold">{{ t('settings.basic.show_dock_icon.label') }}</Label>
+                  <p class="text-sm text-muted-foreground">
+                    {{ t('settings.basic.show_dock_icon.description') }}
+                  </p>
+                </div>
+                <Switch id="show_dock_icon" :model-value="form.show_dock_icon" @update:model-value="onShowDockIconToggle" />
               </div>
 
               <div class="flex items-center justify-between">

@@ -212,17 +212,41 @@ pub fn run() {
         }))
         .setup(move |app| {
             log::info!("in_linux_wayland={}", in_linux_wayland());
+
+            use tauri_plugin_store::StoreExt;
+            let show_dock_icon = if let Ok(store) = app.store("settings.json") {
+                store.get("show_dock_icon")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(cfg!(not(target_os = "macos")))
+            } else {
+                cfg!(not(target_os = "macos"))
+            };
+
+            #[cfg(target_os = "macos")]
+            {
+                let policy = if show_dock_icon {
+                    tauri::ActivationPolicy::Regular
+                } else {
+                    tauri::ActivationPolicy::Accessory
+                };
+                app.set_activation_policy(policy);
+            }
+
             windows::create_main_window(&app.handle());
             windows::create_indicator_window(&app.handle(), false);
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+            #[cfg(not(target_os = "macos"))]
+            {
+                let _ = windows::set_dock_icon_visible(app.handle().clone(), show_dock_icon);
+            }
 
             if startup_selection && in_linux_wayland() {
                 app_cli_startup_selection_trigger(&app.handle());
             }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -242,7 +266,7 @@ pub fn run() {
             tray::update_tray_menu,
             windows::open_upgrade_window,
             windows::open_indicator_window,
-        ])
-        .run(tauri::generate_context!())
+            windows::set_dock_icon_visible,
+            ])        .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

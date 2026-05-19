@@ -12,6 +12,8 @@
   "settings.basic.copy_result.description": "润色完成后，自动将结果复制到剪贴板。",
   "settings.basic.autostart.label": "开机自启动",
   "settings.basic.autostart.description": "登录系统时自动启动应用。",
+  "settings.basic.show_dock_icon.label": "在 Dock / 任务栏显示图标",
+  "settings.basic.show_dock_icon.description": "在系统任务栏或 Dock 栏中显示应用程序图标。",
   "settings.basic.shortcut.label": "全局快捷键",
   "settings.basic.shortcut.listening": "监听中...",
   "settings.basic.shortcut.reset": "重置",

@@ -53,9 +53,12 @@ export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
 
 export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
 
+const isMacOS = navigator.userAgent.includes('Macintosh')
+
 const DEFAULT_STORE = {
   autoselect: false,
   copy_result: false,
+  show_dock_icon: !isMacOS,
   ai_provider: 'typo' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',
