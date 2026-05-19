@@ -77,6 +77,8 @@
   "main.hero.login_hint": "ログインすると、履歴の同期や詳細な統計機能が利用可能になります。",
   "main.hero.pro_active": "Pro機能が有効です",
   "main.stats.total_polished": "累計校正数",
+  "main.stats.completions": "累計完了数",
+  "main.stats.slash_commands": "スラッシュコマンド数",
   "main.stats.time_saved": "節約された時間",
   "main.stats.history_items": "履歴項目",
   "main.hint.shortcut": "グローバルショートカット",

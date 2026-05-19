@@ -39,6 +39,7 @@ Rails.application.routes.draw do
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
       resource :session, only: :destroy
+      resource :stats, only: :show
 
       namespace :my do
         resource :heartbeat, only: :show

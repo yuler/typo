@@ -77,6 +77,8 @@
   "main.hero.login_hint": "登录以解锁历史同步和高级统计。",
   "main.hero.pro_active": "专业版功能已激活",
   "main.stats.total_polished": "累计润色",
+  "main.stats.completions": "累计完成",
+  "main.stats.slash_commands": "斜杠指令",
   "main.stats.time_saved": "节省时间",
   "main.stats.history_items": "历史条目",
   "main.hint.shortcut": "全局快捷键",
