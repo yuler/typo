@@ -58,7 +58,7 @@ const isMacOS = navigator.userAgent.includes('Macintosh')
 const DEFAULT_STORE = {
   autoselect: false,
   copy_result: false,
-  show_dock_icon: isMacOS ? false : true,
+  show_dock_icon: !isMacOS,
   ai_provider: 'typo' as AI_PROVIDER,
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',
