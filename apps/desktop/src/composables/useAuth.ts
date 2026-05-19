@@ -82,6 +82,7 @@ export const useAuth = createGlobalState(() => {
           await logout()
           return
         }
+        logger.error('Auth', 'Heartbeat failed', err)
       }
 
       if (isLoggedIn.value && generation === heartbeatGeneration) {
