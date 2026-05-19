@@ -80,8 +80,10 @@ export function resolveSlashCommand(text: string, baseInstruction: string, comma
     const content = contentLines.join('\n').trim()
 
     const instruction = template
-      .split('{{args}}').join(args)
-      .split('{{text}}').join(content)
+      .split('{{args}}')
+      .join(args)
+      .split('{{text}}')
+      .join(content)
       .trim()
 
     const hasArgsPlaceholder = template.includes('{{args}}')
