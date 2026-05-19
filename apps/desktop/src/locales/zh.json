@@ -66,6 +66,7 @@
   "main.sidebar.notifications": "通知",
   "main.sidebar.logout": "退出登录",
   "main.sidebar.login": "登录",
+  "auth.session_expired": "会话已过期，请重新登录",
   "main.breadcrumb.typo": "Typo",
   "main.breadcrumb.pro": "专业版",
   "main.breadcrumb.free": "免费版",
