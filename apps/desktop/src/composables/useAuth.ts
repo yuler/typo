@@ -51,7 +51,7 @@ export const useAuth = createGlobalState(() => {
 
     const performHeartbeat = async () => {
       const token = await authStore.getAuth('access_token')
-      if (!token)
+      if (!token || !isLoggedIn.value)
         return
 
       try {
@@ -59,12 +59,16 @@ export const useAuth = createGlobalState(() => {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        const hasChanged = data.name !== user.value.name || data.email !== user.value.email
+        if (!isLoggedIn.value)
+          return
+
+        const newAvatar = data.avatar_url || await gravatar(data.email)
+        const hasChanged = data.name !== user.value.name || data.email !== user.value.email || newAvatar !== user.value.avatar
         if (hasChanged) {
           user.value = {
             name: data.name,
             email: data.email,
-            avatar: data.avatar_url || await gravatar(data.email),
+            avatar: newAvatar,
           }
           await authStore.setAuth('email', data.email)
           await authStore.saveAuth()
@@ -72,20 +76,24 @@ export const useAuth = createGlobalState(() => {
         }
       }
       catch (err: any) {
-        if (err.message.includes('401') || err.message === 'Unauthorized') {
+        if (err?.message?.includes('401') || err?.message === 'Unauthorized') {
           toast.error(t('auth.session_expired'))
           await logout()
+          return
         }
+      }
+
+      if (isLoggedIn.value) {
+        heartbeatTimer = setTimeout(performHeartbeat, HEARTBEAT_INTERVAL)
       }
     }
 
     await performHeartbeat()
-    heartbeatTimer = setInterval(performHeartbeat, HEARTBEAT_INTERVAL)
   }
 
   function stopHeartbeat() {
     if (heartbeatTimer) {
-      clearInterval(heartbeatTimer)
+      clearTimeout(heartbeatTimer)
       heartbeatTimer = null
     }
   }
