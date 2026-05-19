@@ -29,8 +29,18 @@ class Signup
       create_account(personal: true)
       true
     end
+  rescue ActiveRecord::RecordInvalid => error
+    if error.record.is_a?(Account)
+      error.record.errors.each do |error_obj|
+        attribute = error_obj.attribute == :slug ? :username : error_obj.attribute
+        errors.add(attribute, error_obj.message)
+      end
+    else
+      errors.add(:base, error.message)
+    end
+    false
   rescue => error
-    errors.add(:base, "Something went wrong, and we couldn't create your account. Please give it another try.")
+    errors.add(:base, "We couldn't create your account. Please check the errors below.")
     Rails.error.report(error, severity: :error)
     false
   end
