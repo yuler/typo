@@ -40,6 +40,9 @@
     {
       "identifier": "http:default",
       "allow": [
+        { "url": "https://typo.yuler.cc" },
+        { "url": "https://typo.yuler.cc/*" },
+        { "url": "https://typo.yuler.cc/**" },
         { "url": "https://*.typo.yuler.cc" },
         { "url": "https://*.typo.yuler.cc/*" },
         { "url": "https://*.typo.yuler.cc/**" },

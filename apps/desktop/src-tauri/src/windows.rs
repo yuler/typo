@@ -96,7 +96,7 @@ pub fn create_upgrade_window(app: &AppHandle) {
 
     if let Err(e) = WebviewWindowBuilder::new(app, "upgrade", WebviewUrl::App("index.html".into()))
         .title("typo - Upgrade")
-        .inner_size(480.0, 360.0)
+        .inner_size(480.0, 420.0)
         .decorations(false)
         .transparent(true)
         .always_on_top(true)
