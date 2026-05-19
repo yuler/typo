@@ -15,6 +15,28 @@ pub fn open_indicator_window(app: AppHandle) {
     create_indicator_window(&app, true);
 }
 
+#[tauri::command]
+pub fn set_dock_icon_visible(app: tauri::AppHandle, visible: bool) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::ActivationPolicy;
+        let policy = if visible {
+            ActivationPolicy::Regular
+        } else {
+            ActivationPolicy::Accessory
+        };
+        app.set_activation_policy(policy).map_err(|e| e.to_string())?;
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        if let Some(window) = app.get_webview_window("main") {
+            window.set_skip_taskbar(!visible).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 pub fn create_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.set_focus();

@@ -223,6 +223,18 @@ pub fn run() {
             if startup_selection && in_linux_wayland() {
                 app_cli_startup_selection_trigger(&app.handle());
             }
+
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                use tauri_plugin_store::StoreExt;
+                if let Some(store) = handle.get_store("settings.json") {
+                    let show_dock_icon = store.get("show_dock_icon")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(cfg!(not(target_os = "macos")));
+                    let _ = windows::set_dock_icon_visible(handle, show_dock_icon);
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -239,10 +251,11 @@ pub fn run() {
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
-            tray::update_tray_menu,
+            windows::update_tray_menu,
             windows::open_upgrade_window,
             windows::open_indicator_window,
-        ])
+            windows::set_dock_icon_visible,
+            ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
