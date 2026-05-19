@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { check } from '@tauri-apps/plugin-updater'
 import { onMounted, onUnmounted } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
+import { useGlobalState } from '@/composables/useGlobalState'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
@@ -13,6 +15,7 @@ import Upgrade from '@/windows/Upgrade.vue'
 
 const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
+const { setUpdateInfo } = useGlobalState()
 
 const windows: Record<string, Component> = {
   main: Main,
@@ -38,6 +41,37 @@ onMounted(async () => {
   // For main and indicator windows, ensure they are visible on all workspaces
   if (currentLabel === 'main' || currentLabel === 'indicator') {
     await appWindow.setVisibleOnAllWorkspaces(true)
+  }
+
+  // Check for updates on startup
+  if (currentLabel === 'main') {
+    try {
+      const update = await check()
+      if (update?.available) {
+        setUpdateInfo(update)
+        const upgradeWindow = new WebviewWindow('upgrade', {
+          url: '/upgrade',
+          title: 'Typo Upgrade',
+          width: 400,
+          height: 300,
+          resizable: false,
+          fullscreen: false,
+          alwaysOnTop: true,
+          center: true,
+          skipTaskbar: true,
+          decorations: false,
+          transparent: true,
+          visible: false,
+        })
+        await upgradeWindow.once('tauri://created', async () => {
+          await upgradeWindow.show()
+          await upgradeWindow.setFocus()
+        })
+      }
+    }
+    catch (e) {
+      logger.error('Update', `Update check failed: ${e}`)
+    }
   }
 })
 

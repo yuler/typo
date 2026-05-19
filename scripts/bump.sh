@@ -4,10 +4,10 @@
 select_version() {
     echo "Select version type:"
     echo "1) patch (default)"
-    echo "2) minor" 
+    echo "2) minor"
     echo "3) major"
     echo ""
-    
+
     read -p "Enter your choice (1-3), default is patch: " choice
     case $choice in
         2) version="minor" ;;
@@ -57,10 +57,10 @@ notes=$(git log --pretty="%s" $last_tag..HEAD)
 cd ../../../
 
 echo "Generating AI release notes..."
-node ./scripts/generate-notes.js "$package_version" || echo "Warning: AI notes generation failed, proceeding with standard bump."
+pnpm releases:gen "$package_version" || echo "Warning: AI notes generation failed, proceeding with standard bump."
 
 git add -A
-git commit --message "🚀 Release v$package_version"
+git commit --message "🚀 [releases]: v$package_version"
 
 git tag v$package_version -m "$notes"
 git push origin

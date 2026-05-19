@@ -8,8 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "pull": "tsx src/pull.ts",
-    "push": "tsx src/push.ts"
+    "gen": "tsx src/gen.ts"
   },
   "devDependencies": {
     "@clack/prompts": "^1.2.0",

@@ -27,12 +27,12 @@ function loadReleases(): ReleaseData[] {
     const DATA_DIR = path.resolve(__dirname, '../data')
     if (fs.existsSync(DATA_DIR)) {
       return fs.readdirSync(DATA_DIR)
-        .filter(f => f.endsWith('.json'))
-        .map((f) => {
+        .filter((f: string) => f.endsWith('.json'))
+        .map((f: string) => {
           const fullPath = path.join(DATA_DIR, f)
           return JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as ReleaseData
         })
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .sort((a: ReleaseData, b: ReleaseData) => new Date(b.date).getTime() - new Date(a.date).getTime())
     }
     return []
   }

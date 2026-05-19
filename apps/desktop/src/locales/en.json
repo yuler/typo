@@ -88,6 +88,8 @@
   "main.error.accessibility": "Enable Accessibility in System Preferences",
   "main.error.invalid_ai": "Invalid AI provider",
   "upgrade.title": "New version {version} available",
+  "upgrade.checking": "Checking for updates...",
+  "upgrade.up_to_date": "You are on the latest version (v{version})",
   "upgrade.no_notes": "No release notes.",
   "upgrade.later": "Later",
   "upgrade.confirm": "Upgrade",

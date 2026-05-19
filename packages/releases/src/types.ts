@@ -9,9 +9,9 @@ export interface ReleaseData {
   github_url: string
   notes: string
   notes_i18n: {
-    en: string
-    zh: string
-    jp: string
+    en: string[]
+    zh: string[]
+    jp: string[]
   }
   assets: ReleaseAsset[]
 }
