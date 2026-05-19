@@ -16,6 +16,10 @@ import * as store from '@/stores/settings'
 import { updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
+defineProps<{
+  highlightShortcut?: boolean
+}>()
+
 const { t } = useI18n()
 const isMacOS = ref(false)
 const isCapturingShortcut = ref(false)
@@ -270,8 +274,11 @@ async function onSubmit() {
                   ref="captureButtonEl"
                   type="button"
                   variant="outline"
-                  class="flex-1 justify-start font-mono h-12 text-base"
-                  :class="{ 'border-primary ring-2 ring-primary bg-primary/5': isCapturingShortcut }"
+                  class="flex-1 justify-start font-mono h-12 text-base transition-all"
+                  :class="{
+                    'border-primary ring-2 ring-primary bg-primary/5': isCapturingShortcut,
+                    'animate-flash-highlight': highlightShortcut,
+                  }"
                   @click="isCapturingShortcut ? stopCapture() : startCapture()"
                 >
                   {{

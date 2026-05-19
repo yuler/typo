@@ -44,6 +44,8 @@ const { t } = useI18n()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
+const highlightShortcut = ref(false)
+let highlightTimeout: ReturnType<typeof setTimeout> | null = null
 
 const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
@@ -55,6 +57,18 @@ const navItems = computed<NavItem[]>(() => [
 ])
 
 const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))
+
+function onNavigateToShortcut() {
+  activeTab.value = 'settings'
+  if (highlightTimeout) {
+    clearTimeout(highlightTimeout)
+  }
+  highlightShortcut.value = true
+  highlightTimeout = setTimeout(() => {
+    highlightShortcut.value = false
+    highlightTimeout = null
+  }, 3000)
+}
 
 let unlistenOpenSettings: (() => void) | undefined
 let isMounted = true
@@ -173,9 +187,14 @@ onUnmounted(() => {
           <AppHome
             v-if="activeTab === 'main'"
             :global-shortcut="globalShortcut"
+            :is-mac-os="isMacOS"
+            @navigate-to-shortcut="onNavigateToShortcut"
           />
 
-          <BasicSettings v-else-if="activeTab === 'settings'" />
+          <BasicSettings
+            v-else-if="activeTab === 'settings'"
+            :highlight-shortcut="highlightShortcut"
+          />
           <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
           <AppearanceSettings v-else-if="activeTab === 'appearance'" />
           <PromptsSettings v-else-if="activeTab === 'prompts'" />

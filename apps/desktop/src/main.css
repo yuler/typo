@@ -84,6 +84,26 @@
   }
 }
 
+@keyframes flash-highlight {
+  0% {
+    box-shadow: 0 0 0 0 transparent;
+    background-color: transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 40%, transparent);
+    background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+    border-color: color-mix(in oklch, var(--primary) 50%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    background-color: transparent;
+  }
+}
+
+.animate-flash-highlight {
+  animation: flash-highlight 2s ease-in-out;
+}
+
 html {
   color-scheme: light;
 }
