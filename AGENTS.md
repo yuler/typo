@@ -58,6 +58,7 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 
 - Prefer editing existing files over creating new ones; especially avoid adding new top-level docs unless asked.
 - Before non-trivial tasks, check `.agents/skills/` for a matching skill and follow it.
+- Don't run any lint/format commands, just leave it to the CI, it will handle it automatically.
 
 ### core rails app
 

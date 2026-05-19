@@ -39,8 +39,8 @@ onMounted(async () => {
     return
   }
 
-  // For main and indicator windows, ensure they are visible on all workspaces
-  if (currentLabel === 'main' || currentLabel === 'indicator') {
+  // For indicator window, ensure it is always visible on all workspaces
+  if (currentLabel === 'indicator') {
     await appWindow.setVisibleOnAllWorkspaces(true)
   }
 
