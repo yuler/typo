@@ -38,7 +38,11 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
-      resource :session, only: :destroy
+      resource :session, only: :destroy do
+        scope module: :sessions do
+          resource :heartbeat, only: :show
+        end
+      end
       resource :stats, only: :show
 
       resource :device, only: [] do

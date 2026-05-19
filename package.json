@@ -1,7 +1,7 @@
 {
   "name": "typo",
   "type": "module",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "packageManager": "pnpm@10.33.0",
   "scripts": {
@@ -31,9 +31,7 @@
     "format:fix": "eslint --fix . && pnpm core:lint:fix",
     "languages:build": "pnpm --filter @typo/languages build",
     "languages:test": "pnpm --filter @typo/languages test",
-    "release:notes": "./scripts/release-notes.sh",
-    "releases:pull": "pnpm --filter @typo/releases pull",
-    "releases:push": "pnpm --filter @typo/releases push",
+    "releases:gen": "pnpm --filter @typo/releases gen",
     "deps:up": "npx taze -I"
   },
   "devDependencies": {

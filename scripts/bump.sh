@@ -1,24 +1,12 @@
 #!/bin/bash
 
-# Function to display radio-style selection
-select_version() {
-    echo "Select version type:"
-    echo "1) patch (default)"
-    echo "2) minor" 
-    echo "3) major"
-    echo ""
-    
-    read -p "Enter your choice (1-3), default is patch: " choice
-    case $choice in
-        2) version="minor" ;;
-        3) version="major" ;;
-        *) version="patch" ;;
-    esac
-}
-
 # Check if version argument is provided
 if [ -z "$1" ]; then
-    select_version
+    version=$(gum choose --header "Select version type:" "patch" "minor" "major")
+    if [ -z "$version" ]; then
+        echo "No version selected. Exiting."
+        exit 1
+    fi
 else
     version=$1
     # Validate version argument
@@ -53,14 +41,30 @@ cargo update --package typo --precise $package_version
 last_tag=$(git tag --sort=version:refname | tail -n 1)
 notes=$(git log --pretty="%s" $last_tag..HEAD)
 
+# Return to workspace root for node script
+cd ../../../
+
+echo "Generating AI release notes..."
+pnpm releases:gen "$package_version" || echo "Warning: AI notes generation failed, proceeding with standard bump."
+
 git add -A
-git commit --message "🚀 Release v$package_version"
+git commit --message "🚀 [releases]: v$package_version"
 
 git tag v$package_version -m "$notes"
-git push origin
-git push origin v$package_version
 
-echo ""
-echo "Wait for CI to create the draft release, then publish it at:"
-echo "https://github.com/yuler/typo/releases"
-echo ""
+if gum confirm "Push changes and tag to origin?"; then
+    git push origin
+    git push origin v$package_version
+
+    echo ""
+    gum style \
+        --border double \
+        --margin "1 2" \
+        --padding "0 1" \
+        --border-foreground 212 \
+        "Wait for CI to create the release, then publish it at:" \
+        "https://github.com/yuler/typo/releases"
+    echo ""
+else
+    echo "Push aborted. You can push manually later."
+fi

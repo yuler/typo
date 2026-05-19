@@ -1,6 +1,8 @@
 import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
+import { toast } from 'vue-sonner'
 import { api } from '@/api'
+import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import * as authStore from '@/stores/auth'
 import { gravatar } from '@/utils'
@@ -22,10 +24,14 @@ export const useAuth = createGlobalState(() => {
   const user = ref({
     name: '',
     email: '',
-    avatar: '',
+    avatar_url: '',
   })
 
+  const { t } = useI18n()
+  const HEARTBEAT_INTERVAL = 2 * 60 * 1000 // 2 minutes
   let pollTimer: ReturnType<typeof setTimeout> | null = null
+  let heartbeatTimer: ReturnType<typeof setTimeout> | null = null
+  let heartbeatGeneration = 0
 
   async function initialize() {
     const token = await authStore.getAuth('access_token')
@@ -35,8 +41,61 @@ export const useAuth = createGlobalState(() => {
       user.value = {
         name: userEmail.split('@')[0],
         email: userEmail,
-        avatar: await gravatar(userEmail),
+        avatar_url: await gravatar(userEmail),
       }
+      startHeartbeat()
+    }
+  }
+
+  async function startHeartbeat() {
+    stopHeartbeat()
+    const generation = ++heartbeatGeneration
+
+    const performHeartbeat = async () => {
+      const token = await authStore.getAuth('access_token')
+      if (!token || !isLoggedIn.value || generation !== heartbeatGeneration)
+        return
+
+      try {
+        const data = await api<{ name: string, email: string, avatar_url: string | null }>('/api/v1/session/heartbeat', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!isLoggedIn.value || generation !== heartbeatGeneration)
+          return
+
+        const avatar_url = data.avatar_url || (data.email === user.value.email ? user.value.avatar_url : await gravatar(data.email))
+        if (!isLoggedIn.value || generation !== heartbeatGeneration)
+          return
+
+        if (data.name !== user.value.name || data.email !== user.value.email || avatar_url !== user.value.avatar_url) {
+          user.value = { name: data.name, email: data.email, avatar_url }
+          await authStore.setAuth('email', data.email)
+          await authStore.saveAuth()
+        }
+      }
+      catch (err: any) {
+        if (err?.message?.includes('401') || err?.message === 'Unauthorized') {
+          toast.error(t('auth.session_expired'))
+          await logout()
+          return
+        }
+        logger.error('Auth', 'Heartbeat failed', err)
+      }
+
+      if (isLoggedIn.value && generation === heartbeatGeneration) {
+        heartbeatTimer = setTimeout(performHeartbeat, HEARTBEAT_INTERVAL)
+      }
+    }
+
+    await performHeartbeat()
+  }
+
+  function stopHeartbeat() {
+    heartbeatGeneration++
+    if (heartbeatTimer) {
+      clearTimeout(heartbeatTimer)
+      heartbeatTimer = null
     }
   }
 
@@ -113,16 +172,18 @@ export const useAuth = createGlobalState(() => {
     user.value = {
       name: identity.name || identity.email.split('@')[0],
       email: identity.email,
-      avatar: identity.avatar_url || await gravatar(identity.email),
+      avatar_url: identity.avatar_url || await gravatar(identity.email),
     }
     await authStore.setAuth('access_token', token)
     await authStore.setAuth('email', identity.email)
     await authStore.saveAuth()
+    startHeartbeat()
     if (pollTimer)
       clearTimeout(pollTimer)
   }
 
   async function logout() {
+    stopHeartbeat()
     cancel()
     const token = await authStore.getAuth('access_token')
     if (token) {
@@ -142,7 +203,7 @@ export const useAuth = createGlobalState(() => {
     user.value = {
       name: '',
       email: '',
-      avatar: '',
+      avatar_url: '',
     }
     await authStore.setAuth('access_token', '')
     await authStore.setAuth('email', '')

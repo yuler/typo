@@ -48,6 +48,11 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 - CI [`/.github/workflows/pr-format-fix.yml`](.github/workflows/pr-format-fix.yml) auto-commits autofixable formatting issues on PRs.
 - `core/` uses RuboCop (rails-omakase); it is independent from the ESLint scope and is not run by `pnpm lint`.
 
+### Core rails app
+
+- Always follow [basecamp](https://github.com/basecamp) rails code style.
+- Use rich `models` for all logic; never create `services`.
+
 ## Release & Deploy
 
 - `pnpm www:deploy` — build and upload the static marketing site to the server.
@@ -58,8 +63,5 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 
 - Prefer editing existing files over creating new ones; especially avoid adding new top-level docs unless asked.
 - Before non-trivial tasks, check `.agents/skills/` for a matching skill and follow it.
-
-### core rails app
-
-- Always follow [basecamp](https://github.com/basecamp) rails code style.
-- Use rich `models` for all logic; never create `services`.
+- Don't run any lint/format commands, just leave it to the CI, it will handle it automatically.
+- Use `rtk` (Rust Token Killer) for transparent, token-optimized CLI operations (meta commands like `rtk gain` or `rtk discover` can be run directly).

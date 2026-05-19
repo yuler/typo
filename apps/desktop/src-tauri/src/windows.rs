@@ -96,10 +96,11 @@ pub fn create_upgrade_window(app: &AppHandle) {
 
     if let Err(e) = WebviewWindowBuilder::new(app, "upgrade", WebviewUrl::App("index.html".into()))
         .title("typo - Upgrade")
-        .inner_size(400.0, 300.0)
+        .inner_size(480.0, 420.0)
         .decorations(false)
         .transparent(true)
         .always_on_top(true)
+        .center()
         .build()
     {
         log::error!("failed to build upgrade window: {}", e);

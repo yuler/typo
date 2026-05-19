@@ -6,7 +6,8 @@
     "linux"
   ],
   "windows": [
-    "main"
+    "main",
+    "upgrade"
   ],
   "permissions": [
     "global-shortcut:default",

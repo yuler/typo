@@ -1,9 +1,0 @@
-✨ [desktop]: integrate core service as default AI provider and refactor settings UI (#60)
-✨ [desktop]: Implement OAuth 2.0 device authorization flow (#57)
-🐛 [core]: Fix device authorization redirect after onboarding (#58)
-✨ [core/desktop]: OAuth 2.0 Device Flow (RFC 8628) and UI enhancements (#55)
-✨ [desktop]: implement 'copy result' setting and behavior (#56)
-✨ [desktop]: implement capsule UI, sidebar navigation, and dynamic window management (#54)
-📝 [docs]: Update readme for linux system tray setup [skip ci]
-📝 [docs] Update readme for release workflow [skip ci]
-📝 [releases]: Add v1.3.0 release data and document release flow

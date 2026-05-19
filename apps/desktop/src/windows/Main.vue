@@ -38,7 +38,6 @@ import { setupGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { sleep } from '@/utils'
-import { initializeWindow } from '@/window'
 
 const { t } = useI18n()
 const isMacOS = ref(false)
@@ -85,11 +84,6 @@ onMounted(async () => {
   }
   else {
     unlistenOpenSettings = unlisten
-  }
-
-  await initializeWindow(true)
-  if (!isMounted) {
-    return
   }
 
   const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
