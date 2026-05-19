@@ -23,6 +23,8 @@ class Signup
   def create_personal_account
     return false unless valid?(:completion)
 
+    self.username = username.to_s.parameterize
+
     ActiveRecord::Base.transaction do
       create_account(personal: true)
       true
