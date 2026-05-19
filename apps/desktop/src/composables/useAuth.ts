@@ -65,6 +65,9 @@ export const useAuth = createGlobalState(() => {
           return
 
         const avatar_url = data.avatar_url || (data.email === user.value.email ? user.value.avatar_url : await gravatar(data.email))
+        if (!isLoggedIn.value || generation !== heartbeatGeneration)
+          return
+
         if (data.name !== user.value.name || data.email !== user.value.email || avatar_url !== user.value.avatar_url) {
           user.value = { name: data.name, email: data.email, avatar_url }
           await authStore.setAuth('email', data.email)
