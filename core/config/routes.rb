@@ -40,9 +40,9 @@ Rails.application.routes.draw do
       resources :completions, only: :create
       resources :slash_prompts, only: %i[ index create update destroy ]
       resource :default_prompt, only: %i[ show update ]
-      resource :session, only: :destroy do
+      resource :session, only: %i[show destroy] do
         scope module: :sessions do
-          resource :heartbeat, only: :show
+          resource :heartbeat, only: :show # deprecated: remove in API v2 — use GET /api/v1/session
         end
       end
       resource :stats, only: :show
