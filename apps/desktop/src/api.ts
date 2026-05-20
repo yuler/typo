@@ -32,10 +32,17 @@ function getUserAgent(): Promise<string> {
   return userAgentPromise
 }
 
-const ALLOW_UNAUTHORIZED_APIS = [
-  '/api/v1/session',
-  '/api/v1/device',
-]
+function is401ResetExempt(path: string, method: string): boolean {
+  const normalizedPath = path.split('?')[0]
+  const exemptions = [
+    { method: 'POST', path: '/api/v1/device/authorization' },
+    { method: 'POST', path: '/api/v1/device/token' },
+    { method: 'DELETE', path: '/api/v1/session' },
+  ]
+  return exemptions.some(
+    e => e.path === normalizedPath && e.method.toUpperCase() === method.toUpperCase(),
+  )
+}
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const userAgent = await getUserAgent()
@@ -63,7 +70,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     headers,
   })
 
-  if (response.status === 401 && !ALLOW_UNAUTHORIZED_APIS.some(u => path.startsWith(u))) {
+  if (response.status === 401 && !is401ResetExempt(path, method)) {
     if (!isResetting) {
       isResetting = true
       try {
