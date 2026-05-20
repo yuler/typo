@@ -32,14 +32,14 @@ class Signup
   rescue ActiveRecord::RecordInvalid => error
     case record = error.record
     when Account, User
-      map = record.is_a?(Account) ? { slug: :username } : { name: :nickname }
+      map = record.is_a?(Account) ? { slug: :username, name: :nickname } : { name: :nickname }
       record.errors.each { |err| errors.add(map[err.attribute] || err.attribute, err.message) }
     else
       errors.add(:base, error.message)
     end
     false
   rescue => error
-    errors.add(:base, "We couldn't create your account. Please check the errors below.")
+    errors.add(:base, "Something went wrong, and we couldn't create your account. Please give it another try.")
     Rails.error.report(error, severity: :error)
     false
   end

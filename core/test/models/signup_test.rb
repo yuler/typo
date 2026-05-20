@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 class SignupTest < ActiveSupport::TestCase
   setup do
@@ -33,24 +34,9 @@ class SignupTest < ActiveSupport::TestCase
       raise ActiveRecord::RecordInvalid.new(mock_user)
     end
 
-    class << User
-      alias_method :original_new, :new
-      def new(*args, &block)
-        @mock_user || original_new(*args, &block)
-      end
-    end
-
-    User.instance_variable_set(:@mock_user, mock_user)
-
-    begin
+    User.stub(:new, ->(*args, &block) { block&.call(mock_user); mock_user }) do
       assert_not signup.create_personal_account
       assert signup.errors[:nickname].include?("is invalid")
-    ensure
-      User.instance_variable_set(:@mock_user, nil)
-      class << User
-        alias_method :new, :original_new
-        remove_method :original_new
-      end
     end
   end
 end
