@@ -13,7 +13,11 @@ class SlashPrompt < ApplicationRecord
   before_validation :normalize_aliases
 
   DEFAULT_SLASH_COMMANDS = [
-    { key: "/prompt", aliases: [ "/p" ], value: "Follow this instruction: \n{{args}}\nThe input text is: \n{{text}}\nReturn only the result." },
+    {
+      key: "/prompt",
+      aliases: [ "/p" ],
+      value: "Treat the slash line arguments and remaining selection together: infer the user's intent from both and rewrite or transform the material accordingly. Return only the output text with no preamble or explanation.",
+    },
     { key: "/zh", aliases: [ "/cn" ], value: "Translate the input text into Simplified Chinese while preserving meaning. Return only translated text." },
     { key: "/jp", aliases: [ "/ja" ], value: "Translate the input text into Japanese while preserving meaning. Return only translated text." },
     {

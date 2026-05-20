@@ -38,7 +38,7 @@
   "settings.slash_prompts.key_label": "Key",
   "settings.slash_prompts.aliases_label": "Aliases (Comma separated)",
   "settings.slash_prompts.instruction_label": "Instruction",
-  "settings.slash_prompts.instruction_placeholder": "Use {{args}} and {{text}} placeholders if needed",
+  "settings.slash_prompts.instruction_placeholder": "Describe what this slash command should do",
   "settings.slash_prompts.remove": "Remove",
   "settings.slash_prompts.hint": "Example: input starts or ends with <code>/zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.",
   "settings.save": "Save",

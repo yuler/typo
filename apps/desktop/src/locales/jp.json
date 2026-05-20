@@ -38,7 +38,7 @@
   "settings.slash_prompts.key_label": "キー",
   "settings.slash_prompts.aliases_label": "エイリアス（カンマ区切り）",
   "settings.slash_prompts.instruction_label": "指示",
-  "settings.slash_prompts.instruction_placeholder": "必要に応じて {{args}} や {{text}} プレースホルダーを使用してください",
+  "settings.slash_prompts.instruction_placeholder": "このスラッシュコマンドで行う内容を書く",
   "settings.slash_prompts.remove": "削除",
   "settings.slash_prompts.hint": "例：入力の先頭または末尾が <code>/zh</code>、または <code>/prompt Translate to Japanese in polite style</code> のような行全体。",
   "settings.save": "保存",
