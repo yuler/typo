@@ -17,7 +17,7 @@ import AppHome from '@/components/AppHome.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
-import PromptsMigrationDialog from '@/components/PromptsMigrationDialog.vue'
+import SlashPromptsMigrationDialog from '@/components/SlashPromptsMigrationDialog.vue'
 import PromptsSettings from '@/components/PromptsSettings.vue'
 import {
   Breadcrumb,
@@ -37,7 +37,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
-import { needsPromptsMigration, runPromptsMigration } from '@/stores/prompts_migration'
+import { needsSlashPromptsMigration, runSlashPromptsMigration } from '@/stores/slash_prompts_migration'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { sleep } from '@/utils'
@@ -48,7 +48,7 @@ const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 const highlightShortcut = ref(false)
-const showPromptsMigration = ref(false)
+const showSlashPromptsMigration = ref(false)
 let highlightTimeout: ReturnType<typeof setTimeout> | null = null
 let unlistenOpenSettings: (() => void) | undefined
 let isMounted = true
@@ -76,21 +76,21 @@ function onNavigateToShortcut() {
   }, 3000)
 }
 
-async function checkPromptsMigration() {
+async function checkSlashPromptsMigration() {
   if (!isMounted || !isLoggedIn.value)
     return
 
-  const needsMigration = await needsPromptsMigration()
+  const needsMigration = await needsSlashPromptsMigration()
   if (!isMounted)
     return
 
   if (needsMigration)
-    showPromptsMigration.value = true
+    showSlashPromptsMigration.value = true
 }
 
-async function onPromptsMigrationConfirm() {
-  showPromptsMigration.value = false
-  await runPromptsMigration()
+async function onSlashPromptsMigrationConfirm() {
+  showSlashPromptsMigration.value = false
+  await runSlashPromptsMigration()
 }
 
 onMounted(async () => {
@@ -158,12 +158,12 @@ onMounted(async () => {
     activeTab.value = 'ai_provider'
   }
 
-  await checkPromptsMigration()
+  await checkSlashPromptsMigration()
 })
 
 watch(isLoggedIn, async (loggedIn) => {
   if (loggedIn)
-    await checkPromptsMigration()
+    await checkSlashPromptsMigration()
 })
 
 onUnmounted(() => {
@@ -239,9 +239,9 @@ onUnmounted(() => {
       </SidebarInset>
 
       <DeviceAuthModal />
-      <PromptsMigrationDialog
-        v-model="showPromptsMigration"
-        @confirm="onPromptsMigrationConfirm"
+      <SlashPromptsMigrationDialog
+        v-model="showSlashPromptsMigration"
+        @confirm="onSlashPromptsMigrationConfirm"
       />
     </SidebarProvider>
   </div>

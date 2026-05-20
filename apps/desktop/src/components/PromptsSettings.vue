@@ -13,16 +13,16 @@ const { t } = useI18n()
 
 const form = ref({
   system_prompt: '',
-  slash_commands: [] as store.SlashCommand[],
+  slash_prompts: [] as store.SlashPrompt[],
 })
 
 onMounted(async () => {
-  const [systemPrompt, shortcuts] = await Promise.all([
+  const [systemPrompt, slashPrompts] = await Promise.all([
     store.get('ai_system_prompt'),
-    store.get('slash_commands'),
+    store.get('slash_prompts'),
   ])
   form.value.system_prompt = systemPrompt
-  form.value.slash_commands = shortcuts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
+  form.value.slash_prompts = slashPrompts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
 
   nextTick(() => {
     const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
@@ -33,26 +33,26 @@ onMounted(async () => {
   })
 })
 
-function addPromptSlash() {
-  if (form.value.slash_commands.length >= 5) {
+function addSlashPrompt() {
+  if (form.value.slash_prompts.length >= 5) {
     return
   }
-  form.value.slash_commands.push({ id: crypto.randomUUID(), key: '', value: '' })
+  form.value.slash_prompts.push({ id: crypto.randomUUID(), key: '', value: '' })
 }
 
-function removePromptSlash(index: number) {
-  form.value.slash_commands.splice(index, 1)
+function removeSlashPrompt(index: number) {
+  form.value.slash_prompts.splice(index, 1)
 }
 
 async function onSubmit() {
-  const slashCommands = form.value.slash_commands
+  const slashPrompts = form.value.slash_prompts
     .map(item => ({ ...item, key: item.key.trim(), value: item.value.trim() }))
     .filter(item => item.key && item.value)
     .slice(0, 5)
 
   await Promise.all([
     store.set('ai_system_prompt', form.value.system_prompt),
-    store.set('slash_commands', slashCommands),
+    store.set('slash_prompts', slashPrompts),
   ])
   await store.save()
   toast.success(t('settings.save_success'))
@@ -67,7 +67,7 @@ async function onSubmit() {
           {{ t('settings.prompts.title') }}
         </h1>
 
-        <!-- System Prompt Card -->
+        <!-- Default Prompt Card -->
         <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
           <div class="p-6 space-y-4">
             <div class="space-y-2">
@@ -87,13 +87,13 @@ async function onSubmit() {
           </div>
         </div>
 
-        <!-- Slash Commands Section -->
+        <!-- Slash Prompts Section -->
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <div class="space-y-1">
-              <Label class="text-base font-semibold">{{ t('settings.prompts.slash.label') }}</Label>
+              <Label class="text-base font-semibold">{{ t('settings.slash_prompts.label') }}</Label>
               <p class="text-xs text-muted-foreground">
-                <template v-for="(part, i) in t('settings.prompts.slash.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
+                <template v-for="(part, i) in t('settings.slash_prompts.hint').split(/(<code>.*?<\/code>)/g)" :key="i">
                   <code v-if="part.startsWith('<code>')" class="bg-muted px-1 rounded">{{ part.replace(/<\/?code>/g, '') }}</code>
                   <template v-else>
                     {{ part }}
@@ -105,30 +105,30 @@ async function onSubmit() {
               type="button"
               variant="outline"
               size="sm"
-              :disabled="form.slash_commands.length >= 5"
-              @click="addPromptSlash"
+              :disabled="form.slash_prompts.length >= 5"
+              @click="addSlashPrompt"
             >
               <PlusIcon class="w-4 h-4 mr-2" />
-              {{ t('settings.prompts.slash.add') }}
+              {{ t('settings.slash_prompts.add') }}
             </Button>
           </div>
 
           <div class="grid gap-4">
             <div
-              v-for="(item, index) in form.slash_commands"
+              v-for="(item, index) in form.slash_prompts"
               :key="item.id"
               class="group relative rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md"
             >
               <div class="grid gap-6">
                 <div class="grid grid-cols-2 gap-4">
                   <div class="space-y-2">
-                    <Label :for="`prompt-key-${index}`" class="text-sm font-medium">{{ t('settings.prompts.slash.key_label') }}</Label>
-                    <Input :id="`prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" class="bg-muted/20" />
+                    <Label :for="`slash-prompt-key-${index}`" class="text-sm font-medium">{{ t('settings.slash_prompts.key_label') }}</Label>
+                    <Input :id="`slash-prompt-key-${index}`" v-model="item.key" placeholder="/tr:zh" class="bg-muted/20" />
                   </div>
                   <div class="space-y-2">
-                    <Label :for="`prompt-aliases-${index}`" class="text-sm font-medium">{{ t('settings.prompts.slash.aliases_label') }}</Label>
+                    <Label :for="`slash-prompt-aliases-${index}`" class="text-sm font-medium">{{ t('settings.slash_prompts.aliases_label') }}</Label>
                     <Input
-                      :id="`prompt-aliases-${index}`"
+                      :id="`slash-prompt-aliases-${index}`"
                       :model-value="item.aliases?.join(', ')"
                       placeholder="/tr, /zh"
                       class="bg-muted/20"
@@ -137,13 +137,13 @@ async function onSubmit() {
                   </div>
                 </div>
                 <div class="space-y-2">
-                  <Label :for="`prompt-value-${index}`" class="text-sm font-medium">{{ t('settings.prompts.slash.instruction_label') }}</Label>
+                  <Label :for="`slash-prompt-value-${index}`" class="text-sm font-medium">{{ t('settings.slash_prompts.instruction_label') }}</Label>
                   <Textarea
-                    :id="`prompt-value-${index}`"
+                    :id="`slash-prompt-value-${index}`"
                     v-model="item.value"
                     :rows="4"
                     class="resize-y bg-muted/20"
-                    :placeholder="t('settings.prompts.slash.instruction_placeholder')"
+                    :placeholder="t('settings.slash_prompts.instruction_placeholder')"
                   />
                 </div>
               </div>
@@ -152,7 +152,7 @@ async function onSubmit() {
                 variant="ghost"
                 size="icon"
                 class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                @click="removePromptSlash(index)"
+                @click="removeSlashPrompt(index)"
               >
                 <Trash2Icon class="w-4 h-4" />
               </Button>

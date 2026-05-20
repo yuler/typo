@@ -34,14 +34,14 @@ The text to be improved will be provided in the user message.
 
 export type AI_PROVIDER = 'typo' | 'deepseek' | 'ollama'
 
-export interface SlashCommand {
+export interface SlashPrompt {
   id?: string
   key: string
   aliases?: string[]
   value: string
 }
 
-export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
+export const DEFAULT_SLASH_PROMPTS: SlashPrompt[] = [
   { id: '1', key: '/prompt', aliases: ['/p'], value: 'Follow this instruction: \n{{args}}\nThe input text is: \n{{text}}\nReturn only the result.' },
   { id: '2', key: '/zh', aliases: ['/cn'], value: 'Translate the input text into Simplified Chinese while preserving meaning. Return only translated text.' },
   { id: '3', key: '/jp', aliases: ['/ja'], value: 'Translate the input text into Japanese while preserving meaning. Return only translated text.' },
@@ -94,7 +94,7 @@ const DEFAULT_STORE = {
   ai_system_prompt: SYSTEM_PROMPT,
   deepseek_api_key: '',
   ollama_model: '',
-  slash_commands: DEFAULT_SLASH_COMMANDS,
+  slash_prompts: DEFAULT_SLASH_PROMPTS,
   global_shortcut: DEFAULT_GLOBAL_SHORTCUT,
   locale: defaultLocale satisfies Locale,
 }
@@ -139,6 +139,14 @@ async function migrateLegacyStore() {
           }
         }
       }
+
+      if (await legacyStore.has('slash_commands')) {
+        const val = await legacyStore.get('slash_commands')
+        if (val !== undefined) {
+          await store.set('slash_prompts', val)
+        }
+      }
+
       await store.save()
 
       await legacyStore.clear()
@@ -151,9 +159,24 @@ async function migrateLegacyStore() {
   }
 }
 
-// only set default when key not exists
+async function migrateSlashCommandsKey() {
+  if (!(await store.has('slash_commands')))
+    return
+
+  if (!(await store.has('slash_prompts'))) {
+    const val = await store.get<SlashPrompt[]>('slash_commands')
+    if (val !== undefined) {
+      await store.set('slash_prompts', val)
+    }
+  }
+
+  await store.delete('slash_commands')
+  await store.save()
+}
+
 export async function initializeStore() {
   await migrateLegacyStore()
+  await migrateSlashCommandsKey()
   for (const [key, value] of Object.entries(DEFAULT_STORE)) {
     if (!(await store.has(key))) {
       await store.set(key, value)
@@ -170,10 +193,10 @@ export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: t
   logger.info('store', `set ${key}`, value)
   await store.set(key, value)
 
-  if (key === 'slash_commands' && value) {
+  if (key === 'slash_prompts' && value) {
     const token = await authStore.getAuth('access_token')
     if (token) {
-      await syncSlashCommandsToServer(value as SlashCommand[], token)
+      await syncSlashPromptsToServer(value as SlashPrompt[], token)
     }
   }
 
@@ -196,7 +219,7 @@ export async function syncPromptsWithServer() {
 
   try {
     const [serverSlashPrompts, serverDefaultPrompt] = await Promise.all([
-      api<SlashCommand[]>('/api/v1/slash_prompts', {
+      api<SlashPrompt[]>('/api/v1/slash_prompts', {
         headers: { Authorization: `Bearer ${token}` },
       }),
       api<{ value: string }>('/api/v1/default_prompt', {
@@ -205,7 +228,7 @@ export async function syncPromptsWithServer() {
     ])
 
     if (serverSlashPrompts.length > 0) {
-      await store.set('slash_commands', serverSlashPrompts)
+      await store.set('slash_prompts', serverSlashPrompts)
     }
 
     if (serverDefaultPrompt?.value) {
@@ -219,22 +242,22 @@ export async function syncPromptsWithServer() {
   }
 }
 
-export async function resetLocalPrompts() {
-  await store.set('slash_commands', DEFAULT_SLASH_COMMANDS)
+export async function resetLocalSlashPrompts() {
+  await store.set('slash_prompts', DEFAULT_SLASH_PROMPTS)
   await store.save()
 }
 
-async function syncSlashCommandsToServer(newCommands: SlashCommand[], token: string) {
+async function syncSlashPromptsToServer(newPrompts: SlashPrompt[], token: string) {
   try {
-    const serverPrompts = await api<SlashCommand[]>('/api/v1/slash_prompts', {
+    const serverPrompts = await api<SlashPrompt[]>('/api/v1/slash_prompts', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
     const serverPromptMap = new Map(serverPrompts.map(p => [p.id, p]))
-    const newCommandMap = new Map(newCommands.map(c => [c.id, c]))
+    const newPromptMap = new Map(newPrompts.map(p => [p.id, p]))
 
     for (const serverPrompt of serverPrompts) {
-      if (serverPrompt.id && !newCommandMap.has(serverPrompt.id)) {
+      if (serverPrompt.id && !newPromptMap.has(serverPrompt.id)) {
         await api(`/api/v1/slash_prompts/${serverPrompt.id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
@@ -242,50 +265,50 @@ async function syncSlashCommandsToServer(newCommands: SlashCommand[], token: str
       }
     }
 
-    const syncedCommands: SlashCommand[] = []
-    for (const newCommand of newCommands) {
-      const existingServerPrompt = newCommand.id ? serverPromptMap.get(newCommand.id) : null
+    const syncedPrompts: SlashPrompt[] = []
+    for (const newPrompt of newPrompts) {
+      const existingServerPrompt = newPrompt.id ? serverPromptMap.get(newPrompt.id) : null
 
       if (existingServerPrompt) {
-        const hasChanged = existingServerPrompt.key !== newCommand.key
-          || existingServerPrompt.value !== newCommand.value
-          || JSON.stringify(existingServerPrompt.aliases) !== JSON.stringify(newCommand.aliases)
+        const hasChanged = existingServerPrompt.key !== newPrompt.key
+          || existingServerPrompt.value !== newPrompt.value
+          || JSON.stringify(existingServerPrompt.aliases) !== JSON.stringify(newPrompt.aliases)
 
         if (hasChanged) {
-          const updated = await api<SlashCommand>(`/api/v1/slash_prompts/${newCommand.id}`, {
+          const updated = await api<SlashPrompt>(`/api/v1/slash_prompts/${newPrompt.id}`, {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${token}` },
             body: JSON.stringify({
               slash_prompt: {
-                key: newCommand.key,
-                value: newCommand.value,
-                aliases: newCommand.aliases || [],
+                key: newPrompt.key,
+                value: newPrompt.value,
+                aliases: newPrompt.aliases || [],
               },
             }),
           })
-          syncedCommands.push(updated)
+          syncedPrompts.push(updated)
         }
         else {
-          syncedCommands.push(existingServerPrompt)
+          syncedPrompts.push(existingServerPrompt)
         }
       }
       else {
-        const created = await api<SlashCommand>('/api/v1/slash_prompts', {
+        const created = await api<SlashPrompt>('/api/v1/slash_prompts', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: JSON.stringify({
             slash_prompt: {
-              key: newCommand.key,
-              value: newCommand.value,
-              aliases: newCommand.aliases || [],
+              key: newPrompt.key,
+              value: newPrompt.value,
+              aliases: newPrompt.aliases || [],
             },
           }),
         })
-        syncedCommands.push(created)
+        syncedPrompts.push(created)
       }
     }
 
-    await store.set('slash_commands', syncedCommands)
+    await store.set('slash_prompts', syncedPrompts)
     await store.save()
   }
   catch (error) {

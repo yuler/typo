@@ -4,11 +4,11 @@ import * as authStore from './auth'
 import * as settingsStore from './settings'
 
 /**
- * Returns true when the signed-in account has no server prompts but local prompts exist.
+ * Returns true when the signed-in account has no server slash prompts but local ones exist.
  *
  * TODO: Remove this file entirely in v2.0 once all legacy users are migrated.
  */
-export async function needsPromptsMigration(): Promise<boolean> {
+export async function needsSlashPromptsMigration(): Promise<boolean> {
   const token = await authStore.getAuth('access_token')
   if (!token)
     return false
@@ -24,7 +24,7 @@ export async function needsPromptsMigration(): Promise<boolean> {
     ])
 
     const needsSlashMigration = serverSlashPrompts.length === 0
-    const localSlashPrompts = await settingsStore.get('slash_commands')
+    const localSlashPrompts = await settingsStore.get('slash_prompts')
     const hasLocalSlashPrompts = localSlashPrompts.length > 0
 
     const needsDefaultMigration = !serverDefaultPrompt?.value
@@ -34,7 +34,7 @@ export async function needsPromptsMigration(): Promise<boolean> {
     return (needsSlashMigration && hasLocalSlashPrompts) || (needsDefaultMigration && hasLocalDefaultPrompt)
   }
   catch (error) {
-    logger.error('prompts_migration', 'Failed to check prompts migration status', error)
+    logger.error('slash_prompts_migration', 'Failed to check slash prompts migration status', error)
     return false
   }
 }
@@ -45,7 +45,7 @@ export async function needsPromptsMigration(): Promise<boolean> {
  *
  * TODO: Remove this file entirely in v2.0 once all legacy users are migrated.
  */
-export async function runPromptsMigration(): Promise<boolean> {
+export async function runSlashPromptsMigration(): Promise<boolean> {
   const token = await authStore.getAuth('access_token')
   if (!token)
     return false
@@ -63,12 +63,12 @@ export async function runPromptsMigration(): Promise<boolean> {
     let migrated = false
 
     if (serverSlashPrompts.length === 0) {
-      logger.info('prompts_migration', 'Starting one-time local slash prompts migration to server.')
+      logger.info('slash_prompts_migration', 'Starting one-time local slash prompts migration to server.')
 
-      const localPrompts = await settingsStore.get('slash_commands')
+      const localSlashPrompts = await settingsStore.get('slash_prompts')
       const uploadedPrompts: any[] = []
 
-      for (const localPrompt of localPrompts) {
+      for (const localPrompt of localSlashPrompts) {
         const created = await api<any>('/api/v1/slash_prompts', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
@@ -83,12 +83,12 @@ export async function runPromptsMigration(): Promise<boolean> {
         uploadedPrompts.push(created)
       }
 
-      await settingsStore.set('slash_commands', uploadedPrompts)
+      await settingsStore.set('slash_prompts', uploadedPrompts)
       migrated = uploadedPrompts.length > 0
     }
 
     if (!serverDefaultPrompt?.value) {
-      logger.info('prompts_migration', 'Starting one-time local default prompt migration to server.')
+      logger.info('slash_prompts_migration', 'Starting one-time local default prompt migration to server.')
 
       const localDefaultPrompt = await settingsStore.get('ai_system_prompt')
       if (localDefaultPrompt?.trim()) {
@@ -106,13 +106,13 @@ export async function runPromptsMigration(): Promise<boolean> {
     await settingsStore.save()
 
     if (migrated) {
-      logger.info('prompts_migration', 'Local prompts migration completed successfully.')
+      logger.info('slash_prompts_migration', 'Local slash prompts migration completed successfully.')
     }
 
     return migrated
   }
   catch (error) {
-    logger.error('prompts_migration', 'Failed to run prompts migration', error)
+    logger.error('slash_prompts_migration', 'Failed to run slash prompts migration', error)
     return false
   }
 }

@@ -22,14 +22,14 @@ const model = defineModel<boolean>({ required: true })
   <AlertDialog v-model:open="model">
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>{{ t('prompts_migration.title') }}</AlertDialogTitle>
+        <AlertDialogTitle>{{ t('slash_prompts_migration.title') }}</AlertDialogTitle>
         <AlertDialogDescription>
-          {{ t('prompts_migration.description') }}
+          {{ t('slash_prompts_migration.description') }}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogAction @click="emit('confirm')">
-          {{ t('prompts_migration.confirm') }}
+          {{ t('slash_prompts_migration.confirm') }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

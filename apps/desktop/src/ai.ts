@@ -5,7 +5,7 @@ import { createOllama } from 'ollama-ai-provider'
 import { api } from '@/api'
 import { logger } from '@/logger'
 import { getAuth } from '@/stores/auth'
-import { parseSlashCommands, resolveSlashCommand } from './slashCommands'
+import { parseSlashPrompts, resolveSlashPrompt } from './slashPrompts'
 import { get } from './stores/settings'
 
 const DEFAULT_SYSTEM_PROMPT = 'You are Typo assistant.'
@@ -38,15 +38,15 @@ async function resolveAndProcess(
     return aiProcess(model, preResolved.text, preResolved.instruction, preResolved.command, abortSignal)
   }
 
-  const [baseInstruction, shortcuts] = await Promise.all([
+  const [baseInstruction, slashPrompts] = await Promise.all([
     get('ai_system_prompt'),
-    get('slash_commands'),
+    get('slash_prompts'),
   ])
 
-  const { text: resolvedText, instruction: finalInstruction, command } = resolveSlashCommand(
+  const { text: resolvedText, instruction: finalInstruction, command } = resolveSlashPrompt(
     text,
     baseInstruction,
-    parseSlashCommands(shortcuts),
+    parseSlashPrompts(slashPrompts),
   )
 
   return aiProcess(model, resolvedText, finalInstruction, command, abortSignal)

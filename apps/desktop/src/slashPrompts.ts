@@ -1,15 +1,15 @@
-import type { SlashCommand } from './stores/settings'
+import type { SlashPrompt } from './stores/settings'
 import { logger } from '@/logger'
 
-export type SlashCommandMap = Record<string, string>
+export type SlashPromptMap = Record<string, string>
 
 /**
- * Parses raw prompt shortcuts into a map of slash commands.
+ * Parses slash prompts into a lookup map keyed by command.
  */
-export function parseSlashCommands(shortcuts: SlashCommand[]): SlashCommandMap {
+export function parseSlashPrompts(prompts: SlashPrompt[]): SlashPromptMap {
   const entries: Array<[string, string]> = []
 
-  for (const item of shortcuts) {
+  for (const item of prompts) {
     const key = item.key.trim()
     const value = item.value.trim()
     if (!key.startsWith('/') || !value) {
@@ -28,16 +28,16 @@ export function parseSlashCommands(shortcuts: SlashCommand[]): SlashCommandMap {
   return Object.fromEntries(entries)
 }
 
-interface ResolvedPrompt {
+interface ResolvedSlashPrompt {
   text: string
   instruction: string
   command?: string
 }
 
 /**
- * Resolves slash commands from the input text (only leading or trailing).
+ * Resolves slash prompts from the input text (only leading or trailing).
  */
-export function resolveSlashCommand(text: string, baseInstruction: string, commands: SlashCommandMap): ResolvedPrompt {
+export function resolveSlashPrompt(text: string, baseInstruction: string, prompts: SlashPromptMap): ResolvedSlashPrompt {
   const trimmedText = text.trim()
   if (!trimmedText) {
     return { text, instruction: baseInstruction }
@@ -46,10 +46,10 @@ export function resolveSlashCommand(text: string, baseInstruction: string, comma
   const lines = trimmedText.split(/\r?\n/)
   const firstLine = lines[0]?.trim() ?? ''
   const lastLine = lines[lines.length - 1]?.trim() ?? ''
-  const sortedKeys = Object.keys(commands).sort((a, b) => b.length - a.length)
+  const sortedKeys = Object.keys(prompts).sort((a, b) => b.length - a.length)
 
   for (const key of sortedKeys) {
-    const template = commands[key]
+    const template = prompts[key]
     const matches = (line: string) => line === key || line.startsWith(`${key} `)
     let commandLine = ''
     let contentLines: string[] = []

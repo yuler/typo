@@ -208,8 +208,8 @@ export const useAuth = createGlobalState(() => {
     await authStore.setAuth('access_token', '')
     await authStore.setAuth('email', '')
     await authStore.saveAuth()
-    const { resetLocalPrompts } = await import('@/stores/settings')
-    await resetLocalPrompts()
+    const { resetLocalSlashPrompts } = await import('@/stores/settings')
+    await resetLocalSlashPrompts()
   }
 
   function cancel() {
