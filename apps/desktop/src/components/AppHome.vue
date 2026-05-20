@@ -70,8 +70,12 @@ async function fetchStats() {
 }
 
 async function fetchDefaultPrompt() {
-  isLoadingDefaultPrompt.value = true
+  if (!isLoggedIn.value)
+    return
+  if (!defaultPrompt.value)
+    isLoadingDefaultPrompt.value = true
   try {
+    await store.fetchDefaultPromptFromServer()
     defaultPrompt.value = await store.get('default_prompt')
   }
   catch (err) {
@@ -135,23 +139,23 @@ const stats = computed(() => [
         </p>
 
         <div class="flex flex-wrap items-center gap-4 mb-8">
-          <button
-            type="button"
+          <a
+            :href="WEBSITE_URL"
             class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            @click="openUrl(WEBSITE_URL)"
+            @click.prevent="openUrl(WEBSITE_URL)"
           >
             {{ t('main.hero.website') }}
             <ExternalLink class="size-3.5 opacity-70" />
-          </button>
+          </a>
           <span class="text-border" aria-hidden="true">·</span>
-          <button
-            type="button"
+          <a
+            :href="DOCS_URL"
             class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            @click="openUrl(DOCS_URL)"
+            @click.prevent="openUrl(DOCS_URL)"
           >
             {{ t('main.hero.docs') }}
             <ExternalLink class="size-3.5 opacity-70" />
-          </button>
+          </a>
         </div>
 
         <div v-if="!isLoggedIn" class="flex flex-col gap-4 items-start">
