@@ -40,7 +40,7 @@
   "settings.slash_prompts.instruction_label": "Instruction",
   "settings.slash_prompts.instruction_placeholder": "Use {{args}} and {{text}} placeholders if needed",
   "settings.slash_prompts.remove": "Remove",
-  "settings.slash_prompts.hint": "Example: input ends with <code>/zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.",
+  "settings.slash_prompts.hint": "Example: input starts or ends with <code>/zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.",
   "settings.save": "Save",
   "settings.save_success": "Settings saved successfully",
   "settings.save_error": "Failed to save settings",
