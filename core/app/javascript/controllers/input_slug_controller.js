@@ -10,7 +10,7 @@ export default class extends Controller {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
-    
+
     this.outputTarget.textContent = slugified || this.fallbackValue
   }
 }
