@@ -12,11 +12,7 @@ import {
 } from 'lucide-vue-next'
 import { onMounted, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
-import { useAuth } from '@/composables/useAuth'
-import { useCompletions } from '@/composables/useCompletions'
-import { useI18n } from '@/composables/useI18n'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -26,6 +22,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useAuth } from '@/composables/useAuth'
+import { useCompletions } from '@/composables/useCompletions'
+import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
 const { isLoggedIn, login, authStatus } = useAuth()

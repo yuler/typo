@@ -1,9 +1,10 @@
+import type { CompletionRecord } from '@/api'
 import { ref } from 'vue'
-import { deleteCompletion, fetchCompletions, type CompletionRecord } from '@/api'
+import { toast } from 'vue-sonner'
+import { deleteCompletion, fetchCompletions } from '@/api'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import * as authStore from '@/stores/auth'
-import { toast } from 'vue-sonner'
 
 export function useCompletions() {
   const { t } = useI18n()

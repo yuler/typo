@@ -10,7 +10,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
     records = set_page_and_extract_portion_from(completions)
 
     render json: {
-      completions: records.as_json(only: [:id, :input, :output, :status, :created_at]),
+      completions: records.as_json(only: [ :id, :input, :output, :status, :created_at ]),
       meta: {
         page: @page.number,
         next_page: @page.last? ? nil : @page.next_param,
