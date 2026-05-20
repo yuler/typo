@@ -17,8 +17,8 @@ import AppHome from '@/components/AppHome.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
-import SlashPromptsMigrationDialog from '@/components/SlashPromptsMigrationDialog.vue'
 import PromptsSettings from '@/components/PromptsSettings.vue'
+import SlashPromptsMigrationDialog from '@/components/SlashPromptsMigrationDialog.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -37,9 +37,9 @@ import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
-import { needsSlashPromptsMigration, runSlashPromptsMigration } from '@/stores/slash_prompts_migration'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
+import { needsSlashPromptsMigration, runSlashPromptsMigration } from '@/stores/slash_prompts_migration'
 import { sleep } from '@/utils'
 
 const { t } = useI18n()
