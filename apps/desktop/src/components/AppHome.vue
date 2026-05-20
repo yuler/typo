@@ -36,11 +36,11 @@ async function fetchStats() {
   try {
     const token = await getAuth('access_token')
     if (token) {
-      const data = await api<{ completions: number, slash_commands: number }>('/api/v1/stats', {
+      const data = await api<{ completions: number, slash_prompts: number }>('/api/v1/stats', {
         headers: { Authorization: `Bearer ${token}` },
       })
       totalCompletions.value = data.completions ?? 0
-      totalSlashPrompts.value = data.slash_commands ?? 0
+      totalSlashPrompts.value = data.slash_prompts ?? 0
     }
   }
   catch (err) {

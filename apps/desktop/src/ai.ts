@@ -60,8 +60,7 @@ export async function typoProcess(text: string, abortSignal?: AbortSignal, preRe
   const response = await api<{ result: string }>('/api/v1/completions', {
     method: 'POST',
     body: JSON.stringify({
-      text,
-      //      prompt: DEFAULT_SYSTEM_PROMPT,
+      text: preResolved?.text ?? text,
       prompt: instruction,
     }),
     signal: abortSignal,

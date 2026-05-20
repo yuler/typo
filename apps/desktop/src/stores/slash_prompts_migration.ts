@@ -15,7 +15,7 @@ export async function needsSlashPromptsMigration(): Promise<boolean> {
 
   try {
     const [serverSlashPrompts, serverDefaultPrompt] = await Promise.all([
-      api<any[]>('/api/v1/slash_prompts', {
+      api<settingsStore.SlashPrompt[]>('/api/v1/slash_prompts', {
         headers: { Authorization: `Bearer ${token}` },
       }),
       api<{ value: string }>('/api/v1/default_prompt', {
@@ -52,7 +52,7 @@ export async function runSlashPromptsMigration(): Promise<boolean> {
 
   try {
     const [serverSlashPrompts, serverDefaultPrompt] = await Promise.all([
-      api<any[]>('/api/v1/slash_prompts', {
+      api<settingsStore.SlashPrompt[]>('/api/v1/slash_prompts', {
         headers: { Authorization: `Bearer ${token}` },
       }),
       api<{ value: string }>('/api/v1/default_prompt', {
@@ -66,10 +66,10 @@ export async function runSlashPromptsMigration(): Promise<boolean> {
       logger.info('slash_prompts_migration', 'Starting one-time local slash prompts migration to server.')
 
       const localSlashPrompts = await settingsStore.get('slash_prompts')
-      const uploadedPrompts: any[] = []
+      const uploadedPrompts: settingsStore.SlashPrompt[] = []
 
       for (const localPrompt of localSlashPrompts) {
-        const created = await api<any>('/api/v1/slash_prompts', {
+        const created = await api<settingsStore.SlashPrompt>('/api/v1/slash_prompts', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: JSON.stringify({

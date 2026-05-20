@@ -47,7 +47,7 @@ class SlashPrompt < ApplicationRecord
         **输入**：君は勉強する
         **输出**：
         ki_mi___wa___be_n_kyo_u___su_ru
-        君______は___勉___強_______す_原
+        君______は___勉___強_______す_る
 
         ---
 
