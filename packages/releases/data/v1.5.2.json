@@ -1,0 +1,47 @@
+{
+  "version": "1.5.2",
+  "date": "2026-05-20",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.5.2",
+  "notes": "### Refactors\n- Sync prompts with backend and refactor AI completion flow\n### Features\n- Add username slugification and error promotion in signup",
+  "notes_i18n": {
+    "en": [
+      "Refactor: Sync prompts with backend and refactor AI completion flow",
+      "Feature: Add username slugification and error promotion in signup"
+    ],
+    "zh": [
+      "重构：同步提示与后端并重构AI补全流程",
+      "功能：添加用户名slug化及注册错误提升"
+    ],
+    "jp": [
+      "リファクタリング：プロンプトをバックエンドと同期し、AI補完フローをリファクタリング",
+      "機能：ユーザー名のスラッグ化とサインアップ時のエラープロモーションを追加"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.5.2_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.2/typo_1.5.2_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.5.2_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.2/typo_1.5.2_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.5.2_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.2/typo_1.5.2_amd64.deb"
+    },
+    {
+      "name": "typo_1.5.2_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.2/typo_1.5.2_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.5.2_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.2/typo_1.5.2_x64.dmg"
+    }
+  ]
+}

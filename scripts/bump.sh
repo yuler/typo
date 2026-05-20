@@ -47,6 +47,16 @@ cd ../../../
 echo "Generating AI release notes..."
 pnpm releases:gen "$package_version" || echo "Warning: AI notes generation failed, proceeding with standard bump."
 
+release_file="packages/releases/data/v${package_version}.json"
+if [ ! -f "$release_file" ]; then
+    echo "Error: $release_file not found. Fix release notes generation before continuing."
+    exit 1
+fi
+
+gum style --bold "Review release notes"
+echo "Opening $release_file in ${EDITOR:-vim}. Save and quit (:wq) to continue."
+"${EDITOR:-vim}" "$release_file"
+
 git add -A
 git commit --message "🚀 [releases]: v$package_version"
 
