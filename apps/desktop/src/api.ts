@@ -1,10 +1,13 @@
 import { invoke } from '@tauri-apps/api/core'
 import { fetch } from '@tauri-apps/plugin-http'
+import { toast } from 'vue-sonner'
+import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.typo.yuler.cc'
 
 let userAgentPromise: Promise<string> | null = null
+let isResetting = false
 
 function getUserAgent(): Promise<string> {
   if (userAgentPromise)
@@ -27,6 +30,20 @@ function getUserAgent(): Promise<string> {
   })()
 
   return userAgentPromise
+}
+
+const AUTH_EXEMPTIONS = [
+  { method: 'POST', path: '/api/v1/device/authorization' },
+  { method: 'POST', path: '/api/v1/device/token' },
+  { method: 'DELETE', path: '/api/v1/session' },
+] as const
+
+function allowUnauthenticatedAccess(path: string, method: string): boolean {
+  const normalizedPath = path.split('?')[0]
+  const upperMethod = method.toUpperCase()
+  return AUTH_EXEMPTIONS.some(
+    e => e.path === normalizedPath && e.method === upperMethod,
+  )
 }
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
@@ -54,6 +71,27 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
     headers,
   })
+
+  if (response.status === 401 && !allowUnauthenticatedAccess(path, method)) {
+    if (!isResetting) {
+      isResetting = true
+      try {
+        const { useAuth } = await import('@/composables/useAuth')
+        const auth = useAuth()
+        if (auth.isLoggedIn.value) {
+          const { t } = useI18n()
+          toast.error(t('auth.session_expired'))
+          await auth.reset()
+        }
+      }
+      catch (err) {
+        logger.error('api', 'Failed to reset auth state', err)
+      }
+      finally {
+        isResetting = false
+      }
+    }
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
