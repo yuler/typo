@@ -1,0 +1,47 @@
+{
+  "version": "1.5.1",
+  "date": "2026-05-20",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.5.1",
+  "notes": "- **New Features:** Added API request/response logging in dev mode for desktop.\n- **Improvements & Fixes:** Centralized 401 error handling and improved device authentication UX on desktop.",
+  "notes_i18n": {
+    "en": [
+      "New Features: Added API request/response logging in dev mode for desktop.",
+      "Improvements & Fixes: Centralized 401 error handling and improved device authentication UX on desktop."
+    ],
+    "zh": [
+      "新功能：在桌面端开发模式下添加API请求/响应日志记录。",
+      "改进与修复：集中处理401错误并改进设备认证用户体验。"
+    ],
+    "jp": [
+      "新機能：デスクトップの開発モードでAPIリクエスト/レスポンスのログ記録を追加。",
+      "改善と修正：401エラー処理の一元化とデバイス認証UXの改善。"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.5.1_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.1/typo_1.5.1_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.5.1_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.1/typo_1.5.1_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.5.1_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.1/typo_1.5.1_amd64.deb"
+    },
+    {
+      "name": "typo_1.5.1_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.1/typo_1.5.1_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.5.1_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.1/typo_1.5.1_x64.dmg"
+    }
+  ]
+}
