@@ -14,12 +14,12 @@ class Prompt < ApplicationRecord
   before_validation :normalize_aliases
 
   DEFAULT_SLASH_COMMANDS = [
-    { key: "/prompt", aliases: ["/p"], value: "Follow this instruction: \n{{args}}\nThe input text is: \n{{text}}\nReturn only the result." },
-    { key: "/zh", aliases: ["/cn"], value: "Translate the input text into Simplified Chinese while preserving meaning. Return only translated text." },
-    { key: "/jp", aliases: ["/ja"], value: "Translate the input text into Japanese while preserving meaning. Return only translated text." },
+    { key: "/prompt", aliases: [ "/p" ], value: "Follow this instruction: \n{{args}}\nThe input text is: \n{{text}}\nReturn only the result." },
+    { key: "/zh", aliases: [ "/cn" ], value: "Translate the input text into Simplified Chinese while preserving meaning. Return only translated text." },
+    { key: "/jp", aliases: [ "/ja" ], value: "Translate the input text into Japanese while preserving meaning. Return only translated text." },
     {
       key: "/ph",
-      aliases: ["/py"],
+      aliases: [ "/py" ],
       value: <<~PROMPT.strip
         # 任务：多语种自动注音与视觉对齐
         你是一个专业的注音标注助手。请根据输入文本的语种（日语、中文或英语），自动执行以下转换逻辑：

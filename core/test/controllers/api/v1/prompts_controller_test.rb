@@ -9,7 +9,7 @@ class Api::V1::PromptsControllerTest < ActionDispatch::IntegrationTest
     @token_header = { "Authorization" => "Bearer #{@session.signed_id}" }
 
     # Create a prompt for testing
-    @prompt = @account.prompts.create!(key: "/test", value: "Test Value", aliases: ["/t"])
+    @prompt = @account.prompts.create!(key: "/test", value: "Test Value", aliases: [ "/t" ])
   end
 
   test "should get all prompts when authenticated" do
@@ -20,13 +20,13 @@ class Api::V1::PromptsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, json.length
     assert_equal @prompt.id, json[0]["id"]
     assert_equal "/test", json[0]["key"]
-    assert_equal ["/t"], json[0]["aliases"]
+    assert_equal [ "/t" ], json[0]["aliases"]
   end
 
   test "should create new prompt" do
     assert_difference -> { @account.prompts.count }, 1 do
       post api_v1_prompts_url,
-        params: { prompt: { key: "/new", value: "New instruction", aliases: ["/n"] } },
+        params: { prompt: { key: "/new", value: "New instruction", aliases: [ "/n" ] } },
         headers: @token_header,
         as: :json
     end
@@ -35,7 +35,7 @@ class Api::V1::PromptsControllerTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
     assert_equal "/new", json["key"]
     assert_equal "New instruction", json["value"]
-    assert_equal ["/n"], json["aliases"]
+    assert_equal [ "/n" ], json["aliases"]
   end
 
   test "should return error if prompt key duplicate" do
@@ -50,7 +50,7 @@ class Api::V1::PromptsControllerTest < ActionDispatch::IntegrationTest
 
   test "should update prompt" do
     patch api_v1_prompt_url(@prompt),
-      params: { prompt: { key: "/test_updated", value: "Updated Value", aliases: ["/tu"] } },
+      params: { prompt: { key: "/test_updated", value: "Updated Value", aliases: [ "/tu" ] } },
       headers: @token_header,
       as: :json
     assert_response :success
@@ -58,7 +58,7 @@ class Api::V1::PromptsControllerTest < ActionDispatch::IntegrationTest
     @prompt.reload
     assert_equal "/test_updated", @prompt.key
     assert_equal "Updated Value", @prompt.value
-    assert_equal ["/tu"], @prompt.aliases
+    assert_equal [ "/tu" ], @prompt.aliases
   end
 
   test "should delete prompt" do

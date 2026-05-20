@@ -16,7 +16,8 @@ export async function runPromptsMigration(serverPrompts: any[]): Promise<boolean
   }
 
   const token = await authStore.getAuth('access_token')
-  if (!token) return false
+  if (!token)
+    return false
 
   try {
     logger.info('prompts_migration', 'Starting one-time local prompts migration to server.')

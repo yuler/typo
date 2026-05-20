@@ -10,7 +10,7 @@ class PromptTest < ActiveSupport::TestCase
       account: @account,
       key: "/test",
       value: "Test prompt value",
-      aliases: ["/t", "/my_test"]
+      aliases: [ "/t", "/my_test" ]
     )
     assert prompt.valid?
   end
@@ -20,10 +20,10 @@ class PromptTest < ActiveSupport::TestCase
       account: @account,
       key: "/test",
       value: "Test",
-      aliases: [" /t  ", "", nil, "/ok"]
+      aliases: [ " /t  ", "", nil, "/ok" ]
     )
     assert prompt.valid?
-    assert_equal ["/t", "/ok"], prompt.aliases
+    assert_equal [ "/t", "/ok" ], prompt.aliases
   end
 
   test "should be invalid without key or value" do
@@ -52,9 +52,9 @@ class PromptTest < ActiveSupport::TestCase
   end
 
   test "should validate aliases pattern" do
-    prompt1 = Prompt.new(account: @account, key: "/key", value: "x", aliases: ["t"])
-    prompt2 = Prompt.new(account: @account, key: "/key", value: "x", aliases: ["/t-invalid"])
-    prompt3 = Prompt.new(account: @account, key: "/key", value: "x", aliases: ["/t_ok"])
+    prompt1 = Prompt.new(account: @account, key: "/key", value: "x", aliases: [ "t" ])
+    prompt2 = Prompt.new(account: @account, key: "/key", value: "x", aliases: [ "/t-invalid" ])
+    prompt3 = Prompt.new(account: @account, key: "/key", value: "x", aliases: [ "/t_ok" ])
 
     assert_not prompt1.valid?
     assert_not prompt2.valid?

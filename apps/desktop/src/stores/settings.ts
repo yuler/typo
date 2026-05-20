@@ -1,8 +1,8 @@
 import type { Locale } from '@typo/languages'
 import { LazyStore } from '@tauri-apps/plugin-store'
 import { defaultLocale } from '@typo/languages'
-import { logger } from '@/logger'
 import { api } from '@/api'
+import { logger } from '@/logger'
 import * as authStore from './auth'
 import { saveAuth, setAuth } from './auth'
 
@@ -184,7 +184,8 @@ export async function save(): Promise<void> {
 
 export async function syncPromptsWithServer() {
   const token = await authStore.getAuth('access_token')
-  if (!token) return
+  if (!token)
+    return
 
   try {
     const serverPrompts = await api<SlashCommand[]>('/api/v1/prompts', {

@@ -10,6 +10,6 @@ class CreatePrompts < ActiveRecord::Migration[8.2]
     end
 
     add_index :prompts, :account_id
-    add_index :prompts, [:account_id, :key], unique: true
+    add_index :prompts, [ :account_id, :key ], unique: true
   end
 end

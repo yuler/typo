@@ -61,7 +61,7 @@ export async function typoProcess(text: string, abortSignal?: AbortSignal, preRe
     method: 'POST',
     body: JSON.stringify({
       text,
-//      prompt: DEFAULT_SYSTEM_PROMPT,
+      //      prompt: DEFAULT_SYSTEM_PROMPT,
       prompt: instruction,
     }),
     signal: abortSignal,
