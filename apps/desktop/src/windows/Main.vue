@@ -5,10 +5,11 @@ import { listen } from '@tauri-apps/api/event'
 import {
   HistoryIcon,
   HomeIcon,
-  MessageSquareIcon,
+  MessageSquareTextIcon,
   PaletteIcon,
   Settings2Icon,
   SparklesIcon,
+  TerminalIcon,
 } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import AIProviderSettings from '@/components/AIProviderSettings.vue'
@@ -16,8 +17,9 @@ import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
+import DefaultPromptSettings from '@/components/DefaultPromptSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
-import PromptsSettings from '@/components/PromptsSettings.vue'
+import SlashPromptsSettings from '@/components/SlashPromptsSettings.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -45,14 +47,17 @@ const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 const highlightShortcut = ref(false)
 let highlightTimeout: ReturnType<typeof setTimeout> | null = null
+let unlistenOpenSettings: (() => void) | undefined
+let isMounted = true
 
 const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
   { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
-  { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
   { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
-  { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
+  { id: 'default_prompt', label: t('main.nav.default_prompt'), icon: MessageSquareTextIcon, group: 'preferences' },
+  { id: 'slash_prompts', label: t('main.nav.slash_prompts'), icon: TerminalIcon, group: 'preferences' },
+  { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
 ])
 
 const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))
@@ -68,9 +73,6 @@ function onNavigateToShortcut() {
     highlightTimeout = null
   }, 3000)
 }
-
-let unlistenOpenSettings: (() => void) | undefined
-let isMounted = true
 
 onMounted(async () => {
   logger.info('Main', 'onMounted')
@@ -154,7 +156,7 @@ onUnmounted(() => {
         v-model:active-tab="activeTab"
         :nav-items="navItems"
       />
-      <SidebarInset>
+      <SidebarInset class="min-h-0 overflow-hidden">
         <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div class="flex items-center gap-2 px-4">
             <SidebarTrigger class="-ml-1" />
@@ -176,7 +178,7 @@ onUnmounted(() => {
         </header>
 
         <!-- Main Content -->
-        <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
+        <main class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 pt-0">
           <!-- Content based on activeTab -->
           <AppHome
             v-if="activeTab === 'main'"
@@ -185,13 +187,16 @@ onUnmounted(() => {
             @navigate-to-shortcut="onNavigateToShortcut"
           />
 
-          <BasicSettings
-            v-else-if="activeTab === 'settings'"
-            :highlight-shortcut="highlightShortcut"
-          />
-          <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
-          <AppearanceSettings v-else-if="activeTab === 'appearance'" />
-          <PromptsSettings v-else-if="activeTab === 'prompts'" />
+          <div v-else-if="['settings', 'ai_provider', 'appearance', 'default_prompt', 'slash_prompts'].includes(activeTab)" class="h-full min-h-0">
+            <BasicSettings
+              v-if="activeTab === 'settings'"
+              :highlight-shortcut="highlightShortcut"
+            />
+            <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
+            <AppearanceSettings v-else-if="activeTab === 'appearance'" />
+            <DefaultPromptSettings v-else-if="activeTab === 'default_prompt'" />
+            <SlashPromptsSettings v-else-if="activeTab === 'slash_prompts'" />
+          </div>
 
           <!-- Placeholder for other tabs (History) -->
           <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">

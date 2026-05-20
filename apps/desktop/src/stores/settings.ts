@@ -1,55 +1,18 @@
 import type { Locale } from '@typo/languages'
 import { LazyStore } from '@tauri-apps/plugin-store'
 import { defaultLocale } from '@typo/languages'
+import { api } from '@/api'
 import { logger } from '@/logger'
-import { saveAuth, setAuth } from './auth'
-
-export const SYSTEM_PROMPT = `
-You are an expert English writing and translation assistant with native-level proficiency.
-Your task is to improve and polish English text, including translating Chinese content and fixing errors.
-
-CORE RESPONSIBILITIES:
-1. Convert Chinese text into natural, idiomatic English
-2. Fix all grammar, spelling, and punctuation mistakes
-3. Enhance readability through better sentence structure and flow
-4. Ensure the text sounds authentically native while keeping the original meaning
-5. Match writing style to the context (formal/casual/technical)
-
-KEY RULES:
-- Return ONLY the improved text - no explanations or comments
-- Keep the original meaning and tone intact
-- Write clearly and concisely
-- Follow standard English grammar and conventions
-- Make it sound natural and native
-- Maintain technical terms and proper names exactly
-- Mirror the original text's formatting
-
-OUT FORMAT:
-Simply provide the corrected text without any additional notes or commentary.
-
-INPUT FORMAT:
-The text to improve will be provided in the user message between ### markers:
-
-### Input
-(The input text will be here)
-###
-`.trim()
+import * as authStore from './auth'
 
 export type AI_PROVIDER = 'typo' | 'deepseek' | 'ollama'
 
-export interface SlashCommand {
+export interface SlashPrompt {
   id?: string
   key: string
   aliases?: string[]
   value: string
 }
-
-export const DEFAULT_SLASH_COMMANDS: SlashCommand[] = [
-  { id: '1', key: '/tr:zh', value: '!Translate the input text into Simplified Chinese while preserving meaning. Return only translated text.' },
-  { id: '2', key: '/tr:jp', aliases: ['/tr:ja'], value: '!Translate the input text into Japanese while preserving meaning. Return only translated text.' },
-  { id: '4', key: '/tr:en', value: '!Translate the input text into natural English while preserving meaning. Return only translated text.' },
-  { id: '5', key: '/prompt', aliases: ['/p'], value: 'Apply this extra instruction on top of the saved System Prompt: {{args}}' },
-]
 
 export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
 
@@ -57,10 +20,10 @@ const DEFAULT_STORE = {
   autoselect: false,
   copy_result: false,
   ai_provider: 'typo' as AI_PROVIDER,
-  ai_system_prompt: SYSTEM_PROMPT,
+  default_prompt: '',
   deepseek_api_key: '',
   ollama_model: '',
-  slash_commands: DEFAULT_SLASH_COMMANDS,
+  slash_prompts: [] as SlashPrompt[],
   global_shortcut: DEFAULT_GLOBAL_SHORTCUT,
   locale: defaultLocale satisfies Locale,
 }
@@ -70,61 +33,13 @@ const store = new LazyStore('settings.json', {
   defaults: DEFAULT_STORE,
 })
 
-const legacyStore = new LazyStore('store.json', { autoSave: false, defaults: {} })
-
-/**
- * Backward compatibility migration for legacy `store.json`.
- * Automatically moves credentials to `auth.json` and preferences to `settings.json`.
- * TODO: Remove in the next major release (v2.0) once legacy migration is fully transitioned.
- */
-async function migrateLegacyStore() {
-  try {
-    const keys = await legacyStore.keys()
-    if (keys.length > 0) {
-      logger.info('store', 'Migrating legacy store.json data to settings.json and auth.json')
-
-      if (await legacyStore.has('access_token')) {
-        const token = await legacyStore.get<string>('access_token')
-        if (token) {
-          await setAuth('access_token', token)
-        }
-      }
-      if (await legacyStore.has('user_info')) {
-        const userInfo = await legacyStore.get<any>('user_info')
-        if (userInfo?.email) {
-          await setAuth('email', userInfo.email)
-        }
-      }
-      await saveAuth()
-
-      for (const key of Object.keys(DEFAULT_STORE)) {
-        if (await legacyStore.has(key)) {
-          const val = await legacyStore.get(key)
-          if (val !== undefined) {
-            await store.set(key, val)
-          }
-        }
-      }
-      await store.save()
-
-      await legacyStore.clear()
-      await legacyStore.save()
-      logger.info('store', 'Legacy store migration successfully completed')
-    }
-  }
-  catch (err) {
-    logger.error('store', 'Failed to migrate legacy store', err)
-  }
-}
-
-// only set default when key not exists
 export async function initializeStore() {
-  await migrateLegacyStore()
   for (const [key, value] of Object.entries(DEFAULT_STORE)) {
     if (!(await store.has(key))) {
       await store.set(key, value)
     }
   }
+  await syncPromptsWithServer()
 }
 
 export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise<typeof DEFAULT_STORE[T]> {
@@ -134,10 +49,161 @@ export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise
 export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: typeof DEFAULT_STORE[T] | undefined): Promise<void> {
   logger.info('store', `set ${key}`, value)
   await store.set(key, value)
+
+  if (key === 'slash_prompts' && value !== undefined) {
+    const token = await authStore.getAuth('access_token')
+    if (token)
+      await syncSlashPromptsToServer(value as SlashPrompt[], token)
+  }
+
+  if (key === 'default_prompt' && typeof value === 'string') {
+    const token = await authStore.getAuth('access_token')
+    if (token)
+      await syncDefaultPromptToServer(value, token)
+  }
+}
+
+/** Persists locally and syncs to `PATCH /api/v1/default_prompt` when signed in. */
+export async function persistDefaultPrompt(value: string): Promise<void> {
+  await set('default_prompt', value)
+  await save()
+}
+
+/** Persists locally and reconciles with `GET/POST/PATCH/DELETE /api/v1/slash_prompts` when signed in. */
+export async function persistSlashPrompts(prompts: SlashPrompt[]): Promise<void> {
+  await set('slash_prompts', prompts)
+  await save()
 }
 
 export async function save(): Promise<void> {
   await store.save()
+}
+
+export async function fetchSlashPromptsFromServer(): Promise<void> {
+  const token = await authStore.getAuth('access_token')
+  if (!token)
+    return
+
+  const serverSlashPrompts = await api<SlashPrompt[]>('/api/v1/slash_prompts', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  await store.set('slash_prompts', serverSlashPrompts)
+  await store.save()
+}
+
+export async function fetchDefaultPromptFromServer(): Promise<void> {
+  const token = await authStore.getAuth('access_token')
+  if (!token)
+    return
+
+  const serverDefaultPrompt = await api<{ value: string }>('/api/v1/default_prompt', {
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch(() => null)
+
+  if (serverDefaultPrompt?.value) {
+    await store.set('default_prompt', serverDefaultPrompt.value)
+    await store.save()
+  }
+}
+
+export async function syncPromptsWithServer() {
+  try {
+    await Promise.all([
+      fetchSlashPromptsFromServer(),
+      fetchDefaultPromptFromServer(),
+    ])
+  }
+  catch (error) {
+    logger.error('store', 'Failed to sync prompts with server', error)
+  }
+}
+
+async function syncSlashPromptsToServer(newPrompts: SlashPrompt[], token: string) {
+  try {
+    const serverPrompts = await api<SlashPrompt[]>('/api/v1/slash_prompts', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    const serverPromptMap = new Map(serverPrompts.map(p => [p.id, p]))
+    const newPromptMap = new Map(newPrompts.map(p => [p.id, p]))
+
+    const toRemove = serverPrompts.filter(p => p.id && !newPromptMap.has(p.id))
+    await Promise.all(
+      toRemove.map(p =>
+        api(`/api/v1/slash_prompts/${p.id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ),
+    )
+
+    const upserts = await Promise.all(
+      newPrompts.map(async (newPrompt, index): Promise<{ index: number, prompt: SlashPrompt }> => {
+        const existingServerPrompt = newPrompt.id ? serverPromptMap.get(newPrompt.id) : null
+
+        if (existingServerPrompt) {
+          const hasChanged = existingServerPrompt.key !== newPrompt.key
+            || existingServerPrompt.value !== newPrompt.value
+            || JSON.stringify(existingServerPrompt.aliases || []) !== JSON.stringify(newPrompt.aliases || [])
+
+          if (hasChanged) {
+            const updated = await api<SlashPrompt>(`/api/v1/slash_prompts/${newPrompt.id}`, {
+              method: 'PATCH',
+              headers: { Authorization: `Bearer ${token}` },
+              body: JSON.stringify({
+                slash_prompt: {
+                  key: newPrompt.key,
+                  value: newPrompt.value,
+                  aliases: newPrompt.aliases || [],
+                },
+              }),
+            })
+            return { index, prompt: updated }
+          }
+          return { index, prompt: existingServerPrompt }
+        }
+
+        const created = await api<SlashPrompt>('/api/v1/slash_prompts', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            slash_prompt: {
+              key: newPrompt.key,
+              value: newPrompt.value,
+              aliases: newPrompt.aliases || [],
+            },
+          }),
+        })
+        return { index, prompt: created }
+      }),
+    )
+
+    const syncedPrompts = upserts.sort((a, b) => a.index - b.index).map(({ prompt }) => prompt)
+
+    await store.set('slash_prompts', syncedPrompts)
+    await store.save()
+  }
+  catch (error) {
+    logger.error('store', 'Failed to save slash prompts to server', error)
+    throw error
+  }
+}
+
+async function syncDefaultPromptToServer(value: string, token: string) {
+  try {
+    await api('/api/v1/default_prompt', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        default_prompt: { value },
+      }),
+    })
+  }
+  catch (error) {
+    logger.error('store', 'Failed to save default prompt to server', error)
+    throw error
+  }
 }
 
 const OLLAMA_SERVER_URL = 'http://localhost:11434'

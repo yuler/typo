@@ -14,7 +14,7 @@ class Api::V1::StatsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal 1, json["completions"]
-    assert_equal 0, json["slash_commands"]
+    assert_equal 0, json["slash_prompts"]
   end
 
   test "should return unauthorized if not authenticated" do

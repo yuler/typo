@@ -2,6 +2,8 @@ class Account < ApplicationRecord
   has_many :users
   has_many :identities, through: :users
   has_many :completions, through: :users
+  has_many :slash_prompts, dependent: :destroy
+  has_one :default_prompt, dependent: :destroy
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true, format: { with: AccountSlug::FORMAT },
@@ -16,6 +18,8 @@ class Account < ApplicationRecord
       create!(**account).tap do |account|
         account.users.create!(role: :system, name: "System")
         account.users.create!(**owner.with_defaults(role: :owner, verified_at: Time.current))
+        SlashPrompt.create_defaults_for!(account)
+        DefaultPrompt.create_default_for!(account)
       end
     end
   end

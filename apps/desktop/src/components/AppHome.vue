@@ -25,7 +25,7 @@ const { isLoggedIn, login } = useAuth()
 const { t } = useI18n()
 
 const totalCompletions = ref(0)
-const totalSlashCommands = ref(0)
+const totalSlashPrompts = ref(0)
 
 let isFetchingStats = false
 
@@ -36,11 +36,11 @@ async function fetchStats() {
   try {
     const token = await getAuth('access_token')
     if (token) {
-      const data = await api<{ completions: number, slash_commands: number }>('/api/v1/stats', {
+      const data = await api<{ completions: number, slash_prompts: number }>('/api/v1/stats', {
         headers: { Authorization: `Bearer ${token}` },
       })
       totalCompletions.value = data.completions ?? 0
-      totalSlashCommands.value = data.slash_commands ?? 0
+      totalSlashPrompts.value = data.slash_prompts ?? 0
     }
   }
   catch (err) {
@@ -81,8 +81,8 @@ const stats = computed(() => [
     color: 'text-blue-500',
   },
   {
-    label: t('main.stats.slash_commands'),
-    value: totalSlashCommands.value.toLocaleString(),
+    label: t('main.stats.slash_prompts'),
+    value: totalSlashPrompts.value.toLocaleString(),
     icon: TerminalIcon,
     color: 'text-purple-500',
   },
