@@ -119,6 +119,7 @@ export interface CompletionRecord {
   id: string
   input: string
   output: string
+  prompt: string | null
   status: string
   created_at: string
 }
