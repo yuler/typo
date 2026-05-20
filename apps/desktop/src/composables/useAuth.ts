@@ -175,8 +175,6 @@ export const useAuth = createGlobalState(() => {
   }
 
   async function logout() {
-    stopHeartbeat()
-    cancel()
     const token = await authStore.getAuth('access_token')
     if (token) {
       try {
@@ -191,15 +189,7 @@ export const useAuth = createGlobalState(() => {
         logger.error('Auth', 'Failed to remove session on server', err)
       }
     }
-    isLoggedIn.value = false
-    user.value = {
-      name: '',
-      email: '',
-      avatar_url: '',
-    }
-    await authStore.setAuth('access_token', '')
-    await authStore.setAuth('email', '')
-    await authStore.saveAuth()
+    await reset()
   }
 
   async function reset() {
