@@ -19,6 +19,7 @@ import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
 import DefaultPromptSettings from '@/components/DefaultPromptSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
+import History from '@/components/History.vue'
 import SlashPromptsSettings from '@/components/SlashPromptsSettings.vue'
 import {
   Breadcrumb,
@@ -197,6 +198,8 @@ onUnmounted(() => {
             <DefaultPromptSettings v-else-if="activeTab === 'default_prompt'" />
             <SlashPromptsSettings v-else-if="activeTab === 'slash_prompts'" />
           </div>
+
+          <History v-else-if="activeTab === 'history'" />
 
           <!-- Placeholder for other tabs (History) -->
           <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">

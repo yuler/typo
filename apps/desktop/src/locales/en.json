@@ -110,5 +110,21 @@
   "tray.open_log_folder": "Open log folder…",
   "tray.autostart": "Launch at Login",
   "tray.quit": "Quit typo",
-  "updates.up_to_date": "You're on the latest version (v{version})"
+  "updates.up_to_date": "You're on the latest version (v{version})",
+  "history.title": "Completion History",
+  "history.empty_title": "No history yet",
+  "history.empty_desc": "Your polished writing completions will appear here once you start using Typo.",
+  "history.sign_in_title": "Unlock History Sync",
+  "history.sign_in_desc": "Sign in with your Typo Cloud account to persist and access your writing history across all devices.",
+  "history.sign_in_btn": "Sign In to Sync",
+  "history.delete_confirm_title": "Delete History Item?",
+  "history.delete_confirm_desc": "Are you sure you want to delete this completion from your history? This action cannot be undone.",
+  "history.delete_success": "Completion deleted successfully",
+  "history.delete_error": "Failed to delete completion",
+  "history.copy_success": "Copied output to clipboard",
+  "history.show_more": "Show original text",
+  "history.show_less": "Hide original text",
+  "history.load_more": "Load Older History",
+  "history.original": "Original",
+  "history.polished": "Polished"
 }

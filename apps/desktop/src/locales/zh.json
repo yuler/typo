@@ -110,5 +110,21 @@
   "tray.open_log_folder": "打开日志文件夹…",
   "tray.autostart": "开机自启动",
   "tray.quit": "退出 typo",
-  "updates.up_to_date": "已是最新版本 (v{version})"
+  "updates.up_to_date": "已是最新版本 (v{version})",
+  "history.title": "历史记录",
+  "history.empty_title": "暂无历史记录",
+  "history.empty_desc": "在您开始使用 Typo 后，润色完成的文本将会显示在这里。",
+  "history.sign_in_title": "解锁历史同步",
+  "history.sign_in_desc": "使用您的 Typo Cloud 账号登录，即可在不同设备间同步和访问您的润色历史。",
+  "history.sign_in_btn": "登录以同步",
+  "history.delete_confirm_title": "删除历史记录？",
+  "history.delete_confirm_desc": "您确定要将此项从历史记录中删除吗？此操作无法撤销。",
+  "history.delete_success": "历史记录删除成功",
+  "history.delete_error": "删除历史记录失败",
+  "history.copy_success": "已将结果复制到剪贴板",
+  "history.show_more": "显示原文",
+  "history.show_less": "隐藏原文",
+  "history.load_more": "加载更早的记录",
+  "history.original": "原文",
+  "history.polished": "润色文"
 }

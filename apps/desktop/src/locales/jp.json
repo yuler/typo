@@ -110,5 +110,21 @@
   "tray.open_log_folder": "ログフォルダを開く…",
   "tray.autostart": "ログイン時に起動",
   "tray.quit": "typo を終了",
-  "updates.up_to_date": "最新版です (v{version})"
+  "updates.up_to_date": "最新版です (v{version})",
+  "history.title": "履歴",
+  "history.empty_title": "履歴がありません",
+  "history.empty_desc": "Typoを使用すると、校正されたテキストがここに表示されます。",
+  "history.sign_in_title": "履歴の同期を有効にする",
+  "history.sign_in_desc": "Typo Cloudアカウントにサインインすると、すべてのデバイス間で校正履歴を保持・アクセスできます。",
+  "history.sign_in_btn": "サインインして同期",
+  "history.delete_confirm_title": "履歴アイテムを削除しますか？",
+  "history.delete_confirm_desc": "この履歴アイテムを削除してもよろしいですか？この操作は取り消せません。",
+  "history.delete_success": "履歴を削除しました",
+  "history.delete_error": "履歴の削除に失敗しました",
+  "history.copy_success": "校正テキストをクリップボードにコピーしました",
+  "history.show_more": "原文を表示",
+  "history.show_less": "原文を非表示",
+  "history.load_more": "過去の履歴を読み込む",
+  "history.original": "原文",
+  "history.polished": "校正文"
 }

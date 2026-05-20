@@ -101,4 +101,73 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "__success__", completion.output
     assert_equal "success", completion.status
   end
+
+  test "index unauthenticated should return unauthorized" do
+    get api_v1_completions_url, as: :json
+    assert_response :unauthorized
+  end
+
+  test "index authenticated returns paginated completions for current account" do
+    account = Account.create!(name: "Personal", personal: true)
+    identity = Identity.create!(email: "test@example.com")
+    identity.users.create!(account: account, role: :owner, name: "Test User")
+    token = identity.signed_id(purpose: :api_token)
+
+    # Create completions belonging to this account
+    Completion.create!(account: account, input: "text 1", output: "out 1", status: "success")
+    Completion.create!(account: account, input: "text 2", output: "out 2", status: "success")
+
+    # Create completion belonging to another account
+    other_account = Account.create!(name: "Other", personal: true)
+    other_identity = Identity.create!(email: "other@example.com")
+    other_identity.users.create!(account: other_account, role: :owner, name: "Other User")
+    Completion.create!(account: other_account, input: "other text", output: "other out", status: "success")
+
+    get api_v1_completions_url, headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    assert_response :success
+
+    body = JSON.parse(response.body)
+    assert_equal 2, body["completions"].size
+    assert_equal "text 2", body["completions"][0]["input"] # descending order
+    assert_equal "text 1", body["completions"][1]["input"]
+    assert_nil body["meta"]["next_page"]
+    assert_equal false, body["meta"]["has_more"]
+  end
+
+  test "destroy unauthenticated should return unauthorized" do
+    account = Account.create!(name: "Personal", personal: true)
+    completion = Completion.create!(account: account, input: "text 1", output: "out 1", status: "success")
+
+    delete api_v1_completion_url(completion), as: :json
+    assert_response :unauthorized
+  end
+
+  test "destroy authenticated destroys completion belonging to account" do
+    account = Account.create!(name: "Personal", personal: true)
+    identity = Identity.create!(email: "test@example.com")
+    identity.users.create!(account: account, role: :owner, name: "Test User")
+    token = identity.signed_id(purpose: :api_token)
+
+    completion = Completion.create!(account: account, input: "text 1", output: "out 1", status: "success")
+
+    assert_difference -> { Completion.count }, -1 do
+      delete api_v1_completion_url(completion), headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    end
+    assert_response :no_content
+  end
+
+  test "destroy authenticated returns 404 for completion belonging to another account" do
+    account = Account.create!(name: "Personal", personal: true)
+    identity = Identity.create!(email: "test@example.com")
+    identity.users.create!(account: account, role: :owner, name: "Test User")
+    token = identity.signed_id(purpose: :api_token)
+
+    other_account = Account.create!(name: "Other", personal: true)
+    completion = Completion.create!(account: other_account, input: "text 1", output: "out 1", status: "success")
+
+    assert_no_difference -> { Completion.count } do
+      delete api_v1_completion_url(completion), headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    end
+    assert_response :not_found
+  end
 end
