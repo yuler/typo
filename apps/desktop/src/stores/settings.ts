@@ -4,7 +4,6 @@ import { defaultLocale } from '@typo/languages'
 import { api } from '@/api'
 import { logger } from '@/logger'
 import * as authStore from './auth'
-import { saveAuth, setAuth } from './auth'
 
 export type AI_PROVIDER = 'typo' | 'deepseek' | 'ollama'
 
@@ -34,77 +33,7 @@ const store = new LazyStore('settings.json', {
   defaults: DEFAULT_STORE,
 })
 
-const legacyStore = new LazyStore('store.json', { autoSave: false, defaults: {} })
-
-/**
- * Backward compatibility migration for legacy `store.json`.
- * Automatically moves credentials to `auth.json` and preferences to `settings.json`.
- */
-async function migrateLegacyStore() {
-  try {
-    const keys = await legacyStore.keys()
-    if (keys.length === 0)
-      return
-
-    logger.info('store', 'Migrating legacy store.json data to settings.json and auth.json')
-
-    if (await legacyStore.has('access_token')) {
-      const token = await legacyStore.get<string>('access_token')
-      if (token) {
-        await setAuth('access_token', token)
-      }
-    }
-    if (await legacyStore.has('user_info')) {
-      const userInfo = await legacyStore.get<any>('user_info')
-      if (userInfo?.email) {
-        await setAuth('email', userInfo.email)
-      }
-    }
-    await saveAuth()
-
-    if (await legacyStore.has('ai_system_prompt')) {
-      const val = await legacyStore.get<string>('ai_system_prompt')
-      if (val !== undefined) {
-        await store.set('default_prompt', val)
-      }
-    }
-
-    for (const key of Object.keys(DEFAULT_STORE)) {
-      if (await legacyStore.has(key)) {
-        const val = await legacyStore.get(key)
-        if (val !== undefined) {
-          await store.set(key, val)
-        }
-      }
-    }
-
-    await store.save()
-
-    await legacyStore.clear()
-    await legacyStore.save()
-    logger.info('store', 'Legacy store migration successfully completed')
-  }
-  catch (err) {
-    logger.error('store', 'Failed to migrate legacy store', err)
-  }
-}
-
-async function migratePromptKeys() {
-  if (await store.has('ai_system_prompt') && !(await store.has('default_prompt'))) {
-    const value = await store.get<string>('ai_system_prompt')
-    if (value !== undefined) {
-      await store.set('default_prompt', value)
-    }
-  }
-
-  await store.delete('ai_system_prompt')
-  await store.delete('slash_commands')
-  await store.save()
-}
-
 export async function initializeStore() {
-  await migrateLegacyStore()
-  await migratePromptKeys()
   for (const [key, value] of Object.entries(DEFAULT_STORE)) {
     if (!(await store.has(key))) {
       await store.set(key, value)
