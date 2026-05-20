@@ -25,13 +25,22 @@ const isOpen = computed({
 })
 
 const copied = ref(false)
+let copyCount = 0
 
 async function copyLink() {
   if (deviceCode.value) {
-    await navigator.clipboard.writeText(deviceCode.value.verification_uri)
-    copied.value = true
-    await sleep(2000)
-    copied.value = false
+    try {
+      await navigator.clipboard.writeText(deviceCode.value.verification_uri)
+      copied.value = true
+      const currentCount = ++copyCount
+      await sleep(2000)
+      if (currentCount === copyCount) {
+        copied.value = false
+      }
+    }
+    catch (err) {
+      console.error('Failed to copy link:', err)
+    }
   }
 }
 
