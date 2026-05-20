@@ -32,15 +32,17 @@ function getUserAgent(): Promise<string> {
   return userAgentPromise
 }
 
+const AUTH_EXEMPTIONS = [
+  { method: 'POST', path: '/api/v1/device/authorization' },
+  { method: 'POST', path: '/api/v1/device/token' },
+  { method: 'DELETE', path: '/api/v1/session' },
+] as const
+
 function allowUnauthenticatedAccess(path: string, method: string): boolean {
   const normalizedPath = path.split('?')[0]
-  const exemptions = [
-    { method: 'POST', path: '/api/v1/device/authorization' },
-    { method: 'POST', path: '/api/v1/device/token' },
-    { method: 'DELETE', path: '/api/v1/session' },
-  ]
-  return exemptions.some(
-    e => e.path === normalizedPath && e.method.toUpperCase() === method.toUpperCase(),
+  const upperMethod = method.toUpperCase()
+  return AUTH_EXEMPTIONS.some(
+    e => e.path === normalizedPath && e.method === upperMethod,
   )
 }
 
