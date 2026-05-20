@@ -6,6 +6,8 @@ import { logger } from '@/logger'
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.typo.yuler.cc'
 
+const { t } = useI18n()
+
 let userAgentPromise: Promise<string> | null = null
 let isResetting = false
 
@@ -66,7 +68,6 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
           const { useAuth } = await import('@/composables/useAuth')
           const auth = useAuth()
           if (auth.isLoggedIn.value) {
-            const { t } = useI18n()
             toast.error(t('auth.session_expired'))
             await auth.reset()
           }
