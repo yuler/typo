@@ -23,10 +23,21 @@ class Signup
   def create_personal_account
     return false unless valid?(:completion)
 
+    self.username = username.to_s.parameterize
+
     ActiveRecord::Base.transaction do
       create_account(personal: true)
       true
     end
+  rescue ActiveRecord::RecordInvalid => error
+    case record = error.record
+    when Account, User
+      map = record.is_a?(Account) ? { slug: :username, name: :nickname } : { name: :nickname }
+      record.errors.each { |err| errors.import(err, attribute: map[err.attribute] || err.attribute) }
+    else
+      errors.add(:base, error.message)
+    end
+    false
   rescue => error
     errors.add(:base, "Something went wrong, and we couldn't create your account. Please give it another try.")
     Rails.error.report(error, severity: :error)

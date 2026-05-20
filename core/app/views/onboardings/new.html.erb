@@ -1,5 +1,5 @@
 <% content_for :title, t(".title") %>
-<div class="bg-surface p-10 rounded-xl border shadow-sm w-full max-w-sm text-center">
+<div class="bg-surface p-10 rounded-xl border shadow-sm w-full max-w-md text-center">
   <h1 class="text-xl font-bold mb-2"><%= t(".title") %></h1>
   <p class="text-muted text-sm mb-6"><%= t(".subtitle") %></p>
 
@@ -14,16 +14,18 @@
       </div>
     <% end %>
 
-    <div class="form-group text-left" data-controller="input-mirror" data-input-mirror-fallback-value="<%= t(".username_fallback") %>">
+    <div class="form-group text-left" data-controller="input-slug" data-input-slug-fallback-value="<%= @signup.username %>">
       <%= form.label :username, class: "label" %>
+      <p class="text-xs text-muted"><%= t(".username_description") %></p>
       <%= form.text_field :username, required: true, autofocus: true, autocomplete: "username",
           class: "input", placeholder: t(".username_placeholder"),
-          data: { input_mirror_target: "input", action: "input->input-mirror#update" } %>
-      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<span data-input-mirror-target="output"><%= @signup.username.presence || t(".username_fallback") %></span></p>
+          data: { input_slug_target: "input", action: "input->input-slug#update" } %>
+      <p class="text-xs text-muted mt-1"><%= request.host_with_port %>/<span data-input-slug-target="output"><%= @signup.username %></span></p>
     </div>
 
     <div class="form-group text-left">
       <%= form.label :nickname, class: "label" %>
+      <p class="text-xs text-muted"><%= t(".nickname_description") %></p>
       <%= form.text_field :nickname, required: true, placeholder: t(".nickname_placeholder"),
           class: "input" %>
       <p class="text-xs text-muted mt-1"><%= t(".nickname_hint") %></p>
