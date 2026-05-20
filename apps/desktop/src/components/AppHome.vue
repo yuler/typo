@@ -4,6 +4,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import {
   ArrowRight,
   CheckCircleIcon,
+  MessageSquareTextIcon,
   TerminalIcon,
 } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { getAuth } from '@/stores/auth'
+import * as store from '@/stores/settings'
 import { formatShortcut } from '@/utils'
 
 defineProps<{
@@ -19,28 +21,48 @@ defineProps<{
   isMacOS?: boolean
 }>()
 
-const emit = defineEmits(['navigateToShortcut'])
+const emit = defineEmits(['navigateToShortcut', 'navigateToTab'])
 
 const { isLoggedIn, login } = useAuth()
 const { t } = useI18n()
 
 const totalCompletions = ref(0)
 const totalSlashPrompts = ref(0)
+const isLoadingStats = ref(true)
+const defaultPrompt = ref('')
 
 let isFetchingStats = false
+
+function animateValue(refVar: { value: number }, targetValue: number, duration = 800) {
+  const startTime = performance.now()
+  const startValue = refVar.value
+  function update(currentTime: number) {
+    const elapsed = currentTime - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    const ease = progress * (2 - progress) // easeOutQuad
+    refVar.value = Math.floor(startValue + (targetValue - startValue) * ease)
+    if (progress < 1) {
+      requestAnimationFrame(update)
+    }
+  }
+  requestAnimationFrame(update)
+}
 
 async function fetchStats() {
   if (!isLoggedIn.value || isFetchingStats)
     return
   isFetchingStats = true
+  isLoadingStats.value = true
   try {
     const token = await getAuth('access_token')
     if (token) {
       const data = await api<{ completions: number, slash_prompts: number }>('/api/v1/stats', {
         headers: { Authorization: `Bearer ${token}` },
       })
-      totalCompletions.value = data.completions ?? 0
-      totalSlashPrompts.value = data.slash_prompts ?? 0
+      const completionsTarget = data.completions ?? 0
+      const slashPromptsTarget = data.slash_prompts ?? 0
+      animateValue(totalCompletions, completionsTarget)
+      animateValue(totalSlashPrompts, slashPromptsTarget)
     }
   }
   catch (err) {
@@ -48,28 +70,42 @@ async function fetchStats() {
   }
   finally {
     isFetchingStats = false
+    isLoadingStats.value = false
+  }
+}
+
+async function fetchDefaultPrompt() {
+  try {
+    defaultPrompt.value = await store.get('default_prompt')
+  }
+  catch (err) {
+    console.error('Failed to fetch default prompt', err)
   }
 }
 
 watch(isLoggedIn, async (loggedIn) => {
   if (loggedIn) {
-    await fetchStats()
+    await Promise.all([fetchStats(), fetchDefaultPrompt()])
   }
 }, { immediate: true })
 
 let unlistenFocus: UnlistenFn | undefined
 
 onMounted(async () => {
+  await fetchDefaultPrompt()
   window.addEventListener('focus', fetchStats)
+  window.addEventListener('focus', fetchDefaultPrompt)
   unlistenFocus = await getCurrentWindow().onFocusChanged(({ payload: focused }) => {
     if (focused) {
       fetchStats()
+      fetchDefaultPrompt()
     }
   })
 })
 
 onUnmounted(() => {
   window.removeEventListener('focus', fetchStats)
+  window.removeEventListener('focus', fetchDefaultPrompt)
   unlistenFocus?.()
 })
 
@@ -79,12 +115,14 @@ const stats = computed(() => [
     value: totalCompletions.value.toLocaleString(),
     icon: CheckCircleIcon,
     color: 'text-blue-500',
+    tab: 'history',
   },
   {
     label: t('main.stats.slash_prompts'),
     value: totalSlashPrompts.value.toLocaleString(),
     icon: TerminalIcon,
     color: 'text-purple-500',
+    tab: 'slash_prompts',
   },
 ])
 </script>
@@ -113,30 +151,60 @@ const stats = computed(() => [
       </div>
     </div>
 
+    <!-- Default System Prompt Card -->
+    <button
+      v-if="isLoggedIn"
+      class="w-full text-left p-6 mb-6 rounded-2xl border border-border/40 bg-muted/5 backdrop-blur-sm transition-all hover:bg-muted/10 hover:border-primary/20 hover:-translate-y-0.5 group flex items-center justify-between"
+      @click="emit('navigateToTab', 'default_prompt')"
+    >
+      <div class="flex items-center gap-4 flex-1 min-w-0">
+        <div class="p-3 rounded-xl transition-transform group-hover:scale-110 bg-muted/20 text-amber-500">
+          <MessageSquareTextIcon class="size-6" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-muted-foreground font-medium">
+            {{ t('main.nav.default_prompt') }}
+          </p>
+          <div v-if="isLoadingStats" class="h-5 w-48 bg-muted/30 rounded-md animate-pulse mt-1"></div>
+          <p v-else class="text-sm font-bold tracking-tight text-foreground truncate max-w-xl mt-1">
+            {{ defaultPrompt || 'You are a helpful assistant...' }}
+          </p>
+        </div>
+      </div>
+      <div class="size-8 rounded-full flex items-center justify-center bg-background border border-border/50 group-hover:border-primary/50 transition-colors shrink-0 ml-4">
+        <ArrowRight class="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+      </div>
+    </button>
+
     <!-- Stats Grid -->
     <div v-if="isLoggedIn" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <div
+      <button
         v-for="stat in stats"
         :key="stat.label"
-        class="group p-6 rounded-2xl border border-border/40 transition-all hover:border-primary/20"
+        class="group p-6 rounded-2xl border border-border/40 text-left transition-all hover:bg-muted/10 hover:border-primary/20 hover:-translate-y-0.5 flex items-center justify-between"
+        @click="emit('navigateToTab', stat.tab)"
       >
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 flex-1 min-w-0">
           <div
-            class="p-3 rounded-xl transition-transform group-hover:scale-110 bg-muted/20"
+            class="p-3 rounded-xl transition-transform group-hover:scale-110 bg-muted/20 shrink-0"
             :class="[stat.color]"
           >
             <component :is="stat.icon" class="size-6" />
           </div>
-          <div>
+          <div class="flex-1 min-w-0">
             <p class="text-sm text-muted-foreground font-medium">
               {{ stat.label }}
             </p>
-            <p class="text-2xl font-bold tracking-tight">
+            <div v-if="isLoadingStats" class="h-8 w-24 bg-muted/30 rounded-md animate-pulse mt-1"></div>
+            <p v-else class="text-2xl font-bold tracking-tight mt-1 truncate">
               {{ stat.value }}
             </p>
           </div>
         </div>
-      </div>
+        <div class="size-8 rounded-full flex items-center justify-center bg-background border border-border/50 group-hover:border-primary/50 transition-colors shrink-0 ml-4">
+          <ArrowRight class="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+        </div>
+      </button>
     </div>
 
     <!-- Shortcut Hint -->
