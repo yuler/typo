@@ -308,8 +308,8 @@ async function onSubmit() {
             </div>
           </div>
 
-               <!-- System Prompt Card -->
-               <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <!-- System Prompt Card -->
+          <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
             <div class="p-6 space-y-4">
               <div class="space-y-2">
                 <Label for="system_prompt" class="text-base font-semibold">{{ t('settings.prompts.system.label') }}</Label>
@@ -361,8 +361,6 @@ async function onSubmit() {
               </div>
             </div>
           </div>
-
-     
 
           <!-- Logs Card -->
           <div class="rounded-xl border bg-card p-6 shadow-sm">
