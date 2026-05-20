@@ -32,6 +32,11 @@ function getUserAgent(): Promise<string> {
   return userAgentPromise
 }
 
+const ALLOW_UNAUTHORIZED_APIS = [
+  '/api/v1/session',
+  '/api/v1/device',
+]
+
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const userAgent = await getUserAgent()
   const url = `${API_BASE_URL}${path}`
@@ -58,7 +63,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     headers,
   })
 
-  if (response.status === 401 && path !== '/api/v1/session' && !path.startsWith('/api/v1/device/')) {
+  if (response.status === 401 && !ALLOW_UNAUTHORIZED_APIS.some(u => path.startsWith(u))) {
     if (!isResetting) {
       isResetting = true
       try {
