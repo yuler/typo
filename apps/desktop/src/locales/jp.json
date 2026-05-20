@@ -31,9 +31,8 @@
   "settings.basic.logs.description": "アプリのログディレクトリを開く",
   "settings.basic.logs.open_button": "ログフォルダを開く",
   "settings.appearance.language.description": "表示言語を選択してください",
-  "settings.prompts.title": "プロンプト設定",
-  "settings.prompts.system.label": "システムプロンプト",
-  "settings.prompts.system.placeholder": "システムプロンプトを入力",
+  "settings.default_prompt.label": "デフォルトプロンプト",
+  "settings.default_prompt.placeholder": "デフォルトプロンプトを入力",
   "settings.slash_prompts.label": "スラッシュプロンプト（最大 5 つ）",
   "settings.slash_prompts.add": "スラッシュプロンプトを追加",
   "settings.slash_prompts.key_label": "キー",
@@ -44,6 +43,8 @@
   "settings.slash_prompts.hint": "例：入力の末尾が <code>/tr:zh</code> であるか、<code>/prompt Translate to Japanese in polite style</code> のような行全体。",
   "settings.save": "保存",
   "settings.save_success": "設定を保存しました",
+  "settings.save_error": "設定の保存に失敗しました",
+  "settings.load_error": "サーバーから設定を読み込めませんでした",
   "main.status.copied": "コピー済み",
   "main.status.ready": "準備完了",
   "main.nav.main": "ホーム",
@@ -52,6 +53,7 @@
   "main.nav.settings": "設定",
   "main.nav.appearance": "外観",
   "main.nav.ai_provider": "AI プロバイダー",
+  "main.nav.default_prompt": "デフォルトプロンプト",
   "main.nav.slash_prompts": "スラッシュプロンプト",
   "main.common.coming_soon": "近日公開",
   "main.sidebar.workspace": "ワークスペース",
@@ -108,8 +110,5 @@
   "tray.open_log_folder": "ログフォルダを開く…",
   "tray.autostart": "ログイン時に起動",
   "tray.quit": "typo を終了",
-  "updates.up_to_date": "最新版です (v{version})",
-  "slash_prompts_migration.title": "スラッシュプロンプトを同期",
-  "slash_prompts_migration.description": "ローカルのスラッシュプロンプトを Typo Cloud にアップロードし、デバイス間で同期します。",
-  "slash_prompts_migration.confirm": "続行"
+  "updates.up_to_date": "最新版です (v{version})"
 }

@@ -31,9 +31,8 @@
   "settings.basic.logs.description": "打开应用日志文件夹",
   "settings.basic.logs.open_button": "打开日志文件夹",
   "settings.appearance.language.description": "选择您偏好的显示语言",
-  "settings.prompts.title": "提示词设置",
-  "settings.prompts.system.label": "系统提示词",
-  "settings.prompts.system.placeholder": "输入您的系统提示词",
+  "settings.default_prompt.label": "默认提示词",
+  "settings.default_prompt.placeholder": "输入您的默认提示词",
   "settings.slash_prompts.label": "斜杠提示词（最多 5 个）",
   "settings.slash_prompts.add": "添加斜杠提示词",
   "settings.slash_prompts.key_label": "键值",
@@ -44,6 +43,8 @@
   "settings.slash_prompts.hint": "示例：输入以 <code>/tr:zh</code> 结尾或整行如 <code>/prompt Translate to Japanese in polite style</code>。",
   "settings.save": "保存",
   "settings.save_success": "设置已保存",
+  "settings.save_error": "保存设置失败",
+  "settings.load_error": "从服务器加载设置失败",
   "main.status.copied": "已复制",
   "main.status.ready": "准备就绪",
   "main.nav.main": "首页",
@@ -52,6 +53,7 @@
   "main.nav.settings": "设置",
   "main.nav.appearance": "外观",
   "main.nav.ai_provider": "AI 服务商",
+  "main.nav.default_prompt": "默认提示词",
   "main.nav.slash_prompts": "斜杠提示词",
   "main.common.coming_soon": "敬请期待",
   "main.sidebar.workspace": "工作区",
@@ -108,8 +110,5 @@
   "tray.open_log_folder": "打开日志文件夹…",
   "tray.autostart": "开机自启动",
   "tray.quit": "退出 typo",
-  "updates.up_to_date": "已是最新版本 (v{version})",
-  "slash_prompts_migration.title": "同步斜杠提示词",
-  "slash_prompts_migration.description": "您的本地斜杠提示词将上传到 Typo 云端，以便在不同设备间保持同步。",
-  "slash_prompts_migration.confirm": "继续"
+  "updates.up_to_date": "已是最新版本 (v{version})"
 }

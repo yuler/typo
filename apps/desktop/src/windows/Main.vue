@@ -5,19 +5,20 @@ import { listen } from '@tauri-apps/api/event'
 import {
   HistoryIcon,
   HomeIcon,
+  MessageSquareTextIcon,
   PaletteIcon,
   Settings2Icon,
   SparklesIcon,
   TerminalIcon,
 } from 'lucide-vue-next'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import AIProviderSettings from '@/components/AIProviderSettings.vue'
 import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
+import DefaultPromptSettings from '@/components/DefaultPromptSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
-import SlashPromptsMigrationDialog from '@/components/SlashPromptsMigrationDialog.vue'
 import SlashPromptsSettings from '@/components/SlashPromptsSettings.vue'
 import {
   Breadcrumb,
@@ -33,22 +34,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
-import { needsSlashPromptsMigration, runSlashPromptsMigration } from '@/stores/slash_prompts_migration'
 import { sleep } from '@/utils'
 
 const { t } = useI18n()
-const { isLoggedIn } = useAuth()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 const highlightShortcut = ref(false)
-const showSlashPromptsMigration = ref(false)
 let highlightTimeout: ReturnType<typeof setTimeout> | null = null
 let unlistenOpenSettings: (() => void) | undefined
 let isMounted = true
@@ -59,6 +56,7 @@ const navItems = computed<NavItem[]>(() => [
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
   { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
   { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
+  { id: 'default_prompt', label: t('main.nav.default_prompt'), icon: MessageSquareTextIcon, group: 'preferences' },
   { id: 'slash_prompts', label: t('main.nav.slash_prompts'), icon: TerminalIcon, group: 'preferences' },
 ])
 
@@ -74,23 +72,6 @@ function onNavigateToShortcut() {
     highlightShortcut.value = false
     highlightTimeout = null
   }, 3000)
-}
-
-async function checkSlashPromptsMigration() {
-  if (!isMounted || !isLoggedIn.value)
-    return
-
-  const needsMigration = await needsSlashPromptsMigration()
-  if (!isMounted)
-    return
-
-  if (needsMigration)
-    showSlashPromptsMigration.value = true
-}
-
-async function onSlashPromptsMigrationConfirm() {
-  showSlashPromptsMigration.value = false
-  await runSlashPromptsMigration()
 }
 
 onMounted(async () => {
@@ -157,13 +138,6 @@ onMounted(async () => {
     }
     activeTab.value = 'ai_provider'
   }
-
-  await checkSlashPromptsMigration()
-})
-
-watch(isLoggedIn, async (loggedIn) => {
-  if (loggedIn)
-    await checkSlashPromptsMigration()
 })
 
 onUnmounted(() => {
@@ -182,7 +156,7 @@ onUnmounted(() => {
         v-model:active-tab="activeTab"
         :nav-items="navItems"
       />
-      <SidebarInset>
+      <SidebarInset class="min-h-0 overflow-hidden">
         <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div class="flex items-center gap-2 px-4">
             <SidebarTrigger class="-ml-1" />
@@ -204,7 +178,7 @@ onUnmounted(() => {
         </header>
 
         <!-- Main Content -->
-        <main class="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-hidden">
+        <main class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 pt-0">
           <!-- Content based on activeTab -->
           <AppHome
             v-if="activeTab === 'main'"
@@ -213,13 +187,16 @@ onUnmounted(() => {
             @navigate-to-shortcut="onNavigateToShortcut"
           />
 
-          <BasicSettings
-            v-else-if="activeTab === 'settings'"
-            :highlight-shortcut="highlightShortcut"
-          />
-          <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
-          <AppearanceSettings v-else-if="activeTab === 'appearance'" />
-          <SlashPromptsSettings v-else-if="activeTab === 'slash_prompts'" />
+          <div v-else-if="['settings', 'ai_provider', 'appearance', 'default_prompt', 'slash_prompts'].includes(activeTab)" class="h-full min-h-0">
+            <BasicSettings
+              v-if="activeTab === 'settings'"
+              :highlight-shortcut="highlightShortcut"
+            />
+            <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
+            <AppearanceSettings v-else-if="activeTab === 'appearance'" />
+            <DefaultPromptSettings v-else-if="activeTab === 'default_prompt'" />
+            <SlashPromptsSettings v-else-if="activeTab === 'slash_prompts'" />
+          </div>
 
           <!-- Placeholder for other tabs (History) -->
           <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
@@ -239,10 +216,6 @@ onUnmounted(() => {
       </SidebarInset>
 
       <DeviceAuthModal />
-      <SlashPromptsMigrationDialog
-        v-model="showSlashPromptsMigration"
-        @confirm="onSlashPromptsMigrationConfirm"
-      />
     </SidebarProvider>
   </div>
 </template>

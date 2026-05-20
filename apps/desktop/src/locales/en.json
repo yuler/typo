@@ -31,9 +31,8 @@
   "settings.basic.logs.description": "Open the application log directory",
   "settings.basic.logs.open_button": "Open log folder",
   "settings.appearance.language.description": "Select your preferred display language",
-  "settings.prompts.title": "Prompt Settings",
-  "settings.prompts.system.label": "System Prompt",
-  "settings.prompts.system.placeholder": "Enter your system prompt",
+  "settings.default_prompt.label": "Default Prompt",
+  "settings.default_prompt.placeholder": "Enter your default prompt",
   "settings.slash_prompts.label": "Slash Prompts (Max 5)",
   "settings.slash_prompts.add": "Add Slash Prompt",
   "settings.slash_prompts.key_label": "Key",
@@ -44,6 +43,8 @@
   "settings.slash_prompts.hint": "Example: input ends with <code>/tr:zh</code> or a full line like <code>/prompt Translate to Japanese in polite style</code>.",
   "settings.save": "Save",
   "settings.save_success": "Settings saved successfully",
+  "settings.save_error": "Failed to save settings",
+  "settings.load_error": "Failed to load settings from server",
   "main.status.copied": "Copied",
   "main.status.ready": "Ready",
   "main.nav.main": "Main",
@@ -52,6 +53,7 @@
   "main.nav.settings": "Settings",
   "main.nav.appearance": "Appearance",
   "main.nav.ai_provider": "AI Provider",
+  "main.nav.default_prompt": "Default Prompt",
   "main.nav.slash_prompts": "Slash Prompts",
   "main.common.coming_soon": "Coming soon",
   "main.sidebar.workspace": "WORKSPACE",
@@ -108,8 +110,5 @@
   "tray.open_log_folder": "Open log folder…",
   "tray.autostart": "Launch at Login",
   "tray.quit": "Quit typo",
-  "updates.up_to_date": "You're on the latest version (v{version})",
-  "slash_prompts_migration.title": "Sync your slash prompts",
-  "slash_prompts_migration.description": "Your local slash prompts will be uploaded to Typo Cloud so they stay in sync across devices.",
-  "slash_prompts_migration.confirm": "Continue"
+  "updates.up_to_date": "You're on the latest version (v{version})"
 }

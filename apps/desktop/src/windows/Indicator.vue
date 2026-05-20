@@ -67,8 +67,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
     isRateLimited.value = false
     processing.value = true
 
-    const [systemPrompt, slashPrompts, copy] = await Promise.all([
-      store.get('ai_system_prompt'),
+    const [defaultPrompt, slashPrompts, copy] = await Promise.all([
+      store.get('default_prompt'),
       store.get('slash_prompts'),
       store.get('copy_result'),
     ])
@@ -81,7 +81,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
     const resolved = resolveSlashPrompt(
       text,
-      systemPrompt,
+      defaultPrompt,
       parseSlashPrompts(slashPrompts),
     )
 

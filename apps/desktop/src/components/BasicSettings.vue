@@ -8,7 +8,7 @@ import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
+import SettingsPageLayout from '@/components/SettingsPageLayout.vue'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
@@ -23,6 +23,7 @@ defineProps<{
 
 const { t } = useI18n()
 const isMacOS = ref(false)
+const isSaving = ref(false)
 const isCapturingShortcut = ref(false)
 const shortcutConflictError = ref('')
 const captureButtonEl = ref<HTMLElement | null>(null)
@@ -34,7 +35,6 @@ const form = ref({
   autoselect: false,
   copy_result: false,
   global_shortcut: '',
-  system_prompt: '',
 })
 
 let unlistenAutostart: UnlistenFn | undefined
@@ -186,18 +186,16 @@ onMounted(async () => {
     return
   form.value.autostart = autostartEnabled
 
-  const [autoselect, copyResult, globalShortcut, systemPrompt] = await Promise.all([
+  const [autoselect, copyResult, globalShortcut] = await Promise.all([
     store.get('autoselect'),
     store.get('copy_result'),
     store.get('global_shortcut'),
-    store.get('ai_system_prompt'),
   ])
   if (!isMounted)
     return
   form.value.autoselect = autoselect
   form.value.copy_result = copyResult
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
-  form.value.system_prompt = systemPrompt
 
   const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
   if (!isMounted)
@@ -245,147 +243,128 @@ async function onSubmit() {
     form.value.global_shortcut = actualShortcut
   }
 
-  await Promise.all([
-    store.set('autoselect', form.value.autoselect),
-    store.set('copy_result', form.value.copy_result),
-    store.set('global_shortcut', actualShortcut),
-    store.set('ai_system_prompt', form.value.system_prompt),
-  ])
-  await store.save()
-  toast.success(t('settings.save_success'))
+  isSaving.value = true
+  try {
+    await Promise.all([
+      store.set('autoselect', form.value.autoselect),
+      store.set('copy_result', form.value.copy_result),
+      store.set('global_shortcut', actualShortcut),
+    ])
+    await store.save()
+    toast.success(t('settings.save_success'))
+  }
+  catch (error) {
+    logger.error('BasicSettings', 'Failed to save settings', error)
+    toast.error(t('settings.save_error'))
+  }
+  finally {
+    isSaving.value = false
+  }
 }
 </script>
 
 <template>
-  <div class="h-full flex flex-col overflow-hidden px-1">
-    <div class="flex-1 overflow-y-auto pr-4 -mr-4">
-      <div class="flex flex-col gap-6 pb-24">
-        <h1 class="text-2xl font-bold">
-          {{ t('main.nav.settings') }}
-        </h1>
+  <SettingsPageLayout :title="t('main.nav.settings')">
+    <div class="space-y-6">
+      <!-- Shortcut Card -->
+      <div class="rounded-xl border bg-card p-6 shadow-sm">
+        <div class="space-y-4">
+          <div class="space-y-1">
+            <Label for="global_shortcut" class="text-base font-semibold">{{ t('settings.basic.shortcut.label') }}</Label>
+            <p class="text-sm text-muted-foreground">
+              {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <Button
+              ref="captureButtonEl"
+              type="button"
+              variant="outline"
+              class="flex-1 justify-start font-mono h-12 text-base transition-all"
+              :class="{
+                'border-primary ring-2 ring-primary bg-primary/5': isCapturingShortcut,
+                'animate-flash-highlight': highlightShortcut,
+              }"
+              @click="isCapturingShortcut ? stopCapture() : startCapture()"
+            >
+              {{
+                isCapturingShortcut
+                  ? t('settings.basic.shortcut.listening')
+                  : formatShortcut(form.global_shortcut, isMacOS)
+              }}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              class="h-12 w-12"
+              @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
+            >
+              <RotateCcwIcon class="h-5 w-5" />
+            </Button>
+          </div>
+          <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
+            {{ shortcutConflictError }}
+          </p>
+        </div>
+      </div>
 
+      <!-- Behavior Card -->
+      <div class="rounded-xl border bg-card p-6 shadow-sm">
         <div class="space-y-6">
-          <!-- Shortcut Card -->
-          <div class="rounded-xl border bg-card p-6 shadow-sm">
-            <div class="space-y-4">
-              <div class="space-y-1">
-                <Label for="global_shortcut" class="text-base font-semibold">{{ t('settings.basic.shortcut.label') }}</Label>
-                <p class="text-sm text-muted-foreground">
-                  {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
-                </p>
-              </div>
-              <div class="flex items-center gap-2">
-                <Button
-                  ref="captureButtonEl"
-                  type="button"
-                  variant="outline"
-                  class="flex-1 justify-start font-mono h-12 text-base transition-all"
-                  :class="{
-                    'border-primary ring-2 ring-primary bg-primary/5': isCapturingShortcut,
-                    'animate-flash-highlight': highlightShortcut,
-                  }"
-                  @click="isCapturingShortcut ? stopCapture() : startCapture()"
-                >
-                  {{
-                    isCapturingShortcut
-                      ? t('settings.basic.shortcut.listening')
-                      : formatShortcut(form.global_shortcut, isMacOS)
-                  }}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  class="h-12 w-12"
-                  @click="form.global_shortcut = DEFAULT_GLOBAL_SHORTCUT"
-                >
-                  <RotateCcwIcon class="h-5 w-5" />
-                </Button>
-              </div>
-              <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
-                {{ shortcutConflictError }}
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <Label class="text-base font-semibold">{{ t('settings.basic.autostart.label') }}</Label>
+              <p class="text-sm text-muted-foreground">
+                {{ t('settings.basic.autostart.description') }}
               </p>
             </div>
+            <Switch id="autostart" :model-value="form.autostart" @update:model-value="onAutostartToggle" />
           </div>
 
-          <!-- System Prompt Card -->
-          <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-            <div class="p-6 space-y-4">
-              <div class="space-y-2">
-                <Label for="system_prompt" class="text-base font-semibold">{{ t('settings.prompts.system.label') }}</Label>
-                <p class="text-sm text-muted-foreground">
-                  {{ t('settings.prompts.system.placeholder') }}
-                </p>
-              </div>
-              <Textarea
-                id="system_prompt"
-                v-model="form.system_prompt"
-                :rows="12"
-                class="min-h-[300px] resize-y bg-muted/20"
-                placeholder="You are a helpful assistant..."
-              />
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <Label class="text-base font-semibold">{{ t('settings.basic.autoselect.label') }}</Label>
+              <p class="text-sm text-muted-foreground">
+                {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
+              </p>
             </div>
+            <Switch id="autoselect" v-model="form.autoselect" />
           </div>
 
-          <!-- Behavior Card -->
-          <div class="rounded-xl border bg-card p-6 shadow-sm">
-            <div class="space-y-6">
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <Label class="text-base font-semibold">{{ t('settings.basic.autostart.label') }}</Label>
-                  <p class="text-sm text-muted-foreground">
-                    {{ t('settings.basic.autostart.description') }}
-                  </p>
-                </div>
-                <Switch id="autostart" :model-value="form.autostart" @update:model-value="onAutostartToggle" />
-              </div>
-
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <Label class="text-base font-semibold">{{ t('settings.basic.autoselect.label') }}</Label>
-                  <p class="text-sm text-muted-foreground">
-                    {{ t('settings.basic.autoselect.description', { shortcut: isMacOS ? '⌘ + A' : 'Ctrl + A' }) }}
-                  </p>
-                </div>
-                <Switch id="autoselect" v-model="form.autoselect" />
-              </div>
-
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <Label class="text-base font-semibold">{{ t('settings.basic.copy_result.label') }}</Label>
-                  <p class="text-sm text-muted-foreground">
-                    {{ t('settings.basic.copy_result.description') }}
-                  </p>
-                </div>
-                <Switch id="copy_result" v-model="form.copy_result" />
-              </div>
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <Label class="text-base font-semibold">{{ t('settings.basic.copy_result.label') }}</Label>
+              <p class="text-sm text-muted-foreground">
+                {{ t('settings.basic.copy_result.description') }}
+              </p>
             </div>
+            <Switch id="copy_result" v-model="form.copy_result" />
           </div>
+        </div>
+      </div>
 
-          <!-- Logs Card -->
-          <div class="rounded-xl border bg-card p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-              <div class="space-y-0.5">
-                <Label class="text-base font-semibold">{{ t('settings.basic.logs.label') }}</Label>
-                <p class="text-sm text-muted-foreground">
-                  {{ t('settings.basic.logs.description') }}
-                </p>
-              </div>
-              <Button type="button" variant="outline" @click="openLogFolder">
-                {{ t('settings.basic.logs.open_button') }}
-              </Button>
-            </div>
+      <!-- Logs Card -->
+      <div class="rounded-xl border bg-card p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="space-y-0.5">
+            <Label class="text-base font-semibold">{{ t('settings.basic.logs.label') }}</Label>
+            <p class="text-sm text-muted-foreground">
+              {{ t('settings.basic.logs.description') }}
+            </p>
           </div>
+          <Button type="button" variant="outline" @click="openLogFolder">
+            {{ t('settings.basic.logs.open_button') }}
+          </Button>
         </div>
       </div>
     </div>
 
-    <!-- Sticky Footer for Save Button -->
-    <div class="shrink-0 flex justify-end py-4 border-t bg-background/80 backdrop-blur-sm -mx-1 px-4">
-      <Button variant="secondary" size="lg" @click="onSubmit">
+    <template #footer>
+      <Button variant="secondary" size="lg" :disabled="isSaving" @click="onSubmit">
         <SaveIcon class="w-4 h-4 mr-2" />
         {{ t('settings.save') }}
       </Button>
-    </div>
-  </div>
+    </template>
+  </SettingsPageLayout>
 </template>

@@ -39,7 +39,7 @@ async function resolveAndProcess(
   }
 
   const [baseInstruction, slashPrompts] = await Promise.all([
-    get('ai_system_prompt'),
+    get('default_prompt'),
     get('slash_prompts'),
   ])
 
@@ -54,7 +54,7 @@ async function resolveAndProcess(
 
 export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
   logger.debug('ai', 'typoProcess', { text, preResolved })
-  const instruction = preResolved?.instruction ?? await get('ai_system_prompt')
+  const instruction = preResolved?.instruction ?? await get('default_prompt')
   const token = await getAuth('access_token')
 
   const response = await api<{ result: string }>('/api/v1/completions', {
