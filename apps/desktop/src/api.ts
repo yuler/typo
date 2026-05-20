@@ -32,7 +32,7 @@ function getUserAgent(): Promise<string> {
   return userAgentPromise
 }
 
-function is401ResetExempt(path: string, method: string): boolean {
+function allowUnauthenticatedAccess(path: string, method: string): boolean {
   const normalizedPath = path.split('?')[0]
   const exemptions = [
     { method: 'POST', path: '/api/v1/device/authorization' },
@@ -70,7 +70,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     headers,
   })
 
-  if (response.status === 401 && !is401ResetExempt(path, method)) {
+  if (response.status === 401 && !allowUnauthenticatedAccess(path, method)) {
     if (!isResetting) {
       isResetting = true
       try {
