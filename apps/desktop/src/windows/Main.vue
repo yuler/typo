@@ -5,10 +5,10 @@ import { listen } from '@tauri-apps/api/event'
 import {
   HistoryIcon,
   HomeIcon,
-  MessageSquareIcon,
   PaletteIcon,
   Settings2Icon,
   SparklesIcon,
+  TerminalIcon,
 } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import AIProviderSettings from '@/components/AIProviderSettings.vue'
@@ -17,8 +17,8 @@ import AppHome from '@/components/AppHome.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
-import PromptsSettings from '@/components/PromptsSettings.vue'
 import SlashPromptsMigrationDialog from '@/components/SlashPromptsMigrationDialog.vue'
+import SlashPromptsSettings from '@/components/SlashPromptsSettings.vue'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -59,7 +59,7 @@ const navItems = computed<NavItem[]>(() => [
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
   { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
   { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
-  { id: 'slash_prompts', label: t('main.nav.slash_prompts'), icon: MessageSquareIcon, group: 'preferences' },
+  { id: 'slash_prompts', label: t('main.nav.slash_prompts'), icon: TerminalIcon, group: 'preferences' },
 ])
 
 const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))
@@ -219,7 +219,7 @@ onUnmounted(() => {
           />
           <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
           <AppearanceSettings v-else-if="activeTab === 'appearance'" />
-          <PromptsSettings v-else-if="activeTab === 'slash_prompts'" />
+          <SlashPromptsSettings v-else-if="activeTab === 'slash_prompts'" />
 
           <!-- Placeholder for other tabs (History) -->
           <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">

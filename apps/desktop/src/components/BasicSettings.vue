@@ -8,6 +8,7 @@ import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
@@ -33,6 +34,7 @@ const form = ref({
   autoselect: false,
   copy_result: false,
   global_shortcut: '',
+  system_prompt: '',
 })
 
 let unlistenAutostart: UnlistenFn | undefined
@@ -184,16 +186,18 @@ onMounted(async () => {
     return
   form.value.autostart = autostartEnabled
 
-  const [autoselect, copyResult, globalShortcut] = await Promise.all([
+  const [autoselect, copyResult, globalShortcut, systemPrompt] = await Promise.all([
     store.get('autoselect'),
     store.get('copy_result'),
     store.get('global_shortcut'),
+    store.get('ai_system_prompt'),
   ])
   if (!isMounted)
     return
   form.value.autoselect = autoselect
   form.value.copy_result = copyResult
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
+  form.value.system_prompt = systemPrompt
 
   const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
   if (!isMounted)
@@ -245,6 +249,7 @@ async function onSubmit() {
     store.set('autoselect', form.value.autoselect),
     store.set('copy_result', form.value.copy_result),
     store.set('global_shortcut', actualShortcut),
+    store.set('ai_system_prompt', form.value.system_prompt),
   ])
   await store.save()
   toast.success(t('settings.save_success'))
@@ -303,6 +308,25 @@ async function onSubmit() {
             </div>
           </div>
 
+               <!-- System Prompt Card -->
+               <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+            <div class="p-6 space-y-4">
+              <div class="space-y-2">
+                <Label for="system_prompt" class="text-base font-semibold">{{ t('settings.prompts.system.label') }}</Label>
+                <p class="text-sm text-muted-foreground">
+                  {{ t('settings.prompts.system.placeholder') }}
+                </p>
+              </div>
+              <Textarea
+                id="system_prompt"
+                v-model="form.system_prompt"
+                :rows="12"
+                class="min-h-[300px] resize-y bg-muted/20"
+                placeholder="You are a helpful assistant..."
+              />
+            </div>
+          </div>
+
           <!-- Behavior Card -->
           <div class="rounded-xl border bg-card p-6 shadow-sm">
             <div class="space-y-6">
@@ -337,6 +361,8 @@ async function onSubmit() {
               </div>
             </div>
           </div>
+
+     
 
           <!-- Logs Card -->
           <div class="rounded-xl border bg-card p-6 shadow-sm">

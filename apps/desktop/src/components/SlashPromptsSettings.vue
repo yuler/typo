@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PlusIcon, SaveIcon, Trash2Icon } from 'lucide-vue-next'
-import { nextTick, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,25 +12,12 @@ import * as store from '@/stores/settings'
 const { t } = useI18n()
 
 const form = ref({
-  system_prompt: '',
   slash_prompts: [] as store.SlashPrompt[],
 })
 
 onMounted(async () => {
-  const [systemPrompt, slashPrompts] = await Promise.all([
-    store.get('ai_system_prompt'),
-    store.get('slash_prompts'),
-  ])
-  form.value.system_prompt = systemPrompt
+  const slashPrompts = await store.get('slash_prompts')
   form.value.slash_prompts = slashPrompts.map(s => ({ ...s, id: s.id || crypto.randomUUID() }))
-
-  nextTick(() => {
-    const textarea = document.getElementById('system_prompt') as HTMLTextAreaElement
-    if (textarea) {
-      textarea.focus()
-      textarea.setSelectionRange(0, 0)
-    }
-  })
 })
 
 function addSlashPrompt() {
@@ -50,10 +37,7 @@ async function onSubmit() {
     .filter(item => item.key && item.value)
     .slice(0, 5)
 
-  await Promise.all([
-    store.set('ai_system_prompt', form.value.system_prompt),
-    store.set('slash_prompts', slashPrompts),
-  ])
+  await store.set('slash_prompts', slashPrompts)
   await store.save()
   toast.success(t('settings.save_success'))
 }
@@ -64,30 +48,9 @@ async function onSubmit() {
     <div class="flex-1 overflow-y-auto pr-4 -mr-4">
       <div class="flex flex-col gap-6 pb-24">
         <h1 class="text-2xl font-bold">
-          {{ t('settings.prompts.title') }}
+          {{ t('main.nav.slash_prompts') }}
         </h1>
 
-        <!-- Default Prompt Card -->
-        <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-          <div class="p-6 space-y-4">
-            <div class="space-y-2">
-              <Label for="system_prompt" class="text-base font-semibold">{{ t('settings.prompts.system.label') }}</Label>
-              <p class="text-sm text-muted-foreground">
-                {{ t('settings.prompts.system.placeholder') }}
-              </p>
-            </div>
-            <Textarea
-              id="system_prompt"
-              v-model="form.system_prompt"
-              autofocus
-              :rows="12"
-              class="min-h-[300px] resize-y bg-muted/20"
-              placeholder="You are a helpful assistant..."
-            />
-          </div>
-        </div>
-
-        <!-- Slash Prompts Section -->
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <div class="space-y-1">
@@ -162,7 +125,6 @@ async function onSubmit() {
       </div>
     </div>
 
-    <!-- Sticky Footer for Save Button -->
     <div class="shrink-0 flex justify-end py-4 border-t bg-background/80 backdrop-blur-sm -mx-1 px-4">
       <Button variant="secondary" size="lg" @click="onSubmit">
         <SaveIcon class="w-4 h-4 mr-2" />
