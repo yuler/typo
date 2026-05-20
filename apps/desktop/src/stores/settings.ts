@@ -192,10 +192,7 @@ export async function syncPromptsWithServer() {
       headers: { Authorization: `Bearer ${token}` },
     })
 
-    const { runPromptsMigration } = await import('./prompts_migration')
-    const migrated = await runPromptsMigration(serverPrompts)
-
-    if (!migrated) {
+    if (serverPrompts.length > 0) {
       await store.set('slash_commands', serverPrompts)
       await store.save()
     }

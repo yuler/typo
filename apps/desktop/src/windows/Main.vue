@@ -10,13 +10,14 @@ import {
   Settings2Icon,
   SparklesIcon,
 } from 'lucide-vue-next'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import AIProviderSettings from '@/components/AIProviderSettings.vue'
 import AppearanceSettings from '@/components/AppearanceSettings.vue'
 import AppHome from '@/components/AppHome.vue'
 import AppSidebar from '@/components/AppSidebar.vue'
 import BasicSettings from '@/components/BasicSettings.vue'
 import DeviceAuthModal from '@/components/DeviceAuthModal.vue'
+import PromptsMigrationDialog from '@/components/PromptsMigrationDialog.vue'
 import PromptsSettings from '@/components/PromptsSettings.vue'
 import {
   Breadcrumb,
@@ -32,19 +33,25 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { setupGlobalShortcut } from '@/shortcut'
+import { needsPromptsMigration, runPromptsMigration } from '@/stores/prompts_migration'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { sleep } from '@/utils'
 
 const { t } = useI18n()
+const { isLoggedIn } = useAuth()
 const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 const highlightShortcut = ref(false)
+const showPromptsMigration = ref(false)
 let highlightTimeout: ReturnType<typeof setTimeout> | null = null
+let unlistenOpenSettings: (() => void) | undefined
+let isMounted = true
 
 const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
@@ -69,8 +76,22 @@ function onNavigateToShortcut() {
   }, 3000)
 }
 
-let unlistenOpenSettings: (() => void) | undefined
-let isMounted = true
+async function checkPromptsMigration() {
+  if (!isMounted || !isLoggedIn.value)
+    return
+
+  const needsMigration = await needsPromptsMigration()
+  if (!isMounted)
+    return
+
+  if (needsMigration)
+    showPromptsMigration.value = true
+}
+
+async function onPromptsMigrationConfirm() {
+  showPromptsMigration.value = false
+  await runPromptsMigration([])
+}
 
 onMounted(async () => {
   logger.info('Main', 'onMounted')
@@ -136,6 +157,13 @@ onMounted(async () => {
     }
     activeTab.value = 'ai_provider'
   }
+
+  await checkPromptsMigration()
+})
+
+watch(isLoggedIn, async (loggedIn) => {
+  if (loggedIn)
+    await checkPromptsMigration()
 })
 
 onUnmounted(() => {
@@ -211,6 +239,10 @@ onUnmounted(() => {
       </SidebarInset>
 
       <DeviceAuthModal />
+      <PromptsMigrationDialog
+        v-model="showPromptsMigration"
+        @confirm="onPromptsMigrationConfirm"
+      />
     </SidebarProvider>
   </div>
 </template>

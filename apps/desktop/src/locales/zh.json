@@ -108,5 +108,8 @@
   "tray.open_log_folder": "打开日志文件夹…",
   "tray.autostart": "开机自启动",
   "tray.quit": "退出 typo",
-  "updates.up_to_date": "已是最新版本 (v{version})"
+  "updates.up_to_date": "已是最新版本 (v{version})",
+  "prompts_migration.title": "同步提示词快捷方式",
+  "prompts_migration.description": "您的本地提示词快捷方式将上传到 Typo 云端，以便在不同设备间保持同步。",
+  "prompts_migration.confirm": "继续"
 }

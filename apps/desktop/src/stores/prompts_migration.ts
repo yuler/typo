@@ -4,6 +4,33 @@ import * as authStore from './auth'
 import * as settingsStore from './settings'
 
 /**
+ * Returns true when the signed-in account has no server prompts but local prompts exist.
+ *
+ * TODO: Remove this file entirely in v2.0 once all legacy users are migrated.
+ */
+export async function needsPromptsMigration(): Promise<boolean> {
+  const token = await authStore.getAuth('access_token')
+  if (!token)
+    return false
+
+  try {
+    const serverPrompts = await api<any[]>('/api/v1/prompts', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    if (serverPrompts.length > 0)
+      return false
+
+    const localPrompts = await settingsStore.get('slash_commands')
+    return localPrompts.length > 0
+  }
+  catch (error) {
+    logger.error('prompts_migration', 'Failed to check prompts migration status', error)
+    return false
+  }
+}
+
+/**
  * Handles one-time migration for older users whose accounts have no prompts on the server.
  * Returns true if a migration was executed, false if already migrated or skipped.
  *

@@ -108,5 +108,8 @@
   "tray.open_log_folder": "Open log folder…",
   "tray.autostart": "Launch at Login",
   "tray.quit": "Quit typo",
-  "updates.up_to_date": "You're on the latest version (v{version})"
+  "updates.up_to_date": "You're on the latest version (v{version})",
+  "prompts_migration.title": "Sync your prompt shortcuts",
+  "prompts_migration.description": "Your local prompt shortcuts will be uploaded to Typo Cloud so they stay in sync across devices.",
+  "prompts_migration.confirm": "Continue"
 }
