@@ -9,6 +9,7 @@ import {
 } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { api } from '@/api'
+import CountUp from '@/components/CountUp.vue'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
@@ -32,25 +33,6 @@ const isLoadingStats = ref(true)
 const defaultPrompt = ref('')
 
 let isFetchingStats = false
-const animationHandles: { completions: number, slashPrompts: number } = { completions: 0, slashPrompts: 0 }
-
-function animateValue(handle: keyof typeof animationHandles, refVar: { value: number }, targetValue: number, duration = 800) {
-  if (refVar.value === targetValue)
-    return
-  cancelAnimationFrame(animationHandles[handle])
-  const startTime = performance.now()
-  const startValue = refVar.value
-  function update(currentTime: number) {
-    const elapsed = currentTime - startTime
-    const progress = Math.min(elapsed / duration, 1)
-    const ease = progress * (2 - progress) // easeOutQuad
-    refVar.value = Math.floor(startValue + (targetValue - startValue) * ease)
-    if (progress < 1) {
-      animationHandles[handle] = requestAnimationFrame(update)
-    }
-  }
-  animationHandles[handle] = requestAnimationFrame(update)
-}
 
 async function fetchStats() {
   if (!isLoggedIn.value || isFetchingStats)
@@ -67,8 +49,8 @@ async function fetchStats() {
       })
       const completionsTarget = data.completions ?? 0
       const slashPromptsTarget = data.slash_prompts ?? 0
-      animateValue('completions', totalCompletions, completionsTarget)
-      animateValue('slashPrompts', totalSlashPrompts, slashPromptsTarget)
+      totalCompletions.value = completionsTarget
+      totalSlashPrompts.value = slashPromptsTarget
     }
   }
   catch (err) {
@@ -114,14 +96,14 @@ onUnmounted(() => {
 const stats = computed(() => [
   {
     label: t('main.stats.completions'),
-    value: totalCompletions.value.toLocaleString(),
+    value: totalCompletions.value,
     icon: CheckCircleIcon,
     color: 'text-blue-500',
     tab: 'history',
   },
   {
     label: t('main.stats.slash_prompts'),
-    value: totalSlashPrompts.value.toLocaleString(),
+    value: totalSlashPrompts.value,
     icon: TerminalIcon,
     color: 'text-purple-500',
     tab: 'slash_prompts',
@@ -199,7 +181,7 @@ const stats = computed(() => [
             </p>
             <div v-if="isLoadingStats" class="h-8 w-24 bg-muted/30 rounded-md animate-pulse mt-1" />
             <p v-else class="text-2xl font-bold tracking-tight mt-1 truncate">
-              {{ stat.value }}
+              <CountUp :value="stat.value" />
             </p>
           </div>
         </div>
