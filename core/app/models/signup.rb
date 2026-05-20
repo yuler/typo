@@ -30,17 +30,10 @@ class Signup
       true
     end
   rescue ActiveRecord::RecordInvalid => error
-    case error.record
-    when Account
-      error.record.errors.each do |error_obj|
-        attribute = error_obj.attribute == :slug ? :username : error_obj.attribute
-        errors.add(attribute, error_obj.message)
-      end
-    when User
-      error.record.errors.each do |error_obj|
-        attribute = error_obj.attribute == :name ? :nickname : error_obj.attribute
-        errors.add(attribute, error_obj.message)
-      end
+    case record = error.record
+    when Account, User
+      map = record.is_a?(Account) ? { slug: :username } : { name: :nickname }
+      record.errors.each { |err| errors.add(map[err.attribute] || err.attribute, err.message) }
     else
       errors.add(:base, error.message)
     end
