@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_05_18_000000) do
+ActiveRecord::Schema[8.2].define(version: 2026_05_20_070728) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -67,6 +67,17 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_18_000000) do
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_magic_links_on_code", unique: true
     t.index ["identity_id"], name: "index_magic_links_on_identity_id"
+  end
+
+  create_table "prompts", id: :uuid, force: :cascade do |t|
+    t.uuid "account_id", null: false
+    t.string "aliases", default: "[]"
+    t.datetime "created_at", null: false
+    t.string "key", null: false
+    t.datetime "updated_at", null: false
+    t.text "value", null: false
+    t.index ["account_id", "key"], name: "index_prompts_on_account_id_and_key", unique: true
+    t.index ["account_id"], name: "index_prompts_on_account_id"
   end
 
   create_table "sessions", id: :uuid, force: :cascade do |t|

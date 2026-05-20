@@ -2,6 +2,8 @@ import type { Locale } from '@typo/languages'
 import { LazyStore } from '@tauri-apps/plugin-store'
 import { defaultLocale } from '@typo/languages'
 import { logger } from '@/logger'
+import { api } from '@/api'
+import * as authStore from './auth'
 import { saveAuth, setAuth } from './auth'
 
 export const SYSTEM_PROMPT = `
@@ -157,6 +159,7 @@ export async function initializeStore() {
       await store.set(key, value)
     }
   }
+  await syncPromptsWithServer()
 }
 
 export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise<typeof DEFAULT_STORE[T]> {
@@ -166,10 +169,113 @@ export async function get<T extends keyof typeof DEFAULT_STORE>(key: T): Promise
 export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: typeof DEFAULT_STORE[T] | undefined): Promise<void> {
   logger.info('store', `set ${key}`, value)
   await store.set(key, value)
+
+  if (key === 'slash_commands' && value) {
+    const token = await authStore.getAuth('access_token')
+    if (token) {
+      await syncSlashCommandsToServer(value as SlashCommand[], token)
+    }
+  }
 }
 
 export async function save(): Promise<void> {
   await store.save()
+}
+
+export async function syncPromptsWithServer() {
+  const token = await authStore.getAuth('access_token')
+  if (!token) return
+
+  try {
+    const serverPrompts = await api<SlashCommand[]>('/api/v1/prompts', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    const { runPromptsMigration } = await import('./prompts_migration')
+    const migrated = await runPromptsMigration(serverPrompts)
+
+    if (!migrated) {
+      await store.set('slash_commands', serverPrompts)
+      await store.save()
+    }
+  }
+  catch (error) {
+    logger.error('store', 'Failed to sync prompts with server', error)
+  }
+}
+
+export async function resetLocalPrompts() {
+  await store.set('slash_commands', DEFAULT_SLASH_COMMANDS)
+  await store.save()
+}
+
+async function syncSlashCommandsToServer(newCommands: SlashCommand[], token: string) {
+  try {
+    const serverPrompts = await api<SlashCommand[]>('/api/v1/prompts', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    const serverPromptMap = new Map(serverPrompts.map(p => [p.id, p]))
+    const newCommandMap = new Map(newCommands.map(c => [c.id, c]))
+
+    // 1. DELETE prompts removed in UI
+    for (const serverPrompt of serverPrompts) {
+      if (serverPrompt.id && !newCommandMap.has(serverPrompt.id)) {
+        await api(`/api/v1/prompts/${serverPrompt.id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      }
+    }
+
+    // 2. CREATE or UPDATE prompts
+    const syncedCommands: SlashCommand[] = []
+    for (const newCommand of newCommands) {
+      const existingServerPrompt = newCommand.id ? serverPromptMap.get(newCommand.id) : null
+
+      if (existingServerPrompt) {
+        const hasChanged = existingServerPrompt.key !== newCommand.key
+          || existingServerPrompt.value !== newCommand.value
+          || JSON.stringify(existingServerPrompt.aliases) !== JSON.stringify(newCommand.aliases)
+
+        if (hasChanged) {
+          const updated = await api<SlashCommand>(`/api/v1/prompts/${newCommand.id}`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              key: newCommand.key,
+              value: newCommand.value,
+              aliases: newCommand.aliases || [],
+            }),
+          })
+          syncedCommands.push(updated)
+        }
+        else {
+          syncedCommands.push(existingServerPrompt)
+        }
+      }
+      else {
+        const created = await api<SlashCommand>('/api/v1/prompts', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            key: newCommand.key,
+            value: newCommand.value,
+            aliases: newCommand.aliases || [],
+          }),
+        })
+        syncedCommands.push(created)
+      }
+    }
+
+    // Save final list containing DB-generated UUIDs back to store
+    await store.set('slash_commands', syncedCommands)
+    await store.save()
+  }
+  catch (error) {
+    logger.error('store', 'Failed to save prompts to server', error)
+    throw error
+  }
 }
 
 const OLLAMA_SERVER_URL = 'http://localhost:11434'
