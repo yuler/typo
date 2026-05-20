@@ -17,8 +17,7 @@ class Api::V1::DefaultPromptsController < Api::V1::BaseController
   end
 
   private
-
-  def default_prompt_params
-    params.require(:default_prompt).permit(:value)
-  end
+    def default_prompt_params
+      params.require(:default_prompt).permit(:value)
+    end
 end

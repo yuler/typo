@@ -29,12 +29,11 @@ class Api::V1::SlashPromptsController < Api::V1::BaseController
   end
 
   private
+    def set_slash_prompt
+      @slash_prompt = Current.account.slash_prompts.find(params[:id])
+    end
 
-  def set_slash_prompt
-    @slash_prompt = Current.account.slash_prompts.find(params[:id])
-  end
-
-  def slash_prompt_params
-    params.require(:slash_prompt).permit(:key, :value, aliases: [])
-  end
+    def slash_prompt_params
+      params.require(:slash_prompt).permit(:key, :value, aliases: [])
+    end
 end
