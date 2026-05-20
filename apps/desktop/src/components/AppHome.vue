@@ -32,8 +32,12 @@ const isLoadingStats = ref(true)
 const defaultPrompt = ref('')
 
 let isFetchingStats = false
+const animationHandles: { completions: number, slashPrompts: number } = { completions: 0, slashPrompts: 0 }
 
-function animateValue(refVar: { value: number }, targetValue: number, duration = 800) {
+function animateValue(handle: keyof typeof animationHandles, refVar: { value: number }, targetValue: number, duration = 800) {
+  if (refVar.value === targetValue)
+    return
+  cancelAnimationFrame(animationHandles[handle])
   const startTime = performance.now()
   const startValue = refVar.value
   function update(currentTime: number) {
@@ -42,17 +46,19 @@ function animateValue(refVar: { value: number }, targetValue: number, duration =
     const ease = progress * (2 - progress) // easeOutQuad
     refVar.value = Math.floor(startValue + (targetValue - startValue) * ease)
     if (progress < 1) {
-      requestAnimationFrame(update)
+      animationHandles[handle] = requestAnimationFrame(update)
     }
   }
-  requestAnimationFrame(update)
+  animationHandles[handle] = requestAnimationFrame(update)
 }
 
 async function fetchStats() {
   if (!isLoggedIn.value || isFetchingStats)
     return
   isFetchingStats = true
-  isLoadingStats.value = true
+  // Only show skeleton on first load (when values are still 0)
+  if (!totalCompletions.value && !totalSlashPrompts.value)
+    isLoadingStats.value = true
   try {
     const token = await getAuth('access_token')
     if (token) {
@@ -61,8 +67,8 @@ async function fetchStats() {
       })
       const completionsTarget = data.completions ?? 0
       const slashPromptsTarget = data.slash_prompts ?? 0
-      animateValue(totalCompletions, completionsTarget)
-      animateValue(totalSlashPrompts, slashPromptsTarget)
+      animateValue('completions', totalCompletions, completionsTarget)
+      animateValue('slashPrompts', totalSlashPrompts, slashPromptsTarget)
     }
   }
   catch (err) {
@@ -92,9 +98,7 @@ watch(isLoggedIn, async (loggedIn) => {
 let unlistenFocus: UnlistenFn | undefined
 
 onMounted(async () => {
-  await fetchDefaultPrompt()
-  window.addEventListener('focus', fetchStats)
-  window.addEventListener('focus', fetchDefaultPrompt)
+  // Tauri's onFocusChanged covers all focus events; no need for duplicate DOM listeners
   unlistenFocus = await getCurrentWindow().onFocusChanged(({ payload: focused }) => {
     if (focused) {
       fetchStats()
@@ -104,8 +108,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('focus', fetchStats)
-  window.removeEventListener('focus', fetchDefaultPrompt)
   unlistenFocus?.()
 })
 
@@ -167,7 +169,7 @@ const stats = computed(() => [
           </p>
           <div v-if="isLoadingStats" class="h-5 w-48 bg-muted/30 rounded-md animate-pulse mt-1" />
           <p v-else class="text-sm font-bold tracking-tight text-foreground truncate max-w-xl mt-1">
-            {{ defaultPrompt || 'You are a helpful assistant...' }}
+            {{ defaultPrompt || t('settings.default_prompt.placeholder') }}
           </p>
         </div>
       </div>
