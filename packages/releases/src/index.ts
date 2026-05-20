@@ -7,6 +7,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export * from './types'
 
+function compareSemverDesc(a: string, b: string): number {
+  const pa = a.split('.').map(part => Number.parseInt(part, 10) || 0)
+  const pb = b.split('.').map(part => Number.parseInt(part, 10) || 0)
+  const len = Math.max(pa.length, pb.length)
+
+  for (let i = 0; i < len; i++) {
+    const diff = (pb[i] ?? 0) - (pa[i] ?? 0)
+    if (diff !== 0)
+      return diff
+  }
+  return 0
+}
+
+function sortReleasesByVersion(releases: ReleaseData[]): ReleaseData[] {
+  return [...releases].sort((a, b) => compareSemverDesc(a.version, b.version))
+}
+
 function loadReleases(): ReleaseData[] {
   let modules: any = {}
   try {
@@ -18,21 +35,21 @@ function loadReleases(): ReleaseData[] {
   }
 
   if (Object.keys(modules).length > 0) {
-    return Object.values(modules)
-      .map((m: any) => m.default as ReleaseData)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return sortReleasesByVersion(
+      Object.values(modules).map((m: any) => m.default as ReleaseData),
+    )
   }
   else {
-    const __dirname = path.dirname(fileURLToPath(import.meta.url))
     const DATA_DIR = path.resolve(__dirname, '../data')
     if (fs.existsSync(DATA_DIR)) {
-      return fs.readdirSync(DATA_DIR)
-        .filter((f: string) => f.endsWith('.json'))
-        .map((f: string) => {
-          const fullPath = path.join(DATA_DIR, f)
-          return JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as ReleaseData
-        })
-        .sort((a: ReleaseData, b: ReleaseData) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      return sortReleasesByVersion(
+        fs.readdirSync(DATA_DIR)
+          .filter((f: string) => f.endsWith('.json'))
+          .map((f: string) => {
+            const fullPath = path.join(DATA_DIR, f)
+            return JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as ReleaseData
+          }),
+      )
     }
     return []
   }
