@@ -47,8 +47,7 @@ watch(isLoggedIn, async (loggedIn) => {
 async function onSubmit() {
   isSaving.value = true
   try {
-    await store.set('default_prompt', form.value.default_prompt)
-    await store.save()
+    await store.persistDefaultPrompt(form.value.default_prompt)
     form.value.default_prompt = await store.get('default_prompt')
     toast.success(t('settings.save_success'))
   }

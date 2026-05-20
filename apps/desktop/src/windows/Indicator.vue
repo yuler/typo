@@ -67,7 +67,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
     isRateLimited.value = false
     processing.value = true
 
-    const [defaultPrompt, slashPrompts, copy] = await Promise.all([
+    const [default_prompt, slash_prompts, copy] = await Promise.all([
       store.get('default_prompt'),
       store.get('slash_prompts'),
       store.get('copy_result'),
@@ -81,8 +81,8 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
     const resolved = resolveSlashPrompt(
       text,
-      defaultPrompt,
-      parseSlashPrompts(slashPrompts),
+      default_prompt,
+      parseSlashPrompts(slash_prompts),
     )
 
     inputText.value = resolved.text
@@ -196,10 +196,10 @@ onUnmounted(() => {
 
 let abortController: AbortController | null = null
 
-async function fetchCorrection(text: string, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
+async function fetchCorrection(text: string, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
   abortController = new AbortController()
   const aiProvider = await store.get('ai_provider')
-  let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }) => Promise<string>
+  let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
   switch (aiProvider) {
     case 'typo':
       process = typoProcess

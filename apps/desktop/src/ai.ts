@@ -8,17 +8,47 @@ import { getAuth } from '@/stores/auth'
 import { parseSlashPrompts, resolveSlashPrompt } from './slashPrompts'
 import { get } from './stores/settings'
 
-const DEFAULT_SYSTEM_PROMPT = 'You are Typo assistant.'
+export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
+  logger.debug('ai', 'typoProcess', { text, preResolved })
+  const prompt = preResolved?.prompt ?? await get('default_prompt')
+  const token = await getAuth('access_token')
+  const bodyText = preResolved?.text ?? text
 
-async function aiProcess(model: LanguageModelV1, text: string, instruction: string, abortSignal?: AbortSignal): Promise<string> {
-  logger.info('ai', 'aiProcess', { text, instruction })
+  const response = await api<{ result: string }>('/api/v1/completions', {
+    method: 'POST',
+    body: JSON.stringify({
+      text: bodyText,
+      prompt,
+    }),
+    signal: abortSignal,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+
+  logger.info('ai', 'typoProcess result', response.result)
+  return response.result
+}
+
+export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
+  const apiKey = await get('deepseek_api_key')
+  const model = createDeepSeek({ apiKey }).chat('deepseek-chat')
+  return resolveAndProcess(model, text, abortSignal, preResolved)
+}
+
+export async function ollamaProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
+  const modelName = await get('ollama_model')
+  const model = createOllama().chat(modelName)
+  return resolveAndProcess(model, text, abortSignal, preResolved)
+}
+
+async function aiProcess(model: LanguageModelV1, text: string, prompt: string, abortSignal?: AbortSignal): Promise<string> {
+  logger.info('ai', 'aiProcess', { text, prompt })
   const { text: result } = await generateText({
     model,
-    system: DEFAULT_SYSTEM_PROMPT,
+    system: prompt,
     messages: [
       {
         role: 'user',
-        content: `${instruction}\n\n### Input\n${text}\n###`.trim(),
+        content: text,
       },
     ],
     abortSignal,
@@ -31,56 +61,23 @@ async function resolveAndProcess(
   model: LanguageModelV1,
   text: string,
   abortSignal?: AbortSignal,
-  preResolved?: { text: string, instruction: string, command?: string },
+  preResolved?: { text: string, prompt: string, command?: string },
 ): Promise<string> {
   logger.debug('ai', 'resolveAndProcess', { text, preResolved })
   if (preResolved) {
-    return aiProcess(model, preResolved.text, preResolved.instruction, abortSignal)
+    return aiProcess(model, preResolved.text, preResolved.prompt, abortSignal)
   }
 
-  const [baseInstruction, slashPrompts] = await Promise.all([
+  const [default_prompt, slash_prompts] = await Promise.all([
     get('default_prompt'),
     get('slash_prompts'),
   ])
 
-  const { text: resolvedText, instruction: finalInstruction } = resolveSlashPrompt(
+  const { text: resolvedText, prompt } = resolveSlashPrompt(
     text,
-    baseInstruction,
-    parseSlashPrompts(slashPrompts),
+    default_prompt,
+    parseSlashPrompts(slash_prompts),
   )
 
-  return aiProcess(model, resolvedText, finalInstruction, abortSignal)
-}
-
-export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
-  logger.debug('ai', 'typoProcess', { text, preResolved })
-  const instruction = preResolved?.instruction ?? await get('default_prompt')
-  const token = await getAuth('access_token')
-  const bodyText = preResolved?.text ?? text
-  const combinedText = `${instruction}\n\n### Input\n${bodyText}\n###`.trim()
-
-  const response = await api<{ result: string }>('/api/v1/completions', {
-    method: 'POST',
-    body: JSON.stringify({
-      text: combinedText,
-      prompt: DEFAULT_SYSTEM_PROMPT,
-    }),
-    signal: abortSignal,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-
-  logger.info('ai', 'typoProcess result', response.result)
-  return response.result
-}
-
-export async function deepSeekProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
-  const apiKey = await get('deepseek_api_key')
-  const model = createDeepSeek({ apiKey }).chat('deepseek-chat')
-  return resolveAndProcess(model, text, abortSignal, preResolved)
-}
-
-export async function ollamaProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {
-  const modelName = await get('ollama_model')
-  const model = createOllama().chat(modelName)
-  return resolveAndProcess(model, text, abortSignal, preResolved)
+  return aiProcess(model, resolvedText, prompt, abortSignal)
 }

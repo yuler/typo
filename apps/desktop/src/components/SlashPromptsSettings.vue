@@ -69,8 +69,7 @@ async function onSubmit() {
 
   isSaving.value = true
   try {
-    await store.set('slash_prompts', slashPrompts)
-    await store.save()
+    await store.persistSlashPrompts(slashPrompts)
     const saved = await store.get('slash_prompts')
     form.value.slash_prompts = mapSlashPromptsForForm(saved)
     toast.success(t('settings.save_success'))
