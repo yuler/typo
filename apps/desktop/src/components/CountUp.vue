@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { Activity } from 'lucide-vue-next'
 import { onUnmounted, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   value: number
   duration?: number
+  loading?: boolean
 }>(), {
   duration: 800,
+  loading: false,
 })
 
 const displayedValue = ref(0)
@@ -38,7 +41,10 @@ function animateTo(targetValue: number) {
   animationHandle = requestAnimationFrame(update)
 }
 
-watch(() => props.value, animateTo, { immediate: true })
+watch([() => props.value, () => props.loading], ([value, loading]) => {
+  if (!loading)
+    animateTo(value)
+}, { immediate: true })
 
 onUnmounted(() => {
   cancelAnimationFrame(animationHandle)
@@ -46,5 +52,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  {{ displayedValue.toLocaleString() }}
+  <Activity v-if="loading" class="size-6 text-muted-foreground animate-pulse" aria-hidden="true" />
+  <span v-else>{{ displayedValue.toLocaleString() }}</span>
 </template>

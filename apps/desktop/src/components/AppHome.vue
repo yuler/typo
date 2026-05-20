@@ -216,9 +216,8 @@ const stats = computed(() => [
             <p class="text-sm text-muted-foreground font-medium">
               {{ stat.label }}
             </p>
-            <div v-if="isLoadingStats" class="h-8 w-24 bg-muted/30 rounded-md animate-pulse mt-1" />
-            <p v-else class="text-2xl font-bold tracking-tight mt-1 truncate">
-              <CountUp :value="stat.value" />
+            <p class="text-2xl font-bold tracking-tight mt-1 truncate flex items-center min-h-8">
+              <CountUp :value="stat.value" :loading="isLoadingStats" />
             </p>
           </div>
         </div>
