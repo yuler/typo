@@ -1,0 +1,44 @@
+{
+  "version": "1.5.3",
+  "date": "2026-05-20",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.5.3",
+  "notes": "### Features\n- Desktop: Updated home stats, prompt preview, and settings UX.\n\n### Fixes\n- Scripts: Added release notes review step to bump script.",
+  "notes_i18n": {
+    "en": [
+      "Updated home stats, prompt preview, and settings UX."
+    ],
+    "zh": [
+      "更新了首页统计、提示预览和设置用户体验。"
+    ],
+    "jp": [
+      "ホーム統計、プロンプトプレビュー、設定UXを更新。"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.5.3_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.3/typo_1.5.3_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.5.3_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.3/typo_1.5.3_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.5.3_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.3/typo_1.5.3_amd64.deb"
+    },
+    {
+      "name": "typo_1.5.3_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.3/typo_1.5.3_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.5.3_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.5.3/typo_1.5.3_x64.dmg"
+    }
+  ]
+}
