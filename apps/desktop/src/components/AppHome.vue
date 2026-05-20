@@ -165,7 +165,7 @@ const stats = computed(() => [
           <p class="text-sm text-muted-foreground font-medium">
             {{ t('main.nav.default_prompt') }}
           </p>
-          <div v-if="isLoadingStats" class="h-5 w-48 bg-muted/30 rounded-md animate-pulse mt-1"></div>
+          <div v-if="isLoadingStats" class="h-5 w-48 bg-muted/30 rounded-md animate-pulse mt-1" />
           <p v-else class="text-sm font-bold tracking-tight text-foreground truncate max-w-xl mt-1">
             {{ defaultPrompt || 'You are a helpful assistant...' }}
           </p>
@@ -195,7 +195,7 @@ const stats = computed(() => [
             <p class="text-sm text-muted-foreground font-medium">
               {{ stat.label }}
             </p>
-            <div v-if="isLoadingStats" class="h-8 w-24 bg-muted/30 rounded-md animate-pulse mt-1"></div>
+            <div v-if="isLoadingStats" class="h-8 w-24 bg-muted/30 rounded-md animate-pulse mt-1" />
             <p v-else class="text-2xl font-bold tracking-tight mt-1 truncate">
               {{ stat.value }}
             </p>
