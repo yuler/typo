@@ -10,7 +10,7 @@ import { get } from './stores/settings'
 
 const DEFAULT_SYSTEM_PROMPT = 'You are Typo assistant.'
 
-async function aiProcess(model: LanguageModelV1, text: string, instruction: string, _command?: string, abortSignal?: AbortSignal): Promise<string> {
+async function aiProcess(model: LanguageModelV1, text: string, instruction: string, abortSignal?: AbortSignal): Promise<string> {
   logger.info('ai', 'aiProcess', { text, instruction })
   const { text: result } = await generateText({
     model,
@@ -35,7 +35,7 @@ async function resolveAndProcess(
 ): Promise<string> {
   logger.debug('ai', 'resolveAndProcess', { text, preResolved })
   if (preResolved) {
-    return aiProcess(model, preResolved.text, preResolved.instruction, preResolved.command, abortSignal)
+    return aiProcess(model, preResolved.text, preResolved.instruction, abortSignal)
   }
 
   const [baseInstruction, slashPrompts] = await Promise.all([
@@ -43,13 +43,13 @@ async function resolveAndProcess(
     get('slash_prompts'),
   ])
 
-  const { text: resolvedText, instruction: finalInstruction, command } = resolveSlashPrompt(
+  const { text: resolvedText, instruction: finalInstruction } = resolveSlashPrompt(
     text,
     baseInstruction,
     parseSlashPrompts(slashPrompts),
   )
 
-  return aiProcess(model, resolvedText, finalInstruction, command, abortSignal)
+  return aiProcess(model, resolvedText, finalInstruction, abortSignal)
 }
 
 export async function typoProcess(text: string, abortSignal?: AbortSignal, preResolved?: { text: string, instruction: string, command?: string }): Promise<string> {

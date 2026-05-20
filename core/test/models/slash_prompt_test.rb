@@ -61,6 +61,18 @@ class SlashPromptTest < ActiveSupport::TestCase
     assert slash_prompt3.valid?
   end
 
+  test "should reject trigger that matches another prompts key or alias" do
+    SlashPrompt.create!(account: @account, key: "/main", value: "v", aliases: [ "/shortcut" ])
+
+    conflicts_with_alias = SlashPrompt.new(account: @account, key: "/shortcut", value: "other")
+    assert_not conflicts_with_alias.valid?
+    assert_includes conflicts_with_alias.errors[:base].join, "trigger '/shortcut'"
+
+    conflicts_with_key = SlashPrompt.new(account: @account, key: "/other", value: "v", aliases: [ "/main" ])
+    assert_not conflicts_with_key.valid?
+    assert_includes conflicts_with_key.errors[:base].join, "trigger '/main'"
+  end
+
   test "should create defaults for account" do
     SlashPrompt.create_defaults_for!(@account)
     assert_equal 4, @account.slash_prompts.count

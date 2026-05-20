@@ -134,7 +134,7 @@ async function syncSlashPromptsToServer(newPrompts: SlashPrompt[], token: string
       if (existingServerPrompt) {
         const hasChanged = existingServerPrompt.key !== newPrompt.key
           || existingServerPrompt.value !== newPrompt.value
-          || JSON.stringify(existingServerPrompt.aliases) !== JSON.stringify(newPrompt.aliases)
+          || JSON.stringify(existingServerPrompt.aliases || []) !== JSON.stringify(newPrompt.aliases || [])
 
         if (hasChanged) {
           const updated = await api<SlashPrompt>(`/api/v1/slash_prompts/${newPrompt.id}`, {

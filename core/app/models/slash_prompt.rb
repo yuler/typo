@@ -8,6 +8,7 @@ class SlashPrompt < ApplicationRecord
   validates :key, uniqueness: { scope: :account_id, message: "already exists for this account" }
 
   validate :validate_aliases_format
+  validate :validate_triggers_unique_across_account_prompts
 
   before_validation :normalize_aliases
 
@@ -78,6 +79,23 @@ class SlashPrompt < ApplicationRecord
       unless alias_key.match?(/\A\/\w+\z/)
         errors.add(:aliases, "contains invalid alias '#{alias_key}'. Each alias must start with / and contain only letters/digits/underscores")
       end
+    end
+  end
+
+  def validate_triggers_unique_across_account_prompts
+    return if account_id.blank? || key.blank?
+
+    identifiers = ([ key ] + Array(aliases)).compact.uniq
+    scope = SlashPrompt.where(account_id: account_id)
+    scope = scope.where.not(id: id) if persisted?
+
+    scope.find_each do |other|
+      other_ids = ([ other.key ] + Array(other.aliases)).compact.uniq
+      collision = identifiers & other_ids
+      next if collision.empty?
+
+      errors.add(:base, "trigger '#{collision.first}' is already used by another slash prompt (#{other.key})")
+      break
     end
   end
 end
