@@ -1,10 +1,13 @@
 import { invoke } from '@tauri-apps/api/core'
 import { fetch } from '@tauri-apps/plugin-http'
+import { toast } from 'vue-sonner'
+import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.typo.yuler.cc'
 
 let userAgentPromise: Promise<string> | null = null
+let isResetting = false
 
 function getUserAgent(): Promise<string> {
   if (userAgentPromise)
@@ -54,6 +57,30 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
     headers,
   })
+
+  if (response.status === 401) {
+    if (path !== '/api/v1/session' && !path.startsWith('/api/v1/device/')) {
+      if (!isResetting) {
+        isResetting = true
+        try {
+          const { useAuth } = await import('@/composables/useAuth')
+          const auth = useAuth()
+          if (auth.isLoggedIn.value) {
+            const { t } = useI18n()
+            toast.error(t('auth.session_expired'))
+            await auth.reset()
+          }
+        }
+        catch (err) {
+          logger.error('api', 'Failed to reset auth state', err)
+        }
+        finally {
+          isResetting = false
+        }
+      }
+    }
+    throw new Error('Unauthorized')
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))

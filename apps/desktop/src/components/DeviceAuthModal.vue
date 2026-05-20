@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { openUrl } from '@tauri-apps/plugin-opener'
 import { ExternalLink, Loader2 } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
@@ -24,7 +25,6 @@ const isOpen = computed({
 
 async function openBrowser() {
   if (deviceCode.value) {
-    const { openUrl } = await import('@tauri-apps/plugin-opener')
     await openUrl(deviceCode.value.verification_uri)
   }
 }

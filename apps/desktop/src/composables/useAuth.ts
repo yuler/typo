@@ -1,8 +1,6 @@
 import { createGlobalState } from '@vueuse/core'
 import { ref } from 'vue'
-import { toast } from 'vue-sonner'
 import { api } from '@/api'
-import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import * as authStore from '@/stores/auth'
 import { gravatar } from '@/utils'
@@ -27,7 +25,6 @@ export const useAuth = createGlobalState(() => {
     avatar_url: '',
   })
 
-  const { t } = useI18n()
   const HEARTBEAT_INTERVAL = 2 * 60 * 1000 // 2 minutes
   let pollTimer: ReturnType<typeof setTimeout> | null = null
   let heartbeatTimer: ReturnType<typeof setTimeout> | null = null
@@ -75,11 +72,6 @@ export const useAuth = createGlobalState(() => {
         }
       }
       catch (err: any) {
-        if (err?.message?.includes('401') || err?.message === 'Unauthorized') {
-          toast.error(t('auth.session_expired'))
-          await logout()
-          return
-        }
         logger.error('Auth', 'Heartbeat failed', err)
       }
 
@@ -210,6 +202,20 @@ export const useAuth = createGlobalState(() => {
     await authStore.saveAuth()
   }
 
+  async function reset() {
+    stopHeartbeat()
+    cancel()
+    isLoggedIn.value = false
+    user.value = {
+      name: '',
+      email: '',
+      avatar_url: '',
+    }
+    await authStore.setAuth('access_token', '')
+    await authStore.setAuth('email', '')
+    await authStore.saveAuth()
+  }
+
   function cancel() {
     if (pollTimer)
       clearTimeout(pollTimer)
@@ -227,5 +233,6 @@ export const useAuth = createGlobalState(() => {
     login,
     logout,
     cancel,
+    reset,
   }
 })
