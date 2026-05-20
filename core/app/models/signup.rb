@@ -33,7 +33,7 @@ class Signup
     case record = error.record
     when Account, User
       map = record.is_a?(Account) ? { slug: :username, name: :nickname } : { name: :nickname }
-      record.errors.each { |err| errors.add(map[err.attribute] || err.attribute, err.message) }
+      record.errors.each { |err| errors.import(err, attribute: map[err.attribute] || err.attribute) }
     else
       errors.add(:base, error.message)
     end
