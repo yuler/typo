@@ -1,5 +1,6 @@
 require "test_helper"
 
+
 class SignupTest < ActiveSupport::TestCase
   setup do
     @identity = Identity.create!(email: "jane@example.com")
@@ -33,33 +34,18 @@ class SignupTest < ActiveSupport::TestCase
       raise ActiveRecord::RecordInvalid.new(mock_user)
     end
 
-    stub_user_new(mock_user) do
+    User.define_singleton_method(:new) do |*args, &block|
+      block&.call(mock_user)
+      mock_user
+    end
+
+    begin
       assert_not signup.create_personal_account
       assert signup.errors[:nickname].include?("is invalid")
+    ensure
+      User.singleton_class.remove_method(:new)
     end
   end
 
-  private
-    def stub_user_new(mock_user)
-      class << User
-        alias_method :original_new, :new
-        def new(*args, &block)
-          if @mock_user
-            block&.call(@mock_user)
-            @mock_user
-          else
-            original_new(*args, &block)
-          end
-        end
-      end
 
-      User.instance_variable_set(:@mock_user, mock_user)
-      yield
-    ensure
-      User.instance_variable_set(:@mock_user, nil)
-      class << User
-        alias_method :new, :original_new
-        remove_method :original_new
-      end
-    end
 end
