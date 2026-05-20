@@ -50,19 +50,29 @@ export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: t
   logger.info('store', `set ${key}`, value)
   await store.set(key, value)
 
-  if (key === 'slash_prompts' && value) {
+  if (key === 'slash_prompts' && value !== undefined) {
     const token = await authStore.getAuth('access_token')
-    if (token) {
+    if (token)
       await syncSlashPromptsToServer(value as SlashPrompt[], token)
-    }
   }
 
-  if (key === 'default_prompt' && value) {
+  if (key === 'default_prompt' && typeof value === 'string') {
     const token = await authStore.getAuth('access_token')
-    if (token) {
-      await syncDefaultPromptToServer(value as string, token)
-    }
+    if (token)
+      await syncDefaultPromptToServer(value, token)
   }
+}
+
+/** Persists locally and syncs to `PATCH /api/v1/default_prompt` when signed in. */
+export async function persistDefaultPrompt(value: string): Promise<void> {
+  await set('default_prompt', value)
+  await save()
+}
+
+/** Persists locally and reconciles with `GET/POST/PATCH/DELETE /api/v1/slash_prompts` when signed in. */
+export async function persistSlashPrompts(prompts: SlashPrompt[]): Promise<void> {
+  await set('slash_prompts', prompts)
+  await save()
 }
 
 export async function save(): Promise<void> {
@@ -118,43 +128,42 @@ async function syncSlashPromptsToServer(newPrompts: SlashPrompt[], token: string
     const serverPromptMap = new Map(serverPrompts.map(p => [p.id, p]))
     const newPromptMap = new Map(newPrompts.map(p => [p.id, p]))
 
-    for (const serverPrompt of serverPrompts) {
-      if (serverPrompt.id && !newPromptMap.has(serverPrompt.id)) {
-        await api(`/api/v1/slash_prompts/${serverPrompt.id}`, {
+    const toRemove = serverPrompts.filter(p => p.id && !newPromptMap.has(p.id))
+    await Promise.all(
+      toRemove.map(p =>
+        api(`/api/v1/slash_prompts/${p.id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
-        })
-      }
-    }
+        }),
+      ),
+    )
 
-    const syncedPrompts: SlashPrompt[] = []
-    for (const newPrompt of newPrompts) {
-      const existingServerPrompt = newPrompt.id ? serverPromptMap.get(newPrompt.id) : null
+    const upserts = await Promise.all(
+      newPrompts.map(async (newPrompt, index): Promise<{ index: number, prompt: SlashPrompt }> => {
+        const existingServerPrompt = newPrompt.id ? serverPromptMap.get(newPrompt.id) : null
 
-      if (existingServerPrompt) {
-        const hasChanged = existingServerPrompt.key !== newPrompt.key
-          || existingServerPrompt.value !== newPrompt.value
-          || JSON.stringify(existingServerPrompt.aliases || []) !== JSON.stringify(newPrompt.aliases || [])
+        if (existingServerPrompt) {
+          const hasChanged = existingServerPrompt.key !== newPrompt.key
+            || existingServerPrompt.value !== newPrompt.value
+            || JSON.stringify(existingServerPrompt.aliases || []) !== JSON.stringify(newPrompt.aliases || [])
 
-        if (hasChanged) {
-          const updated = await api<SlashPrompt>(`/api/v1/slash_prompts/${newPrompt.id}`, {
-            method: 'PATCH',
-            headers: { Authorization: `Bearer ${token}` },
-            body: JSON.stringify({
-              slash_prompt: {
-                key: newPrompt.key,
-                value: newPrompt.value,
-                aliases: newPrompt.aliases || [],
-              },
-            }),
-          })
-          syncedPrompts.push(updated)
+          if (hasChanged) {
+            const updated = await api<SlashPrompt>(`/api/v1/slash_prompts/${newPrompt.id}`, {
+              method: 'PATCH',
+              headers: { Authorization: `Bearer ${token}` },
+              body: JSON.stringify({
+                slash_prompt: {
+                  key: newPrompt.key,
+                  value: newPrompt.value,
+                  aliases: newPrompt.aliases || [],
+                },
+              }),
+            })
+            return { index, prompt: updated }
+          }
+          return { index, prompt: existingServerPrompt }
         }
-        else {
-          syncedPrompts.push(existingServerPrompt)
-        }
-      }
-      else {
+
         const created = await api<SlashPrompt>('/api/v1/slash_prompts', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
@@ -166,9 +175,11 @@ async function syncSlashPromptsToServer(newPrompts: SlashPrompt[], token: string
             },
           }),
         })
-        syncedPrompts.push(created)
-      }
-    }
+        return { index, prompt: created }
+      }),
+    )
+
+    const syncedPrompts = upserts.sort((a, b) => a.index - b.index).map(({ prompt }) => prompt)
 
     await store.set('slash_prompts', syncedPrompts)
     await store.save()

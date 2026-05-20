@@ -4,7 +4,7 @@ class CreateSlashPromptsAndDefaultPrompts < ActiveRecord::Migration[8.2]
       t.uuid :account_id, null: false
       t.string :key, null: false
       t.text :value, null: false
-      t.string :aliases, default: "[]"
+      t.text :aliases, default: "[]"
 
       t.timestamps
     end
