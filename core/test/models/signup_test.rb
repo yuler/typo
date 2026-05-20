@@ -46,6 +46,4 @@ class SignupTest < ActiveSupport::TestCase
       User.singleton_class.remove_method(:new)
     end
   end
-
-
 end
