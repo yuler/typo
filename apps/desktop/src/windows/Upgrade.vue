@@ -4,7 +4,7 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { fetch } from '@tauri-apps/plugin-http'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
-import { ArrowUpCircleIcon, SparklesIcon } from 'lucide-vue-next'
+import { ArrowUpCircleIcon, SparklesIcon, XIcon } from 'lucide-vue-next'
 import { computed, onMounted, ref, shallowRef, toRaw } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -106,6 +106,12 @@ function onCancel() {
         <SparklesIcon class="w-4 h-4 text-zinc-400" />
         <span class="text-xs font-bold text-zinc-400 tracking-wider uppercase">{{ t('upgrade.updater') }}</span>
       </div>
+      <button
+        class="flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-all duration-150 cursor-pointer"
+        @click="onCancel"
+      >
+        <XIcon class="w-3.5 h-3.5" />
+      </button>
     </div>
 
     <!-- Main Content Area -->
