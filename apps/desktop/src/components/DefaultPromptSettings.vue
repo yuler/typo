@@ -4,6 +4,7 @@ import { onMounted, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import SettingsPageLayout from '@/components/SettingsPageLayout.vue'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/composables/useAuth'
@@ -71,10 +72,11 @@ async function onSubmit() {
             {{ t('settings.default_prompt.placeholder') }}
           </p>
         </div>
+        <Skeleton v-if="isLoading" class="min-h-[300px] w-full" />
         <Textarea
+          v-else
           id="default_prompt"
           v-model="form.default_prompt"
-          :disabled="isLoading"
           :rows="12"
           class="min-h-[300px] resize-y bg-muted/20"
           placeholder="You are a helpful assistant..."

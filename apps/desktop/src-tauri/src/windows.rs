@@ -23,9 +23,12 @@ pub fn create_main_window(app: &AppHandle) {
 
     let win_width = 1200.0;
     let win_height = 800.0;
+    let win_min_width = 960.0;
+    let win_min_height = 600.0;
 
     let win_builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
         .inner_size(win_width, win_height)
+        .min_inner_size(win_min_width, win_min_height)
         .center()
         .decorations(true);
 

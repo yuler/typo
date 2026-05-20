@@ -74,6 +74,8 @@
   "main.breadcrumb.free": "Free",
   "main.hero.title": "Typoへようこそ",
   "main.hero.subtitle": "あなたのAIライティングコンパニオン。考えをまとめ、文章を磨き、自信を持ってコミュニケーションを。",
+  "main.hero.website": "ウェブサイト",
+  "main.hero.docs": "ドキュメント",
   "main.hero.login_btn": "ログインして同期",
   "main.hero.login_hint": "ログインすると、履歴の同期や詳細な統計機能が利用可能になります。",
   "main.hero.pro_active": "Pro機能が有効です",

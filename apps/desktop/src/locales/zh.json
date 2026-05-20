@@ -74,6 +74,8 @@
   "main.breadcrumb.free": "免费版",
   "main.hero.title": "欢迎使用 Typo",
   "main.hero.subtitle": "您的 AI 写作伴侣。提炼想法，磨砺文字，自信沟通。",
+  "main.hero.website": "官网",
+  "main.hero.docs": "文档",
   "main.hero.login_btn": "登录以同步",
   "main.hero.login_hint": "登录以解锁历史同步和高级统计。",
   "main.hero.pro_active": "专业版功能已激活",

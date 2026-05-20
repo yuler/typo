@@ -74,6 +74,8 @@
   "main.breadcrumb.free": "Free",
   "main.hero.title": "Welcome to Typo",
   "main.hero.subtitle": "Your AI-powered writing companion. Refine your thoughts, polish your prose, and communicate with confidence.",
+  "main.hero.website": "Website",
+  "main.hero.docs": "Docs",
   "main.hero.login_btn": "Sign in to Sync",
   "main.hero.login_hint": "Sign in to unlock history sync and advanced statistics.",
   "main.hero.pro_active": "Pro features activated",

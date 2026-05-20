@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { openUrl } from '@tauri-apps/plugin-opener'
 import {
   ArrowRight,
   CheckCircleIcon,
+  ExternalLink,
   MessageSquareTextIcon,
   TerminalIcon,
 } from 'lucide-vue-next'
@@ -24,12 +26,16 @@ defineProps<{
 
 const emit = defineEmits(['navigateToShortcut', 'navigateToTab'])
 
+const WEBSITE_URL = 'https://typo.yuler.cc'
+const DOCS_URL = 'https://typo.yuler.cc/docs/getting-started'
+
 const { isLoggedIn, login } = useAuth()
 const { t } = useI18n()
 
 const totalCompletions = ref(0)
 const totalSlashPrompts = ref(0)
 const isLoadingStats = ref(true)
+const isLoadingDefaultPrompt = ref(true)
 const defaultPrompt = ref('')
 
 let isFetchingStats = false
@@ -63,11 +69,15 @@ async function fetchStats() {
 }
 
 async function fetchDefaultPrompt() {
+  isLoadingDefaultPrompt.value = true
   try {
     defaultPrompt.value = await store.get('default_prompt')
   }
   catch (err) {
     console.error('Failed to fetch default prompt', err)
+  }
+  finally {
+    isLoadingDefaultPrompt.value = false
   }
 }
 
@@ -119,9 +129,29 @@ const stats = computed(() => [
         <h1 class="text-4xl font-bold tracking-tight mb-4 text-foreground">
           {{ t('main.hero.title') }}
         </h1>
-        <p class="text-muted-foreground text-lg max-w-md mb-8 leading-relaxed">
+        <p class="text-muted-foreground text-lg max-w-md mb-6 leading-relaxed">
           {{ t('main.hero.subtitle') }}
         </p>
+
+        <div class="flex flex-wrap items-center gap-4 mb-8">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            @click="openUrl(WEBSITE_URL)"
+          >
+            {{ t('main.hero.website') }}
+            <ExternalLink class="size-3.5 opacity-70" />
+          </button>
+          <span class="text-border" aria-hidden="true">·</span>
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            @click="openUrl(DOCS_URL)"
+          >
+            {{ t('main.hero.docs') }}
+            <ExternalLink class="size-3.5 opacity-70" />
+          </button>
+        </div>
 
         <div v-if="!isLoggedIn" class="flex flex-col gap-4 items-start">
           <Button size="lg" class="rounded-full px-8 h-12 text-base font-medium shadow-sm transition-all hover:scale-105 active:scale-95" @click="login">
@@ -138,24 +168,31 @@ const stats = computed(() => [
     <!-- Default System Prompt Card -->
     <button
       v-if="isLoggedIn"
-      class="w-full text-left p-6 mb-6 rounded-2xl border border-border/40 bg-muted/5 backdrop-blur-sm transition-all hover:bg-muted/10 hover:border-primary/20 hover:-translate-y-0.5 group flex items-center justify-between"
+      class="w-full text-left p-6 mb-6 rounded-2xl border border-border/40 bg-muted/5 backdrop-blur-sm transition-all hover:bg-muted/10 hover:border-primary/20 hover:-translate-y-0.5 group flex items-start justify-between"
       @click="emit('navigateToTab', 'default_prompt')"
     >
-      <div class="flex items-center gap-4 flex-1 min-w-0">
-        <div class="p-3 rounded-xl transition-transform group-hover:scale-110 bg-muted/20 text-amber-500">
+      <div class="flex items-start gap-4 flex-1 min-w-0">
+        <div class="p-3 rounded-xl transition-transform group-hover:scale-110 bg-muted/20 text-amber-500 shrink-0">
           <MessageSquareTextIcon class="size-6" />
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm text-muted-foreground font-medium">
             {{ t('main.nav.default_prompt') }}
           </p>
-          <div v-if="isLoadingStats" class="h-5 w-48 bg-muted/30 rounded-md animate-pulse mt-1" />
-          <p v-else class="text-sm font-bold tracking-tight text-foreground truncate max-w-xl mt-1">
+          <div v-if="isLoadingDefaultPrompt" class="mt-2 space-y-2">
+            <div class="h-3.5 w-full bg-muted/30 rounded-md animate-pulse" />
+            <div class="h-3.5 w-full bg-muted/30 rounded-md animate-pulse" />
+            <div class="h-3.5 w-4/5 bg-muted/30 rounded-md animate-pulse" />
+          </div>
+          <p
+            v-else
+            class="text-sm font-normal text-foreground/80 leading-relaxed line-clamp-4 whitespace-pre-wrap mt-2"
+          >
             {{ defaultPrompt || t('settings.default_prompt.placeholder') }}
           </p>
         </div>
       </div>
-      <div class="size-8 rounded-full flex items-center justify-center bg-background border border-border/50 group-hover:border-primary/50 transition-colors shrink-0 ml-4">
+      <div class="size-8 rounded-full flex items-center justify-center bg-background border border-border/50 group-hover:border-primary/50 transition-colors shrink-0 ml-4 mt-1">
         <ArrowRight class="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
       </div>
     </button>
