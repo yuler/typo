@@ -14,15 +14,24 @@ export async function needsPromptsMigration(): Promise<boolean> {
     return false
 
   try {
-    const serverPrompts = await api<any[]>('/api/v1/prompts', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const [serverSlashPrompts, serverDefaultPrompt] = await Promise.all([
+      api<any[]>('/api/v1/slash_prompts', {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      api<{ value: string }>('/api/v1/default_prompt', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => null),
+    ])
 
-    if (serverPrompts.length > 0)
-      return false
+    const needsSlashMigration = serverSlashPrompts.length === 0
+    const localSlashPrompts = await settingsStore.get('slash_commands')
+    const hasLocalSlashPrompts = localSlashPrompts.length > 0
 
-    const localPrompts = await settingsStore.get('slash_commands')
-    return localPrompts.length > 0
+    const needsDefaultMigration = !serverDefaultPrompt?.value
+    const localDefaultPrompt = await settingsStore.get('ai_system_prompt')
+    const hasLocalDefaultPrompt = Boolean(localDefaultPrompt?.trim())
+
+    return (needsSlashMigration && hasLocalSlashPrompts) || (needsDefaultMigration && hasLocalDefaultPrompt)
   }
   catch (error) {
     logger.error('prompts_migration', 'Failed to check prompts migration status', error)
@@ -36,42 +45,71 @@ export async function needsPromptsMigration(): Promise<boolean> {
  *
  * TODO: Remove this file entirely in v2.0 once all legacy users are migrated.
  */
-export async function runPromptsMigration(serverPrompts: any[]): Promise<boolean> {
-  // If the server already has prompts, this account is already migrated/new.
-  if (serverPrompts.length > 0) {
-    return false
-  }
-
+export async function runPromptsMigration(): Promise<boolean> {
   const token = await authStore.getAuth('access_token')
   if (!token)
     return false
 
   try {
-    logger.info('prompts_migration', 'Starting one-time local prompts migration to server.')
-
-    // Get current local prompts
-    const localPrompts = await settingsStore.get('slash_commands')
-
-    const uploadedPrompts: any[] = []
-    for (const localPrompt of localPrompts) {
-      const created = await api<any>('/api/v1/prompts', {
-        method: 'POST',
+    const [serverSlashPrompts, serverDefaultPrompt] = await Promise.all([
+      api<any[]>('/api/v1/slash_prompts', {
         headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          key: localPrompt.key,
-          value: localPrompt.value,
-          aliases: localPrompt.aliases || [],
-        }),
-      })
-      uploadedPrompts.push(created)
+      }),
+      api<{ value: string }>('/api/v1/default_prompt', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => null),
+    ])
+
+    let migrated = false
+
+    if (serverSlashPrompts.length === 0) {
+      logger.info('prompts_migration', 'Starting one-time local slash prompts migration to server.')
+
+      const localPrompts = await settingsStore.get('slash_commands')
+      const uploadedPrompts: any[] = []
+
+      for (const localPrompt of localPrompts) {
+        const created = await api<any>('/api/v1/slash_prompts', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            slash_prompt: {
+              key: localPrompt.key,
+              value: localPrompt.value,
+              aliases: localPrompt.aliases || [],
+            },
+          }),
+        })
+        uploadedPrompts.push(created)
+      }
+
+      await settingsStore.set('slash_commands', uploadedPrompts)
+      migrated = uploadedPrompts.length > 0
     }
 
-    // Save synced prompts (with their database UUIDs) back to settings
-    await settingsStore.set('slash_commands', uploadedPrompts)
+    if (!serverDefaultPrompt?.value) {
+      logger.info('prompts_migration', 'Starting one-time local default prompt migration to server.')
+
+      const localDefaultPrompt = await settingsStore.get('ai_system_prompt')
+      if (localDefaultPrompt?.trim()) {
+        await api('/api/v1/default_prompt', {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            default_prompt: { value: localDefaultPrompt },
+          }),
+        })
+        migrated = true
+      }
+    }
+
     await settingsStore.save()
 
-    logger.info('prompts_migration', 'Local prompts migration completed successfully.')
-    return true
+    if (migrated) {
+      logger.info('prompts_migration', 'Local prompts migration completed successfully.')
+    }
+
+    return migrated
   }
   catch (error) {
     logger.error('prompts_migration', 'Failed to run prompts migration', error)

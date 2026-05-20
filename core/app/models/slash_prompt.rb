@@ -1,7 +1,6 @@
-class Prompt < ApplicationRecord
+class SlashPrompt < ApplicationRecord
   belongs_to :account
 
-  # Serialize aliases as JSON array
   serialize :aliases, coder: JSON
 
   validates :key, presence: true, format: { with: /\A\/\w+\z/, message: "must start with / and contain only letters/digits/underscores" }
@@ -10,7 +9,6 @@ class Prompt < ApplicationRecord
 
   validate :validate_aliases_format
 
-  # Ensure aliases is always an array of strings
   before_validation :normalize_aliases
 
   DEFAULT_SLASH_COMMANDS = [
@@ -60,7 +58,7 @@ class Prompt < ApplicationRecord
 
   def self.create_defaults_for!(account)
     DEFAULT_SLASH_COMMANDS.each do |cmd|
-      account.prompts.create!(key: cmd[:key], value: cmd[:value], aliases: cmd[:aliases])
+      account.slash_prompts.create!(key: cmd[:key], value: cmd[:value], aliases: cmd[:aliases])
     end
   end
 

@@ -38,7 +38,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1, defaults: { format: :json } do
       resources :completions, only: :create
-      resources :prompts, only: %i[ index create update destroy ]
+      resources :slash_prompts, only: %i[ index create update destroy ]
+      resource :default_prompt, only: %i[ show update ]
       resource :session, only: :destroy do
         scope module: :sessions do
           resource :heartbeat, only: :show

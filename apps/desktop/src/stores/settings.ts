@@ -176,6 +176,13 @@ export async function set<T extends keyof typeof DEFAULT_STORE>(key: T, value: t
       await syncSlashCommandsToServer(value as SlashCommand[], token)
     }
   }
+
+  if (key === 'ai_system_prompt' && value) {
+    const token = await authStore.getAuth('access_token')
+    if (token) {
+      await syncDefaultPromptToServer(value as string, token)
+    }
+  }
 }
 
 export async function save(): Promise<void> {
@@ -188,14 +195,24 @@ export async function syncPromptsWithServer() {
     return
 
   try {
-    const serverPrompts = await api<SlashCommand[]>('/api/v1/prompts', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const [serverSlashPrompts, serverDefaultPrompt] = await Promise.all([
+      api<SlashCommand[]>('/api/v1/slash_prompts', {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      api<{ value: string }>('/api/v1/default_prompt', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => null),
+    ])
 
-    if (serverPrompts.length > 0) {
-      await store.set('slash_commands', serverPrompts)
-      await store.save()
+    if (serverSlashPrompts.length > 0) {
+      await store.set('slash_commands', serverSlashPrompts)
     }
+
+    if (serverDefaultPrompt?.value) {
+      await store.set('ai_system_prompt', serverDefaultPrompt.value)
+    }
+
+    await store.save()
   }
   catch (error) {
     logger.error('store', 'Failed to sync prompts with server', error)
@@ -209,24 +226,22 @@ export async function resetLocalPrompts() {
 
 async function syncSlashCommandsToServer(newCommands: SlashCommand[], token: string) {
   try {
-    const serverPrompts = await api<SlashCommand[]>('/api/v1/prompts', {
+    const serverPrompts = await api<SlashCommand[]>('/api/v1/slash_prompts', {
       headers: { Authorization: `Bearer ${token}` },
     })
 
     const serverPromptMap = new Map(serverPrompts.map(p => [p.id, p]))
     const newCommandMap = new Map(newCommands.map(c => [c.id, c]))
 
-    // 1. DELETE prompts removed in UI
     for (const serverPrompt of serverPrompts) {
       if (serverPrompt.id && !newCommandMap.has(serverPrompt.id)) {
-        await api(`/api/v1/prompts/${serverPrompt.id}`, {
+        await api(`/api/v1/slash_prompts/${serverPrompt.id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
         })
       }
     }
 
-    // 2. CREATE or UPDATE prompts
     const syncedCommands: SlashCommand[] = []
     for (const newCommand of newCommands) {
       const existingServerPrompt = newCommand.id ? serverPromptMap.get(newCommand.id) : null
@@ -237,13 +252,15 @@ async function syncSlashCommandsToServer(newCommands: SlashCommand[], token: str
           || JSON.stringify(existingServerPrompt.aliases) !== JSON.stringify(newCommand.aliases)
 
         if (hasChanged) {
-          const updated = await api<SlashCommand>(`/api/v1/prompts/${newCommand.id}`, {
+          const updated = await api<SlashCommand>(`/api/v1/slash_prompts/${newCommand.id}`, {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${token}` },
             body: JSON.stringify({
-              key: newCommand.key,
-              value: newCommand.value,
-              aliases: newCommand.aliases || [],
+              slash_prompt: {
+                key: newCommand.key,
+                value: newCommand.value,
+                aliases: newCommand.aliases || [],
+              },
             }),
           })
           syncedCommands.push(updated)
@@ -253,25 +270,42 @@ async function syncSlashCommandsToServer(newCommands: SlashCommand[], token: str
         }
       }
       else {
-        const created = await api<SlashCommand>('/api/v1/prompts', {
+        const created = await api<SlashCommand>('/api/v1/slash_prompts', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: JSON.stringify({
-            key: newCommand.key,
-            value: newCommand.value,
-            aliases: newCommand.aliases || [],
+            slash_prompt: {
+              key: newCommand.key,
+              value: newCommand.value,
+              aliases: newCommand.aliases || [],
+            },
           }),
         })
         syncedCommands.push(created)
       }
     }
 
-    // Save final list containing DB-generated UUIDs back to store
     await store.set('slash_commands', syncedCommands)
     await store.save()
   }
   catch (error) {
-    logger.error('store', 'Failed to save prompts to server', error)
+    logger.error('store', 'Failed to save slash prompts to server', error)
+    throw error
+  }
+}
+
+async function syncDefaultPromptToServer(value: string, token: string) {
+  try {
+    await api('/api/v1/default_prompt', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        default_prompt: { value },
+      }),
+    })
+  }
+  catch (error) {
+    logger.error('store', 'Failed to save default prompt to server', error)
     throw error
   }
 }

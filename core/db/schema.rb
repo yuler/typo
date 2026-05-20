@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_05_20_070728) do
+ActiveRecord::Schema[8.2].define(version: 2026_05_20_120000) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -35,6 +35,14 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_20_070728) do
     t.uuid "user_id"
     t.index ["account_id"], name: "index_completions_on_account_id"
     t.index ["user_id"], name: "index_completions_on_user_id"
+  end
+
+  create_table "default_prompts", id: :uuid, force: :cascade do |t|
+    t.uuid "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "value", null: false
+    t.index ["account_id"], name: "index_default_prompts_on_account_id", unique: true
   end
 
   create_table "device_authorizations", id: :uuid, force: :cascade do |t|
@@ -69,17 +77,6 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_20_070728) do
     t.index ["identity_id"], name: "index_magic_links_on_identity_id"
   end
 
-  create_table "prompts", id: :uuid, force: :cascade do |t|
-    t.uuid "account_id", null: false
-    t.string "aliases", default: "[]"
-    t.datetime "created_at", null: false
-    t.string "key", null: false
-    t.datetime "updated_at", null: false
-    t.text "value", null: false
-    t.index ["account_id", "key"], name: "index_prompts_on_account_id_and_key", unique: true
-    t.index ["account_id"], name: "index_prompts_on_account_id"
-  end
-
   create_table "sessions", id: :uuid, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.uuid "identity_id"
@@ -89,6 +86,17 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_20_070728) do
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.index ["identity_id"], name: "index_sessions_on_identity_id"
+  end
+
+  create_table "slash_prompts", id: :uuid, force: :cascade do |t|
+    t.uuid "account_id", null: false
+    t.string "aliases", default: "[]"
+    t.datetime "created_at", null: false
+    t.string "key", null: false
+    t.datetime "updated_at", null: false
+    t.text "value", null: false
+    t.index ["account_id", "key"], name: "index_slash_prompts_on_account_id_and_key", unique: true
+    t.index ["account_id"], name: "index_slash_prompts_on_account_id"
   end
 
   create_table "users", id: :uuid, force: :cascade do |t|

@@ -90,7 +90,7 @@ async function checkPromptsMigration() {
 
 async function onPromptsMigrationConfirm() {
   showPromptsMigration.value = false
-  await runPromptsMigration([])
+  await runPromptsMigration()
 }
 
 onMounted(async () => {
