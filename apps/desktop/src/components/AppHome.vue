@@ -13,6 +13,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { api } from '@/api'
 import CountUp from '@/components/CountUp.vue'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { getAuth } from '@/stores/auth'
@@ -168,32 +169,43 @@ const stats = computed(() => [
     <!-- Default System Prompt Card -->
     <button
       v-if="isLoggedIn"
-      class="w-full text-left p-6 mb-6 rounded-2xl border border-border/40 bg-muted/5 backdrop-blur-sm transition-all hover:bg-muted/10 hover:border-primary/20 hover:-translate-y-0.5 group flex items-start justify-between"
+      type="button"
+      class="group mb-6 w-full rounded-2xl border border-border/40 bg-card text-left shadow-sm transition-all hover:border-amber-500/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       @click="emit('navigateToTab', 'default_prompt')"
     >
-      <div class="flex items-start gap-4 flex-1 min-w-0">
-        <div class="p-3 rounded-xl transition-transform group-hover:scale-110 bg-muted/20 text-amber-500 shrink-0">
-          <MessageSquareTextIcon class="size-6" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-muted-foreground font-medium">
+      <div class="flex items-center justify-between gap-4 border-b border-border/40 px-6 py-4">
+        <div class="flex min-w-0 items-center gap-3">
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 transition-transform group-hover:scale-105 dark:text-amber-400">
+            <MessageSquareTextIcon class="size-5" />
+          </div>
+          <p class="truncate text-sm font-semibold text-foreground">
             {{ t('main.nav.default_prompt') }}
           </p>
-          <div v-if="isLoadingDefaultPrompt" class="mt-2 space-y-2">
-            <div class="h-3.5 w-full bg-muted/30 rounded-md animate-pulse" />
-            <div class="h-3.5 w-full bg-muted/30 rounded-md animate-pulse" />
-            <div class="h-3.5 w-4/5 bg-muted/30 rounded-md animate-pulse" />
+        </div>
+        <div class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border/50 bg-background transition-colors group-hover:border-amber-500/40">
+          <ArrowRight class="size-4 text-muted-foreground transition-colors group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+        </div>
+      </div>
+
+      <div class="px-6 py-4">
+        <div
+          class="min-h-[7.5rem] rounded-lg border border-border/50 bg-muted/20 px-4 py-3"
+          :class="!defaultPrompt && !isLoadingDefaultPrompt && 'border-dashed'"
+        >
+          <div v-if="isLoadingDefaultPrompt" class="space-y-2.5">
+            <Skeleton class="h-3 w-full" />
+            <Skeleton class="h-3 w-full" />
+            <Skeleton class="h-3 w-[92%]" />
+            <Skeleton class="h-3 w-[78%]" />
           </div>
           <p
             v-else
-            class="text-sm font-normal text-foreground/80 leading-relaxed line-clamp-4 whitespace-pre-wrap mt-2"
+            class="line-clamp-5 whitespace-pre-wrap font-mono text-xs leading-relaxed text-foreground/75"
+            :class="!defaultPrompt && 'italic text-muted-foreground'"
           >
             {{ defaultPrompt || t('settings.default_prompt.placeholder') }}
           </p>
         </div>
-      </div>
-      <div class="size-8 rounded-full flex items-center justify-center bg-background border border-border/50 group-hover:border-primary/50 transition-colors shrink-0 ml-4 mt-1">
-        <ArrowRight class="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
       </div>
     </button>
 
