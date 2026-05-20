@@ -4,8 +4,8 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { fetch } from '@tauri-apps/plugin-http'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
-import { ArrowUpCircleIcon, SparklesIcon } from 'lucide-vue-next'
-import { computed, onMounted, ref, shallowRef, toRaw } from 'vue'
+import { ArrowUpCircleIcon, CheckCircle2Icon, SparklesIcon, XIcon } from 'lucide-vue-next'
+import { computed, onMounted, onUnmounted, ref, shallowRef, toRaw, watch } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -13,8 +13,11 @@ import UpgradeProgress from '@/components/UpgradeProgress.vue'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 
+const AUTO_CLOSE_SECONDS = 5
+
 const appWindow = getCurrentWebviewWindow()
 const { t, locale } = useI18n()
+const appVersion = __APP_VERSION__
 
 const updateInfo = shallowRef<Update | null>(null)
 const isUpgrading = ref(false)
@@ -93,7 +96,43 @@ async function onUpgradeConfirm() {
   }
 }
 
+const closeCountdown = ref(AUTO_CLOSE_SECONDS)
+let countdownTimer: ReturnType<typeof setInterval> | undefined
+
+const isUpToDate = computed(() => !isLoading.value && !updateInfo.value)
+
+function stopCountdown() {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = undefined
+  }
+}
+
+function startAutoCloseCountdown() {
+  stopCountdown()
+  closeCountdown.value = AUTO_CLOSE_SECONDS
+  countdownTimer = setInterval(() => {
+    if (closeCountdown.value <= 1) {
+      stopCountdown()
+      appWindow.close()
+    }
+    else {
+      closeCountdown.value -= 1
+    }
+  }, 1000)
+}
+
+watch(isUpToDate, (upToDate) => {
+  if (upToDate)
+    startAutoCloseCountdown()
+  else
+    stopCountdown()
+})
+
+onUnmounted(stopCountdown)
+
 function onCancel() {
+  stopCountdown()
   appWindow.close()
 }
 </script>
@@ -106,6 +145,12 @@ function onCancel() {
         <SparklesIcon class="w-4 h-4 text-zinc-400" />
         <span class="text-xs font-bold text-zinc-400 tracking-wider uppercase">{{ t('upgrade.updater') }}</span>
       </div>
+      <button
+        class="flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-all duration-150 cursor-pointer"
+        @click="onCancel"
+      >
+        <XIcon class="w-3.5 h-3.5" />
+      </button>
     </div>
 
     <!-- Main Content Area -->
@@ -122,8 +167,19 @@ function onCancel() {
           <span class="text-xs text-zinc-400">{{ t('upgrade.checking_details') }}</span>
         </div>
       </div>
-      <div v-else-if="!updateInfo" class="flex-1 flex items-center justify-center text-sm text-zinc-500">
-        {{ t('upgrade.no_update_info') }}
+      <div v-else-if="!updateInfo" class="flex-1 flex flex-col items-center justify-center gap-6 text-center px-4">
+        <CheckCircle2Icon class="w-10 h-10 text-emerald-500" />
+        <div class="flex flex-col gap-2">
+          <p class="text-base font-medium text-zinc-800">
+            {{ t('upgrade.up_to_date', { version: appVersion }) }}
+          </p>
+          <p class="text-sm text-zinc-500">
+            {{ t('upgrade.auto_close_countdown', { seconds: closeCountdown }) }}
+          </p>
+        </div>
+        <Button variant="outline" class="cursor-pointer font-medium" @click="onCancel">
+          {{ t('upgrade.close') }}
+        </Button>
       </div>
       <div v-else class="flex-1 flex flex-col min-h-0">
         <!-- Header -->

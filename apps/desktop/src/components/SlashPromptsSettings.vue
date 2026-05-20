@@ -6,6 +6,7 @@ import SettingsPageLayout from '@/components/SettingsPageLayout.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
@@ -103,7 +104,7 @@ async function onSubmit() {
           type="button"
           variant="outline"
           size="sm"
-          :disabled="form.slash_prompts.length >= 5"
+          :disabled="isLoading || form.slash_prompts.length >= 5"
           @click="addSlashPrompt"
         >
           <PlusIcon class="w-4 h-4 mr-2" />
@@ -111,7 +112,32 @@ async function onSubmit() {
         </Button>
       </div>
 
-      <div class="grid gap-4">
+      <div v-if="isLoading" class="grid gap-4">
+        <div
+          v-for="i in 2"
+          :key="i"
+          class="rounded-xl border bg-card p-6 shadow-sm"
+        >
+          <div class="grid gap-6">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Skeleton class="h-4 w-16" />
+                <Skeleton class="h-10 w-full" />
+              </div>
+              <div class="space-y-2">
+                <Skeleton class="h-4 w-20" />
+                <Skeleton class="h-10 w-full" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-24" />
+              <Skeleton class="h-24 w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="grid gap-4">
         <div
           v-for="(item, index) in form.slash_prompts"
           :key="item.id"

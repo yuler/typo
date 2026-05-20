@@ -186,6 +186,7 @@ onUnmounted(() => {
             :global-shortcut="globalShortcut"
             :is-mac-os="isMacOS"
             @navigate-to-shortcut="onNavigateToShortcut"
+            @navigate-to-tab="activeTab = $event"
           />
 
           <div v-else-if="['settings', 'ai_provider', 'appearance', 'default_prompt', 'slash_prompts'].includes(activeTab)" class="h-full min-h-0">
