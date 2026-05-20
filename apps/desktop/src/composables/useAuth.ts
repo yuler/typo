@@ -41,8 +41,6 @@ export const useAuth = createGlobalState(() => {
         avatar_url: await gravatar(userEmail),
       }
       startHeartbeat()
-      const { syncPromptsWithServer } = await import('@/stores/settings')
-      await syncPromptsWithServer()
     }
   }
 
@@ -171,8 +169,6 @@ export const useAuth = createGlobalState(() => {
     await authStore.setAuth('access_token', token)
     await authStore.setAuth('email', identity.email)
     await authStore.saveAuth()
-    const { syncPromptsWithServer } = await import('@/stores/settings')
-    await syncPromptsWithServer()
     startHeartbeat()
     if (pollTimer)
       clearTimeout(pollTimer)
