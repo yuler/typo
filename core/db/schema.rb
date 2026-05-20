@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_05_20_120000) do
+ActiveRecord::Schema[8.2].define(version: 2026_05_20_070728) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
