@@ -54,10 +54,10 @@ const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
   { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
-  { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
   { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
   { id: 'default_prompt', label: t('main.nav.default_prompt'), icon: MessageSquareTextIcon, group: 'preferences' },
   { id: 'slash_prompts', label: t('main.nav.slash_prompts'), icon: TerminalIcon, group: 'preferences' },
+  { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
 ])
 
 const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))

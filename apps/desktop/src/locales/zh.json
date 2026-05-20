@@ -40,7 +40,7 @@
   "settings.slash_prompts.instruction_label": "指令",
   "settings.slash_prompts.instruction_placeholder": "如果需要，使用 {{args}} 和 {{text}} 占位符",
   "settings.slash_prompts.remove": "移除",
-  "settings.slash_prompts.hint": "示例：输入以 <code>/tr:zh</code> 结尾或整行如 <code>/prompt Translate to Japanese in polite style</code>。",
+  "settings.slash_prompts.hint": "示例：输入以 <code>/zh</code> 结尾或整行如 <code>/prompt Translate to Japanese in polite style</code>。",
   "settings.save": "保存",
   "settings.save_success": "设置已保存",
   "settings.save_error": "保存设置失败",

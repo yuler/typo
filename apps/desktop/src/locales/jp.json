@@ -40,7 +40,7 @@
   "settings.slash_prompts.instruction_label": "指示",
   "settings.slash_prompts.instruction_placeholder": "必要に応じて {{args}} や {{text}} プレースホルダーを使用してください",
   "settings.slash_prompts.remove": "削除",
-  "settings.slash_prompts.hint": "例：入力の末尾が <code>/tr:zh</code> であるか、<code>/prompt Translate to Japanese in polite style</code> のような行全体。",
+  "settings.slash_prompts.hint": "例：入力の末尾が <code>/zh</code> であるか、<code>/prompt Translate to Japanese in polite style</code> のような行全体。",
   "settings.save": "保存",
   "settings.save_success": "設定を保存しました",
   "settings.save_error": "設定の保存に失敗しました",
