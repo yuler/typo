@@ -59,7 +59,7 @@ const navItems = computed<NavItem[]>(() => [
   { id: 'appearance', label: t('main.nav.appearance'), icon: PaletteIcon, group: 'preferences' },
   { id: 'ai_provider', label: t('main.nav.ai_provider'), icon: SparklesIcon, group: 'preferences' },
   { id: 'settings', label: t('main.nav.settings'), icon: Settings2Icon, group: 'preferences' },
-  { id: 'prompts', label: t('main.nav.prompts'), icon: MessageSquareIcon, group: 'preferences' },
+  { id: 'slash_prompts', label: t('main.nav.slash_prompts'), icon: MessageSquareIcon, group: 'preferences' },
 ])
 
 const activeNavItem = computed(() => navItems.value.find(i => i.id === activeTab.value))
@@ -219,7 +219,7 @@ onUnmounted(() => {
           />
           <AIProviderSettings v-else-if="activeTab === 'ai_provider'" />
           <AppearanceSettings v-else-if="activeTab === 'appearance'" />
-          <PromptsSettings v-else-if="activeTab === 'prompts'" />
+          <PromptsSettings v-else-if="activeTab === 'slash_prompts'" />
 
           <!-- Placeholder for other tabs (History) -->
           <div v-else class="flex-1 flex items-center justify-center bg-muted/10 rounded-xl border border-dashed border-border">
