@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompletionRecord } from '@/api'
+import type { CompletionRecord } from '@/composables/useCompletions'
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, CopyIcon, Loader2Icon, Trash2Icon } from 'lucide-vue-next'
 import { computed, onUnmounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
@@ -97,7 +97,7 @@ defineExpose({ copyContent, startDeleteHold, cancelDeleteHold })
 
 <template>
   <div
-    class="relative rounded-lg border bg-card/60 p-3 shadow-sm transition-colors duration-150"
+    class="relative scroll-mt-9 rounded-lg border bg-card/60 p-3 shadow-sm transition-colors duration-150"
     :class="isFocused ? 'border-primary/60 bg-primary/5 ring-1 ring-primary/20' : 'border-border/50'"
   >
     <div

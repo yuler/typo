@@ -114,38 +114,3 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   }
   return data
 }
-
-export interface CompletionRecord {
-  id: string
-  input: string
-  output: string
-  prompt: string | null
-  prompt_key: string | null
-  status: string
-  created_at: string
-}
-
-export interface CompletionsResponse {
-  completions: CompletionRecord[]
-  meta: {
-    page: number
-    next_page: number | null
-    has_more: boolean
-  }
-}
-
-export async function fetchCompletions(page?: number, token?: string): Promise<CompletionsResponse> {
-  const query = page ? `?page=${page}` : ''
-  const headers: Record<string, string> = {}
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-  return api<CompletionsResponse>(`/api/v1/completions${query}`, { headers })
-}
-
-export async function deleteCompletion(id: string, token: string): Promise<void> {
-  await api<void>(`/api/v1/completions/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  })
-}

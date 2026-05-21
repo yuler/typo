@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompletionRecord } from '@/api'
+import type { CompletionRecord } from '@/composables/useCompletions'
 import {
   CircleHelpIcon,
   HistoryIcon,
@@ -7,7 +7,7 @@ import {
   LockIcon,
   SearchIcon,
 } from 'lucide-vue-next'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import HistoryCompletion from '@/components/HistoryCompletion.vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -169,7 +169,7 @@ function focusListAt(index: number) {
   focusedIndex.value = Math.max(0, Math.min(len - 1, index))
   nextTick(() => {
     listContainerRef.value?.focus()
-    scrollFocusedIntoView()
+    requestAnimationFrame(() => scrollFocusedIntoView())
   })
 }
 
@@ -189,16 +189,93 @@ function moveFocus(delta: number) {
     focusedIndex.value = Math.max(0, Math.min(len - 1, focusedIndex.value + delta))
   }
 
-  nextTick(() => scrollFocusedIntoView())
+  nextTick(() => requestAnimationFrame(() => scrollFocusedIntoView()))
+}
+
+const SCROLL_EDGE_PADDING = 36
+const SCROLL_DURATION_MS = 260
+
+let scrollAnimFrame = 0
+
+function prefersReducedMotion() {
+  return typeof matchMedia !== 'undefined'
+    && matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function computeScrollTarget(container: HTMLElement, el: HTMLElement) {
+  const containerRect = container.getBoundingClientRect()
+  const elRect = el.getBoundingClientRect()
+  const viewHeight = container.clientHeight
+  const elHeight = elRect.height
+  const currentScroll = container.scrollTop
+  const maxScroll = Math.max(0, container.scrollHeight - viewHeight)
+
+  const elTop = elRect.top - containerRect.top + currentScroll
+  const elBottom = elTop + elHeight
+  const visibleTop = currentScroll + SCROLL_EDGE_PADDING
+  const visibleBottom = currentScroll + viewHeight - SCROLL_EDGE_PADDING
+
+  if (elTop >= visibleTop && elBottom <= visibleBottom)
+    return currentScroll
+
+  if (elTop < visibleTop)
+    return Math.max(0, elTop - SCROLL_EDGE_PADDING)
+
+  return Math.min(maxScroll, elBottom - viewHeight + SCROLL_EDGE_PADDING)
+}
+
+function animateListScroll(container: HTMLElement, targetTop: number) {
+  if (scrollAnimFrame) {
+    cancelAnimationFrame(scrollAnimFrame)
+    scrollAnimFrame = 0
+  }
+
+  const startTop = container.scrollTop
+  const distance = targetTop - startTop
+
+  if (Math.abs(distance) < 1) {
+    container.scrollTop = targetTop
+    return
+  }
+
+  if (prefersReducedMotion()) {
+    container.scrollTop = targetTop
+    return
+  }
+
+  const startTime = performance.now()
+
+  const step = (now: number) => {
+    const progress = Math.min(1, (now - startTime) / SCROLL_DURATION_MS)
+    const eased = 1 - (1 - progress) ** 3
+    container.scrollTop = startTop + distance * eased
+
+    if (progress < 1)
+      scrollAnimFrame = requestAnimationFrame(step)
+    else
+      scrollAnimFrame = 0
+  }
+
+  scrollAnimFrame = requestAnimationFrame(step)
 }
 
 function scrollFocusedIntoView() {
+  const container = listContainerRef.value
   const id = focusedItemId.value
-  if (!id)
+  if (!container || !id)
     return
+
   const el = document.getElementById(`history-item-${id}`)
-  el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  if (!el)
+    return
+
+  animateListScroll(container, computeScrollTarget(container, el))
 }
+
+onUnmounted(() => {
+  if (scrollAnimFrame)
+    cancelAnimationFrame(scrollAnimFrame)
+})
 
 function copyFocusedItem() {
   const id = focusedItemId.value
@@ -287,7 +364,8 @@ function handleListKeyup(e: KeyboardEvent) {
     return
   deleteKeyHeld.value = false
   const id = focusedItemId.value
-  completionRefs.value.get(id)?.cancelDeleteHold()
+  if (id)
+    completionRefs.value.get(id)?.cancelDeleteHold()
 }
 
 function handleHistoryKeydown(e: KeyboardEvent) {
