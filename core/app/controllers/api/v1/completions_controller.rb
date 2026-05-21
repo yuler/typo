@@ -1,4 +1,6 @@
 class Api::V1::CompletionsController < Api::V1::BaseController
+  include GearedPagination::Controller
+
   allow_unauthenticated_access only: :create
   skip_account_scope only: :create
 
