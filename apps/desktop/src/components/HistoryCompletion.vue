@@ -7,19 +7,17 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/composables/useI18n'
 
-const DELETE_HOLD_MS = 1500
-const PROGRESS_RADIUS = 18
-const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS
-
 const props = defineProps<{
   item: CompletionRecord
   isDeleting: boolean
   isFocused: boolean
 }>()
-
 const emit = defineEmits<{
   delete: [id: string]
 }>()
+const DELETE_HOLD_MS = 1500
+const PROGRESS_RADIUS = 18
+const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS
 
 const { t } = useI18n()
 const copied = ref(false)
