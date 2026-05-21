@@ -6,6 +6,7 @@ import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
 import { ArrowUpCircleIcon, CheckCircle2Icon, SparklesIcon, XIcon } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, shallowRef, toRaw, watch } from 'vue'
+import { useEventListener } from '@vueuse/core'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -40,6 +41,11 @@ async function fetchRemoteNotes(version: string) {
     logger.error('Update', 'Failed to fetch i18n notes from typo.yuler.cc', e)
   }
 }
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape')
+    onCancel()
+})
 
 onMounted(async () => {
   try {
