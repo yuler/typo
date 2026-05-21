@@ -1,6 +1,4 @@
 class Api::V1::CompletionsController < Api::V1::BaseController
-  include GearedPagination::Controller
-
   allow_unauthenticated_access only: :create
   skip_account_scope only: :create
 
@@ -8,7 +6,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
   before_action :check_rate_limit, only: :create
 
   def index
-    completions = Completion.where(account_id: Current.account.id).order(created_at: :desc)
+    completions = Completion.where(account: Current.account).ordered
     records = set_page_and_extract_portion_from(completions)
 
     render json: {
@@ -22,7 +20,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
   end
 
   def destroy
-    completion = Completion.where(account_id: Current.account.id).find(params[:id])
+    completion = Completion.where(account: Current.account).find(params[:id])
     completion.destroy!
     head :no_content
   end
@@ -37,7 +35,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
       account: account,
       user: user,
       prompt: @ai_completion.prompt,
-      prompt_key: params[:prompt_key].presence || "/default",
+      prompt_key: params[:prompt_key].presence,
       input: @ai_completion.text,
       status: "pending"
     )
