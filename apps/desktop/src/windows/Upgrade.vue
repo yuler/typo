@@ -4,6 +4,7 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { fetch } from '@tauri-apps/plugin-http'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
+import { useEventListener } from '@vueuse/core'
 import { ArrowUpCircleIcon, CheckCircle2Icon, SparklesIcon, XIcon } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, shallowRef, toRaw, watch } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -40,6 +41,11 @@ async function fetchRemoteNotes(version: string) {
     logger.error('Update', 'Failed to fetch i18n notes from typo.yuler.cc', e)
   }
 }
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && !isUpgrading.value)
+    onCancel()
+})
 
 onMounted(async () => {
   try {
