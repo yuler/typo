@@ -43,7 +43,7 @@ async function fetchRemoteNotes(version: string) {
 }
 
 useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape')
+  if (e.key === 'Escape' && !isUpgrading.value)
     onCancel()
 })
 
