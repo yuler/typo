@@ -4,5 +4,6 @@ class Completion < ApplicationRecord
 
   validates :input, presence: true
   validates :status, presence: true
-  validates :prompt_key, presence: true
+
+  scope :ordered, -> { order(created_at: :desc) }
 end

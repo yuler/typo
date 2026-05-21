@@ -6,21 +6,12 @@ class Api::V1::CompletionsController < Api::V1::BaseController
   before_action :check_rate_limit, only: :create
 
   def index
-    completions = Completion.where(account_id: Current.account.id).order(created_at: :desc)
-    records = set_page_and_extract_portion_from(completions)
-
-    render json: {
-      completions: records.as_json(only: [ :id, :input, :output, :prompt, :prompt_key, :status, :created_at ]),
-      meta: {
-        page: @page.number,
-        next_page: @page.last? ? nil : @page.next_param,
-        has_more: !@page.last?
-      }
-    }
+    completions = Completion.where(account: Current.account).ordered
+    set_page_and_extract_portion_from(completions)
   end
 
   def destroy
-    completion = Completion.where(account_id: Current.account.id).find(params[:id])
+    completion = Completion.where(account: Current.account).find(params[:id])
     completion.destroy!
     head :no_content
   end
@@ -32,12 +23,14 @@ class Api::V1::CompletionsController < Api::V1::BaseController
     end
 
     completion = Completion.create!(
-      account: account,
-      user: user,
-      prompt: @ai_completion.prompt,
-      prompt_key: params[:prompt_key].presence || "/default",
-      input: @ai_completion.text,
-      status: "pending"
+      {
+        account: account,
+        user: user,
+        prompt: @ai_completion.prompt,
+        input: @ai_completion.text,
+        status: "pending",
+        prompt_key: params[:prompt_key].presence
+      }.compact
     )
 
     result = @ai_completion.perform

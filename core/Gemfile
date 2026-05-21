@@ -32,6 +32,8 @@ gem "image_processing", "~> 1.2"
 
 # Features
 # gem "commonmarker", "~> 2.6"
+gem "ruby_llm"
+gem "geared_pagination"
 
 # Dashboard engines
 gem "mission_control-jobs"
@@ -39,9 +41,6 @@ gem "mission_control-jobs"
 # API
 # gem "jwt"
 gem "jbuilder"
-gem "ruby_llm"
-gem "geared_pagination"
-
 
 # HTTP Clients
 # gem "faraday"
