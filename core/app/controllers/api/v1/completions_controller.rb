@@ -9,9 +9,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
 
   def index
     completions = Completion.where(account: Current.account).ordered
-    records = set_page_and_extract_portion_from(completions)
-
-    render json: records.as_json(only: [ :id, :input, :output, :prompt, :prompt_key, :status, :created_at ])
+    set_page_and_extract_portion_from(completions)
   end
 
   def destroy
