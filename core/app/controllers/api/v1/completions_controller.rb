@@ -1,9 +1,22 @@
 class Api::V1::CompletionsController < Api::V1::BaseController
-  allow_unauthenticated_access
-  skip_account_scope
+  include GearedPagination::Controller
 
-  before_action :validate_params!
-  before_action :check_rate_limit
+  allow_unauthenticated_access only: :create
+  skip_account_scope only: :create
+
+  before_action :validate_params!, only: :create
+  before_action :check_rate_limit, only: :create
+
+  def index
+    completions = Completion.where(account: Current.account).ordered
+    set_page_and_extract_portion_from(completions)
+  end
+
+  def destroy
+    completion = Completion.where(account: Current.account).find(params[:id])
+    completion.destroy!
+    head :no_content
+  end
 
   def create
     if authenticated?
@@ -12,11 +25,14 @@ class Api::V1::CompletionsController < Api::V1::BaseController
     end
 
     completion = Completion.create!(
-      account: account,
-      user: user,
-      prompt: @ai_completion.prompt,
-      input: @ai_completion.text,
-      status: "pending"
+      {
+        account: account,
+        user: user,
+        prompt: @ai_completion.prompt,
+        input: @ai_completion.text,
+        status: "pending",
+        prompt_key: params[:prompt_key].presence
+      }.compact
     )
 
     result = @ai_completion.perform

@@ -3,7 +3,7 @@ require "test_helper"
 class CompletionPersistenceJobTest < ActiveJob::TestCase
   test "updates a completion record" do
     account = Account.create!(name: "Test Account")
-    completion = Completion.create!(account: account, input: "hello", status: "pending")
+    completion = Completion.create!(account: account, input: "hello", prompt_key: "/default", status: "pending")
     attributes = {
       output: "hi",
       status: "success"
@@ -18,7 +18,7 @@ class CompletionPersistenceJobTest < ActiveJob::TestCase
   end
 
   test "logs error on invalid attributes" do
-    completion = Completion.create!(input: "hello", status: "pending")
+    completion = Completion.create!(input: "hello", prompt_key: "/default", status: "pending")
     attributes = { status: nil }
 
     assert_no_difference "Completion.count" do
