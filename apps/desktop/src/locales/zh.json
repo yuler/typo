@@ -139,5 +139,20 @@
   "history.day_yesterday": "昨天",
   "history.load_more": "加载更早的记录",
   "history.original": "原文",
-  "history.polished": "润色文"
+  "history.polished": "润色文",
+  "history.keyboard_tip": "↑↓ 移动 · c 复制 · d 删除 · f 搜索 · ? 帮助",
+  "history.search_placeholder": "搜索历史记录…",
+  "history.shortcuts_title": "键盘快捷键",
+  "history.shortcuts.navigate": "移动",
+  "history.shortcuts.navigate_keys": "↑ ↓ Tab Home End",
+  "history.shortcuts.copy": "复制",
+  "history.shortcuts.copy_keys": "Enter、c",
+  "history.shortcuts.delete": "删除",
+  "history.shortcuts.delete_keys": "d",
+  "history.shortcuts.search": "搜索",
+  "history.shortcuts.search_keys": "f",
+  "history.shortcuts.help": "帮助",
+  "history.shortcuts.help_keys": "?",
+  "history.shortcuts.clear_focus": "取消选中",
+  "history.shortcuts.clear_focus_keys": "Esc"
 }

@@ -139,5 +139,20 @@
   "history.day_yesterday": "昨日",
   "history.load_more": "過去の履歴を読み込む",
   "history.original": "原文",
-  "history.polished": "校正文"
+  "history.polished": "校正文",
+  "history.keyboard_tip": "↑↓ 移動 · c コピー · d 削除 · f 検索 · ? ヘルプ",
+  "history.search_placeholder": "履歴を検索…",
+  "history.shortcuts_title": "キーボードショートカット",
+  "history.shortcuts.navigate": "移動",
+  "history.shortcuts.navigate_keys": "↑ ↓ Tab Home End",
+  "history.shortcuts.copy": "コピー",
+  "history.shortcuts.copy_keys": "Enter、c",
+  "history.shortcuts.delete": "削除",
+  "history.shortcuts.delete_keys": "d",
+  "history.shortcuts.search": "検索",
+  "history.shortcuts.search_keys": "f",
+  "history.shortcuts.help": "ヘルプ",
+  "history.shortcuts.help_keys": "?",
+  "history.shortcuts.clear_focus": "フォーカス解除",
+  "history.shortcuts.clear_focus_keys": "Esc"
 }

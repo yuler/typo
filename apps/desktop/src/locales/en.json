@@ -139,5 +139,20 @@
   "history.day_yesterday": "Yesterday",
   "history.load_more": "Load Older History",
   "history.original": "Original",
-  "history.polished": "Polished"
+  "history.polished": "Polished",
+  "history.keyboard_tip": "↑↓ navigate · c copy · d delete · f search · ? help",
+  "history.search_placeholder": "Search completions…",
+  "history.shortcuts_title": "Keyboard shortcuts",
+  "history.shortcuts.navigate": "Navigate",
+  "history.shortcuts.navigate_keys": "↑ ↓ Tab Home End",
+  "history.shortcuts.copy": "Copy",
+  "history.shortcuts.copy_keys": "Enter, c",
+  "history.shortcuts.delete": "Delete",
+  "history.shortcuts.delete_keys": "d",
+  "history.shortcuts.search": "Search",
+  "history.shortcuts.search_keys": "f",
+  "history.shortcuts.help": "Help",
+  "history.shortcuts.help_keys": "?",
+  "history.shortcuts.clear_focus": "Clear focus",
+  "history.shortcuts.clear_focus_keys": "Esc"
 }

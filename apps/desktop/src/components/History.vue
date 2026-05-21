@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { CompletionRecord } from '@/api'
 import {
+  CircleHelpIcon,
   HistoryIcon,
   Loader2Icon,
   LockIcon,
+  SearchIcon,
 } from 'lucide-vue-next'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import HistoryCompletion from '@/components/HistoryCompletion.vue'
@@ -16,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/composables/useAuth'
 import { useCompletions } from '@/composables/useCompletions'
@@ -37,8 +40,10 @@ const {
 } = useCompletions()
 
 const activeFilter = ref<HistoryFilter>('all')
+const searchQuery = ref('')
 const itemToDelete = ref<string | null>(null)
 const isConfirmOpen = ref(false)
+const isShortcutsOpen = ref(false)
 const focusedIndex = ref(-1)
 const listContainerRef = ref<HTMLElement | null>(null)
 const completionRefs = ref<Map<string, InstanceType<typeof HistoryCompletion>>>(new Map())
@@ -49,6 +54,15 @@ const filterOptions = [
   { value: 'week', labelKey: 'history.filter.week' },
   { value: 'month', labelKey: 'history.filter.month' },
 ] as const satisfies ReadonlyArray<{ value: HistoryFilter, labelKey: string }>
+
+const shortcutRows = computed(() => [
+  { label: t('history.shortcuts.navigate'), keys: t('history.shortcuts.navigate_keys') },
+  { label: t('history.shortcuts.copy'), keys: t('history.shortcuts.copy_keys') },
+  { label: t('history.shortcuts.delete'), keys: t('history.shortcuts.delete_keys') },
+  { label: t('history.shortcuts.search'), keys: t('history.shortcuts.search_keys') },
+  { label: t('history.shortcuts.help'), keys: t('history.shortcuts.help_keys') },
+  { label: t('history.shortcuts.clear_focus'), keys: t('history.shortcuts.clear_focus_keys') },
+])
 
 function startOfDay(date: Date) {
   const d = new Date(date)
@@ -121,7 +135,6 @@ const groupedByDay = computed(() => {
     }))
 })
 
-// Flat ordered list for keyboard navigation
 const flatItems = computed(() =>
   groupedByDay.value.flatMap(group => group.items),
 )
@@ -132,6 +145,29 @@ const focusedItemId = computed(() => {
     return null
   return items[focusedIndex.value]?.id ?? null
 })
+
+const showList = computed(() =>
+  !isLoading.value
+  && completions.value.length > 0
+  && filteredCompletions.value.length > 0,
+)
+
+function focusListAt(index: number) {
+  const len = flatItems.value.length
+  if (len === 0) {
+    focusedIndex.value = -1
+    return
+  }
+  focusedIndex.value = Math.max(0, Math.min(len - 1, index))
+  nextTick(() => {
+    listContainerRef.value?.focus()
+    scrollFocusedIntoView()
+  })
+}
+
+function autoFocusFirst() {
+  focusListAt(0)
+}
 
 function moveFocus(delta: number) {
   const len = flatItems.value.length
@@ -156,8 +192,32 @@ function scrollFocusedIntoView() {
   el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 }
 
+function copyFocusedItem() {
+  const id = focusedItemId.value
+  if (!id)
+    return
+  completionRefs.value.get(id)?.copyContent()
+}
+
+function focusSearchInput() {
+  nextTick(() => {
+    document.querySelector<HTMLInputElement>('[data-history-search]')?.focus()
+  })
+}
+
+function isListShortcutEvent(e: KeyboardEvent) {
+  if (isConfirmOpen.value || isShortcutsOpen.value)
+    return false
+  if (e.metaKey || e.ctrlKey || e.altKey)
+    return false
+  const tag = (e.target as HTMLElement)?.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT')
+    return false
+  return true
+}
+
 function handleListKeydown(e: KeyboardEvent) {
-  if (isConfirmOpen.value)
+  if (!isListShortcutEvent(e))
     return
 
   if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
@@ -168,17 +228,65 @@ function handleListKeydown(e: KeyboardEvent) {
     e.preventDefault()
     moveFocus(-1)
   }
-  else if (e.key === 'Enter') {
+  else if (e.key === 'Home') {
+    e.preventDefault()
+    focusListAt(0)
+  }
+  else if (e.key === 'End') {
+    e.preventDefault()
+    focusListAt(flatItems.value.length - 1)
+  }
+  else if (e.key === 'Enter' || e.key === 'c') {
+    e.preventDefault()
+    copyFocusedItem()
+  }
+  else if (e.key === 'd') {
     e.preventDefault()
     const id = focusedItemId.value
-    if (!id)
-      return
-    const comp = completionRefs.value.get(id)
-    comp?.copyContent()
+    if (id)
+      confirmDelete(id)
+  }
+  else if (e.key === 'f') {
+    e.preventDefault()
+    focusSearchInput()
+  }
+  else if (e.key === '?') {
+    e.preventDefault()
+    isShortcutsOpen.value = true
   }
   else if (e.key === 'Escape') {
     focusedIndex.value = -1
   }
+}
+
+function handleSearchKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Escape')
+    return
+  e.preventDefault()
+  const restoreIndex = focusedIndex.value < 0 ? 0 : focusedIndex.value
+  ;(e.target as HTMLInputElement)?.blur()
+  focusListAt(restoreIndex)
+}
+
+function handleConfirmKeydown(e: KeyboardEvent) {
+  if (!isConfirmOpen.value)
+    return
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    handleDeleteConfirm()
+  }
+  else if (e.key === 'Escape') {
+    e.preventDefault()
+    isConfirmOpen.value = false
+    itemToDelete.value = null
+    nextTick(() => listContainerRef.value?.focus())
+  }
+}
+
+function focusItemById(id: string) {
+  const idx = flatItems.value.findIndex(item => item.id === id)
+  if (idx >= 0)
+    focusListAt(idx)
 }
 
 function setCompletionRef(id: string, el: any) {
@@ -190,10 +298,33 @@ function setCompletionRef(id: string, el: any) {
   }
 }
 
-// Reset focus when filter changes
 watch(activeFilter, () => {
-  focusedIndex.value = -1
+  if (flatItems.value.length > 0)
+    focusListAt(0)
+  else
+    focusedIndex.value = -1
 })
+
+watch(
+  () => flatItems.value.length,
+  (len) => {
+    if (len === 0) {
+      focusedIndex.value = -1
+      return
+    }
+    if (focusedIndex.value >= len)
+      focusedIndex.value = len - 1
+  },
+)
+
+watch(
+  () => [isLoading.value, showList.value] as const,
+  ([loading, listVisible], prev) => {
+    const wasLoading = prev?.[0] ?? true
+    if (wasLoading && !loading && listVisible)
+      autoFocusFirst()
+  },
+)
 
 function confirmDelete(id: string) {
   itemToDelete.value = id
@@ -206,6 +337,7 @@ async function handleDeleteConfirm() {
     isConfirmOpen.value = false
     itemToDelete.value = null
     await remove(id)
+    nextTick(() => listContainerRef.value?.focus())
   }
 }
 
@@ -264,20 +396,56 @@ watch(isLoggedIn, (newVal) => {
       v-else
       class="flex-1 flex flex-col min-h-0 h-full overflow-hidden"
     >
-      <div class="flex items-center justify-between gap-3 pb-3">
-        <h2 class="text-xl font-bold tracking-tight shrink-0">
-          {{ t('history.title') }}
-        </h2>
-        <div class="flex flex-wrap justify-end gap-1">
-          <Button
-            v-for="option in filterOptions"
-            :key="option.value"
-            size="sm"
-            :variant="activeFilter === option.value ? 'default' : 'outline'"
-            class="h-7 px-2.5 text-xs rounded-lg"
-            @click="activeFilter = option.value"
+      <div class="space-y-2 pb-3 shrink-0">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-xl font-bold tracking-tight shrink-0">
+            {{ t('history.title') }}
+          </h2>
+          <div class="flex flex-wrap justify-end gap-1">
+            <Button
+              v-for="option in filterOptions"
+              :key="option.value"
+              size="sm"
+              :variant="activeFilter === option.value ? 'default' : 'outline'"
+              class="h-7 px-2.5 text-xs rounded-lg"
+              @click="activeFilter = option.value"
+            >
+              {{ t(option.labelKey) }}
+            </Button>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-muted-foreground/80 leading-snug">
+          {{ t('history.keyboard_tip') }}
+          <button
+            type="button"
+            class="ml-1 underline underline-offset-2 decoration-muted-foreground/40 hover:text-foreground transition-colors"
+            @click="isShortcutsOpen = true"
           >
-            {{ t(option.labelKey) }}
+            {{ t('history.shortcuts.help_keys') }}
+          </button>
+        </p>
+
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1 min-w-0">
+            <SearchIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              v-model="searchQuery"
+              data-history-search
+              :placeholder="t('history.search_placeholder')"
+              class="h-8 pl-8 text-sm rounded-lg"
+              @keydown="handleSearchKeydown"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            class="h-8 w-8 shrink-0 rounded-lg"
+            :title="t('history.shortcuts_title')"
+            tabindex="-1"
+            @click="isShortcutsOpen = true"
+          >
+            <CircleHelpIcon class="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -354,6 +522,7 @@ watch(isLoggedIn, (newVal) => {
                 :item="item"
                 :is-deleting="isDeleting === item.id"
                 :is-focused="focusedItemId === item.id"
+                @click="focusItemById(item.id)"
                 @delete="confirmDelete"
               />
             </TransitionGroup>
@@ -382,10 +551,40 @@ watch(isLoggedIn, (newVal) => {
     </div>
 
     <Dialog
+      :open="isShortcutsOpen"
+      @update:open="isShortcutsOpen = $event"
+    >
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{{ t('history.shortcuts_title') }}</DialogTitle>
+        </DialogHeader>
+        <dl class="space-y-2.5 pt-1">
+          <div
+            v-for="row in shortcutRows"
+            :key="row.label"
+            class="flex items-center justify-between gap-4 text-sm"
+          >
+            <dt class="text-muted-foreground">
+              {{ row.label }}
+            </dt>
+            <dd>
+              <kbd class="font-mono text-xs font-semibold text-foreground bg-muted px-2 py-0.5 rounded-md border border-border/60">
+                {{ row.keys }}
+              </kbd>
+            </dd>
+          </div>
+        </dl>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog
       :open="isConfirmOpen"
       @update:open="isConfirmOpen = $event"
     >
-      <DialogContent class="sm:max-w-md">
+      <DialogContent
+        class="sm:max-w-md"
+        @keydown="handleConfirmKeydown"
+      >
         <DialogHeader>
           <DialogTitle>{{ t('history.delete_confirm_title') }}</DialogTitle>
           <DialogDescription class="pt-2 text-sm leading-relaxed text-muted-foreground">
