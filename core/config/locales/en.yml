@@ -39,6 +39,18 @@ en:
         prompt_enter_code: "Please enter the authorization code shown on your device:"
         placeholder_code: "ABCD-1234"
         next: "Next"
+  admin:
+    dashboards:
+      show:
+        title: "Admin"
+        stats: "Stats"
+        jobs: "Jobs"
+    stats:
+      show:
+        title: "Stats"
+        back: "Back to admin"
+        accounts: "Accounts"
+        completions: "Completions"
   dashboards:
     show:
       welcome_back: "Welcome back, %{name}"

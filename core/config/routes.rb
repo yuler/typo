@@ -62,6 +62,8 @@ Rails.application.routes.draw do
 
   # Admin
   namespace :admin do
+    root to: "admin#show"
+    resource :stats, only: :show
     mount MissionControl::Jobs::Engine, at: "/jobs"
   end
 

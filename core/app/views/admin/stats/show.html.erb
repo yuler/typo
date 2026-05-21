@@ -1,0 +1,16 @@
+<div class="mb-8">
+  <%= link_to t(".back"), admin_root_path, class: "text-sm text-muted" %>
+</div>
+
+<h1 class="text-2xl font-bold mb-8"><%= t(".title") %></h1>
+
+<div class="grid grid-cols-2 gap-4">
+  <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".accounts") %></div>
+    <div class="text-3xl font-bold"><%= @accounts_count %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".completions") %></div>
+    <div class="text-3xl font-bold"><%= @completions_count %></div>
+  </div>
+</div>
