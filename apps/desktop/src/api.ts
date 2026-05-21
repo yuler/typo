@@ -46,7 +46,7 @@ function allowUnauthenticatedAccess(path: string, method: string): boolean {
   )
 }
 
-export async function api<T>(path: string, options?: RequestInit): Promise<T> {
+export async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
   const userAgent = await getUserAgent()
   const url = `${API_BASE_URL}${path}`
   const method = options?.method || 'GET'
@@ -101,16 +101,23 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
   }
 
+  return response
+}
+
+export async function api<T>(path: string, options?: RequestInit): Promise<T> {
+  const method = options?.method || 'GET'
+  const response = await apiFetch(path, options)
+
   if (response.status === 204) {
     if (import.meta.env.DEV) {
-      logger.info('api', `[Response] ${method} ${url} (204)`)
+      logger.info('api', `[Response] ${method} ${API_BASE_URL}${path} (204)`)
     }
     return null as T
   }
 
   const data = await response.json()
   if (import.meta.env.DEV) {
-    logger.info('api', `[Response] ${method} ${url} (${response.status})`, data)
+    logger.info('api', `[Response] ${method} ${API_BASE_URL}${path} (${response.status})`, data)
   }
   return data
 }
