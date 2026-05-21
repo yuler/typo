@@ -128,13 +128,15 @@ const flatItems = computed(() =>
 
 const focusedItemId = computed(() => {
   const items = flatItems.value
-  if (focusedIndex.value < 0 || focusedIndex.value >= items.length) return null
+  if (focusedIndex.value < 0 || focusedIndex.value >= items.length)
+    return null
   return items[focusedIndex.value]?.id ?? null
 })
 
 function moveFocus(delta: number) {
   const len = flatItems.value.length
-  if (len === 0) return
+  if (len === 0)
+    return
 
   if (focusedIndex.value < 0) {
     focusedIndex.value = delta > 0 ? 0 : len - 1
@@ -148,13 +150,15 @@ function moveFocus(delta: number) {
 
 function scrollFocusedIntoView() {
   const id = focusedItemId.value
-  if (!id) return
+  if (!id)
+    return
   const el = document.getElementById(`history-item-${id}`)
   el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 }
 
 function handleListKeydown(e: KeyboardEvent) {
-  if (isConfirmOpen.value) return
+  if (isConfirmOpen.value)
+    return
 
   if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
     e.preventDefault()
