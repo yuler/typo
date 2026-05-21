@@ -92,6 +92,7 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     completion = Completion.last
     assert_nil completion.account
     assert_nil completion.user
+    assert_equal "/default", completion.prompt_key
     assert_equal "anonymous text", completion.input
     assert_equal "pending", completion.status
 
@@ -114,14 +115,14 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     token = identity.signed_id(purpose: :api_token)
 
     # Create completions belonging to this account
-    Completion.create!(account: account, input: "text 1", output: "out 1", status: "success")
-    Completion.create!(account: account, input: "text 2", output: "out 2", status: "success")
+    Completion.create!(account: account, input: "text 1", output: "out 1", prompt_key: "/default", status: "success")
+    Completion.create!(account: account, input: "text 2", output: "out 2", prompt_key: "/default", status: "success")
 
     # Create completion belonging to another account
     other_account = Account.create!(name: "Other", personal: true)
     other_identity = Identity.create!(email: "other@example.com")
     other_identity.users.create!(account: other_account, role: :owner, name: "Other User")
-    Completion.create!(account: other_account, input: "other text", output: "other out", status: "success")
+    Completion.create!(account: other_account, input: "other text", output: "other out", prompt_key: "/default", status: "success")
 
     get api_v1_completions_url, headers: { "Authorization" => "Bearer #{token}" }, as: :json
     assert_response :success
@@ -136,7 +137,7 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
 
   test "destroy unauthenticated should return unauthorized" do
     account = Account.create!(name: "Personal", personal: true)
-    completion = Completion.create!(account: account, input: "text 1", output: "out 1", status: "success")
+    completion = Completion.create!(account: account, input: "text 1", output: "out 1", prompt_key: "/default", status: "success")
 
     delete api_v1_completion_url(completion), as: :json
     assert_response :unauthorized
@@ -148,7 +149,7 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     identity.users.create!(account: account, role: :owner, name: "Test User")
     token = identity.signed_id(purpose: :api_token)
 
-    completion = Completion.create!(account: account, input: "text 1", output: "out 1", status: "success")
+    completion = Completion.create!(account: account, input: "text 1", output: "out 1", prompt_key: "/default", status: "success")
 
     assert_difference -> { Completion.count }, -1 do
       delete api_v1_completion_url(completion), headers: { "Authorization" => "Bearer #{token}" }, as: :json
@@ -163,7 +164,7 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     token = identity.signed_id(purpose: :api_token)
 
     other_account = Account.create!(name: "Other", personal: true)
-    completion = Completion.create!(account: other_account, input: "text 1", output: "out 1", status: "success")
+    completion = Completion.create!(account: other_account, input: "text 1", output: "out 1", prompt_key: "/default", status: "success")
 
     assert_no_difference -> { Completion.count } do
       delete api_v1_completion_url(completion), headers: { "Authorization" => "Bearer #{token}" }, as: :json

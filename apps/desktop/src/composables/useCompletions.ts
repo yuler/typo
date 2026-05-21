@@ -25,6 +25,7 @@ export function useCompletions() {
 
     isLoading.value = true
     error.value = null
+    completions.value = []
     try {
       const response = await fetchCompletions(undefined, token)
       completions.value = response.completions
@@ -34,7 +35,8 @@ export function useCompletions() {
     catch (err: any) {
       logger.error('useCompletions', 'Failed to fetch completions', err)
       error.value = err.message || 'Failed to load completions'
-      toast.error(t('settings.load_error'))
+      completions.value = []
+      toast.error(t('history.load_error'))
     }
     finally {
       isLoading.value = false
@@ -58,7 +60,7 @@ export function useCompletions() {
     }
     catch (err: any) {
       logger.error('useCompletions', 'Failed to fetch more completions', err)
-      toast.error(t('settings.load_error'))
+      toast.error(t('history.load_error'))
     }
     finally {
       isLoadingMore.value = false

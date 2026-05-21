@@ -6,7 +6,7 @@ class Api::V1::StatsControllerTest < ActionDispatch::IntegrationTest
     @account = Account.create!(name: "Test Account", personal: true)
     @user = User.create!(identity: @identity, account: @account, name: "Test User", role: "owner")
     @session = @identity.sessions.create!(user_agent: "TestAgent", ip_address: "127.0.0.1")
-    Completion.create!(account: @account, user: @user, input: "test", status: "success")
+    Completion.create!(account: @account, user: @user, input: "test", prompt_key: "/default", status: "success")
   end
 
   test "should get stats when authenticated" do

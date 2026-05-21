@@ -35,7 +35,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
       account: account,
       user: user,
       prompt: @ai_completion.prompt,
-      prompt_key: params[:prompt_key].presence,
+      prompt_key: params[:prompt_key].presence || "/default",
       input: @ai_completion.text,
       status: "pending"
     )
