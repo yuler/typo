@@ -108,30 +108,53 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "index authenticated returns paginated completions for current account" do
-    account = Account.create!(name: "Personal", personal: true)
-    identity = Identity.create!(email: "test@example.com")
-    identity.users.create!(account: account, role: :owner, name: "Test User")
-    token = identity.signed_id(purpose: :api_token)
+  test "index authenticated returns completions for current account only" do
+    account, token = authenticated_account_and_token
 
-    # Create completions belonging to this account
-    Completion.create!(account: account, input: "text 1", output: "out 1", prompt_key: "/default", status: "success")
-    Completion.create!(account: account, input: "text 2", output: "out 2", prompt_key: "/default", status: "success")
+    create_completion(account, input: "text 1", created_at: 2.minutes.ago)
+    create_completion(account, input: "text 2", created_at: 1.minute.ago)
 
-    # Create completion belonging to another account
     other_account = Account.create!(name: "Other", personal: true)
-    other_identity = Identity.create!(email: "other@example.com")
-    other_identity.users.create!(account: other_account, role: :owner, name: "Other User")
-    Completion.create!(account: other_account, input: "other text", output: "other out", prompt_key: "/default", status: "success")
+    create_completion(other_account, input: "other text")
 
-    get api_v1_completions_url, headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    get api_v1_completions_url, headers: bearer_headers(token), as: :json
     assert_response :success
 
     body = JSON.parse(response.body)
     assert_equal 2, body.size
-    assert_equal "text 2", body[0]["input"] # descending order
+    assert_equal "text 2", body[0]["input"]
     assert_equal "text 1", body[1]["input"]
     assert_equal "2", response.headers["X-Total-Count"]
+    assert_nil response.headers["Link"]
+  end
+
+  test "index geared pagination returns first page of 15 with next Link" do
+    account, token = authenticated_account_and_token
+    create_account_completions(account, 16)
+
+    get api_v1_completions_url, headers: bearer_headers(token), as: :json
+    assert_response :success
+
+    body = JSON.parse(response.body)
+    assert_equal 15, body.size
+    assert_equal "text 0", body.first["input"]
+    assert_equal "text 14", body.last["input"]
+    assert_equal "16", response.headers["X-Total-Count"]
+    assert_match(/rel="next"/, response.headers["Link"])
+    assert_match(/page=2/, response.headers["Link"])
+  end
+
+  test "index geared pagination page 2 returns remaining records" do
+    account, token = authenticated_account_and_token
+    create_account_completions(account, 16)
+
+    get api_v1_completions_url(page: 2), headers: bearer_headers(token), as: :json
+    assert_response :success
+
+    body = JSON.parse(response.body)
+    assert_equal 1, body.size
+    assert_equal "text 15", body.first["input"]
+    assert_equal "16", response.headers["X-Total-Count"]
     assert_nil response.headers["Link"]
   end
 
@@ -171,4 +194,26 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_response :not_found
   end
+
+  private
+    def authenticated_account_and_token
+      account = Account.create!(name: "Personal", personal: true)
+      identity = Identity.create!(email: "test-#{SecureRandom.hex(4)}@example.com")
+      identity.users.create!(account: account, role: :owner, name: "Test User")
+      [ account, identity.signed_id(purpose: :api_token) ]
+    end
+
+    def bearer_headers(token)
+      { "Authorization" => "Bearer #{token}" }
+    end
+
+    def create_completion(account, input:, output: "out", created_at: Time.current, **attrs)
+      Completion.create!(
+        { account: account, input: input, output: output, prompt_key: "/default", status: "success", created_at: created_at }.merge(attrs)
+      )
+    end
+
+    def create_account_completions(account, count)
+      count.times { |i| create_completion(account, input: "text #{i}", created_at: i.minutes.ago) }
+    end
 end
