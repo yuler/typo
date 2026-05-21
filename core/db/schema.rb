@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.2].define(version: 2026_05_20_130000) do
+ActiveRecord::Schema[8.2].define(version: 2026_05_21_025500) do
   create_table "accounts", id: :uuid, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -29,6 +29,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_20_130000) do
     t.string "model"
     t.text "output"
     t.text "prompt"
+    t.string "prompt_key"
     t.string "status", default: "success", null: false
     t.json "tokens"
     t.datetime "updated_at", null: false

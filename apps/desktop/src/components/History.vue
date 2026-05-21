@@ -5,7 +5,7 @@ import {
   Loader2Icon,
   LockIcon,
 } from 'lucide-vue-next'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import HistoryCompletion from '@/components/HistoryCompletion.vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,6 +39,9 @@ const {
 const activeFilter = ref<HistoryFilter>('all')
 const itemToDelete = ref<string | null>(null)
 const isConfirmOpen = ref(false)
+const focusedIndex = ref(-1)
+const listContainerRef = ref<HTMLElement | null>(null)
+const completionRefs = ref<Map<string, InstanceType<typeof HistoryCompletion>>>(new Map())
 
 const filterOptions = [
   { value: 'all', labelKey: 'history.filter.all' },
@@ -116,6 +119,76 @@ const groupedByDay = computed(() => {
       label: dayLabel(key),
       items,
     }))
+})
+
+// Flat ordered list for keyboard navigation
+const flatItems = computed(() =>
+  groupedByDay.value.flatMap(group => group.items),
+)
+
+const focusedItemId = computed(() => {
+  const items = flatItems.value
+  if (focusedIndex.value < 0 || focusedIndex.value >= items.length) return null
+  return items[focusedIndex.value]?.id ?? null
+})
+
+function moveFocus(delta: number) {
+  const len = flatItems.value.length
+  if (len === 0) return
+
+  if (focusedIndex.value < 0) {
+    focusedIndex.value = delta > 0 ? 0 : len - 1
+  }
+  else {
+    focusedIndex.value = Math.max(0, Math.min(len - 1, focusedIndex.value + delta))
+  }
+
+  nextTick(() => scrollFocusedIntoView())
+}
+
+function scrollFocusedIntoView() {
+  const id = focusedItemId.value
+  if (!id) return
+  const el = document.getElementById(`history-item-${id}`)
+  el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+}
+
+function handleListKeydown(e: KeyboardEvent) {
+  if (isConfirmOpen.value) return
+
+  if (e.key === 'ArrowDown' || (e.key === 'Tab' && !e.shiftKey)) {
+    e.preventDefault()
+    moveFocus(1)
+  }
+  else if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+    e.preventDefault()
+    moveFocus(-1)
+  }
+  else if (e.key === 'Enter') {
+    e.preventDefault()
+    const id = focusedItemId.value
+    if (!id)
+      return
+    const comp = completionRefs.value.get(id)
+    comp?.copyContent()
+  }
+  else if (e.key === 'Escape') {
+    focusedIndex.value = -1
+  }
+}
+
+function setCompletionRef(id: string, el: any) {
+  if (el) {
+    completionRefs.value.set(id, el)
+  }
+  else {
+    completionRefs.value.delete(id)
+  }
+}
+
+// Reset focus when filter changes
+watch(activeFilter, () => {
+  focusedIndex.value = -1
 })
 
 function confirmDelete(id: string) {
@@ -250,7 +323,10 @@ watch(isLoggedIn, (newVal) => {
       <!-- Grouped list -->
       <div
         v-else
-        class="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 -mr-1"
+        ref="listContainerRef"
+        class="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 -mr-1 outline-none"
+        tabindex="0"
+        @keydown="handleListKeydown"
       >
         <div class="flex flex-col gap-5 pb-4">
           <section
@@ -268,9 +344,12 @@ watch(isLoggedIn, (newVal) => {
             >
               <HistoryCompletion
                 v-for="item in group.items"
+                :id="`history-item-${item.id}`"
+                :ref="(el: any) => setCompletionRef(item.id, el)"
                 :key="item.id"
                 :item="item"
                 :is-deleting="isDeleting === item.id"
+                :is-focused="focusedItemId === item.id"
                 @delete="confirmDelete"
               />
             </TransitionGroup>

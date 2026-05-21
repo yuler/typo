@@ -120,6 +120,7 @@ export interface CompletionRecord {
   input: string
   output: string
   prompt: string | null
+  prompt_key: string | null
   status: string
   created_at: string
 }

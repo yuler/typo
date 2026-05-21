@@ -13,12 +13,14 @@ export async function typoProcess(text: string, abortSignal?: AbortSignal, preRe
   const prompt = preResolved?.prompt ?? await get('default_prompt')
   const token = await getAuth('access_token')
   const bodyText = preResolved?.text ?? text
+  const promptKey = preResolved?.command ?? '/default'
 
   const response = await api<{ result: string }>('/api/v1/completions', {
     method: 'POST',
     body: JSON.stringify({
       text: bodyText,
       prompt,
+      prompt_key: promptKey,
     }),
     signal: abortSignal,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
