@@ -15,7 +15,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   delete: [id: string]
 }>()
-const DELETE_HOLD_MS = 1500
+const DELETE_HOLD_MS = 800
 const PROGRESS_RADIUS = 18
 const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS
 
