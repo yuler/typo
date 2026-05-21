@@ -40,6 +40,7 @@ gem "mission_control-jobs"
 # gem "jwt"
 gem "jbuilder"
 gem "ruby_llm"
+gem "geared_pagination"
 
 
 # HTTP Clients

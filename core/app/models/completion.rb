@@ -4,4 +4,5 @@ class Completion < ApplicationRecord
 
   validates :input, presence: true
   validates :status, presence: true
+  validates :prompt_key, presence: true
 end

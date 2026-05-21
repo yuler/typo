@@ -1,9 +1,29 @@
 class Api::V1::CompletionsController < Api::V1::BaseController
-  allow_unauthenticated_access
-  skip_account_scope
+  allow_unauthenticated_access only: :create
+  skip_account_scope only: :create
 
-  before_action :validate_params!
-  before_action :check_rate_limit
+  before_action :validate_params!, only: :create
+  before_action :check_rate_limit, only: :create
+
+  def index
+    completions = Completion.where(account_id: Current.account.id).order(created_at: :desc)
+    records = set_page_and_extract_portion_from(completions)
+
+    render json: {
+      completions: records.as_json(only: [:id, :input, :output, :prompt, :prompt_key, :status, :created_at]),
+      meta: {
+        page: @page.number,
+        next_page: @page.last? ? nil : @page.next_param,
+        has_more: !@page.last?
+      }
+    }
+  end
+
+  def destroy
+    completion = Completion.where(account_id: Current.account.id).find(params[:id])
+    completion.destroy!
+    head :no_content
+  end
 
   def create
     if authenticated?
@@ -15,6 +35,7 @@ class Api::V1::CompletionsController < Api::V1::BaseController
       account: account,
       user: user,
       prompt: @ai_completion.prompt,
+      prompt_key: params[:prompt_key].presence || "/default",
       input: @ai_completion.text,
       status: "pending"
     )

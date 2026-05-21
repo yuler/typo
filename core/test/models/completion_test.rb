@@ -8,6 +8,7 @@ class CompletionTest < ActiveSupport::TestCase
       input: "hello",
       output: "hi",
       prompt: "be helpful",
+      prompt_key: "/default",
       model: "test-model",
       tokens: { total: 10 },
       duration_ms: 100,
@@ -20,6 +21,7 @@ class CompletionTest < ActiveSupport::TestCase
     account = Account.create!(name: "Test Account")
     completion = Completion.new(
       account: account,
+      prompt_key: "/default",
       status: "success"
     )
     assert_not completion.valid?
