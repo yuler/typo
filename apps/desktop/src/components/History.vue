@@ -700,7 +700,7 @@ onUnmounted(() => {
                   v-for="item in group.items"
                   :id="`history-item-${item.id}`"
                   :key="item.id"
-                  :ref="(el: CompletionRef | null) => setCompletionRef(item.id, el)"
+                  :ref="(el) => setCompletionRef(item.id, el)"
                   :item="item"
                   :is-deleting="isDeleting === item.id"
                   :is-focused="focusedItemId === item.id"
