@@ -29,7 +29,7 @@ ActiveRecord::Schema[8.2].define(version: 2026_05_21_025500) do
     t.string "model"
     t.text "output"
     t.text "prompt"
-    t.string "prompt_key"
+    t.string "prompt_key", default: "/default", null: false
     t.string "status", default: "success", null: false
     t.json "tokens"
     t.datetime "updated_at", null: false
