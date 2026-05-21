@@ -9,6 +9,7 @@ import {
 } from 'lucide-vue-next'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import HistoryCompletion from '@/components/HistoryCompletion.vue'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -39,12 +40,15 @@ const {
 } = useCompletions()
 
 const activeFilter = ref<HistoryFilter>('all')
-const searchQuery = ref('')
 const isShortcutsOpen = ref(false)
 const deleteKeyHeld = ref(false)
 const focusedIndex = ref(-1)
 const listContainerRef = ref<HTMLElement | null>(null)
+const loadMoreSentinelRef = ref<HTMLElement | null>(null)
 const completionRefs = ref<Map<string, InstanceType<typeof HistoryCompletion>>>(new Map())
+
+let loadMoreObserver: IntersectionObserver | null = null
+const LOAD_MORE_ROOT_MARGIN_PX = 120
 
 const filterOptions = [
   { value: 'all', labelKey: 'history.filter.all' },
@@ -58,13 +62,14 @@ const shortcutSections = computed(() => [
     title: t('history.shortcuts.section_general'),
     items: [
       { label: t('history.shortcuts.help'), keys: ['?'] },
-      { label: t('history.shortcuts.search'), keys: ['f', '/'] },
     ],
   },
   {
     title: t('history.shortcuts.section_list'),
     items: [
       { label: t('history.shortcuts.navigate'), keys: ['↑', '↓', 'Tab', 'Home', 'End'] },
+      { label: t('history.shortcuts.prompt_open'), keys: ['→'] },
+      { label: t('history.shortcuts.prompt_close'), keys: ['←'] },
       { label: t('history.shortcuts.copy'), keys: ['Enter', 'c'] },
       { label: t('history.shortcuts.delete'), keys: ['d', t('history.shortcuts.delete_hold_badge')] },
       { label: t('history.shortcuts.clear_focus'), keys: ['Esc'] },
@@ -272,7 +277,68 @@ function scrollFocusedIntoView() {
   animateListScroll(container, computeScrollTarget(container, el))
 }
 
+function teardownLoadMoreObserver() {
+  loadMoreObserver?.disconnect()
+  loadMoreObserver = null
+}
+
+function flushLoadMoreIfNeeded() {
+  const root = listContainerRef.value
+  const sentinel = loadMoreSentinelRef.value
+  if (!root || !sentinel || !hasMore.value || isLoadingMore.value || isLoading.value)
+    return
+
+  const rootRect = root.getBoundingClientRect()
+  const sentinelRect = sentinel.getBoundingClientRect()
+  if (sentinelRect.top <= rootRect.bottom + LOAD_MORE_ROOT_MARGIN_PX)
+    loadMore()
+}
+
+function setupLoadMoreObserver() {
+  teardownLoadMoreObserver()
+
+  const root = listContainerRef.value
+  const sentinel = loadMoreSentinelRef.value
+  if (!root || !sentinel || !hasMore.value)
+    return
+
+  loadMoreObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some(entry => entry.isIntersecting))
+        return
+      if (hasMore.value && !isLoadingMore.value && !isLoading.value)
+        loadMore()
+    },
+    { root, rootMargin: `0px 0px ${LOAD_MORE_ROOT_MARGIN_PX}px 0px`, threshold: 0 },
+  )
+  loadMoreObserver.observe(sentinel)
+}
+
+watch(
+  () => [showList.value, hasMore.value] as const,
+  ([visible, more]) => {
+    if (visible && more)
+      nextTick(setupLoadMoreObserver)
+    else
+      teardownLoadMoreObserver()
+  },
+)
+
+watch(isLoadingMore, (loading, wasLoading) => {
+  if (loading) {
+    nextTick(() => {
+      const root = listContainerRef.value
+      if (root)
+        root.scrollTop = root.scrollHeight
+    })
+  }
+  else if (wasLoading) {
+    nextTick(flushLoadMoreIfNeeded)
+  }
+})
+
 onUnmounted(() => {
+  teardownLoadMoreObserver()
   if (scrollAnimFrame)
     cancelAnimationFrame(scrollAnimFrame)
 })
@@ -284,10 +350,22 @@ function copyFocusedItem() {
   completionRefs.value.get(id)?.copyContent()
 }
 
-function focusSearchInput() {
-  nextTick(() => {
-    document.querySelector<HTMLInputElement>('[data-history-search]')?.focus()
-  })
+function openFocusedPrompt() {
+  const id = focusedItemId.value
+  if (!id)
+    return
+  const run = () => completionRefs.value.get(id)?.openPromptDetail()
+  if (completionRefs.value.get(id))
+    run()
+  else
+    nextTick(run)
+}
+
+function closeFocusedPrompt() {
+  const id = focusedItemId.value
+  if (!id)
+    return
+  completionRefs.value.get(id)?.closePromptDetail()
 }
 
 function isListShortcutEvent(e: KeyboardEvent) {
@@ -321,6 +399,14 @@ function handleListKeydown(e: KeyboardEvent) {
     e.preventDefault()
     focusListAt(flatItems.value.length - 1)
   }
+  else if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    openFocusedPrompt()
+  }
+  else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    closeFocusedPrompt()
+  }
   else if (e.key === 'Enter' || e.key === 'c') {
     e.preventDefault()
     copyFocusedItem()
@@ -337,10 +423,6 @@ function handleListKeydown(e: KeyboardEvent) {
     else
       nextTick(start)
   }
-  else if (e.key === 'f' || e.key === '/') {
-    e.preventDefault()
-    focusSearchInput()
-  }
   else if (e.key === '?') {
     e.preventDefault()
     isShortcutsOpen.value = true
@@ -348,15 +430,6 @@ function handleListKeydown(e: KeyboardEvent) {
   else if (e.key === 'Escape') {
     focusedIndex.value = -1
   }
-}
-
-function handleSearchKeydown(e: KeyboardEvent) {
-  if (e.key !== 'Escape')
-    return
-  e.preventDefault()
-  const restoreIndex = focusedIndex.value < 0 ? 0 : focusedIndex.value
-  ;(e.target as HTMLInputElement)?.blur()
-  focusListAt(restoreIndex)
 }
 
 function handleListKeyup(e: KeyboardEvent) {
@@ -378,10 +451,6 @@ function handleHistoryKeydown(e: KeyboardEvent) {
   if (e.key === '?') {
     e.preventDefault()
     isShortcutsOpen.value = true
-  }
-  else if (e.key === 'f' || e.key === '/') {
-    e.preventDefault()
-    focusSearchInput()
   }
 }
 
@@ -494,17 +563,23 @@ watch(isLoggedIn, (newVal) => {
           <h2 class="text-xl font-bold tracking-tight shrink-0">
             {{ t('history.title') }}
           </h2>
-          <div class="flex flex-wrap justify-end gap-1">
+          <div class="flex flex-wrap items-center justify-end gap-1">
             <Button
               v-for="option in filterOptions"
               :key="option.value"
               size="sm"
               :variant="activeFilter === option.value ? 'default' : 'outline'"
-              class="h-7 px-2.5 text-xs rounded-lg"
-              @click="activeFilter = option.value"
+              class="h-7 px-2.5 text-xs rounded-lg opacity-60"
+              disabled
             >
               {{ t(option.labelKey) }}
             </Button>
+            <Badge
+              variant="secondary"
+              class="text-[10px] py-0 px-1.5 h-5 shrink-0"
+            >
+              {{ t('main.common.coming_soon') }}
+            </Badge>
           </div>
         </div>
 
@@ -521,14 +596,19 @@ watch(isLoggedIn, (newVal) => {
 
         <div class="flex items-center gap-2">
           <div class="relative flex-1 min-w-0">
-            <SearchIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <SearchIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
             <Input
-              v-model="searchQuery"
               data-history-search
+              disabled
               :placeholder="t('history.search_placeholder')"
-              class="h-8 pl-8 text-sm rounded-lg"
-              @keydown="handleSearchKeydown"
+              class="h-8 pl-8 pr-24 text-sm rounded-lg opacity-60"
             />
+            <Badge
+              variant="secondary"
+              class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] py-0 px-1.5 h-5 pointer-events-none"
+            >
+              {{ t('main.common.coming_soon') }}
+            </Badge>
           </div>
           <Button
             variant="outline"
@@ -606,59 +686,68 @@ watch(isLoggedIn, (newVal) => {
       <!-- Grouped list -->
       <div
         v-else
-        ref="listContainerRef"
-        class="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 -mr-1 outline-none"
-        tabindex="0"
-        @keydown="handleListKeydown"
-        @keyup="handleListKeyup"
+        class="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
-        <div class="flex flex-col gap-5 pb-4">
-          <section
-            v-for="group in groupedByDay"
-            :key="group.key"
-            class="space-y-2"
-          >
-            <h3 class="text-xs font-semibold text-muted-foreground sticky top-0 z-10 bg-background/90 backdrop-blur-sm py-1">
-              {{ group.label }}
-            </h3>
-            <TransitionGroup
-              name="list"
-              tag="div"
-              class="flex flex-col gap-2"
+        <div
+          ref="listContainerRef"
+          class="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 -mr-1 outline-none"
+          tabindex="0"
+          @keydown="handleListKeydown"
+          @keyup="handleListKeyup"
+        >
+          <div class="flex flex-col gap-5 pb-4">
+            <section
+              v-for="group in groupedByDay"
+              :key="group.key"
+              class="space-y-2"
             >
-              <HistoryCompletion
-                v-for="item in group.items"
-                :id="`history-item-${item.id}`"
-                :ref="(el: any) => setCompletionRef(item.id, el)"
-                :key="item.id"
-                :item="item"
-                :is-deleting="isDeleting === item.id"
-                :is-focused="focusedItemId === item.id"
-                @click="focusItemById(item.id)"
-                @delete="handleDelete"
-              />
-            </TransitionGroup>
-          </section>
+              <h3 class="text-xs font-semibold text-muted-foreground sticky top-0 z-10 bg-background/90 backdrop-blur-sm py-1">
+                {{ group.label }}
+              </h3>
+              <TransitionGroup
+                name="list"
+                tag="div"
+                class="flex flex-col gap-2"
+              >
+                <HistoryCompletion
+                  v-for="item in group.items"
+                  :id="`history-item-${item.id}`"
+                  :ref="(el: any) => setCompletionRef(item.id, el)"
+                  :key="item.id"
+                  :item="item"
+                  :is-deleting="isDeleting === item.id"
+                  :is-focused="focusedItemId === item.id"
+                  @click="focusItemById(item.id)"
+                  @delete="handleDelete"
+                />
+              </TransitionGroup>
+            </section>
 
-          <div
-            v-if="hasMore"
-            class="pt-1 flex justify-center"
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              class="w-full rounded-lg text-xs font-semibold"
-              :disabled="isLoadingMore"
-              @click="loadMore"
-            >
-              <Loader2Icon
-                v-if="isLoadingMore"
-                class="w-3.5 h-3.5 mr-2 animate-spin"
-              />
-              {{ t('history.load_more') }}
-            </Button>
+            <div
+              v-if="hasMore"
+              ref="loadMoreSentinelRef"
+              class="h-px w-full shrink-0"
+              aria-hidden="true"
+            />
           </div>
         </div>
+
+        <div
+          v-if="isLoadingMore"
+          class="shrink-0 flex items-center justify-center gap-2 border-t border-border/50 bg-background/95 px-4 py-3 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2Icon class="h-4 w-4 shrink-0 animate-spin text-primary" />
+          <span class="text-xs font-medium text-muted-foreground">
+            {{ t('history.loading_more') }}
+          </span>
+        </div>
+        <div
+          v-else
+          class="shrink-0 pb-4"
+          aria-hidden="true"
+        />
       </div>
     </div>
 

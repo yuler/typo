@@ -92,7 +92,16 @@ async function copyContent() {
   }
 }
 
-defineExpose({ copyContent, startDeleteHold, cancelDeleteHold })
+function openPromptDetail() {
+  if (props.item.prompt)
+    expanded.value = true
+}
+
+function closePromptDetail() {
+  expanded.value = false
+}
+
+defineExpose({ copyContent, startDeleteHold, cancelDeleteHold, openPromptDetail, closePromptDetail })
 </script>
 
 <template>
