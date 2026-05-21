@@ -40,17 +40,22 @@ en:
         placeholder_code: "ABCD-1234"
         next: "Next"
   admin:
-    dashboards:
-      show:
-        title: "Admin"
-        stats: "Stats"
-        jobs: "Jobs"
+    show:
+      title: "Admin"
+      subtitle: "Staff tools and observability"
+      stats: "Stats"
+      stats_description: "Accounts, completions, and weekly trends"
+      jobs: "Jobs"
+      jobs_description: "Monitor and manage background work"
     stats:
       show:
         title: "Stats"
         back: "Back to admin"
         accounts: "Accounts"
         completions: "Completions"
+        completions_weekly: "Completions by week"
+        week: "Week"
+        count: "Count"
   dashboards:
     show:
       welcome_back: "Welcome back, %{name}"
