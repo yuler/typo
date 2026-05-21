@@ -1,4 +1,6 @@
 class Api::V1::CompletionsController < Api::V1::BaseController
+  include GearedPagination::Controller
+
   allow_unauthenticated_access only: :create
   skip_account_scope only: :create
 
@@ -25,12 +27,14 @@ class Api::V1::CompletionsController < Api::V1::BaseController
     end
 
     completion = Completion.create!(
-      account: account,
-      user: user,
-      prompt: @ai_completion.prompt,
-      prompt_key: params[:prompt_key].presence,
-      input: @ai_completion.text,
-      status: "pending"
+      {
+        account: account,
+        user: user,
+        prompt: @ai_completion.prompt,
+        input: @ai_completion.text,
+        status: "pending",
+        prompt_key: params[:prompt_key].presence
+      }.compact
     )
 
     result = @ai_completion.perform
