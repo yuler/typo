@@ -1,0 +1,14 @@
+<h1 class="text-2xl font-bold mb-2"><%= t(".title") %></h1>
+<p class="text-sm text-muted mb-8"><%= t(".subtitle") %></p>
+
+<div class="grid grid-cols-2 gap-4">
+  <%= link_to admin_stats_path, class: "p-6 border rounded-xl hover:bg-zinc-50" do %>
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".stats") %></div>
+    <div class="text-sm text-muted"><%= t(".stats_description") %></div>
+  <% end %>
+
+  <%= link_to admin_mission_control_jobs_path, class: "p-6 border rounded-xl hover:bg-zinc-50" do %>
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".jobs") %></div>
+    <div class="text-sm text-muted"><%= t(".jobs_description") %></div>
+  <% end %>
+</div>
