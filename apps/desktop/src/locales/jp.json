@@ -130,6 +130,7 @@
   "history.copy_error": "クリップボードへのコピーに失敗しました",
   "history.copy_success": "クリップボードにコピーしました",
   "history.copy_content": "コピー",
+  "history.duration_tag": "所要時間：{duration}",
   "history.default_prompt_badge": "デフォルト",
   "history.show_prompt": "プロンプト",
   "history.delete_action": "削除",
@@ -142,9 +143,10 @@
   "history.day_yesterday": "昨日",
   "history.load_more": "過去の履歴を読み込む",
   "history.loading_more": "過去の履歴を読み込み中…",
+  "history.end_of_history": "ここまでです。次の文章をお待ちしています。",
   "history.original": "原文",
   "history.polished": "校正文",
-  "history.keyboard_tip": "↑↓ 移動 · → プロンプト · ← 閉じる · c コピー · 長押しで削除 · ? ヘルプ",
+  "history.keyboard_tip": "↑↓ 移動 · → プロンプト · ← 閉じる · c コピー · r 更新 · 長押しで削除 · ? ヘルプ",
   "history.search_placeholder": "履歴を検索…",
   "history.delete_hold_hint": "1秒長押しで削除",
   "history.delete_holding": "削除中…",
@@ -160,6 +162,7 @@
   "history.shortcuts.delete_hold_badge": "1秒長押し",
   "history.shortcuts.search": "検索にフォーカス",
   "history.shortcuts.help": "このパネルを表示",
+  "history.shortcuts.refresh": "履歴を最初から再読み込み",
   "history.shortcuts.clear_focus": "選択を解除",
   "history.shortcuts.help_keys": "?"
 }

@@ -130,6 +130,7 @@
   "history.copy_error": "Failed to copy to clipboard",
   "history.copy_success": "Copied to clipboard",
   "history.copy_content": "Copy",
+  "history.duration_tag": "Duration: {duration}",
   "history.default_prompt_badge": "Default",
   "history.show_prompt": "Prompt",
   "history.delete_action": "Delete",
@@ -142,9 +143,10 @@
   "history.day_yesterday": "Yesterday",
   "history.load_more": "Load Older History",
   "history.loading_more": "Loading older history…",
+  "history.end_of_history": "That's every polish so far—the next draft is yours to write.",
   "history.original": "Original",
   "history.polished": "Polished",
-  "history.keyboard_tip": "↑↓ navigate · → prompt · ← close · c copy · hold to delete · ? help",
+  "history.keyboard_tip": "↑↓ navigate · → prompt · ← close · C copy · R refresh · D hold to delete · ? help",
   "history.search_placeholder": "Search completions…",
   "history.delete_hold_hint": "Hold for 1 second to delete",
   "history.delete_holding": "Deleting…",
@@ -160,6 +162,7 @@
   "history.shortcuts.delete_hold_badge": "hold 1s",
   "history.shortcuts.search": "Focus search",
   "history.shortcuts.help": "Show this dialog",
+  "history.shortcuts.refresh": "Refresh history from the beginning",
   "history.shortcuts.clear_focus": "Clear selection",
   "history.shortcuts.help_keys": "?"
 }

@@ -39,6 +39,16 @@ const formattedTime = computed(() => {
   })
 })
 
+const durationLabel = computed(() => {
+  const ms = props.item.duration_ms
+  if (ms == null || ms < 0)
+    return null
+  if (ms < 1000)
+    return `${Math.round(ms)}ms`
+  const seconds = ms / 1000
+  return seconds >= 10 ? `${Math.round(seconds)}s` : `${seconds.toFixed(1)}s`
+})
+
 function cancelDeleteHold() {
   if (holdRaf) {
     cancelAnimationFrame(holdRaf)
@@ -157,9 +167,17 @@ defineExpose({ copyContent, startDeleteHold, cancelDeleteHold, openPromptDetail,
           {{ formattedTime }}
         </span>
         <Badge
+          v-if="durationLabel"
+          variant="outline"
+          class="h-4 shrink-0 px-1.5 py-0 text-[10px] leading-none tabular-nums"
+          :title="t('history.duration_tag', { duration: durationLabel })"
+        >
+          {{ durationLabel }}
+        </Badge>
+        <Badge
           v-if="item.prompt_key"
           variant="secondary"
-          class="text-[10px] py-0 px-1.5 h-4 leading-none shrink-0"
+          class="h-4 shrink-0 px-1.5 py-0 text-[10px] leading-none"
         >
           {{ item.prompt_key }}
         </Badge>

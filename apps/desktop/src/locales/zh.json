@@ -130,6 +130,7 @@
   "history.copy_error": "复制到剪贴板失败",
   "history.copy_success": "已复制到剪贴板",
   "history.copy_content": "复制",
+  "history.duration_tag": "耗时：{duration}",
   "history.default_prompt_badge": "默认",
   "history.show_prompt": "提示词",
   "history.delete_action": "删除",
@@ -142,9 +143,10 @@
   "history.day_yesterday": "昨天",
   "history.load_more": "加载更早的记录",
   "history.loading_more": "正在加载更早的记录…",
+  "history.end_of_history": "目前就这些了，下一篇等你落笔。",
   "history.original": "原文",
   "history.polished": "润色文",
-  "history.keyboard_tip": "↑↓ 移动 · → 提示词 · ← 收起 · c 复制 · 长按删除 · ? 帮助",
+  "history.keyboard_tip": "↑↓ 移动 · → 提示词 · ← 收起 · C 复制 · R 刷新 · D 长按删除 · ? 帮助",
   "history.search_placeholder": "搜索历史记录…",
   "history.delete_hold_hint": "长按 1 秒删除",
   "history.delete_holding": "正在删除…",
@@ -160,6 +162,7 @@
   "history.shortcuts.delete_hold_badge": "长按 1 秒",
   "history.shortcuts.search": "聚焦搜索",
   "history.shortcuts.help": "显示此面板",
+  "history.shortcuts.refresh": "从头刷新历史记录",
   "history.shortcuts.clear_focus": "取消选中",
   "history.shortcuts.help_keys": "?"
 }
