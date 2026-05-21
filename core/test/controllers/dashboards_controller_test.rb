@@ -23,6 +23,6 @@ class DashboardsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Verify that the manage sessions link has the correct href (does not prepend the account slug)
-    assert_select "a[href=?]", "/my/sessions", text: "Manage sessions"
+    assert_select "a[href=?]", "/my/sessions", text: I18n.t("dashboards.show.manage_sessions")
   end
 end
