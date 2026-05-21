@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
-import { api } from '@/api'
+import { api, apiFetch } from '@/api'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import * as authStore from '@/stores/auth'
@@ -10,27 +10,52 @@ export interface CompletionRecord {
   input: string
   output: string
   prompt: string | null
-  prompt_key: string | null
+  prompt_key: string
+  duration_ms: number | null
   status: string
   created_at: string
 }
 
-export interface CompletionsResponse {
+export interface CompletionsPage {
   completions: CompletionRecord[]
-  meta: {
-    page: number
-    next_page: number | null
-    has_more: boolean
+  totalCount: number | null
+  nextPage: number | null
+}
+
+function parseNextPageFromLink(link: string | null): number | null {
+  if (!link)
+    return null
+
+  const match = link.match(/<([^>]+)>;\s*rel="next"/)
+  if (!match)
+    return null
+
+  try {
+    const page = new URL(match[1]).searchParams.get('page')
+    return page ? Number.parseInt(page, 10) : null
+  }
+  catch {
+    return null
   }
 }
 
-export async function fetchCompletions(page?: number, token?: string): Promise<CompletionsResponse> {
+export async function fetchCompletions(page?: number, token?: string): Promise<CompletionsPage> {
   const query = page ? `?page=${page}` : ''
   const headers: Record<string, string> = {}
   if (token) {
     headers.Authorization = `Bearer ${token}`
   }
-  return api<CompletionsResponse>(`/api/v1/completions${query}`, { headers })
+
+  const response = await apiFetch(`/api/v1/completions${query}`, { headers })
+  const completions = await response.json() as CompletionRecord[]
+  const totalCountHeader = response.headers.get('X-Total-Count')
+  const totalCount = totalCountHeader ? Number.parseInt(totalCountHeader, 10) : null
+
+  return {
+    completions,
+    totalCount,
+    nextPage: parseNextPageFromLink(response.headers.get('Link')),
+  }
 }
 
 export async function deleteCompletion(id: string, token: string): Promise<void> {
@@ -61,10 +86,10 @@ export function useCompletions() {
     error.value = null
     completions.value = []
     try {
-      const response = await fetchCompletions(undefined, token)
-      completions.value = response.completions
-      nextPage.value = response.meta.next_page
-      hasMore.value = response.meta.has_more
+      const page = await fetchCompletions(undefined, token)
+      completions.value = page.completions
+      nextPage.value = page.nextPage
+      hasMore.value = page.nextPage !== null
     }
     catch (err: any) {
       logger.error('useCompletions', 'Failed to fetch completions', err)
@@ -87,10 +112,10 @@ export function useCompletions() {
 
     isLoadingMore.value = true
     try {
-      const response = await fetchCompletions(nextPage.value, token)
-      completions.value = [...completions.value, ...response.completions]
-      nextPage.value = response.meta.next_page
-      hasMore.value = response.meta.has_more
+      const page = await fetchCompletions(nextPage.value, token)
+      completions.value = [...completions.value, ...page.completions]
+      nextPage.value = page.nextPage
+      hasMore.value = page.nextPage !== null
     }
     catch (err: any) {
       logger.error('useCompletions', 'Failed to fetch more completions', err)
