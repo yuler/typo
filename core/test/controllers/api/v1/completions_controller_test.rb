@@ -128,11 +128,11 @@ class Api::V1::CompletionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     body = JSON.parse(response.body)
-    assert_equal 2, body["completions"].size
-    assert_equal "text 2", body["completions"][0]["input"] # descending order
-    assert_equal "text 1", body["completions"][1]["input"]
-    assert_nil body["meta"]["next_page"]
-    assert_equal false, body["meta"]["has_more"]
+    assert_equal 2, body.size
+    assert_equal "text 2", body[0]["input"] # descending order
+    assert_equal "text 1", body[1]["input"]
+    assert_equal "2", response.headers["X-Total-Count"]
+    assert_nil response.headers["Link"]
   end
 
   test "destroy unauthenticated should return unauthorized" do
