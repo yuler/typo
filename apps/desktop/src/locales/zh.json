@@ -146,7 +146,7 @@
   "history.end_of_history": "目前就这些了，下一篇等你落笔。",
   "history.original": "原文",
   "history.polished": "润色文",
-  "history.keyboard_tip": "↑↓ 移动 · → 提示词 · ← 收起 · C 复制 · R 刷新 · D 长按删除 · ? 帮助",
+  "history.keyboard_tip": "↑↓/jk 移动 · → 提示词 · ← 收起 · C 复制 · R 刷新 · D 长按删除 · ? 帮助",
   "history.search_placeholder": "搜索历史记录…",
   "history.delete_hold_hint": "长按 1 秒删除",
   "history.delete_holding": "正在删除…",

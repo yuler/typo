@@ -146,7 +146,7 @@
   "history.end_of_history": "That's every polish so far—the next draft is yours to write.",
   "history.original": "Original",
   "history.polished": "Polished",
-  "history.keyboard_tip": "↑↓ navigate · → prompt · ← close · C copy · R refresh · D hold to delete · ? help",
+  "history.keyboard_tip": "↑↓/jk navigate · → prompt · ← close · C copy · R refresh · D hold to delete · ? help",
   "history.search_placeholder": "Search completions…",
   "history.delete_hold_hint": "Hold for 1 second to delete",
   "history.delete_holding": "Deleting…",

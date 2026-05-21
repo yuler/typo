@@ -6,6 +6,7 @@ import { toast } from 'vue-sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/composables/useI18n'
+import { logger } from '@/logger'
 
 const props = defineProps<{
   item: CompletionRecord
@@ -97,7 +98,7 @@ async function copyContent() {
     }, 2000)
   }
   catch (err) {
-    console.error('Failed to copy to clipboard', err)
+    logger.error('HistoryCompletion', 'Failed to copy to clipboard', err)
     toast.error(t('history.copy_error'))
   }
 }

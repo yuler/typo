@@ -26,7 +26,12 @@ import { useI18n } from '@/composables/useI18n'
 type HistoryFilter = 'all' | 'today' | 'week' | 'month'
 type CompletionRef = InstanceType<typeof HistoryCompletion>
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const intlLocale = computed(() => {
+  const map = { en: 'en', zh: 'zh-CN', jp: 'ja-JP' } as const
+  return map[locale.value]
+})
 const { isLoggedIn, login, authStatus } = useAuth()
 const {
   completions,
@@ -56,6 +61,7 @@ let scrollAnimFrame = 0
 const LOAD_MORE_ROOT_MARGIN_PX = 120
 const SCROLL_EDGE_PADDING = 36
 const SCROLL_DURATION_MS = 260
+const MS_PER_DAY = 86_400_000
 
 const filterOptions = [
   { value: 'all', labelKey: 'history.filter.all' },
@@ -72,6 +78,30 @@ function startOfDay(date: Date) {
   return d
 }
 
+function matchesFilter(createdAt: string, filter: HistoryFilter, todayStart: Date) {
+  const date = new Date(createdAt)
+
+  if (filter === 'all')
+    return true
+  if (filter === 'today')
+    return date >= todayStart
+  if (filter === 'week') {
+    const weekStart = new Date(todayStart)
+    weekStart.setDate(weekStart.getDate() - 6)
+    return date >= weekStart
+  }
+  const monthStart = new Date(todayStart)
+  monthStart.setDate(monthStart.getDate() - 29)
+  return date >= monthStart
+}
+
+const filteredCompletions = computed(() => {
+  const todayStart = startOfDay(new Date())
+  return completions.value.filter(item =>
+    matchesFilter(item.created_at, activeFilter.value, todayStart),
+  )
+})
+
 function dayKey(createdAt: string) {
   const d = new Date(createdAt)
   const month = String(d.getMonth() + 1).padStart(2, '0')
@@ -83,13 +113,13 @@ function dayLabel(key: string) {
   const [year, month, day] = key.split('-').map(Number)
   const date = startOfDay(new Date(year, month - 1, day))
   const today = startOfDay(new Date())
-  const diffDays = Math.round((today.getTime() - date.getTime()) / 86_400_000)
+  const diffDays = Math.round((today.getTime() - date.getTime()) / MS_PER_DAY)
 
   if (diffDays === 0)
     return t('history.day_today')
   if (diffDays === 1)
     return t('history.day_yesterday')
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(intlLocale.value, {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
@@ -99,7 +129,7 @@ function dayLabel(key: string) {
 const groupedByDay = computed(() => {
   const groups = new Map<string, CompletionRecord[]>()
 
-  for (const item of completions.value) {
+  for (const item of filteredCompletions.value) {
     const key = dayKey(item.created_at)
     const list = groups.get(key) ?? []
     list.push(item)
@@ -127,7 +157,7 @@ const focusedItemId = computed(() => {
 })
 
 const showList = computed(() =>
-  !isLoading.value && completions.value.length > 0,
+  !isLoading.value && filteredCompletions.value.length > 0,
 )
 
 const shortcutSections = computed(() => [
@@ -141,7 +171,7 @@ const shortcutSections = computed(() => [
   {
     title: t('history.shortcuts.section_list'),
     items: [
-      { label: t('history.shortcuts.navigate'), keys: ['↑', '↓', 'Tab', 'Home', 'End'] },
+      { label: t('history.shortcuts.navigate'), keys: ['↑', '↓', 'j', 'k', 'Tab', 'Home', 'End'] },
       { label: t('history.shortcuts.prompt_open'), keys: ['→'] },
       { label: t('history.shortcuts.prompt_close'), keys: ['←'] },
       { label: t('history.shortcuts.copy'), keys: ['Enter', 'c'] },
@@ -279,12 +309,6 @@ function scrollFocusedIntoView() {
     animateListScroll(container, computeScrollTarget(container, el))
 }
 
-function scrollListToEnd() {
-  const root = listContainerRef.value
-  if (root)
-    root.scrollTop = root.scrollHeight
-}
-
 // --- infinite scroll ---
 
 function teardownLoadMoreObserver() {
@@ -346,11 +370,11 @@ function handleListKeydown(e: KeyboardEvent) {
 
   const key = e.key
 
-  if (key === 'ArrowDown' || (key === 'Tab' && !e.shiftKey)) {
+  if (key === 'ArrowDown' || key === 'j' || (key === 'Tab' && !e.shiftKey)) {
     e.preventDefault()
     moveFocus(1)
   }
-  else if (key === 'ArrowUp' || (key === 'Tab' && e.shiftKey)) {
+  else if (key === 'ArrowUp' || key === 'k' || (key === 'Tab' && e.shiftKey)) {
     e.preventDefault()
     moveFocus(-1)
   }
@@ -448,9 +472,7 @@ watch(
 )
 
 watch(isLoadingMore, (loading, wasLoading) => {
-  if (loading)
-    nextTick(scrollListToEnd)
-  else if (wasLoading)
+  if (!loading && wasLoading)
     nextTick(flushLoadMoreIfNeeded)
 })
 
@@ -544,17 +566,11 @@ onUnmounted(() => {
               :key="option.value"
               size="sm"
               :variant="activeFilter === option.value ? 'default' : 'outline'"
-              class="h-7 rounded-lg px-2.5 text-xs opacity-60"
-              disabled
+              class="h-7 rounded-lg px-2.5 text-xs"
+              @click="activeFilter = option.value"
             >
               {{ t(option.labelKey) }}
             </Button>
-            <Badge
-              variant="secondary"
-              class="h-5 shrink-0 px-1.5 py-0 text-[10px]"
-            >
-              {{ t('main.common.coming_soon') }}
-            </Badge>
           </div>
         </div>
 
@@ -643,6 +659,15 @@ onUnmounted(() => {
         </h3>
         <p class="mt-1 max-w-xs text-sm text-muted-foreground">
           {{ t('history.empty_desc') }}
+        </p>
+      </div>
+
+      <div
+        v-else-if="filteredCompletions.length === 0"
+        class="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/10 p-8 text-center"
+      >
+        <p class="max-w-xs text-sm text-muted-foreground">
+          {{ t('history.filter_empty') }}
         </p>
       </div>
 
