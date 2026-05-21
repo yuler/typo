@@ -10,7 +10,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "staff can access admin home and stats" do
-    get admin_root_url
+    get admin_url
     assert_response :success
     assert_select "a[href=?]", admin_stats_path
 
@@ -22,7 +22,7 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
   test "non-staff is forbidden" do
     @identity.update!(staff: false)
 
-    get admin_root_url
+    get admin_url
     assert_response :forbidden
   end
 end
