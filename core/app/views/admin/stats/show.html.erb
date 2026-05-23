@@ -4,14 +4,34 @@
 
 <h1 class="text-2xl font-bold mb-8"><%= t(".title") %></h1>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
   <div class="p-6 border rounded-xl">
     <div class="text-xs text-muted uppercase mb-2"><%= t(".accounts") %></div>
     <div class="text-3xl font-bold"><%= number_with_delimiter(@accounts_count) %></div>
   </div>
   <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".identities") %></div>
+    <div class="text-3xl font-bold"><%= number_with_delimiter(@identities_count) %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".users") %></div>
+    <div class="text-3xl font-bold"><%= number_with_delimiter(@users_count) %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
     <div class="text-xs text-muted uppercase mb-2"><%= t(".completions") %></div>
     <div class="text-3xl font-bold"><%= number_with_delimiter(@completions_count) %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".slash_prompts") %></div>
+    <div class="text-3xl font-bold"><%= number_with_delimiter(@slash_prompts_count) %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".sessions") %></div>
+    <div class="text-3xl font-bold"><%= number_with_delimiter(@sessions_count) %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".active_sessions_24h") %></div>
+    <div class="text-3xl font-bold"><%= number_with_delimiter(@active_sessions_count) %></div>
   </div>
 </div>
 
