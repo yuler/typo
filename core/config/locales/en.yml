@@ -53,9 +53,10 @@ en:
         back: "Back to admin"
         accounts: "Accounts"
         completions: "Completions"
-        completions_weekly: "Completions by week"
-        week: "Week"
-        count: "Count"
+        personal_accounts: "Personal Accounts"
+        account: "Account"
+        total: "Total"
+        today: "Today"
   dashboards:
     show:
       welcome_back: "Welcome back, %{name}"
