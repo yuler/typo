@@ -4,14 +4,22 @@
 
 <h1 class="text-2xl font-bold mb-8"><%= t(".title") %></h1>
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
   <div class="p-6 border rounded-xl">
     <div class="text-xs text-muted uppercase mb-2"><%= t(".accounts") %></div>
     <div class="text-3xl font-bold"><%= number_with_delimiter(@accounts_count) %></div>
   </div>
   <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".active_users") %></div>
+    <div class="text-3xl font-bold"><%= number_with_delimiter(@active_users_count) %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
     <div class="text-xs text-muted uppercase mb-2"><%= t(".completions") %></div>
     <div class="text-3xl font-bold"><%= number_with_delimiter(@completions_count) %></div>
+  </div>
+  <div class="p-6 border rounded-xl">
+    <div class="text-xs text-muted uppercase mb-2"><%= t(".slash_prompts") %></div>
+    <div class="text-3xl font-bold"><%= number_with_delimiter(@slash_prompts_count) %></div>
   </div>
 </div>
 

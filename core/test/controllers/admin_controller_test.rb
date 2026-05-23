@@ -16,7 +16,10 @@ class AdminControllerTest < ActionDispatch::IntegrationTest
 
     get admin_stats_url
     assert_response :success
-    assert_match(/\d+/, response.body)
+    assert_select "div", text: "Accounts"
+    assert_select "div", text: "Active Users"
+    assert_select "div", text: "Completions"
+    assert_select "div", text: "Slash Prompts"
   end
 
   test "non-staff is forbidden" do

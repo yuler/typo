@@ -44,7 +44,7 @@ en:
       title: "Admin"
       subtitle: "Staff tools and observability"
       stats: "Stats"
-      stats_description: "Accounts, completions, and weekly trends"
+      stats_description: "Accounts, users, completions, and weekly trends"
       jobs: "Jobs"
       jobs_description: "Monitor and manage background work"
     stats:
@@ -52,7 +52,9 @@ en:
         title: "Stats"
         back: "Back to admin"
         accounts: "Accounts"
+        active_users: "Active Users"
         completions: "Completions"
+        slash_prompts: "Slash Prompts"
         completions_weekly: "Completions by week"
         week: "Week"
         count: "Count"
