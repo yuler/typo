@@ -5,7 +5,7 @@ import { getI18nStaticPaths, getLocalizedPath } from '@/lib/i18n'
 
 export { getI18nStaticPaths as getStaticPaths }
 
-const { t, locale } = Astro.locals
+const { tr, locale } = Astro.locals
 const latestRelease = releases[0]
 
 const platformIcons: Record<string, string> = {
@@ -27,7 +27,7 @@ const assetsByPlatform = platforms.reduce(
 )
 ---
 
-<BaseLayout title={t('page.downloads.title')} description={t('page.downloads.description')}>
+<BaseLayout title={tr('page.downloads.title')} description={tr('page.downloads.description')}>
   <header
     class="relative isolate overflow-hidden border-b border-zinc-200/90 bg-zinc-200/45 px-4 pb-20 pt-14 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-900/35 sm:px-6 sm:pb-24 sm:pt-16 lg:pb-32 lg:pt-20"
   >
@@ -49,10 +49,10 @@ const assetsByPlatform = platforms.reduce(
 
     <div class="relative mx-auto max-w-2xl text-center lg:max-w-3xl">
       <p class="font-mono text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-500">
-        {t('page.downloads.tag')}
+        {tr('page.downloads.tag')}
       </p>
       <h1 class="mt-4 text-4xl font-bold tracking-tight text-zinc-900 sm:text-6xl dark:text-white">
-        {t('page.downloads.heading')}
+        {tr('page.downloads.heading')}
       </h1>
 
       {/* Primary Detection Section */}
@@ -71,7 +71,7 @@ const assetsByPlatform = platforms.reduce(
           </div>
           <div class="space-y-1">
             <h2 id="detected-label" class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-              {t('page.downloads.platform.detecting')}
+              {tr('page.downloads.platform.detecting')}
             </h2>
             <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">
               v{latestRelease.version} — {latestRelease.date}
@@ -106,7 +106,7 @@ const assetsByPlatform = platforms.reduce(
     {/* Manual Downloads Grid */}
     <div class="mt-32">
       <div class="mb-12 flex items-center justify-between border-b border-zinc-200 pb-6 dark:border-zinc-800">
-        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{t('page.downloads.other_platforms')}</h2>
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{tr('page.downloads.other_platforms')}</h2>
         <span
           class="text-xs font-medium text-zinc-500 bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700"
           >v{latestRelease.version}</span
@@ -120,7 +120,7 @@ const assetsByPlatform = platforms.reduce(
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                   <Fragment set:html={platformIcons[p]} />
                 </div>
-                <h3 class="text-lg font-bold capitalize">{t(`page.downloads.platform.${p}`)}</h3>
+                <h3 class="text-lg font-bold capitalize">{tr(`page.downloads.platform.${p}`)}</h3>
               </div>
               <div class="flex flex-col gap-3">
                 {assetsByPlatform[p].map((asset) => (
@@ -168,7 +168,7 @@ const assetsByPlatform = platforms.reduce(
         href={getLocalizedPath('/releases', locale)}
         class="flex items-center gap-2 rounded-2xl bg-zinc-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-zinc-800 hover:scale-[1.02] active:scale-[0.98] dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
       >
-        <span>{t('footer.link.releases')}</span>
+        <span>{tr('footer.link.releases')}</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="h-4 w-4">
           <path d="M5 12h14M12 5l7 7-7 7"></path>
         </svg>
@@ -181,10 +181,10 @@ const assetsByPlatform = platforms.reduce(
       latestRelease,
       assetsByPlatform,
       translations: {
-        macos: t('page.downloads.platform.macos'),
-        windows: t('page.downloads.platform.windows'),
-        linux: t('page.downloads.platform.linux'),
-        button: t('page.downloads.download_button'),
+        macos: tr('page.downloads.platform.macos'),
+        windows: tr('page.downloads.platform.windows'),
+        linux: tr('page.downloads.platform.linux'),
+        button: tr('page.downloads.download_button'),
       },
       platformIcons,
     }}

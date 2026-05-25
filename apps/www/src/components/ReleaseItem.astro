@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { release, isLatest } = Astro.props
-const { locale, t } = Astro.locals
+const { locale, tr } = Astro.locals
 const rawNotes = (release.notes_i18n as Record<string, any>)[locale] || release.notes_i18n.en
 const notes = Array.isArray(rawNotes) ? rawNotes.map((n) => `• ${n}`).join('\n') : rawNotes
 const versionAnchorId = `v${release.version}`
@@ -53,7 +53,7 @@ const platformIcons: Record<string, string> = {
         {
           isLatest && (
             <span class="ml-3 inline-flex items-center rounded-full bg-zinc-900 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-zinc-50 shadow-sm transition-all duration-300 group-hover:scale-105 dark:bg-zinc-100 dark:text-zinc-900">
-              {t('page.releases.latest')}
+              {tr('page.releases.latest')}
             </span>
           )
         }
@@ -82,7 +82,7 @@ const platformIcons: Record<string, string> = {
               <Fragment set:html={platformIcons[asset.platform]} />
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="capitalize leading-tight">{t(`page.downloads.platform.${asset.platform}`)}</span>
+              <span class="capitalize leading-tight">{tr(`page.downloads.platform.${asset.platform}`)}</span>
               <span
                 class="text-[11px] text-zinc-500 font-normal truncate max-w-[120px] sm:max-w-none"
                 title={asset.name}

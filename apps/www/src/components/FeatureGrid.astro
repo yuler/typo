@@ -1,28 +1,28 @@
 ---
-const { t } = Astro.locals
+const { tr } = Astro.locals
 
 const features = [
   {
-    title: t('features.items.multi_model.title'),
-    body: t('features.items.multi_model.body'),
+    title: tr('features.items.multi_model.title'),
+    body: tr('features.items.multi_model.body'),
     emoji: '🌐',
     tint: 'from-violet-500/25 to-fuchsia-500/20',
   },
   {
-    title: t('features.items.hotkeys.title'),
-    body: t('features.items.hotkeys.body'),
+    title: tr('features.items.hotkeys.title'),
+    body: tr('features.items.hotkeys.body'),
     emoji: '⌨️',
     tint: 'from-sky-500/25 to-cyan-400/20',
   },
   {
-    title: t('features.items.pasting.title'),
-    body: t('features.items.pasting.body'),
+    title: tr('features.items.pasting.title'),
+    body: tr('features.items.pasting.body'),
     emoji: '📋',
     tint: 'from-emerald-500/25 to-teal-400/20',
   },
   {
-    title: t('features.items.customizable.title'),
-    body: t('features.items.customizable.body'),
+    title: tr('features.items.customizable.title'),
+    body: tr('features.items.customizable.body'),
     emoji: '⚙️',
     tint: 'from-amber-500/25 to-orange-400/20',
   },
@@ -43,13 +43,13 @@ const iconSlot =
   <div class="relative mx-auto max-w-5xl px-4 sm:px-6">
     <div class="mx-auto max-w-3xl text-center">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
-        {t('features.tag')}
+        {tr('features.tag')}
       </p>
       <h2 class="mt-3 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl lg:text-4xl dark:text-zinc-50">
-        {t('features.title')}
+        {tr('features.title')}
       </h2>
       <p class="mt-3 text-pretty text-sm leading-relaxed text-zinc-600 sm:text-base dark:text-zinc-400">
-        {t('features.description')}
+        {tr('features.description')}
       </p>
     </div>
 
@@ -77,7 +77,7 @@ const iconSlot =
           </p>
         </div>
         <p class="mt-6 text-xs font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500 lg:mt-8">
-          {t('features.primary.tag')}
+          {tr('features.primary.tag')}
         </p>
       </article>
 

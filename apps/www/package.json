@@ -13,6 +13,7 @@
   "dependencies": {
     "@astrojs/mdx": "^4.2.6",
     "@astrojs/react": "^4.2.1",
+    "@astrojs/starlight": "^0.34.8",
     "@tailwindcss/vite": "^4.1.10",
     "@typo/languages": "workspace:*",
     "@typo/releases": "workspace:*",

@@ -6,10 +6,10 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 
 export { getI18nStaticPaths as getStaticPaths } from '@/lib/i18n'
 
-const { t } = Astro.locals
+const { tr } = Astro.locals
 ---
 
-<BaseLayout title={t('page.home.title')}>
+<BaseLayout title={tr('page.home.title')}>
   <main>
     <Hero />
     <FeatureGrid />

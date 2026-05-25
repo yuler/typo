@@ -1,9 +1,9 @@
 ---
 import { getLocalizedPath } from '@/lib/i18n'
 
-const { locale: currentLocale, t } = Astro.locals
+const { locale: currentLocale, tr } = Astro.locals
 const year = new Date().getFullYear()
-const copyrightHTML = t('footer.copyright', { year })
+const copyrightHTML = tr('footer.copyright', { year })
 ---
 
 <footer class="border-t border-zinc-200 py-10 dark:border-zinc-800">
@@ -13,17 +13,17 @@ const copyrightHTML = t('footer.copyright', { year })
     <p set:html={copyrightHTML} />
     <div class="flex flex-wrap gap-4">
       <a href={getLocalizedPath('/downloads', currentLocale)} class="hover:text-zinc-900 dark:hover:text-zinc-100"
-        >{t('footer.link.downloads')}</a
+        >{tr('footer.link.downloads')}</a
       >
       <a href={getLocalizedPath('/releases', currentLocale)} class="hover:text-zinc-900 dark:hover:text-zinc-100"
-        >{t('footer.link.releases')}</a
+        >{tr('footer.link.releases')}</a
       >
       <a
-        href={getLocalizedPath('/docs/getting-started', currentLocale)}
-        class="hover:text-zinc-900 dark:hover:text-zinc-100">{t('footer.link.docs')}</a
+        href={getLocalizedPath('/getting-started', currentLocale)}
+        class="hover:text-zinc-900 dark:hover:text-zinc-100">{tr('footer.link.docs')}</a
       >
       <a href={getLocalizedPath('/blog', currentLocale)} class="hover:text-zinc-900 dark:hover:text-zinc-100"
-        >{t('footer.link.blog')}</a
+        >{tr('footer.link.blog')}</a
       >
     </div>
   </div>

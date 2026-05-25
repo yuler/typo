@@ -1,7 +1,6 @@
 import type { Locale } from '@typo/languages'
 import { createGenericTranslator, defaultLocale, locales, messages as sharedMessages } from '@typo/languages'
 import { getCollection } from 'astro:content'
-import { parseDocsEntry } from '@/lib/docs-nav'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
 import zh from '../locales/zh.json'
@@ -49,7 +48,7 @@ export function tr(astro: { currentLocale?: string }) {
 }
 
 /**
- * Returns a localized path for the given locale using astro:i18n.
+ * Returns a path prefixed for the given locale (`/zh/blog/...`; default locale has no prefix).
  */
 export function getLocalizedPath(path: string, locale: Locale): string {
   // Strip existing locale prefix if any to avoid double prefixing
@@ -76,10 +75,10 @@ export function getI18nStaticPaths() {
 }
 
 /**
- * Helper to generate static paths for all locales for a collection.
+ * Helper to generate static paths for all locales for the blog collection.
  */
-export async function getI18nCollectionStaticPaths(collection: 'blog' | 'docs') {
-  const entries = await getCollection(collection, ({ data }) => import.meta.env.DEV || !data.draft)
+export async function getI18nCollectionStaticPaths() {
+  const entries = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)
 
   return locales.flatMap((l) => {
     const entriesMap = new Map<string, Partial<Record<Locale, typeof entries[number]>>>()
@@ -89,12 +88,7 @@ export async function getI18nCollectionStaticPaths(collection: 'blog' | 'docs') 
       let entryLocale = defaultLocale
       let slug = entry.id
 
-      if (collection === 'docs') {
-        const parsed = parseDocsEntry(entry)
-        entryLocale = parsed.locale
-        slug = parsed.slug
-      }
-      else if (locales.includes(parts[0] as Locale)) {
+      if (locales.includes(parts[0] as Locale)) {
         entryLocale = parts[0] as Locale
         slug = parts.slice(1).join('/')
       }

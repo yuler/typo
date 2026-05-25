@@ -1,0 +1,12 @@
+:root {
+  --sl-font: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  --sl-color-accent: #18181b;
+  --sl-color-accent-high: #09090b;
+  --sl-color-accent-low: #f4f4f5;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent: #fafafa;
+  --sl-color-accent-high: #ffffff;
+  --sl-color-accent-low: #27272a;
+}
