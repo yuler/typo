@@ -1,10 +1,9 @@
 ---
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
 import ThemeToggle from '@/components/ThemeToggle.tsx'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import { getLocalizedPath } from '@/lib/i18n'
 
-const { t } = Astro.locals
-const currentLocale = getLocale(Astro.currentLocale)
+const { locale: currentLocale, t } = Astro.locals
 const tc = t // We use the same t as we ignore namespace for now
 
 const pathname = Astro.url.pathname

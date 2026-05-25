@@ -1,14 +1,14 @@
 ---
 import { getCollection } from 'astro:content'
 import DocsLayout from '@/layouts/DocsLayout.astro'
-import { sortDocsEntries } from '@/lib/docs-nav'
+import { getLocalizedDocsEntries, sortDocsEntries } from '@/lib/docs-nav'
 import { getI18nStaticPaths, getLocalizedPath } from '@/lib/i18n'
 
 export { getI18nStaticPaths as getStaticPaths }
 
 const { locale, t } = Astro.locals
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-const cards = sortDocsEntries(entries)
+const cards = sortDocsEntries(getLocalizedDocsEntries(entries, locale))
 ---
 
 <DocsLayout title={t('page.docs.title')} description={t('page.docs.description')}>
@@ -23,13 +23,13 @@ const cards = sortDocsEntries(entries)
     {
       cards.map((doc) => (
         <a
-          href={getLocalizedPath(`/docs/${doc.id}`, locale)}
+          href={getLocalizedPath(`/docs/${doc.slug}`, locale)}
           class="group flex flex-col rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 transition-colors hover:border-zinc-400 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
         >
           <span class="font-semibold text-zinc-900 group-hover:text-zinc-950 dark:text-zinc-100 dark:group-hover:text-white">
-            {doc.data.title}
+            {doc.entry.data.title}
           </span>
-          <span class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{doc.data.description}</span>
+          <span class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{doc.entry.data.description}</span>
           <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-zinc-700 group-hover:text-zinc-950 dark:text-zinc-300 dark:group-hover:text-white">
             {t('page.docs.card.read_label')}
             <span class="transition-transform group-hover:translate-x-0.5" aria-hidden>

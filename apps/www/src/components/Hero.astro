@@ -1,8 +1,7 @@
 ---
-import { getLocalizedPath, getLocale } from '@/lib/i18n'
+import { getLocalizedPath } from '@/lib/i18n'
 
-const { t } = Astro.locals
-const locale = getLocale(Astro.currentLocale)
+const { locale, t } = Astro.locals
 ---
 
 <section class="mx-auto max-w-5xl px-4 pb-16 pt-12 sm:px-6 sm:pt-16">

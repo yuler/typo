@@ -1,7 +1,7 @@
 import type { Locale } from '@typo/languages'
 import { createGenericTranslator, defaultLocale, locales, messages as sharedMessages } from '@typo/languages'
 import { getCollection } from 'astro:content'
-import { getRelativeLocaleUrl } from 'astro:i18n'
+import { parseDocsEntry } from '@/lib/docs-nav'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
 import zh from '../locales/zh.json'
@@ -55,9 +55,14 @@ export function getLocalizedPath(path: string, locale: Locale): string {
   // Strip existing locale prefix if any to avoid double prefixing
   const segments = path.split('/').filter(Boolean)
   const isLocale = ([...locales, 'ja'] as string[]).includes(segments[0] || '')
-  const cleanPath = isLocale ? `/${segments.slice(1).join('/')}` : path
+  const cleanSegments = isLocale ? segments.slice(1) : segments
+  const cleanPath = cleanSegments.length ? `/${cleanSegments.join('/')}` : '/'
 
-  return getRelativeLocaleUrl(locale, cleanPath)
+  if (locale === defaultLocale) {
+    return cleanPath
+  }
+
+  return cleanPath === '/' ? `/${locale}/` : `/${locale}${cleanPath}`
 }
 
 /**
@@ -77,22 +82,27 @@ export async function getI18nCollectionStaticPaths(collection: 'blog' | 'docs') 
   const entries = await getCollection(collection, ({ data }) => import.meta.env.DEV || !data.draft)
 
   return locales.flatMap((l) => {
-    const entriesMap = new Map()
+    const entriesMap = new Map<string, Partial<Record<Locale, typeof entries[number]>>>()
 
     for (const entry of entries) {
       const parts = entry.id.split('/')
       let entryLocale = defaultLocale
       let slug = entry.id
 
-      if (locales.includes(parts[0] as Locale)) {
+      if (collection === 'docs') {
+        const parsed = parseDocsEntry(entry)
+        entryLocale = parsed.locale
+        slug = parsed.slug
+      }
+      else if (locales.includes(parts[0] as Locale)) {
         entryLocale = parts[0] as Locale
         slug = parts.slice(1).join('/')
       }
 
       if (!entriesMap.has(slug)) {
-        entriesMap.set(slug, {} as Record<Locale, any>)
+        entriesMap.set(slug, {})
       }
-      entriesMap.get(slug)[entryLocale] = entry
+      entriesMap.get(slug)![entryLocale] = entry
     }
 
     const paths = []

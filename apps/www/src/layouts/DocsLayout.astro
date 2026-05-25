@@ -1,8 +1,7 @@
 ---
 import { getCollection } from 'astro:content'
-import Footer from '@/components/Footer.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import { sortDocsEntries } from '@/lib/docs-nav'
+import { getLocalizedDocsEntries, sortDocsEntries } from '@/lib/docs-nav'
 import { getLocalizedPath } from '@/lib/i18n'
 
 interface Props {
@@ -15,7 +14,7 @@ const { title, description = t('docs.default_description') } = Astro.props
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/'
 
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-const sidebarDocs = sortDocsEntries(entries)
+const sidebarDocs = sortDocsEntries(getLocalizedDocsEntries(entries, locale))
 
 const docsPath = getLocalizedPath('/docs', locale)
 const isIndex = pathname === docsPath.replace(/\/$/, '') || (docsPath === '/' && pathname === '/')
@@ -49,15 +48,15 @@ function linkActive(href: string) {
         {
           sidebarDocs.map((doc) => (
             <a
-              href={getLocalizedPath(`/docs/${doc.id}`, locale)}
+              href={getLocalizedPath(`/docs/${doc.slug}`, locale)}
               class:list={[
                 'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                linkActive(`/docs/${doc.id}`)
+                linkActive(`/docs/${doc.slug}`)
                   ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950'
                   : 'text-zinc-600 hover:bg-zinc-200/80 dark:text-zinc-400 dark:hover:bg-zinc-800/80',
               ]}
             >
-              {doc.data.title}
+              {doc.entry.data.title}
             </a>
           ))
         }
@@ -88,13 +87,13 @@ function linkActive(href: string) {
             sidebarDocs.map((doc) => (
               <li>
                 <a
-                  href={getLocalizedPath(`/docs/${doc.id}`, locale)}
+                  href={getLocalizedPath(`/docs/${doc.slug}`, locale)}
                   class:list={[
                     'docs-sidebar-link block rounded-none py-2 pl-3 pr-2 text-sm transition-colors',
-                    linkActive(`/docs/${doc.id}`) && 'docs-sidebar-link--active',
+                    linkActive(`/docs/${doc.slug}`) && 'docs-sidebar-link--active',
                   ]}
                 >
-                  {doc.data.title}
+                  {doc.entry.data.title}
                 </a>
               </li>
             ))
