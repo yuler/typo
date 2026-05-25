@@ -75,10 +75,37 @@ export function getI18nStaticPaths() {
  */
 export async function getI18nCollectionStaticPaths(collection: 'blog' | 'docs') {
   const entries = await getCollection(collection, ({ data }) => import.meta.env.DEV || !data.draft)
-  return locales.flatMap(l =>
-    entries.map(entry => ({
-      params: { lang: l === defaultLocale ? undefined : l, slug: entry.id },
-      props: { entry },
-    })),
-  )
+
+  return locales.flatMap(l => {
+    const entriesMap = new Map();
+
+    for (const entry of entries) {
+      const parts = entry.id.split('/');
+      let entryLocale = defaultLocale;
+      let slug = entry.id;
+
+      if (locales.includes(parts[0] as Locale)) {
+        entryLocale = parts[0] as Locale;
+        slug = parts.slice(1).join('/');
+      }
+
+      if (!entriesMap.has(slug)) {
+        entriesMap.set(slug, {} as Record<Locale, any>);
+      }
+      entriesMap.get(slug)[entryLocale] = entry;
+    }
+
+    const paths = [];
+    for (const [slug, localeEntries] of entriesMap.entries()) {
+      const entry = localeEntries[l] || localeEntries[defaultLocale];
+
+      if (entry) {
+        paths.push({
+          params: { lang: l === defaultLocale ? undefined : l, slug },
+          props: { entry },
+        });
+      }
+    }
+    return paths;
+  });
 }

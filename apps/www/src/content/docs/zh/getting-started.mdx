@@ -1,0 +1,33 @@
+---
+title: 快速开始
+description: 安装依赖并在本地运行 typo 桌面应用程序。
+---
+
+typo 是一个基于 Tauri + Vue 的桌面应用程序，充当基于 AI 的文本优化工具。它会捕获您选中的文本，使用 AI 进行处理，然后在光标处智能替换它。
+
+本页面介绍了从仓库根目录进行本地开发的流程。如果您只是想使用该应用程序，请[从 GitHub Releases 下载预编译的安装程序](https://github.com/yuler/typo/releases)。
+
+## 先决条件
+
+- [Node.js](https://nodejs.org/) (推荐版本请参见仓库的 `.nvmrc`)
+- [pnpm](https://pnpm.io/)
+- 用于 [Tauri 2](https://v2.tauri.app/start/prerequisites/) 的 Rust 工具链和平台依赖项
+
+## 安装和运行
+
+在仓库根目录执行：
+
+```bash
+pnpm install
+pnpm desktop:dev
+```
+
+这将在开发模式下启动桌面应用程序 (Tauri + Vite)。
+
+## 后续步骤
+
+- [功能](/docs/features) — 探索 typo 的功能。
+- [使用方法](/docs/usage) — 了解核心的文本选择和替换流程。
+- [身份验证](/docs/authentication) — 如何通过 OAuth 2.0 登录。
+- [提示词快捷键](/docs/prompt-shortcuts) — 配置 `/command` 样式的快捷键。
+- [常见问题](/docs/faq) — macOS、Linux、Wayland 和 Ollama 的故障排除。
