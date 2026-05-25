@@ -24,8 +24,7 @@ const groupId = syncKey ?? `tabs-${Math.random().toString(36).slice(2, 9)}`
   function initTabs(root: HTMLElement) {
     const list = root.querySelector('[data-tabs-list]')
     const panels = [...root.querySelectorAll<HTMLElement>('[data-tab-panel]')]
-    if (!list || panels.length === 0)
-      return
+    if (!list || panels.length === 0) return
 
     const groupId = root.dataset.tabsRoot ?? 'tabs'
     const storageKey = `mdx-tabs:${groupId}`
@@ -50,8 +49,7 @@ const groupId = syncKey ?? `tabs-${Math.random().toString(36).slice(2, 9)}`
       })
       try {
         sessionStorage.setItem(storageKey, String(index))
-      }
-      catch {
+      } catch {
         /* ignore */
       }
     }
@@ -79,11 +77,9 @@ const groupId = syncKey ?? `tabs-${Math.random().toString(36).slice(2, 9)}`
       const saved = sessionStorage.getItem(storageKey)
       if (saved != null) {
         const n = Number.parseInt(saved, 10)
-        if (n >= 0 && n < panels.length)
-          initial = n
+        if (n >= 0 && n < panels.length) initial = n
       }
-    }
-    catch {
+    } catch {
       /* ignore */
     }
     select(initial)

@@ -5,31 +5,31 @@ sidebar:
   order: 2
 ---
 
-typo runs behind a global shortcut so you can refine text without leaving your editor or browser.
+typo runs in the background on a global hotkey so you can refine text without leaving your editor or browser.
 
 ## Basic flow
 
-1. **Select** any text you want to improve.
+1. **Select** the text you want to improve.
 2. **Press** `Ctrl/Cmd + Shift + X` to activate typo.
 3. **Wait** for the AI response; it replaces the selection automatically.
 
 ## Global hotkey
 
-Use `Ctrl/Cmd + Shift + X` from any app — browser, editor, or chat. On Wayland, bind a system shortcut to `typo --selection` instead; see [FAQ — Linux Wayland compatibility](./faq#linux-wayland-compatibility).
+Press `Ctrl/Cmd + Shift + X` in any app — browser, editor, or chat. On Wayland, bind a system shortcut to `typo --selection` instead; see [FAQ — Linux Wayland compatibility](./faq#linux-wayland-compatibility).
 
 ## How it works
 
 1. **Capture** — Reads the current selection.
-2. **AI processing** — Sends text with your prompt (configurable in Settings).
+2. **AI processing** — Sends text with your prompt (configurable in Settings) to the model.
 3. **Replacement** — Copies the response to the clipboard and pastes at the cursor (avoids many input-method issues).
 
 ## Models in use
 
-- **DeepSeek** or other configured cloud models.
-- **Ollama** locally — ensure `ollama serve` is running.
+- Configured cloud models such as **DeepSeek**.
+- Local **Ollama** — ensure `ollama serve` is running.
 
-See [FAQ — Ollama](./faq#ollama) for tips.
+See [FAQ — Ollama](./faq#ollama) for more details.
 
 ## Customize behavior
 
-Tune the default system prompt in Settings, or define [slash prompts](./slash-prompts) for tasks like translation or tone changes.
+Tune the default system prompt in Settings, or configure [slash prompts](./slash-prompts) for tasks like translation or tone changes.

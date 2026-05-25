@@ -34,10 +34,7 @@ const { Content: OverviewContent } = overviewEntry ? await render(overviewEntry)
     )
   }
 
-  <ul
-    class="mt-20 flex list-none flex-wrap justify-center gap-5 p-0 lg:gap-6"
-    role="list"
-  >
+  <ul class="mt-20 flex list-none flex-wrap justify-center gap-5 p-0 lg:gap-6" role="list">
     {
       cards.map((doc) => (
         <li class="w-full min-w-0 sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-1rem)]">

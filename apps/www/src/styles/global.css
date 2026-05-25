@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -31,19 +32,26 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* Block code: transparent in light; raised surface in dark for contrast. */
-.mdx-prose pre.astro-code,
-.mdx-prose pre {
-  background-color: transparent !important;
+html::-webkit-scrollbar {
+  display: none;
 }
 
-.mdx-prose pre.astro-code code,
-.mdx-prose pre code {
-  background-color: transparent !important;
+*,
+*::before,
+*::after {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Dark: Shiki block code surface (light uses typography `prose-pre:*`). */
 .dark .mdx-prose pre.astro-code,
 .dark .mdx-prose pre {
   background-color: color-mix(in oklab, var(--surface-raised) 85%, transparent) !important;

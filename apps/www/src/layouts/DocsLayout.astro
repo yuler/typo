@@ -76,10 +76,7 @@ function linkActive(href: string) {
       >
         <ul class="space-y-0.5">
           <li>
-            <a
-              href={getLocalizedPath('/docs', locale)}
-              class:list={docsSidebarLinkClass(isIndex)}
-            >
+            <a href={getLocalizedPath('/docs', locale)} class:list={docsSidebarLinkClass(isIndex)}>
               {tr('docs.nav.overview')}
             </a>
           </li>

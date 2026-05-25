@@ -1,6 +1,6 @@
 ---
 title: インストールとセットアップ
-description: typo のダウンロード、ソースからの実行、モデル設定、権限の付与。
+description: typo のダウンロード、各プラットフォームへのインストール、モデル設定、システム権限の付与。
 sidebar:
   order: 1
 ---
@@ -9,39 +9,45 @@ typo は Tauri + Vue のデスクトップアプリで、選択テキストを A
 
 ## ダウンロード
 
-[GitHub Releases からビルド済みインストーラーを入手](https://github.com/yuler/typo/releases)してください。macOS では `/Applications` にコピーしたあと隔離属性の解除が必要な場合があります — [よくある質問 — macOS](./faq#macos) を参照。Linux では [よくある質問 — Linux インストール（AppImage）](./faq#linux-installation-appimage) の手順を推奨します。
+最新版は [typo 公式ダウンロードページ](/jp/downloads) から入手できます。過去のビルドは [Releases ページ](/jp/releases) を参照してください。
 
-## ソースから開発
+<Tabs>
 
-リポジトリのルートで：
+  <Tab label="macOS">
 
-```bash
-pnpm install
-pnpm desktop:dev
-```
+  1. `typo.dmg` を開きます。
+  2. typo アイコンを **アプリケーション** フォルダにドラッグします。
+  3. **アプリケーション** から typo を起動します。セキュリティの確認が出たら **開く** をクリックします。
+  4. アカウントにサインインします。
+  5. **システム設定** で typo の **アクセシビリティ** を有効にし、選択テキストの取得と処理後の置換を行えるようにします。
+  6. カスタムショートカットを設定します。既定は `Ctrl + Shift + X` です。
 
-### 前提条件
+  </Tab>
 
-- [Node.js](https://nodejs.org/)（`.nvmrc` を参照）
-- [pnpm](https://pnpm.io/)
-- Rust ツールチェーンと [Tauri 2](https://v2.tauri.app/start/prerequisites/) のプラットフォーム依存関係
+  <Tab label="Linux">
 
-## モデル
+  1. ダウンロードした `typo.deb` を開きます。
+  2. ソフトウェアインストーラーでインストールするか、ターミナルで `sudo dpkg -i typo_*.deb` を実行します。
+  3. アプリメニューから typo を起動します。
+  4. アカウントにサインインします。
+  5. Linux Wayland では選択範囲を取得するためシステムショートカットの設定が必要です — [よくある質問 — Linux Wayland 互換性](./faq#linux-wayland-compatibility) を参照。
+  6. カスタムショートカットを設定します。既定は `Ctrl + Shift + X` です。
 
-typo は特定のモデルに縛られません：
+  AppImage も利用できます。手順は [よくある質問 — Linux インストール（AppImage）](./faq#linux-installation-appimage) を参照してください。
 
-- 対応している **DeepSeek** などのクラウドモデルに接続。
-- **Ollama** でローカル実行 — 使用前に `ollama serve` を起動しモデルを pull。
+  </Tab>
 
-API とトラブルシュートは [よくある質問 — Ollama](./faq#ollama) を参照。
+  <Tab label="Windows">
 
-## 権限
+  1. `typo_x64-setup.exe` インストーラーをダブルクリックします。
+  2. ウィザードに従い、スタートメニューまたはデスクトップのショートカットから typo を起動します。
+  3. アカウントにサインインします。
+  4. カスタムショートカットを設定します。既定は `Ctrl + Shift + X` です。
 
-macOS では選択と貼り付け自動化のため **アクセシビリティ** などを許可してください。Linux Wayland ではシステムショートカットの設定が必要です — [よくある質問 — Linux Wayland 互換性](./faq#linux-wayland-compatibility)。
+  </Tab>
+
+</Tabs>
 
 ## 次のステップ
 
 - [クイックスタート](./quickstart) — テキストを選択し、typo を起動して結果を得る。
-- [アカウント](./account) — OAuth 2.0 デバイスフローでサインイン。
-- [スラッシュプロンプト](./slash-prompts) — 選択テキストから `/command` を実行。
-- [よくある質問](./faq) — プラットフォーム別のインストールとトラブルシュート。

@@ -5,27 +5,27 @@ sidebar:
   order: 4
 ---
 
-Define up to **five** custom slash prompts in **Settings → Prompts**.
+In **Settings → Prompts**, you can define up to **five** slash prompts.
 
 ## Keys and values
 
-Each shortcut has:
+Each shortcut includes:
 
 - A **key** — e.g. `/tr:zh` or `/prompt`
 - A **value** — the instruction sent to the model when triggered
 
 ## Trigger from selection
 
-Use either form:
+Either form works:
 
-- **Leading** — first line starts with `/command`
-- **Trailing** — last line starts with `/command`
+- **Leading** — the first line starts with `/command`
+- **Trailing** — the last line starts with `/command`
 
 ## Template placeholders
 
-In shortcut values:
+In values you can use:
 
-- `{{args}}` — text after the command on the same line, e.g. `/prompt translate lightly`
+- `{{args}}` — arguments after the command on the same line, e.g. `/prompt translate lightly`
 - `{{text}}` — selected text after the command line is removed
 
 ## Example
@@ -36,4 +36,4 @@ In shortcut values:
 你好啊
 ```
 
-The model receives your shortcut **value** with placeholders expanded from the selection above.
+The model receives the shortcut **value** with placeholders expanded from the selection above.
