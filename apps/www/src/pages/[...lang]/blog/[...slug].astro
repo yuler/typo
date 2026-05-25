@@ -5,7 +5,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro'
 import { getI18nCollectionStaticPaths, getLocalizedPath } from '@/lib/i18n'
 import { formatDateLong } from '@/utils/date'
 
-export const getStaticPaths = () => getI18nCollectionStaticPaths()
+export const getStaticPaths = () => getI18nCollectionStaticPaths('blog')
 
 interface Props {
   entry: CollectionEntry<'blog'>

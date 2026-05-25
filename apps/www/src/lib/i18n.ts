@@ -1,6 +1,7 @@
 import type { Locale } from '@typo/languages'
 import { createGenericTranslator, defaultLocale, locales, messages as sharedMessages } from '@typo/languages'
 import { getCollection } from 'astro:content'
+import { isDocsGuideSlug, parseDocsEntry } from '@/lib/docs-nav'
 import en from '../locales/en.json'
 import jp from '../locales/jp.json'
 import zh from '../locales/zh.json'
@@ -25,7 +26,6 @@ const mergedMessages = {
 const localeMap: Record<string, Locale> = {
   en: 'en',
   zh: 'zh',
-  ja: 'jp',
   jp: 'jp',
 }
 
@@ -75,22 +75,31 @@ export function getI18nStaticPaths() {
 }
 
 /**
- * Helper to generate static paths for all locales for the blog collection.
+ * Helper to generate static paths for all locales for a collection.
  */
-export async function getI18nCollectionStaticPaths() {
-  const entries = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft)
+export async function getI18nCollectionStaticPaths(collection: 'blog' | 'docs') {
+  const entries = await getCollection(collection, ({ data }) => import.meta.env.DEV || !data.draft)
 
   return locales.flatMap((l) => {
     const entriesMap = new Map<string, Partial<Record<Locale, typeof entries[number]>>>()
 
     for (const entry of entries) {
-      const parts = entry.id.split('/')
       let entryLocale = defaultLocale
       let slug = entry.id
 
-      if (locales.includes(parts[0] as Locale)) {
-        entryLocale = parts[0] as Locale
-        slug = parts.slice(1).join('/')
+      if (collection === 'docs') {
+        const parsed = parseDocsEntry(entry)
+        entryLocale = parsed.locale
+        slug = parsed.slug
+        if (!isDocsGuideSlug(slug))
+          continue
+      }
+      else {
+        const parts = entry.id.split('/')
+        if (locales.includes(parts[0] as Locale)) {
+          entryLocale = parts[0] as Locale
+          slug = parts.slice(1).join('/')
+        }
       }
 
       if (!entriesMap.has(slug)) {
