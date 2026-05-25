@@ -1,0 +1,98 @@
+---
+interface Props {
+  syncKey?: string
+}
+
+const { syncKey } = Astro.props
+const groupId = syncKey ?? `tabs-${Math.random().toString(36).slice(2, 9)}`
+---
+
+<div class="mdx-tabs not-prose my-6" data-tabs-root={groupId}>
+  <div
+    role="tablist"
+    class="flex flex-wrap gap-1 border-b border-zinc-200 dark:border-zinc-800"
+    data-tabs-list
+    aria-label="Platform"
+  >
+  </div>
+  <div class="pt-4" data-tabs-panels>
+    <slot />
+  </div>
+</div>
+
+<script>
+  function initTabs(root: HTMLElement) {
+    const list = root.querySelector('[data-tabs-list]')
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-tab-panel]')]
+    if (!list || panels.length === 0)
+      return
+
+    const groupId = root.dataset.tabsRoot ?? 'tabs'
+    const storageKey = `mdx-tabs:${groupId}`
+
+    function select(index: number) {
+      panels.forEach((panel, i) => {
+        const active = i === index
+        panel.classList.toggle('hidden', !active)
+        panel.toggleAttribute('hidden', !active)
+      })
+      list!.querySelectorAll<HTMLButtonElement>('[role="tab"]').forEach((btn, i) => {
+        const active = i === index
+        btn.setAttribute('aria-selected', active ? 'true' : 'false')
+        btn.tabIndex = active ? 0 : -1
+        btn.classList.toggle('border-zinc-900', active)
+        btn.classList.toggle('text-zinc-900', active)
+        btn.classList.toggle('dark:border-zinc-100', active)
+        btn.classList.toggle('dark:text-zinc-100', active)
+        btn.classList.toggle('border-transparent', !active)
+        btn.classList.toggle('text-zinc-500', !active)
+        btn.classList.toggle('dark:text-zinc-400', !active)
+      })
+      try {
+        sessionStorage.setItem(storageKey, String(index))
+      }
+      catch {
+        /* ignore */
+      }
+    }
+
+    panels.forEach((panel, index) => {
+      const label = panel.dataset.tabLabel ?? `Tab ${index + 1}`
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.role = 'tab'
+      btn.id = `${groupId}-tab-${index}`
+      btn.setAttribute('aria-controls', `${groupId}-panel-${index}`)
+      btn.className =
+        'cursor-pointer border-b-2 px-3 py-2 text-sm font-medium transition-colors border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+      btn.textContent = label
+      btn.addEventListener('click', () => select(index))
+      list.append(btn)
+
+      panel.id = `${groupId}-panel-${index}`
+      panel.setAttribute('role', 'tabpanel')
+      panel.setAttribute('aria-labelledby', btn.id)
+    })
+
+    let initial = 0
+    try {
+      const saved = sessionStorage.getItem(storageKey)
+      if (saved != null) {
+        const n = Number.parseInt(saved, 10)
+        if (n >= 0 && n < panels.length)
+          initial = n
+      }
+    }
+    catch {
+      /* ignore */
+    }
+    select(initial)
+  }
+
+  function initAll() {
+    document.querySelectorAll<HTMLElement>('[data-tabs-root]').forEach(initTabs)
+  }
+
+  initAll()
+  document.addEventListener('astro:page-load', initAll)
+</script>
