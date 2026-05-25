@@ -1,5 +1,5 @@
-import type { CollectionEntry } from 'astro:content'
 import type { Locale } from '@typo/languages'
+import type { CollectionEntry } from 'astro:content'
 import { defaultLocale, locales } from '@typo/languages'
 
 /** Default sidebar / index card order for docs collection entries. */
@@ -16,7 +16,7 @@ type DocsEntry = CollectionEntry<'docs'>
 export function parseDocsEntry(entry: Pick<DocsEntry, 'id' | 'filePath'>): { locale: Locale, slug: string } {
   const filePath = entry.filePath?.replace(/\\/g, '/')
   const docsPath = filePath?.split('src/content/docs/').at(-1)
-  const filenameMatch = docsPath?.match(/^(.*)\.([^.\/]+)\.mdx?$/)
+  const filenameMatch = docsPath?.match(/^(.*)\.([^./]+)\.mdx?$/)
 
   if (filenameMatch) {
     const possibleLocale = filenameMatch[2]
