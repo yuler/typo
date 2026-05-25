@@ -2,10 +2,10 @@
 title: よくある質問
 description: macOSとLinuxのプラットフォームに関する注意事項、Waylandのホットキー、およびOllama。
 sidebar:
-  order: 6
+  order: 5
 ---
 
-## macOS
+## macOS {#macos}
 
 - アプリを `/Applications` にコピーした後、隔離状態をクリアする必要がある場合があります：
 
@@ -15,7 +15,7 @@ sidebar:
 
 - **システム設定** でtypoの **アクセシビリティ**（および関連する権限）を有効にし、選択と自動貼り付けが確実に機能するようにします。
 
-## Linux インストール (AppImage)
+## Linux インストール (AppImage) {#linux-installation-appimage}
 
 インストールと自動更新のために、**AppImage** ビルドをお勧めします：
 
@@ -52,7 +52,7 @@ curl -L -o ~/.local/share/icons/hicolor/256x256/apps/typo.png https://raw.github
 
 デスクトップが `Icon=typo` を認識しない場合は、`.desktop` ファイル内の `Icon` をそのPNGの絶対パスに設定するか、`gtk-update-icon-cache ~/.local/share/icons/hicolor` を実行してください。
 
-## Linux Wayland の互換性
+## Linux Wayland の互換性 {#linux-wayland-compatibility}
 
 Waylandはセキュリティのためにグローバルホットキーリスナーを制限しています。アプリ内のホットキーだけに依存せず、**システムショートカット** を使用してください。
 
@@ -103,7 +103,7 @@ Exec=/usr/bin/ydotoold
 code --ozone-platform=x11
 ```
 
-## Ollama
+## Ollama {#ollama}
 
 - Ollamaが実行されていることを確認します：`ollama serve`。
 - リクエスト/レスポンスの詳細やモデル管理については、[Ollama API ドキュメント](https://github.com/ollama/ollama/blob/main/docs/api.md)を参照してください。

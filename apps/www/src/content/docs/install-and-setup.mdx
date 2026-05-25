@@ -1,0 +1,47 @@
+---
+title: Install and setup
+description: Download typo, run from source, choose models, and grant platform permissions.
+sidebar:
+  order: 1
+---
+
+typo is a Tauri + Vue desktop app that refines selected text with AI and replaces it at your cursor.
+
+## Download
+
+[Download prebuilt installers from GitHub Releases](https://github.com/yuler/typo/releases). On macOS, you may need to clear quarantine after copying to `/Applications` — see [FAQ — macOS](./faq#macos). On Linux, we recommend the AppImage flow in [FAQ — Linux installation](./faq#linux-installation-appimage).
+
+## Develop from source
+
+From the repository root:
+
+```bash
+pnpm install
+pnpm desktop:dev
+```
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (see `.nvmrc`)
+- [pnpm](https://pnpm.io/)
+- Rust toolchain and [Tauri 2](https://v2.tauri.app/start/prerequisites/) platform dependencies
+
+## Models
+
+typo is model-agnostic:
+
+- Connect cloud models such as **DeepSeek** where supported.
+- Run locally with **Ollama** — start `ollama serve` and pull models before use.
+
+See [FAQ — Ollama](./faq#ollama) for API details and troubleshooting.
+
+## Permissions
+
+Grant **Accessibility** (and related permissions) on macOS so selection and paste automation work reliably. On Linux Wayland, configure a system shortcut — see [FAQ — Linux Wayland compatibility](./faq#linux-wayland-compatibility).
+
+## Next steps
+
+- [Quickstart](./quickstart) — Select text, trigger typo, and get results.
+- [Account](./account) — Sign in with OAuth 2.0 device flow.
+- [Slash prompts](./slash-prompts) — `/command` shortcuts from selected text.
+- [FAQ](./faq) — Platform install notes and troubleshooting.

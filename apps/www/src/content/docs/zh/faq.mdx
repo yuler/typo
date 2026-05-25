@@ -2,10 +2,10 @@
 title: 常见问题
 description: macOS 和 Linux 的平台说明、Wayland 快捷键以及 Ollama。
 sidebar:
-  order: 6
+  order: 5
 ---
 
-## macOS
+## macOS {#macos}
 
 - 将应用复制到 `/Applications` 后，您可能需要清除隔离状态：
 
@@ -15,7 +15,7 @@ sidebar:
 
 - 在 **系统设置** 中为 typo 启用 **辅助功能**（及相关权限），以便选中文本和自动粘贴能够可靠工作。
 
-## Linux 安装 (AppImage)
+## Linux 安装 (AppImage) {#linux-installation-appimage}
 
 为了便于安装和自动更新，我们推荐使用 **AppImage** 版本：
 
@@ -52,7 +52,7 @@ curl -L -o ~/.local/share/icons/hicolor/256x256/apps/typo.png https://raw.github
 
 如果您的桌面没有识别 `Icon=typo`，请将 `Icon` 设置为 `.desktop` 文件中该 PNG 的绝对路径，或者运行 `gtk-update-icon-cache ~/.local/share/icons/hicolor`。
 
-## Linux Wayland 兼容性
+## Linux Wayland 兼容性 {#linux-wayland-compatibility}
 
 Wayland 出于安全原因限制了全局快捷键监听器。请使用 **系统快捷键**，而不仅仅依赖应用内的快捷键。
 
@@ -103,7 +103,7 @@ Exec=/usr/bin/ydotoold
 code --ozone-platform=x11
 ```
 
-## Ollama
+## Ollama {#ollama}
 
 - 确保 Ollama 正在运行：`ollama serve`。
 - 请参阅 [Ollama API 文档](https://github.com/ollama/ollama/blob/main/docs/api.md) 获取请求/响应详情和模型管理信息。

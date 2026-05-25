@@ -1,0 +1,47 @@
+---
+title: 安装与设置
+description: 下载 typo、从源码运行、配置模型并授予系统权限。
+sidebar:
+  order: 1
+---
+
+typo 是一款 Tauri + Vue 桌面应用，用 AI 优化选中文本并在光标处替换。
+
+## 下载
+
+请[从 GitHub Releases 下载预编译安装包](https://github.com/yuler/typo/releases)。在 macOS 上，复制到 `/Applications` 后可能需要清除隔离属性 — 见[常见问题 — macOS](./faq#macos)。在 Linux 上，推荐使用[常见问题 — Linux 安装（AppImage）](./faq#linux-installation-appimage)中的流程。
+
+## 从源码开发
+
+在仓库根目录执行：
+
+```bash
+pnpm install
+pnpm desktop:dev
+```
+
+### 先决条件
+
+- [Node.js](https://nodejs.org/)（版本见 `.nvmrc`）
+- [pnpm](https://pnpm.io/)
+- Rust 工具链及 [Tauri 2](https://v2.tauri.app/start/prerequisites/) 平台依赖
+
+## 模型
+
+typo 不绑定单一模型：
+
+- 在支持的场景下连接 **DeepSeek** 等云端模型。
+- 使用 **Ollama** 本地运行 — 使用前请启动 `ollama serve` 并拉取模型。
+
+API 与排错请参阅[常见问题 — Ollama](./faq#ollama)。
+
+## 权限
+
+在 macOS 上授予 **辅助功能** 等权限，以便可靠地捕获选区并粘贴。在 Linux Wayland 上需配置系统快捷键 — 见[常见问题 — Linux Wayland 兼容性](./faq#linux-wayland-compatibility)。
+
+## 后续步骤
+
+- [快速上手](./quickstart) — 选中文本、触发 typo、获取结果。
+- [账户](./account) — 使用 OAuth 2.0 设备授权登录。
+- [斜杠提示词](./slash-prompts) — 从选中文本触发 `/command`。
+- [常见问题](./faq) — 各平台安装说明与排错。

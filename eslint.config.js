@@ -5,7 +5,7 @@ export default antfu({
     files: ['apps/desktop/**'],
   },
   react: {
-    files: ['apps/www/**'],
+    files: ['apps/www/**/*.{tsx,jsx}'],
   },
   formatters: {
     astro: true,

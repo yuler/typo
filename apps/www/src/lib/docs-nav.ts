@@ -1,17 +1,16 @@
-import type { CollectionEntry } from 'astro:content'
 import type { Locale } from '@typo/languages'
+import type { CollectionEntry } from 'astro:content'
 import { defaultLocale, locales } from '@typo/languages'
 
-/** Slug for locale overview pages (`docs.md`, `zh/docs.md`, …). Excluded from guide nav/cards. */
-export const DOCS_OVERVIEW_SLUG = 'docs'
+/** Slug for locale overview pages (`overview.md`, `zh/overview.md`, …). Excluded from guide nav/cards. */
+export const DOCS_OVERVIEW_SLUG = 'overview'
 
 /** Default sidebar / index card order for docs collection entries. */
 export const DOCS_NAV_ORDER = [
-  'getting-started',
-  'features',
-  'usage',
-  'authentication',
-  'prompt-shortcuts',
+  'install-and-setup',
+  'quickstart',
+  'account',
+  'slash-prompts',
   'faq',
 ] as const
 

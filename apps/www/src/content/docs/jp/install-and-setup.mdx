@@ -1,0 +1,47 @@
+---
+title: インストールとセットアップ
+description: typo のダウンロード、ソースからの実行、モデル設定、権限の付与。
+sidebar:
+  order: 1
+---
+
+typo は Tauri + Vue のデスクトップアプリで、選択テキストを AI で改善し、カーソル位置に置き換えます。
+
+## ダウンロード
+
+[GitHub Releases からビルド済みインストーラーを入手](https://github.com/yuler/typo/releases)してください。macOS では `/Applications` にコピーしたあと隔離属性の解除が必要な場合があります — [よくある質問 — macOS](./faq#macos) を参照。Linux では [よくある質問 — Linux インストール（AppImage）](./faq#linux-installation-appimage) の手順を推奨します。
+
+## ソースから開発
+
+リポジトリのルートで：
+
+```bash
+pnpm install
+pnpm desktop:dev
+```
+
+### 前提条件
+
+- [Node.js](https://nodejs.org/)（`.nvmrc` を参照）
+- [pnpm](https://pnpm.io/)
+- Rust ツールチェーンと [Tauri 2](https://v2.tauri.app/start/prerequisites/) のプラットフォーム依存関係
+
+## モデル
+
+typo は特定のモデルに縛られません：
+
+- 対応している **DeepSeek** などのクラウドモデルに接続。
+- **Ollama** でローカル実行 — 使用前に `ollama serve` を起動しモデルを pull。
+
+API とトラブルシュートは [よくある質問 — Ollama](./faq#ollama) を参照。
+
+## 権限
+
+macOS では選択と貼り付け自動化のため **アクセシビリティ** などを許可してください。Linux Wayland ではシステムショートカットの設定が必要です — [よくある質問 — Linux Wayland 互換性](./faq#linux-wayland-compatibility)。
+
+## 次のステップ
+
+- [クイックスタート](./quickstart) — テキストを選択し、typo を起動して結果を得る。
+- [アカウント](./account) — OAuth 2.0 デバイスフローでサインイン。
+- [スラッシュプロンプト](./slash-prompts) — 選択テキストから `/command` を実行。
+- [よくある質問](./faq) — プラットフォーム別のインストールとトラブルシュート。

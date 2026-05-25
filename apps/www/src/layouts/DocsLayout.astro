@@ -21,8 +21,7 @@ const isIndex = pathname === docsPath.replace(/\/$/, '') || (docsPath === '/' &&
 
 function linkActive(href: string) {
   const h = getLocalizedPath(href, locale).replace(/\/$/, '') || '/'
-  if (h === docsPath.replace(/\/$/, '') || (docsPath === '/' && h === '/'))
-    return isIndex
+  if (h === docsPath.replace(/\/$/, '') || (docsPath === '/' && h === '/')) return isIndex
   return pathname === h || pathname.startsWith(`${h}/`)
 }
 ---
