@@ -5,6 +5,11 @@ sidebar:
   order: 1
 ---
 
+import clickApprove from '@/assets/docs/install-and-setup/04-click-approve.png'
+import clickOpen from '@/assets/docs/install-and-setup/02-click-open.png'
+import clickOpenBrowser from '@/assets/docs/install-and-setup/03-click-open-browser.png'
+import dragToApplications from '@/assets/docs/install-and-setup/01-drag-to-applications.png'
+
 typo は Tauri + Vue のデスクトップアプリで、選択テキストを AI で改善し、カーソル位置に置き換えます。
 
 ## ダウンロード
@@ -17,7 +22,21 @@ typo は Tauri + Vue のデスクトップアプリで、選択テキストを A
 
   1. `typo.dmg` を開きます。
   2. typo アイコンを **アプリケーション** フォルダにドラッグします。
+
+  <DocImage
+    src={dragToApplications}
+    alt="macOS で typo.dmg を開き、typo をアプリケーションへドラッグし、アプリケーションから typo.app を開く 3 つの手順。"
+    caption="typo をアプリケーションへドラッグしてインストールします。"
+  />
+
   3. **アプリケーション** から typo を起動します。セキュリティの確認が出たら **開く** をクリックします。
+
+  <DocImage
+    src={clickOpen}
+    alt="macOS のセキュリティ確認ダイアログで「開く」ボタンが強調表示されている。"
+    caption="macOS で確認を求められたら「開く」を選びます。"
+  />
+
   4. アカウントにサインインします。
   5. **システム設定** で typo の **アクセシビリティ** を有効にし、選択テキストの取得と処理後の置換を行えるようにします。
   6. カスタムショートカットを設定します。既定は `Ctrl + Shift + X` です。
@@ -47,6 +66,24 @@ typo は Tauri + Vue のデスクトップアプリで、選択テキストを A
   </Tab>
 
 </Tabs>
+
+## デバイスを認証
+
+サインイン後、typo はデスクトップアプリに認証コードを表示します。**ブラウザを開く** をクリックして続行します。
+
+<DocImage
+  src={clickOpenBrowser}
+  alt="typo デスクトップの認証ダイアログで「ブラウザを開く」ボタンを示している。"
+  caption="デスクトップの認証ダイアログからブラウザを開きます。"
+/>
+
+ブラウザで同じコードを承認すると、デバイス認証が完了します。
+
+<DocImage
+  src={clickApprove}
+  alt="ブラウザのデバイス認証ページで「承認」ボタンを示している。"
+  caption="一致するコードを承認してデバイスを認証します。"
+/>
 
 ## 次のステップ
 
