@@ -75,7 +75,7 @@ const groupId = syncKey ?? 'tabs'
       panel.setAttribute('aria-labelledby', btn.id)
     })
 
-    list.addEventListener('keydown', (e: KeyboardEvent) => {
+    list.addEventListener('keydown', ((e: KeyboardEvent) => {
       const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
       const current = tabs.findIndex((t) => t === document.activeElement)
       if (current < 0) return
@@ -96,7 +96,7 @@ const groupId = syncKey ?? 'tabs'
         tabs[next].focus()
         select(next)
       }
-    })
+    }) as EventListener)
 
     let initial = 0
     try {
