@@ -32,23 +32,6 @@
 
 html {
   scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-html::-webkit-scrollbar {
-  display: none;
-}
-
-*,
-*::before,
-*::after {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-*::-webkit-scrollbar {
-  display: none;
 }
 
 /* Dark: Shiki block code surface (light uses typography `prose-pre:*`). */

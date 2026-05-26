@@ -4,7 +4,7 @@ interface Props {
 }
 
 const { syncKey } = Astro.props
-const groupId = syncKey ?? `tabs-${Math.random().toString(36).slice(2, 9)}`
+const groupId = syncKey ?? 'tabs'
 ---
 
 <div class="mdx-tabs not-prose my-6" data-tabs-root={groupId}>
@@ -70,6 +70,29 @@ const groupId = syncKey ?? `tabs-${Math.random().toString(36).slice(2, 9)}`
       panel.id = `${groupId}-panel-${index}`
       panel.setAttribute('role', 'tabpanel')
       panel.setAttribute('aria-labelledby', btn.id)
+    })
+
+    list.addEventListener('keydown', (e: KeyboardEvent) => {
+      const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
+      const current = tabs.findIndex(t => t === document.activeElement)
+      if (current < 0) return
+
+      let next = -1
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        next = (current + 1) % tabs.length
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        next = (current - 1 + tabs.length) % tabs.length
+      } else if (e.key === 'Home') {
+        next = 0
+      } else if (e.key === 'End') {
+        next = tabs.length - 1
+      }
+
+      if (next >= 0) {
+        e.preventDefault()
+        tabs[next].focus()
+        select(next)
+      }
     })
 
     let initial = 0

@@ -27,6 +27,7 @@ const localeMap: Record<string, Locale> = {
   en: 'en',
   zh: 'zh',
   jp: 'jp',
+  ja: 'jp',
 }
 
 export function getLocale(currentLocale?: string): Locale {

@@ -65,7 +65,12 @@ export function sortDocsEntries(entries: DocsNavEntry[]): DocsNavEntry[] {
     .filter((e): e is DocsNavEntry => Boolean(e))
   const rest = entries
     .filter(e => !navOrder.includes(e.slug) && e.slug !== DOCS_OVERVIEW_SLUG)
-    .sort((a, b) => a.entry.data.title.localeCompare(b.entry.data.title))
+    .sort((a, b) => {
+      const orderA = a.entry.data.sidebar?.order ?? 999
+      const orderB = b.entry.data.sidebar?.order ?? 999
+      if (orderA !== orderB) return orderA - orderB
+      return a.entry.data.title.localeCompare(b.entry.data.title)
+    })
   return [...ordered, ...rest]
 }
 
