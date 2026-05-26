@@ -118,6 +118,7 @@ const groupId = syncKey ?? 'tabs'
   }
 
   function initAll() {
+    tabsCounter = 0
     document.querySelectorAll<HTMLElement>('[data-tabs-root]').forEach(initTabs)
   }
 

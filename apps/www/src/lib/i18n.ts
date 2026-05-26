@@ -52,6 +52,9 @@ export function tr(astro: { currentLocale?: string }) {
  * Returns a path prefixed for the given locale (`/zh/blog/...`; default locale has no prefix).
  */
 export function getLocalizedPath(path: string, locale: Locale): string {
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('//') || path.startsWith('#') || path.startsWith('mailto:') || path.startsWith('tel:')) {
+    return path
+  }
   // Strip existing locale prefix if any to avoid double prefixing
   const segments = path.split('/').filter(Boolean)
   const isLocale = ([...locales, 'ja'] as string[]).includes(segments[0] || '')
