@@ -22,6 +22,9 @@ const groupId = syncKey ?? 'tabs'
 
 <script>
   function initTabs(root: HTMLElement) {
+    if (root.dataset.tabsInitialized === 'true') return
+    root.dataset.tabsInitialized = 'true'
+
     const list = root.querySelector('[data-tabs-list]')
     const panels = [...root.querySelectorAll<HTMLElement>('[data-tab-panel]')]
     if (!list || panels.length === 0) return
