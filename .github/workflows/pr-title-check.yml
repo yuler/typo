@@ -1,0 +1,30 @@
+name: pr-title-check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  title-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title format
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # PR title must match: <emoji> [<scope>]: <content>
+          # e.g. ✨ [desktop,core]: Implement auth heartbeat
+          pattern='^[^ ]+ \[[a-zA-Z,]+\]: .+'
+          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
+            echo "::error::PR title does not follow the required format."
+            echo ""
+            echo "Expected format: <emoji> [<scope>]: <description>"
+            echo "Examples:"
+            echo "  ✨ [desktop,core]: Implement auth heartbeat and session revocation detection"
+            echo "  🐛 [ui]: Fix button alignment"
+            echo "  📝 [docs]: Update readme"
+            echo ""
+            echo "Your title: $PR_TITLE"
+            exit 1
+          fi
+          echo "PR title format is valid: $PR_TITLE"
