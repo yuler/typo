@@ -1,4 +1,8 @@
 ---
+import type { ImageMetadata } from 'astro'
+import gonghuiAvatar from '@/assets/testimonials/gonghui.png'
+import jianwuAvatar from '@/assets/testimonials/jianwu.png'
+import yulerAvatar from '@/assets/testimonials/yuler.png'
 import { getLocalizedPath } from '@/lib/i18n'
 
 const { locale, tr } = Astro.locals
@@ -7,8 +11,7 @@ type Testimonial = {
   quote: string
   name: string
   role: string
-  /** Optional avatar URL under `public/` (e.g. `/testimonials/yuler.png`). */
-  image?: string
+  image?: ImageMetadata
 }
 
 const items: Testimonial[] = [
@@ -16,19 +19,19 @@ const items: Testimonial[] = [
     quote: tr('testimonials.quote.yuler'),
     name: 'Yuler',
     role: tr('testimonials.role.creator'),
-    image: '/testimonials/yuler.png',
+    image: yulerAvatar,
   },
   {
     quote: tr('testimonials.quote.jianwu'),
     name: 'JianWu',
     role: tr('testimonials.role.co_founder'),
-    image: '/testimonials/jianwu.png',
+    image: jianwuAvatar,
   },
   {
     quote: tr('testimonials.quote.gonghui'),
     name: 'GongHui',
     role: tr('testimonials.role.co_founder'),
-    image: '/testimonials/gonghui.png',
+    image: gonghuiAvatar,
   },
 ]
 
@@ -68,7 +71,7 @@ const descriptionHTML = tr('testimonials.description', {
                 <footer class="mt-4 flex items-center gap-2.5 border-t border-zinc-200/80 pt-3 dark:border-zinc-800/80">
                   {image ? (
                     <img
-                      src={image}
+                      src={image.src}
                       alt={name}
                       width="36"
                       height="36"
