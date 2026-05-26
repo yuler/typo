@@ -95,7 +95,8 @@ export async function getI18nCollectionStaticPaths(collection: 'blog' | 'docs') 
         continue
     }
     else {
-      const parts = entry.id.split('/')
+      const normalizedId = entry.id.replace(/\\/g, '/')
+      const parts = normalizedId.split('/')
       if (locales.includes(parts[0] as Locale)) {
         entryLocale = parts[0] as Locale
         slug = parts.slice(1).join('/')

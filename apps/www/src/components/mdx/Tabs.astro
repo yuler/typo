@@ -1,9 +1,10 @@
 ---
 interface Props {
   syncKey?: string
+  ariaLabel?: string
 }
 
-const { syncKey } = Astro.props
+const { syncKey, ariaLabel = 'Tabs' } = Astro.props
 const groupId = syncKey ?? 'tabs'
 ---
 
@@ -12,7 +13,7 @@ const groupId = syncKey ?? 'tabs'
     role="tablist"
     class="flex flex-wrap gap-1 border-b border-zinc-200 dark:border-zinc-800"
     data-tabs-list
-    aria-label="Platform"
+    aria-label={ariaLabel}
   >
   </div>
   <div class="pt-4" data-tabs-panels>
@@ -21,6 +22,8 @@ const groupId = syncKey ?? 'tabs'
 </div>
 
 <script>
+  let tabsCounter = 0
+
   function initTabs(root: HTMLElement) {
     if (root.dataset.tabsInitialized === 'true') return
     root.dataset.tabsInitialized = 'true'
@@ -29,7 +32,10 @@ const groupId = syncKey ?? 'tabs'
     const panels = [...root.querySelectorAll<HTMLElement>('[data-tab-panel]')]
     if (!list || panels.length === 0) return
 
-    const groupId = root.dataset.tabsRoot ?? 'tabs'
+    let groupId = root.dataset.tabsRoot ?? 'tabs'
+    if (groupId === 'tabs') {
+      groupId = `tabs-${tabsCounter++}`
+    }
     const storageKey = `mdx-tabs:${groupId}`
 
     function select(index: number) {
