@@ -1,0 +1,22 @@
+{
+  "name": "@typo/logo",
+  "type": "module",
+  "version": "1.5.4",
+  "private": true,
+  "exports": {
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "assets",
+    "dist",
+    "scripts"
+  ],
+  "scripts": {
+    "build": "node --experimental-strip-types scripts/build.ts",
+    "sync": "pnpm build && node --experimental-strip-types scripts/sync.ts",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
+  }
+}
