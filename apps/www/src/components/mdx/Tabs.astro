@@ -74,7 +74,7 @@ const groupId = syncKey ?? 'tabs'
 
     list.addEventListener('keydown', (e: KeyboardEvent) => {
       const tabs = [...list.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
-      const current = tabs.findIndex(t => t === document.activeElement)
+      const current = tabs.findIndex((t) => t === document.activeElement)
       if (current < 0) return
 
       let next = -1

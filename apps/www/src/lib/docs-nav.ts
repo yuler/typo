@@ -68,7 +68,8 @@ export function sortDocsEntries(entries: DocsNavEntry[]): DocsNavEntry[] {
     .sort((a, b) => {
       const orderA = a.entry.data.sidebar?.order ?? 999
       const orderB = b.entry.data.sidebar?.order ?? 999
-      if (orderA !== orderB) return orderA - orderB
+      if (orderA !== orderB)
+        return orderA - orderB
       return a.entry.data.title.localeCompare(b.entry.data.title)
     })
   return [...ordered, ...rest]
