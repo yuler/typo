@@ -5,6 +5,11 @@ sidebar:
   order: 1
 ---
 
+import clickApprove from '@/assets/docs/install-and-setup/04-click-approve.png'
+import clickOpen from '@/assets/docs/install-and-setup/02-click-open.png'
+import clickOpenBrowser from '@/assets/docs/install-and-setup/03-click-open-browser.png'
+import dragToApplications from '@/assets/docs/install-and-setup/01-drag-to-applications.png'
+
 typo is a Tauri + Vue desktop app that refines selected text with AI and replaces it at your cursor.
 
 ## Download
@@ -17,7 +22,22 @@ Get the latest build from the [typo download page](/downloads). For older builds
 
   1. Open `typo.dmg`.
   2. Drag the typo icon into the **Applications** folder.
+  
+
+  <DocImage
+    src={dragToApplications}
+    alt="Three macOS installation panels showing typo.dmg in Downloads, dragging typo into Applications, and opening typo.app from Applications."
+    caption="Install typo by dragging the app into Applications."
+  />
+
   3. Launch typo from **Applications**. If you see a security prompt, click **Open**.
+
+  <DocImage
+    src={clickOpen}
+    alt="macOS security prompt for opening typo, with the Open button highlighted."
+    caption="If macOS asks for confirmation, choose Open."
+  />
+
   4. Sign in to your account.
   5. In **System Settings**, enable **Accessibility** for typo so it can read the selection and replace it after processing.
   6. Set a custom hotkey; the default is `Ctrl + Shift + X`.
@@ -47,6 +67,24 @@ Get the latest build from the [typo download page](/downloads). For older builds
   </Tab>
 
 </Tabs>
+
+## Authorize device
+
+After signing in, typo shows an authorization code in the desktop app. Click **Open Browser** to continue.
+
+<DocImage
+  src={clickOpenBrowser}
+  alt="typo desktop authorization dialog with a tip pointing to the Open Browser button."
+  caption="Open the browser from the desktop authorization dialog."
+/>
+
+Approve the same code in your browser to finish device authorization.
+
+<DocImage
+  src={clickApprove}
+  alt="Browser authorization page with a tip pointing to the approve button."
+  caption="Approve the matching code to authorize the device."
+/>
 
 ## Next steps
 

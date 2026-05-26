@@ -1,0 +1,29 @@
+---
+import type { ImageMetadata } from 'astro'
+
+interface Props {
+  src: string | ImageMetadata
+  alt: string
+  caption?: string
+}
+
+const { src, alt, caption } = Astro.props
+const imageSrc = typeof src === 'string' ? src : src.src
+---
+
+<figure class="not-prose my-5 mb-6">
+  <img
+    src={imageSrc}
+    alt={alt}
+    loading="lazy"
+    decoding="async"
+    class="block h-auto w-full rounded-xl border border-zinc-200 bg-zinc-50 shadow-[0_14px_40px_rgb(24_24_27_/_0.08)] dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-[0_14px_40px_rgb(0_0_0_/_0.3)]"
+  />
+  {
+    caption && (
+      <figcaption class="mt-2.5 text-center text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+        {caption}
+      </figcaption>
+    )
+  }
+</figure>
