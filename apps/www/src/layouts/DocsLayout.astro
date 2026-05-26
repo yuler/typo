@@ -1,21 +1,23 @@
 ---
 import { getCollection } from 'astro:content'
-import Footer from '@/components/Footer.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
-import { sortDocsEntries } from '@/lib/docs-nav'
+import { getLocalizedDocsEntries, sortDocsEntries } from '@/lib/docs-nav'
+import { docsSidebarLinkClass } from '@/lib/docs-sidebar-link'
 import { getLocalizedPath } from '@/lib/i18n'
 
 interface Props {
   title: string
   description?: string
+  /** Wider main column on large screens (docs index). */
+  wide?: boolean
 }
 
-const { locale, t } = Astro.locals
-const { title, description = t('docs.default_description') } = Astro.props
+const { locale, tr } = Astro.locals
+const { title, description = tr('docs.default_description'), wide = false } = Astro.props
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/'
 
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-const sidebarDocs = sortDocsEntries(entries)
+const sidebarDocs = sortDocsEntries(getLocalizedDocsEntries(entries, locale))
 
 const docsPath = getLocalizedPath('/docs', locale)
 const isIndex = pathname === docsPath.replace(/\/$/, '') || (docsPath === '/' && pathname === '/')
@@ -28,73 +30,64 @@ function linkActive(href: string) {
 ---
 
 <BaseLayout title={title} description={description}>
-  <div class="docs-vp flex min-h-[calc(100dvh-3.5rem)] flex-col bg-white dark:bg-zinc-950 lg:flex-row">
-    <!-- Mobile: horizontal doc nav (VitePress-style top strip) -->
+  <div
+    class="flex min-h-[calc(100dvh-var(--site-header-height)-var(--site-footer-height))] flex-col bg-white dark:bg-zinc-900 lg:flex-row"
+  >
     <nav
-      class="sticky top-14 z-40 border-b border-zinc-200 bg-zinc-50/95 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/95 lg:hidden"
-      aria-label={t('docs.mobile_nav_aria')}
+      class="sticky top-[var(--site-header-height)] z-40 border-b border-zinc-200 bg-zinc-50/95 backdrop-blur-sm dark:border-zinc-700 dark:bg-zinc-900/95 lg:hidden"
+      aria-label={tr('docs.mobile_nav_aria')}
     >
       <div class="no-scrollbar flex gap-1 overflow-x-auto px-4 py-2.5">
         <a
           href={getLocalizedPath('/docs', locale)}
           class:list={[
-            'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            'shrink-0 rounded-md px-3 py-1.5 text-base font-medium transition-colors',
             isIndex
               ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950'
               : 'text-zinc-600 hover:bg-zinc-200/80 dark:text-zinc-400 dark:hover:bg-zinc-800/80',
           ]}
         >
-          {t('docs.nav.overview')}
+          {tr('docs.nav.overview')}
         </a>
         {
           sidebarDocs.map((doc) => (
             <a
-              href={getLocalizedPath(`/docs/${doc.id}`, locale)}
+              href={getLocalizedPath(`/docs/${doc.slug}`, locale)}
               class:list={[
-                'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                linkActive(`/docs/${doc.id}`)
+                'shrink-0 rounded-md px-3 py-1.5 text-base font-medium transition-colors',
+                linkActive(`/docs/${doc.slug}`)
                   ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950'
                   : 'text-zinc-600 hover:bg-zinc-200/80 dark:text-zinc-400 dark:hover:bg-zinc-800/80',
               ]}
             >
-              {doc.data.title}
+              {doc.entry.data.title}
             </a>
           ))
         }
       </div>
     </nav>
 
-    <!-- Desktop sidebar -->
     <aside
-      class="hidden shrink-0 border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/40 lg:block lg:w-[272px] lg:border-r"
+      class="hidden shrink-0 border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800/40 lg:block lg:min-h-[calc(100dvh-var(--site-header-height)-var(--site-footer-height))] lg:w-[272px] lg:border-r"
     >
       <nav
-        class="docs-sidebar-nav no-scrollbar sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto px-5 py-8"
-        aria-label={t('docs.nav_aria')}
+        class="no-scrollbar sticky top-[var(--site-header-height)] max-h-[calc(100dvh-var(--site-header-height)-var(--site-footer-height))] overflow-y-auto px-5 py-8"
+        aria-label={tr('docs.nav_aria')}
       >
         <ul class="space-y-0.5">
           <li>
-            <a
-              href={getLocalizedPath('/docs', locale)}
-              class:list={[
-                'docs-sidebar-link block rounded-none py-2 pl-3 pr-2 text-sm transition-colors',
-                isIndex && 'docs-sidebar-link--active',
-              ]}
-            >
-              {t('docs.nav.overview')}
+            <a href={getLocalizedPath('/docs', locale)} class:list={docsSidebarLinkClass(isIndex)}>
+              {tr('docs.nav.overview')}
             </a>
           </li>
           {
             sidebarDocs.map((doc) => (
               <li>
                 <a
-                  href={getLocalizedPath(`/docs/${doc.id}`, locale)}
-                  class:list={[
-                    'docs-sidebar-link block rounded-none py-2 pl-3 pr-2 text-sm transition-colors',
-                    linkActive(`/docs/${doc.id}`) && 'docs-sidebar-link--active',
-                  ]}
+                  href={getLocalizedPath(`/docs/${doc.slug}`, locale)}
+                  class:list={docsSidebarLinkClass(linkActive(`/docs/${doc.slug}`))}
                 >
-                  {doc.data.title}
+                  {doc.entry.data.title}
                 </a>
               </li>
             ))
@@ -103,9 +96,13 @@ function linkActive(href: string) {
       </nav>
     </aside>
 
-    <!-- Main doc surface -->
-    <div class="min-w-0 flex-1">
-      <div class="mx-auto max-w-[768px] px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+    <div class="h-auto min-w-0 w-full flex-1">
+      <div
+        class:list={[
+          'mx-auto h-auto w-full px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12',
+          wide ? 'max-w-7xl' : 'max-w-5xl',
+        ]}
+      >
         <slot />
       </div>
     </div>

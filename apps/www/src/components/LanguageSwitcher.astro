@@ -1,10 +1,9 @@
 ---
 import { localeFlags, localeNames, locales } from '@typo/languages'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import { getLocalizedPath } from '@/lib/i18n'
 import LanguageDropdown from './LanguageDropdown.tsx'
 
-const current = getLocale(Astro.currentLocale)
-const { t } = Astro.locals
+const { locale: current, tr } = Astro.locals
 
 const items = locales.map((l) => ({
   code: l,
@@ -15,4 +14,4 @@ const items = locales.map((l) => ({
 }))
 ---
 
-<LanguageDropdown client:load items={items} ariaLabel={t('header.switcher_aria')} />
+<LanguageDropdown client:load items={items} ariaLabel={tr('header.switcher_aria')} />

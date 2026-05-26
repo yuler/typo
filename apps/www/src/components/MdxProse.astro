@@ -1,0 +1,45 @@
+---
+interface Props {
+  variant?: 'blog' | 'docs'
+  class?: string
+}
+
+const { variant = 'blog', class: className } = Astro.props
+
+/** Light mode: Tailwind Typography (matches markdown-prose spec). */
+const lightProse = [
+  'markdown-prose prose prose-gray max-w-none',
+  'prose-headings:font-bold prose-headings:text-gray-900 prose-headings:font-mono',
+  'prose-h2:text-xl prose-h2:md:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-2',
+  'prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4',
+  'prose-a:break-all prose-a:text-gray-900 prose-a:underline! prose-a:underline-offset-4',
+  'prose-a:decoration-gray-400 prose-a:hover:decoration-gray-900',
+  'prose-strong:text-gray-900 prose-strong:font-semibold',
+  'prose-code:text-gray-800 prose-code:text-xs prose-code:before:content-none prose-code:after:content-none',
+  'prose-pre:rounded-none prose-pre:border prose-pre:border-gray-300',
+  'prose-pre:code:bg-transparent prose-pre:code:p-0 prose-pre:code:rounded-none',
+  'prose-ul:my-4 prose-ul:pl-6 prose-ol:my-4 prose-ol:pl-6',
+  'prose-li:my-1 prose-li:text-gray-700',
+  'prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:bg-gray-50',
+  'prose-blockquote:pl-4 prose-blockquote:py-2 prose-blockquote:my-4 prose-blockquote:not-italic prose-blockquote:text-gray-600',
+  'prose-hr:border-gray-200 prose-hr:my-8',
+  'prose-table:w-full prose-table:border-collapse prose-table:my-4',
+  'prose-th:border prose-th:border-gray-200 prose-th:bg-gray-50 prose-th:p-2 prose-th:text-left',
+  'prose-th:text-gray-900 prose-th:font-semibold prose-th:text-sm prose-th:font-mono',
+  'prose-td:border prose-td:border-gray-200 prose-td:p-2 prose-td:text-gray-700 prose-td:text-sm',
+  variant === 'blog' ? 'prose-sm leading-relaxed text-gray-900' : 'leading-relaxed text-gray-900',
+].join(' ')
+
+/** Dark mode: invert prose + code block / Shiki tweaks. */
+const darkProse = [
+  'dark:prose-invert',
+  'dark:prose-headings:text-zinc-50 dark:prose-p:text-zinc-300 dark:prose-li:text-zinc-300',
+  'dark:prose-h2:border-zinc-700 dark:prose-blockquote:border-zinc-600 dark:prose-blockquote:bg-zinc-800/40',
+  'dark:prose-pre:rounded-lg dark:prose-pre:border-zinc-600',
+  'dark:prose-code:border-zinc-600 dark:prose-code:bg-zinc-800/80 dark:prose-code:text-zinc-200',
+].join(' ')
+---
+
+<div class:list={['mdx-prose', lightProse, darkProse, className]}>
+  <slot />
+</div>

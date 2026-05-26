@@ -4,6 +4,6 @@
 declare namespace App {
   interface Locals {
     locale: import('@typo/languages').Locale
-    t: ReturnType<typeof import('./lib/i18n').$t>
+    tr: ReturnType<typeof import('./lib/i18n').$t>
   }
 }

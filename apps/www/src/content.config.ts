@@ -9,6 +9,9 @@ const docs = defineCollection({
     description: z.string(),
     pubDate: z.coerce.date().optional(),
     draft: z.boolean().optional().default(false),
+    sidebar: z.object({
+      order: z.number().optional(),
+    }).optional(),
   }),
 })
 

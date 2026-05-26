@@ -74,7 +74,7 @@ export default function LanguageDropdown({ items, ariaLabel }: LanguageDropdownP
 
       {open && (
         <div
-          className="absolute right-0 z-50 mt-2 w-44 origin-top-right overflow-hidden rounded-xl border border-zinc-200 bg-white/95 p-1.5 shadow-xl backdrop-blur-md ring-1 ring-black/5 animate-dropdown-in dark:border-zinc-800 dark:bg-zinc-950/95"
+          className="absolute right-0 z-50 mt-2 w-44 origin-top-right overflow-hidden rounded-xl border border-zinc-200 bg-white/95 p-1.5 shadow-xl backdrop-blur-md ring-1 ring-black/5 animate-dropdown-in dark:border-zinc-800 dark:bg-zinc-800/95"
           role="menu"
           aria-orientation="vertical"
         >

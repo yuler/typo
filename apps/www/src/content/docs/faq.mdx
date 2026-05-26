@@ -1,9 +1,11 @@
 ---
 title: FAQ
 description: Platform notes for macOS and Linux, Wayland hotkeys, and Ollama.
+sidebar:
+  order: 5
 ---
 
-## macOS
+<h2 id="macos">macOS</h2>
 
 - After copying the app to `/Applications`, you may need to clear quarantine:
 
@@ -13,7 +15,7 @@ description: Platform notes for macOS and Linux, Wayland hotkeys, and Ollama.
 
 - Enable **Accessibility** (and related permissions) for typo in **System Settings** so selection and paste automation work reliably.
 
-## Linux installation (AppImage)
+<h2 id="linux-installation-appimage">Linux installation (AppImage)</h2>
 
 For installation and auto-updates, we recommend the **AppImage** build:
 
@@ -50,7 +52,7 @@ curl -L -o ~/.local/share/icons/hicolor/256x256/apps/typo.png https://raw.github
 
 If your desktop does not pick up `Icon=typo`, set `Icon` to the absolute path of that PNG in the `.desktop` file, or run `gtk-update-icon-cache ~/.local/share/icons/hicolor`.
 
-## Linux Wayland compatibility
+<h2 id="linux-wayland-compatibility">Linux Wayland compatibility</h2>
 
 Wayland restricts global hotkey listeners for security. Use a **system shortcut** instead of relying only on in-app hotkeys.
 
@@ -101,7 +103,7 @@ If selection capture fails in some Electron apps, try running them in X11 mode, 
 code --ozone-platform=x11
 ```
 
-## Ollama
+<h2 id="ollama">Ollama</h2>
 
 - Ensure Ollama is running: `ollama serve`.
 - See the [Ollama API documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) for request/response details and model management.

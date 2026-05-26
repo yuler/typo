@@ -28,7 +28,7 @@ defineProps<{
 const emit = defineEmits(['navigateToShortcut', 'navigateToTab'])
 
 const WEBSITE_URL = 'https://typo.yuler.cc'
-const DOCS_URL = 'https://typo.yuler.cc/docs/getting-started'
+const DOCS_URL = 'https://typo.yuler.cc/docs/quickstart'
 
 const { isLoggedIn, login } = useAuth()
 const { t } = useI18n()

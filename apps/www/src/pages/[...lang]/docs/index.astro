@@ -1,43 +1,62 @@
 ---
-import { getCollection } from 'astro:content'
+import { getCollection, render } from 'astro:content'
+import MdxProse from '@/components/MdxProse.astro'
 import DocsLayout from '@/layouts/DocsLayout.astro'
-import { sortDocsEntries } from '@/lib/docs-nav'
+import { components as mdxComponents } from '@/mdx-components'
+import { DOCS_OVERVIEW_SLUG, getLocalizedDocsEntries, isDocsGuideSlug, sortDocsEntries } from '@/lib/docs-nav'
 import { getI18nStaticPaths, getLocalizedPath } from '@/lib/i18n'
 
 export { getI18nStaticPaths as getStaticPaths }
 
-const { locale, t } = Astro.locals
+const { locale, tr } = Astro.locals
 const entries = await getCollection('docs', ({ data }) => import.meta.env.DEV || !data.draft)
-const cards = sortDocsEntries(entries)
+const cards = sortDocsEntries(getLocalizedDocsEntries(entries, locale)).filter((d) => isDocsGuideSlug(d.slug))
+const overviewEntry = getLocalizedDocsEntries(entries, locale).find((d) => d.slug === DOCS_OVERVIEW_SLUG)?.entry
+const { Content: OverviewContent } = overviewEntry ? await render(overviewEntry) : { Content: null }
 ---
 
-<DocsLayout title={t('page.docs.title')} description={t('page.docs.description')}>
-  <h1 class="text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">
-    {t('page.docs.heading')}
-  </h1>
-  <p class="mt-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-    {t('page.docs.p')}
-  </p>
+<DocsLayout title={tr('page.docs.title')} description={tr('page.docs.description')} wide>
+  {
+    OverviewContent ? (
+      <MdxProse
+        variant="docs"
+        class="mb-10 text-center [&_a]:text-xl [&_li]:text-xl [&_li]:leading-9 [&_p]:text-xl [&_p]:leading-9"
+      >
+        <OverviewContent components={mdxComponents} />
+      </MdxProse>
+    ) : (
+      <>
+        <h1 class="text-[2.25rem] font-bold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">
+          {tr('page.docs.heading')}
+        </h1>
+        <p class="mt-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">{tr('page.docs.p')}</p>
+      </>
+    )
+  }
 
-  <div class="mt-10 grid gap-4 sm:grid-cols-2">
+  <ul class="mt-20 flex list-none flex-wrap justify-center gap-5 p-0 lg:gap-6" role="list">
     {
       cards.map((doc) => (
-        <a
-          href={getLocalizedPath(`/docs/${doc.id}`, locale)}
-          class="group flex flex-col rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 transition-colors hover:border-zinc-400 hover:bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-900/30 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
-        >
-          <span class="font-semibold text-zinc-900 group-hover:text-zinc-950 dark:text-zinc-100 dark:group-hover:text-white">
-            {doc.data.title}
-          </span>
-          <span class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{doc.data.description}</span>
-          <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-zinc-700 group-hover:text-zinc-950 dark:text-zinc-300 dark:group-hover:text-white">
-            {t('page.docs.card.read_label')}
-            <span class="transition-transform group-hover:translate-x-0.5" aria-hidden>
-              →
+        <li class="w-full min-w-0 sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-1rem)]">
+          <a
+            href={getLocalizedPath(`/docs/${doc.slug}`, locale)}
+            class="group flex h-full min-h-44 flex-col rounded-xl border border-zinc-200/90 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-600 dark:hover:bg-zinc-900/90 dark:hover:shadow-zinc-950/50"
+          >
+            <span class="text-lg font-semibold tracking-tight text-zinc-900 group-hover:text-zinc-950 dark:text-zinc-100 dark:group-hover:text-white">
+              {doc.entry.data.title}
             </span>
-          </span>
-        </a>
+            <span class="mt-3 line-clamp-3 flex-1 text-base leading-relaxed text-zinc-600 dark:text-zinc-400">
+              {doc.entry.data.description}
+            </span>
+            <span class="mt-5 inline-flex items-center gap-1.5 text-base font-medium text-zinc-700 group-hover:text-zinc-950 dark:text-zinc-300 dark:group-hover:text-white">
+              {tr('page.docs.card.read_label')}
+              <span class="transition-transform group-hover:translate-x-0.5" aria-hidden>
+                →
+              </span>
+            </span>
+          </a>
+        </li>
       ))
     }
-  </div>
+  </ul>
 </DocsLayout>

@@ -12,8 +12,8 @@ interface Props {
   hideFooter?: boolean
 }
 
-const { locale, t } = Astro.locals
-const { title, description = t('base.default_description'), hideHeader, hideFooter } = Astro.props
+const { locale, tr } = Astro.locals
+const { title, description = tr('base.default_description'), hideHeader, hideFooter } = Astro.props
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url)
 
 const alternates = locales.map((l) => ({
@@ -23,7 +23,7 @@ const alternates = locales.map((l) => ({
 ---
 
 <!doctype html>
-<html lang={locale} class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+<html lang={locale} class="bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

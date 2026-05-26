@@ -1,0 +1,53 @@
+---
+title: 安装与设置
+description: 下载 typo、完成各平台安装、配置模型并授予系统权限。
+sidebar:
+  order: 1
+---
+
+typo 是一款 Tauri + Vue 桌面应用，用 AI 优化选中文本并在光标处替换。
+
+## 下载
+
+请前往 [typo 官方下载页面](/zh/downloads) 获取最新版本。如需历史版本，请参阅 [Releases 页面](/zh/releases)。
+
+<Tabs>
+
+  <Tab label="macOS">
+
+  1. 打开 `typo.dmg`。
+  2. 将 typo 图标拖入「应用程序」文件夹。
+  3. 从「应用程序」中打开 typo。若出现安全提示，点击「打开」。
+  4. 登录你的账户。
+  5. 在**系统设置**中为 typo 启用**辅助功能**，以便获取选中文本并在处理后替换。
+  6. 设置自定义快捷键，默认为 `Ctrl + Shift + X`。
+
+  </Tab>
+
+  <Tab label="Linux">
+
+  1. 打开下载的 `typo.deb`。
+  2. 在软件安装器中完成安装，或在终端执行：`sudo dpkg -i typo_*.deb`。
+  3. 从应用菜单启动 typo。
+  4. 登录你的账户。
+  5. 在 Linux Wayland 上需配置系统快捷键以捕获选区 — 见[常见问题 — Linux Wayland 兼容性](./faq#linux-wayland-compatibility)。
+  6. 设置自定义快捷键，默认为 `Ctrl + Shift + X`。
+
+  也可使用 AppImage，流程见[常见问题 — Linux 安装（AppImage）](./faq#linux-installation-appimage)。
+
+  </Tab>
+
+  <Tab label="Windows">
+
+  1. 双击 `typo_x64-setup.exe` 安装程序。
+  2. 按向导完成安装，从开始菜单或桌面快捷方式启动 typo。
+  3. 登录你的账户。
+  4. 设置自定义快捷键，默认为 `Ctrl + Shift + X`。
+
+  </Tab>
+
+</Tabs>
+
+## 后续步骤
+
+- [快速上手](./quickstart) — 选中文本、触发 typo、获取结果。

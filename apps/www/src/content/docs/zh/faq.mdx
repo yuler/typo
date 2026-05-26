@@ -1,0 +1,109 @@
+---
+title: 常见问题
+description: macOS 和 Linux 的平台说明、Wayland 快捷键以及 Ollama。
+sidebar:
+  order: 5
+---
+
+<h2 id="macos">macOS</h2>
+
+- 将应用复制到 `/Applications` 后，您可能需要清除隔离状态：
+
+  ```bash
+  xattr -cr /Applications/typo.app
+  ```
+
+- 在 **系统设置** 中为 typo 启用 **辅助功能**（及相关权限），以便选中文本和自动粘贴能够可靠工作。
+
+<h2 id="linux-installation-appimage">Linux 安装 (AppImage)</h2>
+
+为了便于安装和自动更新，我们推荐使用 **AppImage** 版本：
+
+```bash
+# 将下载的 AppImage 移动到一个永久位置
+mv ~/Downloads/typo_*.AppImage ~/Applications/typo.appimage
+# 使其可执行
+chmod +x ~/Applications/typo.appimage
+```
+
+### 桌面入口
+
+创建 `~/.local/share/applications/typo.desktop`（将 `<$USER>` 替换为您的用户名）。用户本地路径避免了使用 `sudo` 并将启动器作用域限制在您的帐户：
+
+```ini
+[Desktop Entry]
+Name=Typo
+Comment=AI 驱动的文本优化工具
+Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
+Icon=typo
+Type=Application
+Categories=Utility;TextEditor;
+Terminal=false
+```
+
+### 应用图标
+
+将图标安装在您的用户图标主题下（不需要 `sudo`）：
+
+```bash
+mkdir -p ~/.local/share/icons/hicolor/256x256/apps
+curl -L -o ~/.local/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
+```
+
+如果您的桌面没有识别 `Icon=typo`，请将 `Icon` 设置为 `.desktop` 文件中该 PNG 的绝对路径，或者运行 `gtk-update-icon-cache ~/.local/share/icons/hicolor`。
+
+<h2 id="linux-wayland-compatibility">Linux Wayland 兼容性</h2>
+
+Wayland 出于安全原因限制了全局快捷键监听器。请使用 **系统快捷键**，而不仅仅依赖应用内的快捷键。
+
+### 1. 添加自定义快捷键
+
+1. 打开 **设置 → 键盘 → 自定义快捷键**。
+2. 添加命令：`typo --selection`（或 AppImage 的完整路径）。
+3. 分配按键 **Ctrl + Shift + X**（或您偏好的绑定）。
+
+### 2. 增强的剪贴板支持（推荐）
+
+为了在 Wayland 上可靠地进行选中文本捕获和粘贴，请考虑使用 **ydotool** 进行键盘模拟。它速度很快，但需要一次性的系统设置（基于 [ydotool uinput 讨论](https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993)）：
+
+**将您的用户加入 `input` 组**
+
+```bash
+sudo usermod -aG input $USER
+```
+
+注销并重新登录（或重启），以便应用新的组成员身份。
+
+**添加 `uinput` 的 udev 规则**
+
+```bash
+echo 'KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+**自启动 ydotool 守护进程**
+
+创建 `~/.config/autostart/ydotoold.desktop`：
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=ydotool daemon
+Exec=/usr/bin/ydotoold
+```
+
+如果您的发行版没有将 `ydotoold` 安装为 `/usr/bin/ydotoold`，请调整 `Exec` 路径。
+
+### 3. XWayland 权宜之计（可选）
+
+如果在某些 Electron 应用中捕获选中文本失败，请尝试在 X11 模式下运行它们，例如：
+
+```bash
+code --ozone-platform=x11
+```
+
+<h2 id="ollama">Ollama</h2>
+
+- 确保 Ollama 正在运行：`ollama serve`。
+- 请参阅 [Ollama API 文档](https://github.com/ollama/ollama/blob/main/docs/api.md) 获取请求/响应详情和模型管理信息。

@@ -1,0 +1,91 @@
+---
+title: Install and setup
+description: Download typo, install on each platform, configure models, and grant system permissions.
+sidebar:
+  order: 1
+---
+
+import clickApprove from '@/assets/docs/install-and-setup/04-click-approve.png'
+import clickOpen from '@/assets/docs/install-and-setup/02-click-open.png'
+import clickOpenBrowser from '@/assets/docs/install-and-setup/03-click-open-browser.png'
+import dragToApplications from '@/assets/docs/install-and-setup/01-drag-to-applications.png'
+
+typo is a Tauri + Vue desktop app that refines selected text with AI and replaces it at your cursor.
+
+## Download
+
+Get the latest build from the [typo download page](/downloads). For older builds, see the [Releases page](/releases).
+
+<Tabs>
+
+  <Tab label="macOS">
+
+  1. Open `typo.dmg`.
+  2. Drag the typo icon into the **Applications** folder.
+  
+
+  <DocImage
+    src={dragToApplications}
+    alt="Three macOS installation panels showing typo.dmg in Downloads, dragging typo into Applications, and opening typo.app from Applications."
+    caption="Install typo by dragging the app into Applications."
+  />
+
+  3. Launch typo from **Applications**. If you see a security prompt, click **Open**.
+
+  <DocImage
+    src={clickOpen}
+    alt="macOS security prompt for opening typo, with the Open button highlighted."
+    caption="If macOS asks for confirmation, choose Open."
+  />
+
+  4. Sign in to your account.
+  5. In **System Settings**, enable **Accessibility** for typo so it can read the selection and replace it after processing.
+  6. Set a custom hotkey; the default is `Ctrl + Shift + X`.
+
+  </Tab>
+
+  <Tab label="Linux">
+
+  1. Open the downloaded `typo.deb`.
+  2. Install with your software installer, or in a terminal run: `sudo dpkg -i typo_*.deb`.
+  3. Start typo from the app menu.
+  4. Sign in to your account.
+  5. On Linux Wayland, configure a system shortcut to capture the selection — see [FAQ — Linux Wayland compatibility](./faq#linux-wayland-compatibility).
+  6. Set a custom hotkey; the default is `Ctrl + Shift + X`.
+
+  You can also use the AppImage; see [FAQ — Linux installation (AppImage)](./faq#linux-installation-appimage).
+
+  </Tab>
+
+  <Tab label="Windows">
+
+  1. Double-click the `typo_x64-setup.exe` installer.
+  2. Follow the wizard, then launch typo from the Start menu or desktop shortcut.
+  3. Sign in to your account.
+  4. Set a custom hotkey; the default is `Ctrl + Shift + X`.
+
+  </Tab>
+
+</Tabs>
+
+## Authorize device
+
+After signing in, typo shows an authorization code in the desktop app. Click **Open Browser** to continue.
+
+<DocImage
+  src={clickOpenBrowser}
+  alt="typo desktop authorization dialog with a tip pointing to the Open Browser button."
+  caption="Open the browser from the desktop authorization dialog."
+/>
+
+Approve the same code in your browser to finish device authorization.
+
+<DocImage
+  src={clickApprove}
+  alt="Browser authorization page with a tip pointing to the approve button."
+  caption="Approve the matching code to authorize the device."
+/>
+
+## Next steps
+
+- [Quickstart](./quickstart) — Select text, trigger typo, and get results.

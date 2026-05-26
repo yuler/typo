@@ -1,15 +1,18 @@
 import type { APIRoute } from 'astro'
 import { getReleaseByVersion, releases } from '@typo/releases'
-import { getLocale } from '@/lib/i18n'
+import { getI18nStaticPaths, getLocale } from '@/lib/i18n'
 
 export function getStaticPaths() {
   const paths: any[] = []
   for (const r of releases) {
-    paths.push({
-      params: {
-        version: `v${r.version}`,
-      },
-    })
+    for (const path of getI18nStaticPaths()) {
+      paths.push({
+        params: {
+          ...path.params,
+          version: `v${r.version}`,
+        },
+      })
+    }
   }
   return paths
 }

@@ -1,11 +1,10 @@
 ---
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
 import ThemeToggle from '@/components/ThemeToggle.tsx'
-import { getLocale, getLocalizedPath } from '@/lib/i18n'
+import { getLocalizedPath } from '@/lib/i18n'
 
-const { t } = Astro.locals
-const currentLocale = getLocale(Astro.currentLocale)
-const tc = t // We use the same t as we ignore namespace for now
+const { locale: currentLocale, tr } = Astro.locals
+const tc = tr
 
 const pathname = Astro.url.pathname
 function link(href: string, label: string) {
@@ -13,17 +12,17 @@ function link(href: string, label: string) {
   const active = pathname === lPath || (lPath !== '/' && pathname.startsWith(lPath))
   return { href: lPath, label, active }
 }
-const nav = [link('/docs', t('header.nav.docs')), link('/blog', t('header.nav.blog'))]
+const nav = [link('/docs', tr('header.nav.docs')), link('/blog', tr('header.nav.blog'))]
 ---
 
 <header
-  class="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80"
+  class="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/80 backdrop-blur-md dark:border-zinc-700/80 dark:bg-zinc-900/90"
 >
-  <div class="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+  <div class="mx-auto flex h-[var(--site-header-height)] max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
     <a
       href={getLocalizedPath('/', currentLocale)}
       class="flex size-14 shrink-0 items-center justify-center rounded-md outline-offset-2 transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-400 dark:focus-visible:outline-zinc-500"
-      aria-label={t('header.brand_aria')}
+      aria-label={tr('header.brand_aria')}
     >
       <img src="/logo.png" alt={tc('brand.name')} class="h-full w-full rounded-md object-contain" decoding="async" />
     </a>

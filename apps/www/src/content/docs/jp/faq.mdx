@@ -1,0 +1,109 @@
+---
+title: よくある質問
+description: macOSとLinuxのプラットフォームに関する注意事項、Waylandのホットキー、およびOllama。
+sidebar:
+  order: 5
+---
+
+<h2 id="macos">macOS</h2>
+
+- アプリを `/Applications` にコピーした後、隔離状態をクリアする必要がある場合があります：
+
+  ```bash
+  xattr -cr /Applications/typo.app
+  ```
+
+- **システム設定** でtypoの **アクセシビリティ**（および関連する権限）を有効にし、選択と自動貼り付けが確実に機能するようにします。
+
+<h2 id="linux-installation-appimage">Linux インストール (AppImage)</h2>
+
+インストールと自動更新のために、**AppImage** ビルドをお勧めします：
+
+```bash
+# ダウンロードしたAppImageを永続的な場所に移動します
+mv ~/Downloads/typo_*.AppImage ~/Applications/typo.appimage
+# 実行可能にします
+chmod +x ~/Applications/typo.appimage
+```
+
+### デスクトップエントリ
+
+`~/.local/share/applications/typo.desktop` を作成します（`<$USER>` をユーザー名に置き換えてください）。ユーザーのローカルパスを使用することで、`sudo` を避け、ランチャーのスコープをアカウントに限定できます：
+
+```ini
+[Desktop Entry]
+Name=Typo
+Comment=AIを利用したテキスト最適化ツール
+Exec=/home/<$USER>/Applications/typo.appimage --no-sandbox
+Icon=typo
+Type=Application
+Categories=Utility;TextEditor;
+Terminal=false
+```
+
+### アプリケーションアイコン
+
+ユーザーのアイコンテーマの下にアイコンをインストールします（`sudo` は不要です）：
+
+```bash
+mkdir -p ~/.local/share/icons/hicolor/256x256/apps
+curl -L -o ~/.local/share/icons/hicolor/256x256/apps/typo.png https://raw.githubusercontent.com/yuler/typo/main/resources/logo.png
+```
+
+デスクトップが `Icon=typo` を認識しない場合は、`.desktop` ファイル内の `Icon` をそのPNGの絶対パスに設定するか、`gtk-update-icon-cache ~/.local/share/icons/hicolor` を実行してください。
+
+<h2 id="linux-wayland-compatibility">Linux Wayland の互換性</h2>
+
+Waylandはセキュリティのためにグローバルホットキーリスナーを制限しています。アプリ内のホットキーだけに依存せず、**システムショートカット** を使用してください。
+
+### 1. カスタムショートカットの追加
+
+1. **設定 → キーボード → カスタムショートカット** を開きます。
+2. コマンドを追加します：`typo --selection`（またはAppImageの完全パス）。
+3. キーを割り当てます：**Ctrl + Shift + X**（またはお好みのバインディング）。
+
+### 2. 拡張クリップボードサポート（推奨）
+
+Wayland上で確実なテキスト選択のキャプチャと貼り付けを行うには、キーボードシミュレーションに **ydotool** を検討してください。高速ですが、1回限りのシステムセットアップが必要です（[ydotool uinputの議論](https://github.com/ReimuNotMoe/ydotool/issues/25#issuecomment-535842993)に基づく）：
+
+**ユーザーを `input` グループに追加する**
+
+```bash
+sudo usermod -aG input $USER
+```
+
+ログアウトして再度ログイン（または再起動）し、新しいグループメンバーシップを適用します。
+
+**`uinput` のudevルールを追加する**
+
+```bash
+echo 'KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"' | sudo tee /etc/udev/rules.d/80-uinput.rules > /dev/null
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+**ydotoolデーモンの自動起動**
+
+`~/.config/autostart/ydotoold.desktop` を作成します：
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=ydotool daemon
+Exec=/usr/bin/ydotoold
+```
+
+ディストリビューションで `ydotoold` が `/usr/bin/ydotoold` にインストールされていない場合は、`Exec` パスを調整してください。
+
+### 3. XWaylandの回避策（オプション）
+
+一部のElectronアプリで選択のキャプチャが失敗する場合は、X11モードで実行してみてください（例）：
+
+```bash
+code --ozone-platform=x11
+```
+
+<h2 id="ollama">Ollama</h2>
+
+- Ollamaが実行されていることを確認します：`ollama serve`。
+- リクエスト/レスポンスの詳細やモデル管理については、[Ollama API ドキュメント](https://github.com/ollama/ollama/blob/main/docs/api.md)を参照してください。

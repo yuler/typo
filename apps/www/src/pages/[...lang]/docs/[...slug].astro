@@ -1,8 +1,10 @@
 ---
 import { render } from 'astro:content'
 import type { CollectionEntry } from 'astro:content'
+import MdxProse from '@/components/MdxProse.astro'
 import DocsLayout from '@/layouts/DocsLayout.astro'
 import { getI18nCollectionStaticPaths, getLocalizedPath } from '@/lib/i18n'
+import { components as mdxComponents } from '@/mdx-components'
 
 export const getStaticPaths = () => getI18nCollectionStaticPaths('docs')
 
@@ -12,27 +14,27 @@ interface Props {
 
 const { entry } = Astro.props
 const { Content } = await render(entry)
-const { locale } = Astro.locals
+const { locale, tr } = Astro.locals
 ---
 
 <DocsLayout title={`${entry.data.title} — typo docs`} description={entry.data.description}>
   <nav
-    class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500 dark:text-zinc-500"
+    class="flex flex-wrap items-center gap-x-2 gap-y-1 text-base text-zinc-500 dark:text-zinc-500"
     aria-label="Breadcrumb"
   >
     <a
       href={getLocalizedPath('/docs', locale)}
       class="font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
     >
-      Docs
+      {tr('header.nav.docs')}
     </a>
     <span aria-hidden class="text-zinc-400 dark:text-zinc-600">›</span>
     <span class="text-zinc-700 dark:text-zinc-300">{entry.data.title}</span>
   </nav>
 
-  <article class="mdx-content mt-8 lg:mt-10">
+  <MdxProse variant="docs" class="mt-8 lg:mt-10">
     <h1>{entry.data.title}</h1>
-    <p class="not-prose -mt-2 mb-8 text-[15px] leading-7 text-zinc-500 dark:text-zinc-500">{entry.data.description}</p>
-    <Content />
-  </article>
+    <p class="-mt-2 mb-8 text-base leading-8 text-zinc-500 dark:text-zinc-500">{entry.data.description}</p>
+    <Content components={mdxComponents} />
+  </MdxProse>
 </DocsLayout>
