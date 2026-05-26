@@ -108,17 +108,19 @@ async function trayTemplateBuffer(source: Source) {
   const [r, g, b] = source.trayColor === '#ffffff' ? [255, 255, 255] : [0, 0, 0]
 
   for (let i = 0; i < data.length; i += 4) {
+    const originalAlpha = data[i + 3]!
     const distance = Math.max(
       Math.abs(data[i]! - background),
       Math.abs(data[i + 1]! - background),
       Math.abs(data[i + 2]! - background),
     )
-    const alpha = Math.max(0, Math.min(255, Math.round((distance - 8) * 5)))
+    const calculatedAlpha = Math.max(0, Math.min(255, Math.round((distance - 8) * 5)))
+    const alpha = Math.min(originalAlpha, calculatedAlpha < 10 ? 0 : calculatedAlpha)
 
     data[i] = r
     data[i + 1] = g
     data[i + 2] = b
-    data[i + 3] = alpha < 10 ? 0 : alpha
+    data[i + 3] = alpha
   }
 
   return sharp(data, {
@@ -153,7 +155,7 @@ async function writeTrayOutput(source: Source) {
       }),
   )
 
-  await writeAliases('desktop/tray', source.mode, ['desktop/tray'])
+  await writeAliases('desktop/tray', source.mode, ['desktop/trayTemplate'])
 }
 
 await Promise.all(sources.map(async (source) => {

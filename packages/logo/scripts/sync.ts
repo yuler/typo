@@ -10,7 +10,7 @@ const copies = [
   ['www/favicon-dark.png', 'apps/www/public/favicon-dark.png'],
   ['desktop/icon.png', 'apps/desktop/resources/logo.png'],
   ['desktop/icon.png', 'apps/desktop/src/assets/logo.png'],
-  ['desktop/tray.png', 'apps/desktop/src-tauri/icons/tray.png'],
+  ['desktop/trayTemplate.png', 'apps/desktop/src-tauri/icons/trayTemplate.png'],
 ] as const
 
 await Promise.all(copies.map(async ([from, to]) => {
