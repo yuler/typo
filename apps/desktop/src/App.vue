@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { check } from '@tauri-apps/plugin-updater'
 import { onMounted, onUnmounted } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
 import { useGlobalState } from '@/composables/useGlobalState'
@@ -42,20 +40,6 @@ onMounted(async () => {
   // For indicator window, ensure it is always visible on all workspaces
   if (currentLabel === 'indicator') {
     await appWindow.setVisibleOnAllWorkspaces(true)
-  }
-
-  // Check for updates on startup
-  if (currentLabel === 'main') {
-    try {
-      const update = await check()
-      if (update) {
-        setUpdateInfo(update)
-        await invoke('open_upgrade_window')
-      }
-    }
-    catch (e) {
-      logger.error('Update', `Update check failed: ${e}`)
-    }
   }
 })
 
