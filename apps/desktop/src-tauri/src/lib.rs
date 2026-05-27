@@ -52,6 +52,13 @@ fn get_system_info(app: tauri::AppHandle) -> SystemInfo {
 }
 
 #[tauri::command]
+fn get_hostname() -> String {
+    hostname::get()
+        .map(|h| h.to_string_lossy().to_string())
+        .unwrap_or_else(|_| "Unknown".to_string())
+}
+
+#[tauri::command]
 async fn get_selected_text() -> Result<String, String> {
     let text = get_selected_text::get_selected_text().map_err(|e| e.to_string())?;
     Ok(text)
@@ -233,6 +240,7 @@ pub fn run() {
             autostart::is_autostart_enabled,
             autostart::set_autostart,
             get_system_info,
+            get_hostname,
             get_selected_text,
             set_pending_selection_input,
             open_log_folder,

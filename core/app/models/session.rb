@@ -25,13 +25,14 @@ class Session < ApplicationRecord
     when /Safari/i then "Safari"
     end
 
-    if client && os
-      "#{client} on #{os}"
-    elsif client || os
-      client || os
-    else
-      user_agent.truncate(35)
-    end
+    hostname = user_agent[/Typo Desktop\/[^\s]+ \([^)]+\)\s+(.+)/, 1]&.strip
+
+    parts = []
+    parts << client if client
+    parts << "on #{os}" if os
+    parts << "(#{hostname})" if hostname.present?
+
+    parts.presence&.join(" ") || user_agent.truncate(35)
   end
 
   def desktop_version
