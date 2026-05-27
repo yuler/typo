@@ -1,17 +1,30 @@
 use std::sync::{atomic::{AtomicUsize, Ordering}, RwLock};
 use tauri::AppHandle;
+use tauri_plugin_store::StoreExt;
 use tauri_plugin_updater::UpdaterExt;
 
 static ACTIVITY_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static IGNORED_VERSION: RwLock<Option<String>> = RwLock::new(None);
 const ACTIVITY_THRESHOLD: usize = 10;
+const SETTINGS_FILE: &str = "settings.json";
 
 pub fn init(app: AppHandle) {
+    // Load ignored version from store
+    if let Some(store) = app.get_store(SETTINGS_FILE) {
+        if let Some(version) = store.get("ignored_version") {
+            if let Some(v_str) = version.as_str() {
+                let mut ignored = IGNORED_VERSION.write().unwrap();
+                *ignored = Some(v_str.to_string());
+                log::info!("Loaded ignored version from store: v{}", v_str);
+            }
+        }
+    }
+
     let handle = app.clone();
     tauri::async_runtime::spawn(async move {
         // Initial delay of 1 minute
         tokio::time::sleep(std::time::Duration::from_secs(60)).await;
-        let _ = check_update_silent(&handle).await;
+        check_update_silent(&handle).await;
     });
 }
 
@@ -68,8 +81,20 @@ async fn check_update_silent(app: &AppHandle) {
 }
 
 #[tauri::command]
-pub fn ignore_version(version: String) {
+pub fn ignore_version(app: AppHandle, version: String) {
     log::info!("Version v{} will be ignored for automatic checks", version);
-    let mut ignored = IGNORED_VERSION.write().unwrap();
-    *ignored = Some(version);
+    
+    // Update memory state
+    {
+        let mut ignored = IGNORED_VERSION.write().unwrap();
+        *ignored = Some(version.clone());
+    }
+
+    // Update local store
+    if let Some(store) = app.get_store(SETTINGS_FILE) {
+        store.set("ignored_version", serde_json::Value::String(version));
+        if let Err(e) = store.save() {
+            log::error!("Failed to save ignored_version to store: {}", e);
+        }
+    }
 }
