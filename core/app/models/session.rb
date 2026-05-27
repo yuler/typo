@@ -28,8 +28,11 @@ class Session < ApplicationRecord
     hostname = user_agent[/Typo Desktop\/[^\s]+ \([^)]+\)\s+(.+)/, 1]&.strip
 
     parts = []
-    parts << client if client
-    parts << "on #{os}" if os
+    if client && os
+      parts << "#{client} on #{os}"
+    elsif client || os
+      parts << (client || os)
+    end
     parts << "(#{hostname})" if hostname.present?
 
     parts.presence&.join(" ") || user_agent.truncate(35)

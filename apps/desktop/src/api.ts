@@ -17,7 +17,10 @@ function getUserAgent(): Promise<string> {
     try {
       const [{ os, version }, hostname] = await Promise.all([
         invoke<{ os: string, version: string }>('get_system_info'),
-        invoke<string>('get_hostname'),
+        invoke<string>('get_hostname').catch((error) => {
+          console.error('failed to get hostname', error)
+          return 'Unknown'
+        }),
       ])
       const platform = {
         macos: 'macOS',

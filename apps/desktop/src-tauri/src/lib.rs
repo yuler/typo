@@ -54,7 +54,18 @@ fn get_system_info(app: tauri::AppHandle) -> SystemInfo {
 #[tauri::command]
 fn get_hostname() -> String {
     hostname::get()
-        .map(|h| h.to_string_lossy().to_string())
+        .map(|h| {
+            let sanitized: String = h
+                .to_string_lossy()
+                .chars()
+                .filter(|c| c.is_ascii() && !c.is_control())
+                .collect();
+            if sanitized.is_empty() {
+                "Unknown".to_string()
+            } else {
+                sanitized
+            }
+        })
         .unwrap_or_else(|_| "Unknown".to_string())
 }
 
