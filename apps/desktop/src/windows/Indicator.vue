@@ -267,7 +267,7 @@ function gotoSettings() {
     tabindex="0"
     @keydown.esc="onESC"
   >
-    <AppLogo version />
+    <AppLogo version dark />
 
     <!-- Center: Status -->
     <div class="flex-1 flex overflow-hidden min-w-0 h-full items-center">

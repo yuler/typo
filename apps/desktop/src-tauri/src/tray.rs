@@ -96,7 +96,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         ],
     )?;
 
-    let icon_bytes = include_bytes!("../icons/tray.png");
+    let icon_bytes = include_bytes!("../icons/trayTemplate.png");
     let icon = tauri::image::Image::from_bytes(icon_bytes)?;
 
     TrayIconBuilder::with_id(TRAY_ID)
