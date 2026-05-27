@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
-import { setupGlobalShortcut, unregisterCurrentGlobalShortcut } from '@/shortcut'
+import { requestIndicatorGlobalShortcutSetup, requestIndicatorGlobalShortcutUnregister } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { updateTrayMenu } from '@/tray'
@@ -105,7 +105,7 @@ function buildCapturedShortcut(keys: Set<string>): string {
 }
 
 async function startCapture() {
-  await unregisterCurrentGlobalShortcut()
+  await requestIndicatorGlobalShortcutUnregister()
   isCapturingShortcut.value = true
   shortcutConflictError.value = ''
   pressedCaptureKeys.clear()
@@ -116,7 +116,7 @@ async function startCapture() {
   window.addEventListener('pointerdown', onCapturePointerDown, true)
 }
 
-function stopCapture() {
+function stopCapture(restoreShortcut = true) {
   if (!isCapturingShortcut.value)
     return
 
@@ -127,6 +127,10 @@ function stopCapture() {
   window.removeEventListener('pointerdown', onCapturePointerDown, true)
   pressedCaptureKeys.clear()
   recordedCaptureKeys.clear()
+
+  if (restoreShortcut) {
+    void requestIndicatorGlobalShortcutSetup(form.value.global_shortcut)
+  }
 }
 
 function onCaptureWindowBlur() {
@@ -177,7 +181,7 @@ function onShortcutKeyUp(e: KeyboardEvent) {
 
   shortcutConflictError.value = ''
   form.value.global_shortcut = captured
-  stopCapture()
+  stopCapture(false)
 }
 
 onMounted(async () => {
@@ -236,7 +240,7 @@ async function onAutostartToggle(value: boolean) {
 
 async function onSubmit() {
   const requestedShortcut = form.value.global_shortcut
-  const actualShortcut = await setupGlobalShortcut(requestedShortcut)
+  const actualShortcut = await requestIndicatorGlobalShortcutSetup(requestedShortcut)
 
   if (requestedShortcut && actualShortcut !== requestedShortcut) {
     shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcut })

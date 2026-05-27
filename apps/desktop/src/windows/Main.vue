@@ -37,7 +37,6 @@ import {
 } from '@/components/ui/sidebar'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
-import { setupGlobalShortcut } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { sleep } from '@/utils'
@@ -114,12 +113,6 @@ onMounted(async () => {
     return
   }
   globalShortcut.value = (await store.get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
-  if (!isMounted) {
-    return
-  }
-
-  // Initialize the global shortcut
-  await setupGlobalShortcut()
   if (!isMounted) {
     return
   }

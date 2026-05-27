@@ -1,8 +1,28 @@
 import { invoke } from '@tauri-apps/api/core'
+import { emit, listen } from '@tauri-apps/api/event'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
 import { logger } from '@/logger'
 import { DEFAULT_GLOBAL_SHORTCUT, get } from './stores/settings'
+
+const SHORTCUT_SETUP_REQUEST_EVENT = 'shortcut:setup-request'
+const SHORTCUT_SETUP_RESPONSE_EVENT = 'shortcut:setup-response'
+const SHORTCUT_UNREGISTER_REQUEST_EVENT = 'shortcut:unregister-request'
+const SHORTCUT_UNREGISTER_RESPONSE_EVENT = 'shortcut:unregister-response'
+
+interface ShortcutRequestPayload {
+  requestId: string
+  shortcut?: string
+}
+
+interface ShortcutSetupResponsePayload {
+  requestId: string
+  shortcut: string
+}
+
+interface ShortcutUnregisterResponsePayload {
+  requestId: string
+}
 
 async function onShortcut() {
   logger.info('shortcut', 'onShortcut')
@@ -89,4 +109,95 @@ export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
     }
   }
   return ''
+}
+
+function createRequestId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
+}
+
+async function emitIndicatorRequest<TResponse extends { requestId: string }>(
+  requestEvent: string,
+  responseEvent: string,
+  payload: ShortcutRequestPayload,
+): Promise<TResponse> {
+  const indicatorWindow = await WebviewWindow.getByLabel('indicator')
+  if (!indicatorWindow) {
+    throw new Error('indicator window is not available')
+  }
+
+  return await new Promise<TResponse>((resolve, reject) => {
+    let unlisten: (() => void) | undefined
+    const timeout = window.setTimeout(() => {
+      unlisten?.()
+      reject(new Error(`timed out waiting for ${responseEvent}`))
+    }, 5000)
+
+    listen<TResponse>(responseEvent, (event) => {
+      if (event.payload.requestId !== payload.requestId) {
+        return
+      }
+
+      window.clearTimeout(timeout)
+      unlisten?.()
+      resolve(event.payload)
+    }).then((fn) => {
+      unlisten = fn
+      return indicatorWindow.emit(requestEvent, payload)
+    }).catch((error) => {
+      window.clearTimeout(timeout)
+      unlisten?.()
+      reject(error)
+    })
+  })
+}
+
+export async function requestIndicatorGlobalShortcutSetup(shortcut?: string): Promise<string> {
+  const payload = {
+    requestId: createRequestId(),
+    shortcut,
+  }
+
+  const response = await emitIndicatorRequest<ShortcutSetupResponsePayload>(
+    SHORTCUT_SETUP_REQUEST_EVENT,
+    SHORTCUT_SETUP_RESPONSE_EVENT,
+    payload,
+  )
+
+  return response.shortcut
+}
+
+export async function requestIndicatorGlobalShortcutUnregister(): Promise<void> {
+  const payload = {
+    requestId: createRequestId(),
+  }
+
+  await emitIndicatorRequest<ShortcutUnregisterResponsePayload>(
+    SHORTCUT_UNREGISTER_REQUEST_EVENT,
+    SHORTCUT_UNREGISTER_RESPONSE_EVENT,
+    payload,
+  )
+}
+
+export async function listenForIndicatorShortcutRequests(onSetup?: (shortcut: string) => void): Promise<() => void> {
+  const [unlistenSetup, unlistenUnregister] = await Promise.all([
+    listen<ShortcutRequestPayload>(SHORTCUT_SETUP_REQUEST_EVENT, async (event) => {
+      const shortcut = await setupGlobalShortcut(event.payload.shortcut)
+      onSetup?.(shortcut)
+      await emit(SHORTCUT_SETUP_RESPONSE_EVENT, {
+        requestId: event.payload.requestId,
+        shortcut,
+      } satisfies ShortcutSetupResponsePayload)
+    }),
+    listen<ShortcutRequestPayload>(SHORTCUT_UNREGISTER_REQUEST_EVENT, async (event) => {
+      await unregisterCurrentGlobalShortcut()
+      await emit(SHORTCUT_UNREGISTER_RESPONSE_EVENT, {
+        requestId: event.payload.requestId,
+      } satisfies ShortcutUnregisterResponsePayload)
+    }),
+  ])
+
+  return () => {
+    unlistenSetup()
+    unlistenUnregister()
+  }
 }
