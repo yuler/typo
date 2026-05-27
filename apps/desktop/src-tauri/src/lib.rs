@@ -82,6 +82,9 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");
 
+    // Track activity
+    upgrade::increment_activity(app);
+
     let text = if in_linux_wayland() {
         get_selected_text_wayland(app)
     } else {
