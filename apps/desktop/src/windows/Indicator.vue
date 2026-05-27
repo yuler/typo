@@ -54,7 +54,7 @@ let resizeAnimationFrame = 0
 let measureCanvasContext: CanvasRenderingContext2D | null = null
 let isMounted = true
 
-watch([state, pinIndicator, inputText, resultText, errorText, commandName, copyResult], () => {
+watch([state, pinIndicator, inputText, resultText, errorText, commandName, copyResult, globalShortcut], () => {
   void updateIndicatorSize()
 }, { flush: 'post' })
 
