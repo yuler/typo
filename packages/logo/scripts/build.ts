@@ -1,42 +1,43 @@
-import { copyFile, mkdir } from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { copyFile, mkdir, readdir } from 'node:fs/promises'
+import { dirname, extname, resolve } from 'node:path'
 import sharp from 'sharp'
 
 const root = resolve(import.meta.dirname, '..')
+const assets = resolve(root, 'assets')
 const dist = resolve(root, 'dist')
 
 type Mode = 'light' | 'dark'
 
-interface Source {
+interface RasterSource {
   mode: Mode
   path: string
   background: string
   trayColor: string
 }
 
-interface Output {
+interface RasterOutput {
   name: string
   size: number
   padding: number
   aliases?: string[]
 }
 
-const sources: Source[] = [
+const rasterSources: RasterSource[] = [
   {
     mode: 'light',
-    path: resolve(root, 'assets/logo-light.png'),
+    path: resolve(assets, 'logo-light.png'),
     background: '#ffffff',
     trayColor: '#000000',
   },
   {
     mode: 'dark',
-    path: resolve(root, 'assets/logo-dark.png'),
+    path: resolve(assets, 'logo-dark.png'),
     background: '#18181b',
     trayColor: '#ffffff',
   },
 ]
 
-const outputs: Output[] = [
+const rasterOutputs: RasterOutput[] = [
   { name: 'www/favicon', size: 64, padding: 6, aliases: ['www/favicon'] },
   { name: 'desktop/icon', size: 1024, padding: 96, aliases: ['desktop/icon'] },
   { name: 'desktop/dock', size: 1024, padding: 96, aliases: ['desktop/dock'] },
@@ -51,30 +52,31 @@ async function writePng(path: string, image: sharp.Sharp) {
   await image.png().toFile(path)
 }
 
-function outputPath(name: string, mode: Mode) {
+function rasterOutputPath(name: string, mode: Mode) {
   return resolve(dist, `${name}-${mode}.png`)
 }
 
-async function writeAliases(name: string, mode: Mode, aliases: string[] = []) {
-  if (mode !== 'light')
-    return
-
+async function writeLightAliases(
+  from: string,
+  aliases: string[],
+  extension: string,
+) {
   await Promise.all(aliases.map(async (alias) => {
-    const target = resolve(dist, `${alias}.png`)
+    const target = resolve(dist, `${alias}${extension}`)
     await ensureParent(target)
-    await copyFile(outputPath(name, mode), target)
+    await copyFile(from, target)
   }))
 }
 
-async function sourceBuffer(source: Source) {
+async function rasterSourceBuffer(source: RasterSource) {
   return sharp(source.path).png().toBuffer()
 }
 
-async function writeImageOutputs(source: Source) {
-  const logo = await sourceBuffer(source)
+async function writeRasterOutputs(source: RasterSource) {
+  const logo = await rasterSourceBuffer(source)
 
-  await Promise.all(outputs.map(async (output) => {
-    const target = outputPath(output.name, source.mode)
+  await Promise.all(rasterOutputs.map(async (output) => {
+    const target = rasterOutputPath(output.name, source.mode)
     const contentSize = output.size - output.padding * 2
 
     await writePng(
@@ -94,11 +96,12 @@ async function writeImageOutputs(source: Source) {
         }),
     )
 
-    await writeAliases(output.name, source.mode, output.aliases)
+    if (source.mode === 'light')
+      await writeLightAliases(target, output.aliases ?? [], '.png')
   }))
 }
 
-async function trayTemplateBuffer(source: Source) {
+async function trayTemplateBuffer(source: RasterSource) {
   const { data, info } = await sharp(source.path)
     .ensureAlpha()
     .raw()
@@ -135,9 +138,9 @@ async function trayTemplateBuffer(source: Source) {
     .toBuffer()
 }
 
-async function writeTrayOutput(source: Source) {
+async function writeTrayOutput(source: RasterSource) {
   const tray = await trayTemplateBuffer(source)
-  const target = outputPath('desktop/tray', source.mode)
+  const target = rasterOutputPath('desktop/tray', source.mode)
 
   await writePng(
     target,
@@ -155,10 +158,32 @@ async function writeTrayOutput(source: Source) {
       }),
   )
 
-  await writeAliases('desktop/tray', source.mode, ['desktop/trayTemplate'])
+  if (source.mode === 'light')
+    await writeLightAliases(target, ['desktop/tray'], '.png')
 }
 
-await Promise.all(sources.map(async (source) => {
-  await writeImageOutputs(source)
-  await writeTrayOutput(source)
-}))
+async function copySvgAssets() {
+  const files = await readdir(assets)
+
+  await Promise.all(files
+    .filter(file => extname(file) === '.svg')
+    .map(async (file) => {
+      const from = resolve(assets, file)
+      const target = resolve(dist, file)
+
+      await ensureParent(target)
+      await copyFile(from, target)
+
+      const light = file.match(/^(.+)-light\.svg$/)
+      if (light)
+        await writeLightAliases(target, [`${light[1]}`], '.svg')
+    }))
+}
+
+await Promise.all([
+  ...rasterSources.map(async (source) => {
+    await writeRasterOutputs(source)
+    await writeTrayOutput(source)
+  }),
+  copySvgAssets(),
+])
