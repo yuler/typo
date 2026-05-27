@@ -169,9 +169,14 @@ onMounted(async () => {
     return
   }
 
-  unlistenShortcutRequests = await listenForIndicatorShortcutRequests((shortcut) => {
+  const cleanupShortcutRequests = await listenForIndicatorShortcutRequests((shortcut) => {
     globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
   })
+  if (!isMounted) {
+    cleanupShortcutRequests()
+    return
+  }
+  unlistenShortcutRequests = cleanupShortcutRequests
 
   const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     // Force show and focus when event received

@@ -125,30 +125,47 @@ async function emitIndicatorRequest<TResponse extends { requestId: string }>(
     throw new Error('indicator window is not available')
   }
 
-  return await new Promise<TResponse>((resolve, reject) => {
-    let unlisten: (() => void) | undefined
-    const timeout = window.setTimeout(() => {
-      unlisten?.()
-      reject(new Error(`timed out waiting for ${responseEvent}`))
-    }, 5000)
+  let unlisten: (() => void) | undefined
+  let timeout: number | undefined
+  let isSettled = false
 
-    listen<TResponse>(responseEvent, (event) => {
-      if (event.payload.requestId !== payload.requestId) {
-        return
-      }
+  try {
+    return await new Promise<TResponse>((resolve, reject) => {
+      timeout = window.setTimeout(() => {
+        isSettled = true
+        reject(new Error(`timed out waiting for ${responseEvent}`))
+      }, 5000)
 
-      window.clearTimeout(timeout)
-      unlisten?.()
-      resolve(event.payload)
-    }).then((fn) => {
-      unlisten = fn
-      return indicatorWindow.emit(requestEvent, payload)
-    }).catch((error) => {
-      window.clearTimeout(timeout)
-      unlisten?.()
-      reject(error)
+      listen<TResponse>(responseEvent, (event) => {
+        if (event.payload.requestId !== payload.requestId) {
+          return
+        }
+
+        isSettled = true
+        resolve(event.payload)
+      }).then((fn) => {
+        if (isSettled) {
+          fn()
+          return
+        }
+
+        unlisten = fn
+        return indicatorWindow.emit(requestEvent, payload).catch((error) => {
+          isSettled = true
+          reject(error)
+        })
+      }).catch((error) => {
+        isSettled = true
+        reject(error)
+      })
     })
-  })
+  }
+  finally {
+    if (timeout !== undefined) {
+      window.clearTimeout(timeout)
+    }
+    unlisten?.()
+  }
 }
 
 export async function requestIndicatorGlobalShortcutSetup(shortcut?: string): Promise<string> {

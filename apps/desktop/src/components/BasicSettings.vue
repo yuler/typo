@@ -129,7 +129,9 @@ function stopCapture(restoreShortcut = true) {
   recordedCaptureKeys.clear()
 
   if (restoreShortcut) {
-    void requestIndicatorGlobalShortcutSetup(form.value.global_shortcut)
+    void requestIndicatorGlobalShortcutSetup(form.value.global_shortcut).catch((err) => {
+      logger.error('BasicSettings', 'Failed to restore global shortcut:', err)
+    })
   }
 }
 
