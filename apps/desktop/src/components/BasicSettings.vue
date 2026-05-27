@@ -14,7 +14,7 @@ import { logger } from '@/logger'
 import { requestIndicatorGlobalShortcutSetup, requestIndicatorGlobalShortcutUnregister } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
-import { updateTrayMenu } from '@/tray'
+import { PIN_INDICATOR_CHANGED_EVENT, setPinIndicator, updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
 defineProps<{
@@ -34,10 +34,12 @@ const form = ref({
   autostart: false,
   autoselect: false,
   copy_result: false,
+  pin_indicator: false,
   global_shortcut: '',
 })
 
 let unlistenAutostart: UnlistenFn | undefined
+let unlistenPinIndicator: UnlistenFn | undefined
 let isMounted = true
 
 async function openLogFolder(): Promise<void> {
@@ -192,15 +194,17 @@ onMounted(async () => {
     return
   form.value.autostart = autostartEnabled
 
-  const [autoselect, copyResult, globalShortcut] = await Promise.all([
+  const [autoselect, copyResult, pinIndicator, globalShortcut] = await Promise.all([
     store.get('autoselect'),
     store.get('copy_result'),
+    store.get('pin_indicator'),
     store.get('global_shortcut'),
   ])
   if (!isMounted)
     return
   form.value.autoselect = autoselect
   form.value.copy_result = copyResult
+  form.value.pin_indicator = pinIndicator
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
 
   const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
@@ -211,12 +215,17 @@ onMounted(async () => {
   const unlisten = await listen<boolean>('autostart-changed', (event) => {
     form.value.autostart = event.payload
   })
+  const unlistenPin = await listen<boolean>(PIN_INDICATOR_CHANGED_EVENT, (event) => {
+    form.value.pin_indicator = event.payload
+  })
 
   if (!isMounted) {
     unlisten()
+    unlistenPin()
   }
   else {
     unlistenAutostart = unlisten
+    unlistenPinIndicator = unlistenPin
   }
 })
 
@@ -226,6 +235,7 @@ onUnmounted(() => {
     stopCapture()
   }
   unlistenAutostart?.()
+  unlistenPinIndicator?.()
 })
 
 async function onAutostartToggle(value: boolean) {
@@ -237,6 +247,17 @@ async function onAutostartToggle(value: boolean) {
   catch (error) {
     logger.error('BasicSettings', 'Failed to update autostart setting:', error)
     form.value.autostart = !value
+  }
+}
+
+async function onPinIndicatorToggle(value: boolean) {
+  form.value.pin_indicator = value
+  try {
+    await setPinIndicator(value)
+  }
+  catch (error) {
+    logger.error('BasicSettings', 'Failed to update pin indicator setting:', error)
+    form.value.pin_indicator = !value
   }
 }
 
@@ -254,6 +275,7 @@ async function onSubmit() {
     await Promise.all([
       store.set('autoselect', form.value.autoselect),
       store.set('copy_result', form.value.copy_result),
+      store.set('pin_indicator', form.value.pin_indicator),
       store.set('global_shortcut', actualShortcut),
     ])
     await store.save()
@@ -346,6 +368,16 @@ async function onSubmit() {
               </p>
             </div>
             <Switch id="copy_result" v-model="form.copy_result" />
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <Label class="text-base font-semibold">{{ t('settings.basic.pin_indicator.label') }}</Label>
+              <p class="text-sm text-muted-foreground">
+                {{ t('settings.basic.pin_indicator.description') }}
+              </p>
+            </div>
+            <Switch id="pin_indicator" :model-value="form.pin_indicator" @update:model-value="onPinIndicatorToggle" />
           </div>
         </div>
       </div>
