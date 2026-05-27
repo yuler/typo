@@ -58,7 +58,7 @@ fn get_hostname() -> String {
             let sanitized: String = h
                 .to_string_lossy()
                 .chars()
-                .filter(|c| c.is_ascii() && !c.is_control())
+                .filter(|c| c.is_ascii() && !c.is_control() && *c != '(' && *c != ')')
                 .collect();
             if sanitized.is_empty() {
                 "Unknown".to_string()

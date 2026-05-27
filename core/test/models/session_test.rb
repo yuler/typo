@@ -7,7 +7,7 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   test "user_agent_summary correctly identifies macOS desktop app with hostname" do
-    session = Session.new(user_agent: "Typo Desktop/0.1.0 (macOS) MacBook-Pro")
+    session = Session.new(user_agent: "Typo Desktop/0.1.0 (macOS; MacBook-Pro)")
     assert_equal "Typo Client on macOS (MacBook-Pro)", session.user_agent_summary
   end
 
