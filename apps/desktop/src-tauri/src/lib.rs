@@ -10,6 +10,7 @@ mod cli;
 mod keyboard;
 mod logging;
 mod tray;
+mod upgrade;
 mod windows;
 
 #[cfg(target_os = "macos")]
@@ -212,6 +213,7 @@ pub fn run() {
         }))
         .setup(move |app| {
             log::info!("in_linux_wayland={}", in_linux_wayland());
+            upgrade::init(app.handle().clone());
             windows::create_main_window(&app.handle());
             windows::create_indicator_window(&app.handle(), false);
             if let Err(error) = tray::init(app) {
@@ -242,6 +244,7 @@ pub fn run() {
             tray::update_tray_menu,
             windows::open_upgrade_window,
             windows::open_indicator_window,
+            upgrade::ignore_version,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
