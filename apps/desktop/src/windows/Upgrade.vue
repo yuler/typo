@@ -141,7 +141,6 @@ async function onCancel() {
   stopCountdown()
   appWindow.close()
 }
-
 </script>
 
 <template>
