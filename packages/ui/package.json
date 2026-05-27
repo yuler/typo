@@ -6,13 +6,19 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "peerDependencies": {
     "vue": "^3.5.13"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
     "vue": "^3.5.13",
     "lucide-vue-next": "^0.477.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^3.0.2"
+    "vitest": "^2.1.0"
   }
 }
