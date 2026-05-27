@@ -3,7 +3,6 @@ import type { Component } from 'vue'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { onMounted, onUnmounted } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
-import { useGlobalState } from '@/composables/useGlobalState'
 import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
@@ -14,7 +13,6 @@ import Upgrade from '@/windows/Upgrade.vue'
 
 const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
-const { setUpdateInfo } = useGlobalState()
 
 const windows: Record<string, Component> = {
   main: Main,
