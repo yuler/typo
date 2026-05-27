@@ -176,7 +176,7 @@ async function copySvgAssets() {
 
       const light = file.match(/^(.+)-light\.svg$/)
       if (light)
-        await writeLightAliases(target, [`${light[1]}`], '.svg')
+        await writeLightAliases(target, [light[1]], '.svg')
     }))
 }
 
