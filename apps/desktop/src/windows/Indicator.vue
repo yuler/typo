@@ -12,6 +12,7 @@ import AppLogo from '@/components/AppLogo.vue'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
+import { listenForIndicatorShortcutRequests, setupGlobalShortcut } from '@/shortcut'
 import { parseSlashPrompts, resolveSlashPrompt } from '@/slashPrompts'
 import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
@@ -37,6 +38,7 @@ const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const STATUS_DISPLAY_DURATION_MS = 1000
 
 let unlistenSetInput: UnlistenFn
+let unlistenShortcutRequests: (() => void) | undefined
 let isMounted = true
 
 interface SetInputPayload {
@@ -162,6 +164,19 @@ onMounted(async () => {
   ])
   globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
   copyResult.value = copy as boolean
+  globalShortcut.value = await setupGlobalShortcut(globalShortcut.value)
+  if (!isMounted) {
+    return
+  }
+
+  const cleanupShortcutRequests = await listenForIndicatorShortcutRequests((shortcut) => {
+    globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
+  })
+  if (!isMounted) {
+    cleanupShortcutRequests()
+    return
+  }
+  unlistenShortcutRequests = cleanupShortcutRequests
 
   const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     // Force show and focus when event received
@@ -192,6 +207,7 @@ onMounted(async () => {
 onUnmounted(() => {
   isMounted = false
   unlistenSetInput?.()
+  unlistenShortcutRequests?.()
 })
 
 let abortController: AbortController | null = null
