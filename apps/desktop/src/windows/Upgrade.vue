@@ -143,7 +143,8 @@ async function onCancel() {
     try {
       const { invoke } = await import('@tauri-apps/api/core')
       await invoke('ignore_version', { version: updateInfo.value.version })
-    } catch (e) {
+    }
+    catch (e) {
       logger.error('Update', 'Failed to ignore version', e)
     }
   }
