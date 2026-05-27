@@ -1,16 +1,18 @@
-use std::sync::{atomic::{AtomicUsize, Ordering}, RwLock};
+use std::sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, RwLock};
 use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
 use tauri_plugin_updater::UpdaterExt;
 
 static ACTIVITY_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static IGNORED_VERSION: RwLock<Option<String>> = RwLock::new(None);
+static IS_CHECKING: AtomicBool = AtomicBool::new(false);
 const ACTIVITY_THRESHOLD: usize = 10;
 const UPDATER_STATE_FILE: &str = "updater.json";
 
 pub fn init(app: AppHandle) {
     // Load ignored version from store
     if let Ok(store) = app.store(UPDATER_STATE_FILE) {
+        let _ = store.reload();
         if let Some(version) = store.get("ignored_version") {
             if let Some(v_str) = version.as_str() {
                 let mut ignored = IGNORED_VERSION.write().unwrap();
@@ -39,11 +41,17 @@ pub fn increment_activity(app: &AppHandle) {
 }
 
 async fn check_update_silent(app: &AppHandle) {
+    if IS_CHECKING.compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed).is_err() {
+        log::debug!("Update check already in progress, skipping");
+        return;
+    }
+
     log::info!("Checking for updates (activity-triggered)");
     let updater = match app.updater() {
         Ok(u) => u,
         Err(e) => {
             log::error!("Failed to get updater: {}", e);
+            IS_CHECKING.store(false, Ordering::Release);
             return;
         }
     };
@@ -55,6 +63,7 @@ async fn check_update_silent(app: &AppHandle) {
             let is_ignored = IGNORED_VERSION.read().unwrap().as_ref() == Some(&version);
             if is_ignored {
                 log::info!("Update v{} is ignored, skipping window", version);
+                IS_CHECKING.store(false, Ordering::Release);
                 return;
             }
 
@@ -69,6 +78,8 @@ async fn check_update_silent(app: &AppHandle) {
             log::error!("Update check failed: {}", e);
         }
     }
+
+    IS_CHECKING.store(false, Ordering::Release);
 }
 
 #[tauri::command]
@@ -83,6 +94,7 @@ pub fn ignore_version(app: AppHandle, version: String) {
 
     // Update local store
     if let Ok(store) = app.store(UPDATER_STATE_FILE) {
+        let _ = store.reload();
         store.set("ignored_version", serde_json::Value::String(version));
         if let Err(e) = store.save() {
             log::error!("Failed to save ignored_version to store: {}", e);

@@ -44,7 +44,7 @@ async function fetchRemoteNotes(version: string) {
 
 useEventListener('keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape' && !isUpgrading.value)
-    onCancel()
+    onDismiss()
 })
 
 onMounted(async () => {
@@ -137,17 +137,21 @@ watch(isUpToDate, (upToDate) => {
 
 onUnmounted(stopCountdown)
 
-async function onCancel() {
+async function onIgnore() {
   stopCountdown()
   if (updateInfo.value?.version) {
     try {
       const { invoke } = await import('@tauri-apps/api/core')
       await invoke('ignore_version', { version: updateInfo.value.version })
-    }
-    catch (e) {
+    } catch (e) {
       logger.error('Update', 'Failed to ignore version', e)
     }
   }
+  appWindow.close()
+}
+
+function onDismiss() {
+  stopCountdown()
   appWindow.close()
 }
 </script>
@@ -162,7 +166,7 @@ async function onCancel() {
       </div>
       <button
         class="flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-all duration-150 cursor-pointer"
-        @click="onCancel"
+        @click="onDismiss"
       >
         <XIcon class="w-3.5 h-3.5" />
       </button>
@@ -192,7 +196,7 @@ async function onCancel() {
             {{ t('upgrade.auto_close_countdown', { seconds: closeCountdown }) }}
           </p>
         </div>
-        <Button variant="outline" class="cursor-pointer font-medium" @click="onCancel">
+        <Button variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
           {{ t('upgrade.close') }}
         </Button>
       </div>
@@ -224,10 +228,11 @@ async function onCancel() {
           <Button
             variant="outline"
             class="cursor-pointer font-medium"
-            @click="onCancel"
+            @click="onIgnore"
           >
             {{ t('upgrade.later') }}
           </Button>
+
           <Button
             class="font-semibold flex items-center gap-2 cursor-pointer"
             @click="onUpgradeConfirm"
