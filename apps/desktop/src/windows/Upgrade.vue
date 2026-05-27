@@ -139,6 +139,14 @@ onUnmounted(stopCountdown)
 
 async function onCancel() {
   stopCountdown()
+  if (updateInfo.value?.version) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core')
+      await invoke('ignore_version', { version: updateInfo.value.version })
+    } catch (e) {
+      logger.error('Update', 'Failed to ignore version', e)
+    }
+  }
   appWindow.close()
 }
 </script>

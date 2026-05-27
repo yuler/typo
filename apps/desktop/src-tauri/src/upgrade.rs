@@ -29,22 +29,12 @@ pub fn init(app: AppHandle) {
 }
 
 pub fn increment_activity(app: &AppHandle) {
-    let result = ACTIVITY_COUNTER.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |val| {
-        let next = val + 1;
-        if next >= ACTIVITY_THRESHOLD {
-            Some(0)
-        } else {
-            Some(next)
-        }
-    });
-
-    if let Ok(old) = result {
-        if old + 1 >= ACTIVITY_THRESHOLD {
-            let handle = app.clone();
-            tauri::async_runtime::spawn(async move {
-                let _ = check_update_silent(&handle).await;
-            });
-        }
+    let old = ACTIVITY_COUNTER.fetch_add(1, Ordering::Relaxed);
+    if (old + 1) % ACTIVITY_THRESHOLD == 0 {
+        let handle = app.clone();
+        tauri::async_runtime::spawn(async move {
+            check_update_silent(&handle).await;
+        });
     }
 }
 
@@ -62,8 +52,8 @@ async fn check_update_silent(app: &AppHandle) {
         Ok(Some(update)) => {
             let version = update.version;
 
-            let ignored = IGNORED_VERSION.read().unwrap();
-            if ignored.as_ref() == Some(&version) {
+            let is_ignored = IGNORED_VERSION.read().unwrap().as_ref() == Some(&version);
+            if is_ignored {
                 log::info!("Update v{} is ignored, skipping window", version);
                 return;
             }
@@ -71,6 +61,7 @@ async fn check_update_silent(app: &AppHandle) {
             log::info!("New version v{} found, opening upgrade window", version);
             crate::windows::create_upgrade_window(app);
         }
+
         Ok(None) => {
             log::info!("No updates found");
         }
