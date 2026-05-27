@@ -16,40 +16,60 @@ pub fn init(app: AppHandle) {
 }
 
 pub fn increment_activity(app: &AppHandle) {
-    let current = ACTIVITY_COUNTER.fetch_add(1, Ordering::SeqCst) + 1;
-    if current >= ACTIVITY_THRESHOLD {
-        ACTIVITY_COUNTER.store(0, Ordering::SeqCst);
-        let handle = app.clone();
-        tauri::async_runtime::spawn(async move {
-            let _ = check_update_silent(&handle).await;
-        });
+    let result = ACTIVITY_COUNTER.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |val| {
+        let next = val + 1;
+        if next >= ACTIVITY_THRESHOLD {
+            Some(0)
+        } else {
+            Some(next)
+        }
+    });
+
+    if let Ok(old) = result {
+        if old + 1 >= ACTIVITY_THRESHOLD {
+            let handle = app.clone();
+            tauri::async_runtime::spawn(async move {
+                let _ = check_update_silent(&handle).await;
+            });
+        }
     }
 }
 
-async fn check_update_silent(app: &AppHandle) -> Result<(), String> {
+async fn check_update_silent(app: &AppHandle) {
     log::info!("Checking for updates (activity-triggered)");
-    let updater = app.updater().map_err(|e| e.to_string())?;
-    if let Some(update) = updater.check().await.map_err(|e| e.to_string())? {
-        let version = update.version.clone();
-        
-        let ignored = IGNORED_VERSION.read().unwrap();
-        if Some(version.clone()) == *ignored {
-            log::info!("Update v{} is ignored, skipping window", version);
-            return Ok(());
+    let updater = match app.updater() {
+        Ok(u) => u,
+        Err(e) => {
+            log::error!("Failed to get updater: {}", e);
+            return;
         }
-        
-        log::info!("New version v{} found, opening upgrade window", version);
-        crate::windows::create_upgrade_window(app);
-    } else {
-        log::info!("No updates found");
+    };
+
+    match updater.check().await {
+        Ok(Some(update)) => {
+            let version = update.version;
+
+            let ignored = IGNORED_VERSION.read().unwrap();
+            if ignored.as_ref() == Some(&version) {
+                log::info!("Update v{} is ignored, skipping window", version);
+                return;
+            }
+
+            log::info!("New version v{} found, opening upgrade window", version);
+            crate::windows::create_upgrade_window(app);
+        }
+        Ok(None) => {
+            log::info!("No updates found");
+        }
+        Err(e) => {
+            log::error!("Update check failed: {}", e);
+        }
     }
-    Ok(())
 }
 
 #[tauri::command]
 pub fn ignore_version(version: String) {
-    let version_clone = version.clone();
+    log::info!("Version v{} will be ignored for automatic checks", version);
     let mut ignored = IGNORED_VERSION.write().unwrap();
     *ignored = Some(version);
-    log::info!("Version v{} will be ignored for automatic checks", version_clone);
 }
