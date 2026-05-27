@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Update } from '@tauri-apps/plugin-updater'
+import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { fetch } from '@tauri-apps/plugin-http'
 import { relaunch } from '@tauri-apps/plugin-process'
@@ -137,8 +138,19 @@ watch(isUpToDate, (upToDate) => {
 
 onUnmounted(stopCountdown)
 
-function onCancel() {
+async function onCancel() {
   stopCountdown()
+
+  // If we have update info, tell Rust to ignore this version
+  if (updateInfo.value?.version) {
+    try {
+      await invoke('ignore_version', { version: updateInfo.value.version })
+    }
+    catch (e) {
+      logger.error('Update', 'Failed to ignore version', e)
+    }
+  }
+
   appWindow.close()
 }
 </script>
