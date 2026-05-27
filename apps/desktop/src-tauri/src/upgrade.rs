@@ -6,11 +6,11 @@ use tauri_plugin_updater::UpdaterExt;
 static ACTIVITY_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static IGNORED_VERSION: RwLock<Option<String>> = RwLock::new(None);
 const ACTIVITY_THRESHOLD: usize = 10;
-const SETTINGS_FILE: &str = "settings.json";
+const UPDATER_STATE_FILE: &str = "updater.json";
 
 pub fn init(app: AppHandle) {
     // Load ignored version from store
-    if let Some(store) = app.get_store(SETTINGS_FILE) {
+    if let Ok(store) = app.store(UPDATER_STATE_FILE) {
         if let Some(version) = store.get("ignored_version") {
             if let Some(v_str) = version.as_str() {
                 let mut ignored = IGNORED_VERSION.write().unwrap();
@@ -82,7 +82,7 @@ pub fn ignore_version(app: AppHandle, version: String) {
     }
 
     // Update local store
-    if let Some(store) = app.get_store(SETTINGS_FILE) {
+    if let Ok(store) = app.store(UPDATER_STATE_FILE) {
         store.set("ignored_version", serde_json::Value::String(version));
         if let Err(e) = store.save() {
             log::error!("Failed to save ignored_version to store: {}", e);
