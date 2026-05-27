@@ -1,0 +1,53 @@
+{
+  "version": "1.6.0",
+  "date": "2026-05-27",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.6.0",
+  "notes": "### Features\n- Added @typo/logo package with SVG assets, dark mode support, and build scripts for app icons.\n- Added admin root and admin/stats page.\n- Updated admin stats view with personal accounts and simple links.\n- Added PR title format check workflow.\n\n### Fixes\n- Fixed global shortcut registration only in indicator window.\n- Fixed manage sessions link on dashboard.\n\n### Docs\n- Rebuilt documentation with i18n, custom Astro layout, install screenshots, and restructured navigation.",
+  "notes_i18n": {
+    "en": [
+      "Added @typo/logo package with SVG assets, dark mode support, and build scripts for app icons.",
+      "Fixed global shortcut registration only in indicator window.",
+      "Fixed manage sessions link on dashboard.",
+      "Rebuilt documentation with i18n, custom Astro layout, install screenshots, and restructured navigation."
+    ],
+    "zh": [
+      "添加了@typo/logo包，包含SVG资源、暗色模式支持和应用图标构建脚本。",
+      "修复了仅在指示窗口中注册全局快捷键的问题。",
+      "修复了仪表盘上的管理会话链接。",
+      "重建了文档，包含国际化、自定义Astro布局、安装截图和重构导航。"
+    ],
+    "jp": [
+      "@typo/logoパッケージを追加（SVGアセット、ダークモード対応、アプリアイコンのビルドスクリプトを含む）。",
+      "グローバルショートカットをインジケータウィンドウのみで登録するように修正。",
+      "ダッシュボードのセッション管理リンクを修正。",
+      "ドキュメントを再構築（i18n、カスタムAstroレイアウト、インストールスクリーンショット、ナビゲーション再構成を含む）。"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.6.0_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.0/typo_1.6.0_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.6.0_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.0/typo_1.6.0_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.6.0_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.0/typo_1.6.0_amd64.deb"
+    },
+    {
+      "name": "typo_1.6.0_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.0/typo_1.6.0_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.6.0_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.0/typo_1.6.0_x64.dmg"
+    }
+  ]
+}
