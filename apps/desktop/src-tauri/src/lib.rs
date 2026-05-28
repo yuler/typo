@@ -84,8 +84,9 @@ fn pending_open_settings() -> &'static Mutex<bool> {
 }
 
 pub(crate) fn set_pending_open_settings(value: bool) {
-    if let Ok(mut pending) = pending_open_settings().lock() {
-        *pending = value;
+    match pending_open_settings().lock() {
+        Ok(mut pending) => *pending = value,
+        Err(error) => log::error!("failed to lock pending open-settings flag: {}", error),
     }
 }
 
