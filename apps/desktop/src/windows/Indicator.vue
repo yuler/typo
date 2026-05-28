@@ -256,13 +256,23 @@ onUnmounted(() => {
 let abortController: AbortController | null = null
 
 async function fetchCorrection(text: string, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
+  abortController = new AbortController()
+
   const mockMatch = text.match(/^\s*\/mock(?:\s+([\s\S]*))?$/)
   if (import.meta.env.DEV && mockMatch) {
-    await sleep(5000)
-    return `${text.trim()}`
+    await new Promise<void>((resolve, reject) => {
+      const onAbort = () => {
+        clearTimeout(timeout)
+        reject(new DOMException('Aborted', 'AbortError'))
+      }
+      const timeout = setTimeout(() => {
+        abortController?.signal.removeEventListener('abort', onAbort)
+        resolve()
+      }, 5000)
+      abortController?.signal.addEventListener('abort', onAbort)
+    })
+    return mockMatch[1]?.trim() || 'Mock Result'
   }
-
-  abortController = new AbortController()
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
   switch (aiProvider) {
@@ -485,9 +495,13 @@ function gotoSettings() {
     </div>
   </div>
 </template>
-
 <style scoped>
-body, .indicator-shell {
+:global(body) {
+  background-color: transparent;
+  overflow: hidden;
+}
+
+.indicator-shell {
   position: relative;
   border-radius: 0.625rem;
   background-color: transparent;
@@ -496,7 +510,7 @@ body, .indicator-shell {
 
 .indicator-capsule {
   position: relative;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 24%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
 }
 
 .indicator-content {
@@ -510,7 +524,7 @@ body, .indicator-shell {
   pointer-events: none;
   border-radius: inherit;
   z-index: 0;
-  background-color: rgb(38 38 38);
+  background-color: rgb(52 52 52);
 }
 
 .indicator-shell--processing::before {
