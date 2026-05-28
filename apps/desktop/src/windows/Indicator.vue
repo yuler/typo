@@ -43,7 +43,7 @@ const INDICATOR_MIN_IDLE_WIDTH = 180
 const INDICATOR_MAX_ACTIVE_WIDTH = 520
 const INDICATOR_MAX_CONTENT_WIDTH = 390
 const INDICATOR_CHROME_WIDTH = 106
-const INDICATOR_HEIGHT = 56
+const INDICATOR_HEIGHT = 60
 
 let unlistenSetInput: UnlistenFn
 let unlistenShortcutRequests: (() => void) | undefined
@@ -256,6 +256,12 @@ onUnmounted(() => {
 let abortController: AbortController | null = null
 
 async function fetchCorrection(text: string, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
+  const mockMatch = text.match(/^\s*\/mock(?:\s+([\s\S]*))?$/)
+  if (import.meta.env.DEV && mockMatch) {
+    await sleep(5000)
+    return `${text.trim()}`
+  }
+
   abortController = new AbortController()
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
@@ -421,61 +427,73 @@ function gotoSettings() {
 
 <template>
   <div
-    class="indicator-capsule h-full w-full flex items-center pl-4 gap-3 transition-shadow duration-300 select-none bg-neutral-800 rounded-lg border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing"
-    :class="{ 'indicator-capsule--processing': state === 'processing' }"
+    class="indicator-shell h-full w-full p-0.5"
+    :class="{ 'indicator-shell--processing': state === 'processing' }"
     tabindex="0"
     data-tauri-drag-region
     @keydown.esc="onESC"
   >
-    <AppLogo version dark drag class="size-7" />
-
-    <!-- Center: Status -->
-    <div class="indicator-content flex overflow-hidden min-w-0 h-full items-center" data-tauri-drag-region>
-      <div v-if="state === 'processing'" class="flex max-w-full items-center gap-2 px-2 overflow-hidden" data-tauri-drag-region>
-        <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-500/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-500/20" data-tauri-drag-region>
-          <TerminalIcon class="w-3 h-3 text-blue-400" data-tauri-drag-region />
-          <span class="text-[10px] font-bold text-blue-400 tracking-tight uppercase" data-tauri-drag-region>
-            {{ commandName.startsWith('/') ? commandName.slice(1) : commandName }}
-          </span>
-        </div>
-        <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" data-tauri-drag-region />
-        <span class="truncate text-sm text-blue-100/90 shrink min-w-0 font-medium" data-tauri-drag-region>{{ inputText }}</span>
-        <span class="text-[10px] text-blue-400/40 font-mono shrink-0" data-tauri-drag-region>{{ inputText?.length }}</span>
-      </div>
-
-      <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden" data-tauri-drag-region>
-        <span class="truncate text-sm text-green-400 font-medium" data-tauri-drag-region>{{ resultText }}</span>
-        <template v-if="copyResult">
-          <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" data-tauri-drag-region />
-          <span class="text-[10px] text-green-400/50 font-mono shrink-0" data-tauri-drag-region>{{ t('main.status.copied') }}</span>
-        </template>
-      </div>
-
-      <p
-        v-else-if="state === 'error'"
-        class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
-        :data-tauri-drag-region="isRateLimited ? false : true"
-        @click="isRateLimited ? (login(), hideIndicator()) : null"
-      >
-        {{ errorText }}
-      </p>
-
-      <kbd v-else class="px-1.5 py-0.5 rounded border border-white/10 bg-white/5 font-mono text-[10px] text-white/40" data-tauri-drag-region>
-        {{ formatShortcut(globalShortcut, isMacOS) }}
-      </kbd>
-    </div>
-
-    <!-- Right: Settings -->
-    <button
-      class="size-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-      @click="gotoSettings"
+    <div
+      class="indicator-capsule h-full w-full flex items-center pl-4 gap-3 transition-shadow duration-300 select-none bg-neutral-800 rounded-lg border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing"
+      data-tauri-drag-region
     >
-      <SettingsIcon class="w-4 h-4 text-white/40 hover:text-white/60" />
-    </button>
+      <AppLogo version dark drag class="size-7" />
+
+      <!-- Center: Status -->
+      <div class="indicator-content flex overflow-hidden min-w-0 h-full items-center" data-tauri-drag-region>
+        <div v-if="state === 'processing'" class="flex max-w-full items-center gap-2 px-2 overflow-hidden" data-tauri-drag-region>
+          <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-500/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-500/20" data-tauri-drag-region>
+            <TerminalIcon class="w-3 h-3 text-blue-400" data-tauri-drag-region />
+            <span class="text-[10px] font-bold text-blue-400 tracking-tight uppercase" data-tauri-drag-region>
+              {{ commandName.startsWith('/') ? commandName.slice(1) : commandName }}
+            </span>
+          </div>
+          <Loader2Icon class="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" data-tauri-drag-region />
+          <span class="truncate text-sm text-blue-100/90 shrink min-w-0 font-medium" data-tauri-drag-region>{{ inputText }}</span>
+          <span class="text-[10px] text-blue-400/40 font-mono shrink-0" data-tauri-drag-region>{{ inputText?.length }}</span>
+        </div>
+
+        <div v-else-if="state === 'result'" class="flex items-center gap-2 px-2 overflow-hidden" data-tauri-drag-region>
+          <span class="truncate text-sm text-green-400 font-medium" data-tauri-drag-region>{{ resultText }}</span>
+          <template v-if="copyResult">
+            <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" data-tauri-drag-region />
+            <span class="text-[10px] text-green-400/50 font-mono shrink-0" data-tauri-drag-region>{{ t('main.status.copied') }}</span>
+          </template>
+        </div>
+
+        <p
+          v-else-if="state === 'error'"
+          class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
+          :data-tauri-drag-region="isRateLimited ? false : true"
+          @click="isRateLimited ? (login(), hideIndicator()) : null"
+        >
+          {{ errorText }}
+        </p>
+
+        <kbd v-else class="px-1.5 py-0.5 rounded border border-white/10 bg-white/5 font-mono text-[10px] text-white/40" data-tauri-drag-region>
+          {{ formatShortcut(globalShortcut, isMacOS) }}
+        </kbd>
+      </div>
+
+      <!-- Right: Settings -->
+      <button
+        class="size-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+        @click="gotoSettings"
+      >
+        <SettingsIcon class="w-4 h-4 text-white/40 hover:text-white/60" />
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
+body, .indicator-shell {
+  position: relative;
+  border-radius: 0.625rem;
+  background-color: transparent;
+  overflow: hidden;
+}
+
 .indicator-capsule {
   position: relative;
   box-shadow: 0 10px 30px rgb(0 0 0 / 24%);
@@ -485,17 +503,24 @@ function gotoSettings() {
   max-width: 390px;
 }
 
-.indicator-capsule--processing {
-  border-color: rgb(229 229 229 / 18%);
-}
-
-.indicator-capsule--processing::before {
+.indicator-shell--processing::after {
   position: absolute;
   inset: 0;
-  padding: 1px;
   content: "";
   pointer-events: none;
   border-radius: inherit;
+  z-index: 0;
+  background-color: rgb(38 38 38);
+}
+
+.indicator-shell--processing::before {
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  content: "";
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
   background:
     conic-gradient(
       from var(--indicator-runner-angle, 0deg),
@@ -516,6 +541,10 @@ function gotoSettings() {
     linear-gradient(#000 0 0);
   mask-composite: exclude;
   animation: indicator-border-runner 3.6s linear infinite;
+}
+
+.indicator-shell--processing .indicator-capsule {
+  z-index: 1;
 }
 
 @property --indicator-runner-angle {

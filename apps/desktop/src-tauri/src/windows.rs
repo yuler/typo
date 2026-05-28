@@ -70,7 +70,7 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
     };
 
     let win_width = 360.0;
-    let win_height = 56.0;
+    let win_height = 60.0;
     let x = (width - win_width) / 2.0;
     let y = height - win_height - 20.0; // 20px above the bottom of the work area
 
