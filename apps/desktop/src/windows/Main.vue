@@ -79,6 +79,7 @@ onMounted(async () => {
 
   const unlisten = await listen('open-settings', () => {
     activeTab.value = 'settings'
+    void invoke('consume_pending_open_settings')
   })
 
   if (!isMounted) {
@@ -86,6 +87,14 @@ onMounted(async () => {
   }
   else {
     unlistenOpenSettings = unlisten
+  }
+
+  const shouldOpenSettings = await invoke<boolean>('consume_pending_open_settings')
+  if (!isMounted) {
+    return
+  }
+  if (shouldOpenSettings) {
+    activeTab.value = 'settings'
   }
 
   const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')

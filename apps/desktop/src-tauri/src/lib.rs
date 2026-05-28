@@ -239,9 +239,11 @@ pub fn run() {
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
+            windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,
             windows::open_indicator_window,
+            windows::open_main_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
