@@ -155,10 +155,7 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
 fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
         ID_SHOW => crate::windows::show_and_focus_main(app),
-        ID_SETTINGS => {
-            crate::windows::show_and_focus_main(app);
-            let _ = app.emit("open-settings", ());
-        }
+        ID_SETTINGS => crate::windows::show_and_focus_main_settings(app),
         ID_PIN_INDICATOR => toggle_pin_indicator_action(app),
         ID_CHECK_UPDATES => {
             crate::windows::create_upgrade_window(app);

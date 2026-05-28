@@ -1,5 +1,5 @@
 // apps/desktop/src-tauri/src/windows.rs
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
 #[cfg(target_os = "macos")]
 use tauri::{LogicalPosition, TitleBarStyle};
@@ -17,7 +17,14 @@ pub fn open_indicator_window(app: AppHandle) {
 
 #[tauri::command]
 pub fn open_main_window(app: AppHandle) {
-    show_and_focus_main(&app);
+    show_and_focus_main_settings(&app);
+}
+
+pub fn show_and_focus_main_settings(app: &AppHandle) {
+    show_and_focus_main(app);
+    if let Err(err) = app.emit("open-settings", ()) {
+        log::error!("failed to emit open-settings: {}", err);
+    }
 }
 
 pub fn show_and_focus_main(app: &AppHandle) {

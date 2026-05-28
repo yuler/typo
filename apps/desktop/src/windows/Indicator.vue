@@ -263,6 +263,10 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
   if (import.meta.env.DEV && mockPrefixMatch) {
     const mockPayload = text.slice(mockPrefixMatch[0].length).trim()
     await new Promise<void>((resolve, reject) => {
+      if (signal.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'))
+        return
+      }
       let timeout: ReturnType<typeof setTimeout>
       const onAbort = () => {
         clearTimeout(timeout)
@@ -492,7 +496,7 @@ async function openMainWindow() {
       <!-- Right: Settings -->
       <button
         class="size-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-        :data-tauri-drag-region="false"
+        data-tauri-drag-region="false"
         @click="openMainWindow"
       >
         <SettingsIcon class="w-4 h-4 text-white/40 hover:text-white/60" />
