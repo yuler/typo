@@ -1,5 +1,5 @@
 use std::sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, RwLock};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
 use tauri_plugin_updater::UpdaterExt;
 
@@ -8,6 +8,14 @@ static IGNORED_VERSION: RwLock<Option<String>> = RwLock::new(None);
 static IS_CHECKING: AtomicBool = AtomicBool::new(false);
 const ACTIVITY_THRESHOLD: usize = 10;
 const UPDATER_STATE_FILE: &str = "updater.json";
+
+struct CheckingGuard;
+
+impl Drop for CheckingGuard {
+    fn drop(&mut self) {
+        IS_CHECKING.store(false, Ordering::Release);
+    }
+}
 
 pub fn init(app: AppHandle) {
     // Load ignored version from store
@@ -41,17 +49,22 @@ pub fn increment_activity(app: &AppHandle) {
 }
 
 async fn check_update_silent(app: &AppHandle) {
+    if app.get_webview_window("upgrade").is_some() {
+        log::debug!("Upgrade window is already open, skipping update check");
+        return;
+    }
+
     if IS_CHECKING.compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed).is_err() {
         log::debug!("Update check already in progress, skipping");
         return;
     }
+    let _guard = CheckingGuard;
 
     log::info!("Checking for updates (activity-triggered)");
     let updater = match app.updater() {
         Ok(u) => u,
         Err(e) => {
             log::error!("Failed to get updater: {}", e);
-            IS_CHECKING.store(false, Ordering::Release);
             return;
         }
     };
@@ -63,7 +76,6 @@ async fn check_update_silent(app: &AppHandle) {
             let is_ignored = IGNORED_VERSION.read().unwrap().as_ref() == Some(&version);
             if is_ignored {
                 log::info!("Update v{} is ignored, skipping window", version);
-                IS_CHECKING.store(false, Ordering::Release);
                 return;
             }
 
@@ -78,8 +90,6 @@ async fn check_update_silent(app: &AppHandle) {
             log::error!("Update check failed: {}", e);
         }
     }
-
-    IS_CHECKING.store(false, Ordering::Release);
 }
 
 #[tauri::command]

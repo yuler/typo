@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Update } from '@tauri-apps/plugin-updater'
+import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { fetch } from '@tauri-apps/plugin-http'
 import { relaunch } from '@tauri-apps/plugin-process'
@@ -141,7 +142,6 @@ async function onIgnore() {
   stopCountdown()
   if (updateInfo.value?.version) {
     try {
-      const { invoke } = await import('@tauri-apps/api/core')
       await invoke('ignore_version', { version: updateInfo.value.version })
     }
     catch (e) {
