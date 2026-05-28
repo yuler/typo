@@ -15,6 +15,25 @@ pub fn open_indicator_window(app: AppHandle) {
     create_indicator_window(&app, true);
 }
 
+#[tauri::command]
+pub fn open_main_window(app: AppHandle) {
+    show_and_focus_main(&app);
+}
+
+pub fn show_and_focus_main(app: &AppHandle) {
+    create_main_window(app);
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+
+    if let Err(err) = window.show() {
+        log::error!("failed to show main window: {}", err);
+    }
+    if let Err(err) = window.set_focus() {
+        log::error!("failed to focus main window: {}", err);
+    }
+}
+
 pub fn create_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.set_focus();

@@ -2,7 +2,7 @@
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 import { LogicalSize } from '@tauri-apps/api/dpi'
-import { emit, listen } from '@tauri-apps/api/event'
+import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
@@ -433,8 +433,8 @@ async function onESC() {
   await hideIndicator()
 }
 
-function gotoSettings() {
-  emit('open-settings')
+async function openMainWindow() {
+  await invoke('open_main_window')
 }
 </script>
 
@@ -492,7 +492,7 @@ function gotoSettings() {
       <button
         class="size-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
         :data-tauri-drag-region="false"
-        @click="gotoSettings"
+        @click="openMainWindow"
       >
         <SettingsIcon class="w-4 h-4 text-white/40 hover:text-white/60" />
       </button>

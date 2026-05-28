@@ -148,15 +148,15 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
         if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
             log::error!("failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
         }
-        show_and_focus_main(app);
+        crate::windows::show_and_focus_main(app);
     }
 }
 
 fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
-        ID_SHOW => show_and_focus_main(app),
+        ID_SHOW => crate::windows::show_and_focus_main(app),
         ID_SETTINGS => {
-            show_and_focus_main(app);
+            crate::windows::show_and_focus_main(app);
             let _ = app.emit("open-settings", ());
         }
         ID_PIN_INDICATOR => toggle_pin_indicator_action(app),
@@ -218,20 +218,6 @@ fn toggle_autostart_action(app: &AppHandle) {
 fn open_log_folder_action(app: &AppHandle) {
     if let Err(err) = crate::open_log_folder_inner(app) {
         log::error!("{}", err);
-    }
-}
-
-fn show_and_focus_main(app: &AppHandle) {
-    crate::windows::create_main_window(app);
-    let Some(window) = app.get_webview_window("main") else {
-        return;
-    };
-
-    if let Err(err) = window.show() {
-        log::error!("failed to show main window: {}", err);
-    }
-    if let Err(err) = window.set_focus() {
-        log::error!("failed to focus main window: {}", err);
     }
 }
 
