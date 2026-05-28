@@ -495,6 +495,7 @@ function gotoSettings() {
     </div>
   </div>
 </template>
+
 <style scoped>
 :global(body) {
   background-color: transparent;
