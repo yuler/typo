@@ -257,6 +257,7 @@ let abortController: AbortController | null = null
 
 async function fetchCorrection(text: string, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
   abortController = new AbortController()
+  const signal = abortController.signal
 
   const mockPrefixMatch = text.match(/^\s*\/mock\b/)
   if (import.meta.env.DEV && mockPrefixMatch) {
@@ -265,14 +266,14 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
       let timeout: ReturnType<typeof setTimeout>
       const onAbort = () => {
         clearTimeout(timeout)
-        abortController?.signal.removeEventListener('abort', onAbort)
+        signal.removeEventListener('abort', onAbort)
         reject(new DOMException('Aborted', 'AbortError'))
       }
       timeout = setTimeout(() => {
-        abortController?.signal.removeEventListener('abort', onAbort)
+        signal.removeEventListener('abort', onAbort)
         resolve()
       }, 5000)
-      abortController?.signal.addEventListener('abort', onAbort)
+      signal.addEventListener('abort', onAbort)
     })
     return mockPayload || 'Mock Result'
   }
