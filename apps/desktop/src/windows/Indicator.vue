@@ -258,20 +258,22 @@ let abortController: AbortController | null = null
 async function fetchCorrection(text: string, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
   abortController = new AbortController()
 
-  const mockMatch = text.match(/^\s*\/mock(?:\s+([\s\S]*))?$/)
-  if (import.meta.env.DEV && mockMatch) {
+  const mockPrefixMatch = text.match(/^\s*\/mock\b/)
+  if (import.meta.env.DEV && mockPrefixMatch) {
+    const mockPayload = text.slice(mockPrefixMatch[0].length).trim()
     await new Promise<void>((resolve, reject) => {
+      let timeout: ReturnType<typeof setTimeout>
       const onAbort = () => {
         clearTimeout(timeout)
         reject(new DOMException('Aborted', 'AbortError'))
       }
-      const timeout = setTimeout(() => {
+      timeout = setTimeout(() => {
         abortController?.signal.removeEventListener('abort', onAbort)
         resolve()
       }, 5000)
       abortController?.signal.addEventListener('abort', onAbort)
     })
-    return mockMatch[1]?.trim() || 'Mock Result'
+    return mockPayload || 'Mock Result'
   }
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
