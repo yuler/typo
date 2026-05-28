@@ -21,7 +21,9 @@ pub fn open_main_window(app: AppHandle) {
 }
 
 pub fn show_and_focus_main_settings(app: &AppHandle) {
-    crate::set_pending_open_settings(true);
+    if app.get_webview_window("main").is_none() {
+        crate::set_pending_open_settings(true);
+    }
     show_and_focus_main(app);
     if let Err(err) = app.emit("open-settings", ()) {
         log::error!("failed to emit open-settings: {}", err);
