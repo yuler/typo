@@ -1,5 +1,5 @@
 // apps/desktop/src-tauri/src/windows.rs
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 #[cfg(target_os = "macos")]
 use tauri::{LogicalPosition, TitleBarStyle};
@@ -71,9 +71,23 @@ pub fn create_main_window(app: &AppHandle) {
         .skip_taskbar(false)
         .visible(true);
 
-    if let Err(e) = win_builder.build() {
-        log::error!("failed to build main window: {}", e);
-    }
+    let window = match win_builder.build() {
+        Ok(window) => window,
+        Err(e) => {
+            log::error!("failed to build main window: {}", e);
+            return;
+        }
+    };
+
+    let window_for_close = window.clone();
+    window.on_window_event(move |event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            api.prevent_close();
+            if let Err(err) = window_for_close.hide() {
+                log::error!("failed to hide main window: {}", err);
+            }
+        }
+    });
 }
 
 pub fn create_indicator_window(app: &AppHandle, show: bool) {
