@@ -79,6 +79,7 @@ onMounted(async () => {
 
   const unlisten = await listen('open-settings', () => {
     activeTab.value = 'settings'
+    void invoke('consume_pending_open_settings')
   })
 
   if (!isMounted) {

@@ -263,7 +263,10 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
   if (import.meta.env.DEV && text.trim().startsWith('/mock')) {
     await new Promise((resolve, reject) => {
       const t = setTimeout(resolve, 5000)
-      signal.addEventListener('abort', () => { clearTimeout(t); reject(new DOMException('Aborted', 'AbortError')) }, { once: true })
+      signal.addEventListener('abort', () => {
+        clearTimeout(t)
+        reject(new DOMException('Aborted', 'AbortError'))
+      }, { once: true })
     })
     return text.replace(/^\s*\/mock/, '').trim() || 'Mock Result'
   }
