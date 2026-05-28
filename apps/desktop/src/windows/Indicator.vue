@@ -259,6 +259,8 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
   abortController = new AbortController()
   const signal = abortController.signal
 
+  // Note: only for development
+  // handle `/mock` prefix
   const mockPrefixMatch = text.match(/^\s*\/mock\b/)
   if (import.meta.env.DEV && mockPrefixMatch) {
     const mockPayload = text.slice(mockPrefixMatch[0].length).trim()
