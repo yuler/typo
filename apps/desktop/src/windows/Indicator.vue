@@ -441,6 +441,13 @@ async function onESC() {
 async function openMainWindow() {
   await invoke('open_main_window')
 }
+
+async function handleErrorClick() {
+  if (isRateLimited.value) {
+    await login()
+    await hideIndicator()
+  }
+}
 </script>
 
 <template>
@@ -483,8 +490,8 @@ async function openMainWindow() {
           v-else-if="state === 'error'"
           class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
           :data-tauri-drag-region="isRateLimited ? undefined : true"
-          @mousedown="isRateLimited && $event.stopPropagation()"
-          @click="isRateLimited ? (login(), hideIndicator()) : null"
+          @mousedown="isRateLimited ? $event.stopPropagation() : undefined"
+          @click="handleErrorClick"
         >
           {{ errorText }}
         </p>
