@@ -78,33 +78,6 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
     PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
 }
 
-fn pending_open_settings() -> &'static Mutex<bool> {
-    static PENDING_OPEN_SETTINGS: OnceLock<Mutex<bool>> = OnceLock::new();
-    PENDING_OPEN_SETTINGS.get_or_init(|| Mutex::new(false))
-}
-
-pub(crate) fn set_pending_open_settings(value: bool) {
-    match pending_open_settings().lock() {
-        Ok(mut pending) => *pending = value,
-        Err(error) => log::error!("failed to lock pending open-settings flag: {}", error),
-    }
-}
-
-#[tauri::command]
-fn consume_pending_open_settings() -> bool {
-    match pending_open_settings().lock() {
-        Ok(mut pending) => {
-            let value = *pending;
-            *pending = false;
-            value
-        }
-        Err(error) => {
-            log::error!("failed to access pending open-settings flag: {}", error);
-            false
-        }
-    }
-}
-
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");
 
@@ -266,7 +239,7 @@ pub fn run() {
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
-            consume_pending_open_settings,
+            windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,
             windows::open_indicator_window,

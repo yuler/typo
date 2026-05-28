@@ -260,29 +260,14 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
   const signal = abortController.signal
 
   // Note: only for development
-  // handle `/mock` prefix
-  const mockPrefixMatch = text.match(/^\s*\/mock\b/)
-  if (import.meta.env.DEV && mockPrefixMatch) {
-    const mockPayload = text.slice(mockPrefixMatch[0].length).trim()
-    await new Promise<void>((resolve, reject) => {
-      if (signal.aborted) {
-        reject(new DOMException('Aborted', 'AbortError'))
-        return
-      }
-      let timeout: ReturnType<typeof setTimeout>
-      const onAbort = () => {
-        clearTimeout(timeout)
-        signal.removeEventListener('abort', onAbort)
-        reject(new DOMException('Aborted', 'AbortError'))
-      }
-      timeout = setTimeout(() => {
-        signal.removeEventListener('abort', onAbort)
-        resolve()
-      }, 5000)
-      signal.addEventListener('abort', onAbort)
+  if (import.meta.env.DEV && text.trim().startsWith('/mock')) {
+    await new Promise((resolve, reject) => {
+      const t = setTimeout(resolve, 5000)
+      signal.addEventListener('abort', () => { clearTimeout(t); reject(new DOMException('Aborted', 'AbortError')) }, { once: true })
     })
-    return mockPayload || 'Mock Result'
+    return text.replace(/^\s*\/mock/, '').trim() || 'Mock Result'
   }
+
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
   switch (aiProvider) {

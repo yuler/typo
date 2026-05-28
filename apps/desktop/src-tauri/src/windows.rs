@@ -1,9 +1,20 @@
 // apps/desktop/src-tauri/src/windows.rs
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[cfg(target_os = "macos")]
 use tauri::{LogicalPosition, TitleBarStyle};
 
+static PENDING_OPEN_SETTINGS: AtomicBool = AtomicBool::new(false);
+
+pub fn set_pending_open_settings(value: bool) {
+    PENDING_OPEN_SETTINGS.store(value, Ordering::Relaxed);
+}
+
+#[tauri::command]
+pub fn consume_pending_open_settings() -> bool {
+    PENDING_OPEN_SETTINGS.swap(false, Ordering::Relaxed)
+}
 
 #[tauri::command]
 pub fn open_upgrade_window(app: AppHandle) {
@@ -22,7 +33,7 @@ pub fn open_main_window(app: AppHandle) {
 
 pub fn show_and_focus_main_settings(app: &AppHandle) {
     if app.get_webview_window("main").is_none() {
-        crate::set_pending_open_settings(true);
+        set_pending_open_settings(true);
     }
     show_and_focus_main(app);
     if let Err(err) = app.emit("open-settings", ()) {
