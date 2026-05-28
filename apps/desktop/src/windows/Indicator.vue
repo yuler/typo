@@ -488,7 +488,8 @@ async function handleErrorClick() {
 
         <p
           v-else-if="state === 'error'"
-          class="truncate text-sm text-red-400 px-2 font-medium cursor-pointer hover:underline"
+          class="truncate text-sm text-red-400 px-2 font-medium"
+          :class="{ 'cursor-pointer hover:underline': isRateLimited }"
           :data-tauri-drag-region="isRateLimited ? undefined : true"
           @mousedown="isRateLimited ? $event.stopPropagation() : undefined"
           @click="handleErrorClick"
