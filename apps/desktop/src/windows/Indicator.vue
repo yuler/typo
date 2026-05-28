@@ -265,6 +265,7 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
       let timeout: ReturnType<typeof setTimeout>
       const onAbort = () => {
         clearTimeout(timeout)
+        abortController?.signal.removeEventListener('abort', onAbort)
         reject(new DOMException('Aborted', 'AbortError'))
       }
       timeout = setTimeout(() => {
@@ -490,6 +491,7 @@ function gotoSettings() {
       <!-- Right: Settings -->
       <button
         class="size-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+        :data-tauri-drag-region="false"
         @click="gotoSettings"
       >
         <SettingsIcon class="w-4 h-4 text-white/40 hover:text-white/60" />
