@@ -178,17 +178,14 @@ importers:
         specifier: ^5.7.0
         version: 5.18.1(@types/node@24.12.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.6.3)(yaml@2.8.3)
       lucide-vue-next:
-        specifier: ^0.477.0
-        version: 0.477.0(vue@3.5.32(typescript@5.6.3))
+        specifier: ^1.0.0
+        version: 1.0.0(vue@3.5.32(typescript@5.6.3))
       react:
         specifier: ^19.1.0
         version: 19.2.5
       react-dom:
         specifier: ^19.1.0
         version: 19.2.5(react@19.2.5)
-      swiper:
-        specifier: ^12.2.0
-        version: 12.2.0
       tailwindcss:
         specifier: ^4.1.10
         version: 4.2.2
@@ -3690,6 +3687,12 @@ packages:
     peerDependencies:
       vue: '>=3.0.1'
 
+  lucide-vue-next@1.0.0:
+    resolution: {integrity: sha512-V6SPvx1IHTj/UY+FrIYWV5faISsPSb8BnWSFDxAtezWKvWc9ZZ40PDrdu1/Qb5vg4lHWr1hs1BAMGVGm6V1Xdg==}
+    deprecated: Package deprecated. Please use @lucide/vue instead.
+    peerDependencies:
+      vue: '>=3.0.1'
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -4463,10 +4466,6 @@ packages:
     resolution: {integrity: sha512-XDpWUOPC6FEibaLzjfe0ucaV0YrOjYotGJO1WpF0Zd+n6ZGEQUsSugaoLq9QkEZtAfQIxT42UChcssDVPP3+/w==}
     engines: {node: '>=16'}
     hasBin: true
-
-  swiper@12.2.0:
-    resolution: {integrity: sha512-K8uXsBZU6ME97Ia3xbBge8IRCnR1lOmIILzvY/jGVic7dSTQ530s3uO8RvXbPUtkkXLWIwmZLRPbtDxRWVAFdg==}
-    engines: {node: '>= 4.7.0'}
 
   swr@2.4.1:
     resolution: {integrity: sha512-2CC6CiKQtEwaEeNiqWTAw9PGykW8SR5zZX8MZk6TeAvEAnVS7Visz8WzphqgtQ8v2xz/4Q5K+j+SeMaKXeeQIA==}
@@ -8801,15 +8800,15 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-vue-next@0.477.0(vue@3.5.32(typescript@5.6.3)):
-    dependencies:
-      vue: 3.5.32(typescript@5.6.3)
-
   lucide-vue-next@0.477.0(vue@3.5.32(typescript@6.0.3)):
     dependencies:
       vue: 3.5.32(typescript@6.0.3)
 
   lucide-vue-next@0.516.0(vue@3.5.32(typescript@5.6.3)):
+    dependencies:
+      vue: 3.5.32(typescript@5.6.3)
+
+  lucide-vue-next@1.0.0(vue@3.5.32(typescript@5.6.3)):
     dependencies:
       vue: 3.5.32(typescript@5.6.3)
 
@@ -10001,8 +10000,6 @@ snapshots:
       csso: 5.0.5
       picocolors: 1.1.1
       sax: 1.6.0
-
-  swiper@12.2.0: {}
 
   swr@2.4.1(react@19.2.5):
     dependencies:

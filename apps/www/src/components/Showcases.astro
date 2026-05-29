@@ -1,218 +1,224 @@
 ---
 import Demo from '@/components/Demo.vue'
-import 'swiper/css'
-import 'swiper/css/effect-fade'
+import { releases } from '@typo/releases'
 
 const { tr } = Astro.locals
+const latestVersion = releases[0]?.version ?? ''
 
-const cases = [
-  {
-    title: tr('demo.cases.default.title'),
-    description: tr('demo.cases.default.description'),
-    initialText: 'i thinks we should definitly ship the update by tomorow, their are no blockers left',
-    resolvedText: 'I think we should definitely ship the update by tomorrow — there are no blockers left.',
-  },
-  {
-    title: tr('demo.cases.polish.title'),
-    description: tr('demo.cases.polish.description'),
-    command: '/p',
-    initialText: '/p 看看今天的黄金价格',
-    resolvedText: '今天的黄金价格是每克...',
-  },
-  {
-    title: tr('demo.cases.japanese.title'),
-    description: tr('demo.cases.japanese.description'),
-    command: '/jp',
-    initialText: '/jp 你好阿',
-    resolvedText: 'こんにちは',
-  },
-]
+const cases: { key: 'default' | 'polish' | 'japanese'; command?: string; initialText: string; resolvedText: string }[] =
+  [
+    {
+      key: 'default',
+      initialText: 'I create this tool 主要用来 improve my type English',
+      resolvedText: 'I created this tool mainly to improve my typing in English.',
+    },
+    {
+      key: 'polish',
+      command: '/p',
+      initialText: '/p 看看今天的黄金价格',
+      resolvedText: '今天的黄金价格是每克...',
+    },
+    {
+      key: 'japanese',
+      command: '/jp',
+      initialText: '/jp 你好阿',
+      resolvedText: 'こんにちは',
+    },
+  ]
+
+const showcaseDotClass =
+  'size-[0.7rem] shrink-0 rounded-full border-2 border-zinc-300 bg-transparent transition-all duration-300 max-lg:mt-0 group-[.showcase-step-active]/step:scale-[1.15] group-[.showcase-step-active]/step:border-zinc-900 group-[.showcase-step-active]/step:bg-zinc-900 dark:border-zinc-700 dark:group-[.showcase-step-active]/step:border-zinc-50 dark:group-[.showcase-step-active]/step:bg-zinc-50'
+const showcaseTerminalDotClass =
+  'size-[0.7rem] shrink-0 rounded-full border-2 border-zinc-300 bg-transparent dark:border-zinc-700'
 ---
 
-<div
-  id="showcases-root"
-  class="grid gap-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:gap-10"
->
-  <div
-    id="showcase-cases"
-    class="no-scrollbar order-2 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 lg:order-1 lg:snap-none lg:flex-col lg:overflow-visible lg:pb-0 lg:sticky lg:top-[calc(var(--site-header-height)+1.5rem)]"
-    role="tablist"
+<div class="flex w-full flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between lg:gap-14">
+  <ol
+    id="showcase-timeline"
+    class="relative order-2 flex w-full max-lg:flex-row max-lg:items-start lg:order-1 lg:h-120 lg:w-auto lg:max-w-80 lg:shrink-0 lg:flex-col"
   >
     {
       cases.map((item, index) => (
-        <button
-          type="button"
-          role="tab"
+        <li
+          class:list={[
+            'showcase-step group/step flex min-w-0 flex-1 lg:min-h-0',
+            { 'showcase-step-active': index === 0 },
+          ]}
           data-index={index}
-          aria-selected={index === 0}
-          class="showcase-case group relative w-[min(85vw,20rem)] shrink-0 snap-start overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 text-left transition hover:border-zinc-300 lg:w-full dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-zinc-700"
         >
-          <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{item.title}</h3>
-            <span class="showcase-countdown text-xs font-medium tabular-nums text-indigo-500 dark:text-indigo-400" aria-live="polite" />
-          </div>
-          <p class="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{item.description}</p>
-          <span class="showcase-progress absolute inset-x-0 bottom-0 h-0.5 w-0 bg-indigo-500 dark:bg-indigo-400" />
-        </button>
+          <button
+            type="button"
+            class="showcase-step-button flex w-full cursor-pointer gap-4 max-lg:flex-col max-lg:items-center max-lg:gap-2 max-lg:text-center lg:h-full lg:min-h-0 lg:items-start lg:text-left"
+            data-step={index}
+          >
+            <span
+              class="flex shrink-0 flex-col items-center self-stretch max-lg:w-full max-lg:flex-row max-lg:items-center lg:min-h-0"
+              aria-hidden="true"
+            >
+              <span class:list={['mt-[0.3rem]', showcaseDotClass]} />
+              <span class="showcase-step-line relative mt-[0.35rem] w-0.5 min-h-6 flex-1 overflow-hidden rounded-full bg-zinc-200 max-lg:mt-0 max-lg:ml-[0.35rem] max-lg:mr-[0.35rem] max-lg:h-0.5 max-lg:min-h-0 max-lg:w-auto max-lg:min-w-3 max-lg:flex-1 dark:bg-zinc-700">
+                <span class="showcase-step-line-fill absolute inset-0 rounded-full bg-zinc-900 dark:bg-zinc-50" />
+              </span>
+              {
+                index === cases.length - 1 && (
+                  <span class:list={[showcaseTerminalDotClass, 'max-lg:ml-0 lg:mt-[0.35rem]']} />
+                )
+              }
+            </span>
+            <span class="lg:pt-8 flex flex-col gap-[0.3rem] pb-7 max-lg:items-center max-lg:text-center max-lg:pb-0 lg:flex-1 lg:justify-center lg:pb-0">
+              <span class="text-base leading-snug font-semibold text-zinc-500 transition-colors duration-300 max-lg:text-xs max-lg:leading-tight group-[.showcase-step-active]/step:text-zinc-900 dark:text-zinc-400 dark:group-[.showcase-step-active]/step:text-zinc-50">
+                {tr(`demo.cases.${item.key}.title`)}
+              </span>
+              <span class="text-sm leading-[1.45] text-zinc-400 transition-colors duration-300 max-lg:hidden group-[.showcase-step-active]/step:text-zinc-600 dark:text-zinc-500 dark:group-[.showcase-step-active]/step:text-zinc-300">
+                {tr(`demo.cases.${item.key}.description`)}
+              </span>
+            </span>
+          </button>
+        </li>
       ))
     }
-  </div>
+  </ol>
 
   <div
-    id="showcase-swiper"
-    class="showcase-swiper swiper order-1 overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-900 shadow-sm lg:order-2 dark:border-zinc-800"
+    id="showcases-root"
+    class="order-1 grid h-80 min-w-0 flex-1 overflow-hidden sm:h-96 lg:order-2 lg:h-120 lg:max-w-150"
   >
-    <div class="swiper-wrapper">
-      {
-        cases.map((item, index) => (
-          <div class="swiper-slide p-4 sm:p-6 lg:p-8">
-            <div class="h-[min(400px,62vw)] min-h-[280px] sm:h-[400px]">
-              <Demo
-                client:load
-                initialText={item.initialText}
-                resolvedText={item.resolvedText}
-                command={item.command}
-                slideIndex={index}
-              />
-            </div>
-          </div>
-        ))
-      }
-    </div>
+    {
+      cases.map((item, index) => (
+        <div
+          class:list={[
+            'showcase-slide col-start-1 row-start-1 h-full opacity-0 pointer-events-none transition-opacity duration-400 ease-in-out max-lg:flex max-lg:justify-center [&.showcase-slide-active]:pointer-events-auto [&.showcase-slide-active]:opacity-100',
+            { 'showcase-slide-active': index === 0 },
+          ]}
+          data-index={index}
+        >
+          <Demo
+            client:load
+            slideIndex={index}
+            initialText={item.initialText}
+            resolvedText={item.resolvedText}
+            command={item.command}
+            version={latestVersion}
+            copiedLabel={tr('demo.indicator.copied')}
+          />
+        </div>
+      ))
+    }
   </div>
 </div>
 
 <script>
-  import Swiper from 'swiper'
-  import { EffectFade } from 'swiper/modules'
+  const root = document.getElementById('showcases-root')
+  const timeline = document.getElementById('showcase-timeline')
+  if (!root || !timeline) throw new Error('showcase root not found')
 
-  const COUNTDOWN_MS = 4000
-  const NEXT_LABEL = 'Next in {s}s'
-
-  const caseButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('#showcase-cases .showcase-case'))
-  const progressBars = Array.from(document.querySelectorAll<HTMLElement>('#showcase-cases .showcase-progress'))
-  const countdownLabels = Array.from(document.querySelectorAll<HTMLElement>('#showcase-cases .showcase-countdown'))
-  const total = caseButtons.length
-
+  const slides = [...root.querySelectorAll<HTMLElement>('.showcase-slide')]
+  const steps = [...timeline.querySelectorAll<HTMLElement>('.showcase-step')]
   let activeIndex = 0
-  let countdownRaf = 0
 
-  function resetCountdownUi() {
-    progressBars.forEach((bar) => {
-      bar.style.width = '0%'
-    })
-    countdownLabels.forEach((label) => {
-      label.textContent = ''
-    })
+  function progressFill(index: number) {
+    return steps[index]?.querySelector<HTMLElement>('.showcase-step-line-fill') ?? null
   }
 
-  function cancelCountdown() {
-    if (countdownRaf) {
-      cancelAnimationFrame(countdownRaf)
-      countdownRaf = 0
+  function isHorizontalTimeline() {
+    return window.matchMedia('(max-width: 1023px)').matches
+  }
+
+  function resetLineFill(fill: HTMLElement) {
+    fill.style.transition = 'none'
+    if (isHorizontalTimeline()) {
+      fill.style.transformOrigin = 'left center'
+      fill.style.transform = 'scaleX(0)'
     }
-    resetCountdownUi()
+    else {
+      fill.style.transformOrigin = 'top center'
+      fill.style.transform = 'scaleY(0)'
+    }
   }
 
-  function setActiveTab(index: number) {
+  function fillLineProgress(fill: HTMLElement) {
+    if (isHorizontalTimeline()) {
+      fill.style.transformOrigin = 'left center'
+      fill.style.transform = 'scaleX(1)'
+    }
+    else {
+      fill.style.transformOrigin = 'top center'
+      fill.style.transform = 'scaleY(1)'
+    }
+  }
+
+  function initializeLineFills() {
+    for (const step of steps) {
+      const fill = step.querySelector<HTMLElement>('.showcase-step-line-fill')
+      if (fill) resetLineFill(fill)
+    }
+  }
+
+  function startProgress(duration: number) {
+    const fill = progressFill(activeIndex)
+    if (!fill) return
+    resetLineFill(fill)
+    // Force a reflow so the fill restarts from zero before animating.
+    void fill.offsetWidth
+    fill.style.transition = `transform ${duration}ms linear`
+    fillLineProgress(fill)
+  }
+
+  function setActive(index: number) {
+    slides[activeIndex]?.classList.remove('showcase-slide-active')
+    steps[activeIndex]?.classList.remove('showcase-step-active')
     activeIndex = index
-    caseButtons.forEach((btn) => {
-      btn.setAttribute('aria-selected', String(Number(btn.dataset.index) === index))
-    })
+    slides[activeIndex]?.classList.add('showcase-slide-active')
+    steps[activeIndex]?.classList.add('showcase-step-active')
   }
 
-  function notifyShowcaseSlide(index: number) {
+  function goTo(index: number) {
+    if (index < 0 || index >= slides.length) return
+    initializeLineFills()
+    if (index === activeIndex) {
+      window.dispatchEvent(new CustomEvent('typo-showcase-replay', { detail: index }))
+      return
+    }
+    setActive(index)
     window.dispatchEvent(new CustomEvent('typo-showcase-slide', { detail: index }))
   }
 
-  const swiper = new Swiper('#showcase-swiper', {
-    modules: [EffectFade],
-    effect: 'fade',
-    allowTouchMove: false,
-    on: {
-      slideChange: (s) => {
-        cancelCountdown()
-        setActiveTab(s.activeIndex)
-        notifyShowcaseSlide(s.activeIndex)
-      },
-    },
+  window.addEventListener('typo-showcase-started', (e) => {
+    const detail = (e as CustomEvent<{ index: number, duration: number }>).detail
+    if (detail.index === activeIndex) startProgress(detail.duration)
   })
 
-  function startCountdown(index: number) {
-    cancelCountdown()
-    const bar = progressBars[index]
-    const label = countdownLabels[index]
-    const start = performance.now()
-
-    const tick = (now: number) => {
-      const elapsed = now - start
-      const ratio = Math.min(elapsed / COUNTDOWN_MS, 1)
-
-      if (bar)
-        bar.style.width = `${ratio * 100}%`
-      if (label) {
-        const remaining = Math.ceil((COUNTDOWN_MS - elapsed) / 1000)
-        label.textContent = remaining > 0 ? NEXT_LABEL.replace('{s}', String(remaining)) : ''
-      }
-
-      if (ratio >= 1) {
-        countdownRaf = 0
-        swiper.slideTo((index + 1) % total)
-        return
-      }
-
-      countdownRaf = requestAnimationFrame(tick)
-    }
-
-    countdownRaf = requestAnimationFrame(tick)
-  }
-
-  window.addEventListener('typo-showcase-finished', (event) => {
-    const index = (event as CustomEvent<number>).detail
-    if (index === activeIndex)
-      startCountdown(index)
+  window.addEventListener('typo-showcase-finished', (e) => {
+    if ((e as CustomEvent<number>).detail === activeIndex) goTo((activeIndex + 1) % slides.length)
   })
 
-  caseButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const index = Number(btn.dataset.index)
-      cancelCountdown()
-      swiper.slideTo(index)
-      setActiveTab(index)
+  for (const step of steps) {
+    const button = step.querySelector<HTMLButtonElement>('.showcase-step-button')
+    button?.addEventListener('click', () => {
+      const index = Number(step.dataset.index)
+      if (!Number.isNaN(index)) goTo(index)
     })
-  })
+  }
+
+  let touchStartX = 0
+
+  root.addEventListener(
+    'touchstart',
+    (e) => {
+      touchStartX = e.touches[0]?.clientX ?? 0
+    },
+    { passive: true },
+  )
+
+  root.addEventListener(
+    'touchend',
+    (e) => {
+      const deltaX = (e.changedTouches[0]?.clientX ?? 0) - touchStartX
+      if (Math.abs(deltaX) < 48) return
+      goTo(activeIndex + (deltaX < 0 ? 1 : -1))
+    },
+    { passive: true },
+  )
+
+  initializeLineFills()
 </script>
-
-<style>
-  .showcase-case {
-    cursor: pointer;
-  }
-
-  .showcase-case[aria-selected='true'] {
-    border-color: rgb(129 140 248);
-    box-shadow: 0 0 0 1px rgb(129 140 248 / 40%);
-  }
-
-  .showcase-progress {
-    transition: width 0.08s linear;
-  }
-</style>
-
-<style is:global>
-  #showcase-swiper .swiper-wrapper {
-    display: grid;
-    height: auto;
-  }
-
-  #showcase-swiper .swiper-slide {
-    grid-area: 1 / 1;
-    width: 100%;
-    height: auto;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  #showcase-swiper .swiper-slide-active {
-    opacity: 1;
-  }
-</style>

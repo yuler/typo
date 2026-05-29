@@ -17,6 +17,8 @@ interface Props {
   isMacOS?: boolean
   version?: string
   embedded?: boolean
+  /** Max width of the center content area (desktop window uses ~390px). */
+  contentMaxWidth?: number
   labels?: {
     copied?: string
   }
@@ -32,6 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
   globalShortcut: '',
   isMacOS: false,
   embedded: false,
+  contentMaxWidth: 390,
   labels: () => ({
     copied: 'COPIED',
   }),
@@ -51,21 +54,31 @@ function onEsc() {
 
 <template>
   <div
-    class="indicator-shell h-full w-full p-0.5"
-    :class="{ 'indicator-shell--processing': state === 'processing' }"
+    class="indicator-shell h-full p-0.5"
+    :class="[
+      embedded ? 'w-fit' : 'w-full',
+      { 'indicator-shell--processing': state === 'processing' },
+    ]"
     :tabindex="embedded ? undefined : 0"
     :data-tauri-drag-region="embedded ? undefined : true"
     @keydown.esc="onEsc"
   >
     <div
-      class="indicator-capsule h-full w-full flex items-center pl-4 gap-3 transition-shadow duration-300 select-none bg-neutral-800 rounded-lg border border-white/10 overflow-hidden"
-      :class="embedded ? undefined : 'cursor-grab active:cursor-grabbing'"
+      class="indicator-capsule h-full flex items-center pl-4 gap-3 transition-shadow duration-300 select-none bg-neutral-800 rounded-lg border border-white/10 overflow-hidden"
+      :class="[
+        embedded ? 'w-fit' : 'w-full',
+        embedded ? undefined : 'cursor-grab active:cursor-grabbing',
+      ]"
       :data-tauri-drag-region="embedded ? undefined : true"
     >
       <AppLogo :version="version" dark :drag="!embedded" class="size-7" />
 
       <!-- Center: Status -->
-      <div class="indicator-content flex overflow-hidden min-w-0 h-full items-center" :data-tauri-drag-region="embedded ? undefined : true">
+      <div
+        class="indicator-content flex overflow-hidden min-w-0 h-full items-center"
+        :style="{ maxWidth: `${contentMaxWidth}px` }"
+        :data-tauri-drag-region="embedded ? undefined : true"
+      >
         <div v-if="state === 'processing'" class="flex max-w-full items-center gap-2 px-2 overflow-hidden" :data-tauri-drag-region="embedded ? undefined : true">
           <div v-if="commandName" class="flex items-center gap-1 shrink-0 bg-blue-500/10 pl-1 pr-1.5 py-0.5 rounded border border-blue-500/20" :data-tauri-drag-region="embedded ? undefined : true">
             <TerminalIcon class="w-3 h-3 text-blue-400" :data-tauri-drag-region="embedded ? undefined : true" />
@@ -126,10 +139,6 @@ function onEsc() {
 .indicator-capsule {
   position: relative;
   box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
-}
-
-.indicator-content {
-  max-width: 390px;
 }
 
 .indicator-shell--processing::after {

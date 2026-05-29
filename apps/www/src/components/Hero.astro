@@ -5,7 +5,7 @@ import { getLocalizedPath } from '@/lib/i18n'
 const { locale, tr } = Astro.locals
 ---
 
-<section class="pb-16 pt-12 sm:pb-20 sm:pt-16">
+<section class="pb-10 pt-8 sm:pb-16 sm:pt-10">
   <div class="mx-auto max-w-5xl px-4 sm:px-6">
     <div class="flex flex-col items-center gap-8 text-center sm:gap-10">
       <div
@@ -22,26 +22,21 @@ const { locale, tr } = Astro.locals
           {tr('hero.description')}
         </p>
       </div>
-      <div class="flex flex-col items-center gap-3 sm:flex-row">
-        <a
-          href={getLocalizedPath('/downloads', locale)}
-          class="inline-flex h-11 items-center justify-center rounded-lg bg-zinc-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          {tr('hero.download')}
-        </a>
-        <a
-          href={getLocalizedPath('/docs', locale)}
-          class="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-300 bg-white px-6 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-        >
-          {tr('hero.docs')}
-        </a>
-      </div>
     </div>
   </div>
 
-  <div class="relative left-1/2 mt-10 w-screen max-w-[100vw] -translate-x-1/2 sm:mt-12 lg:mt-14">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:max-w-[88rem] lg:px-8 xl:px-10">
+  <div class="relative mt-10 w-full sm:mt-12 lg:mt-14">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:max-w-352 lg:px-8 xl:px-10">
       <Showcases />
     </div>
+  </div>
+
+  <div class="mx-auto mt-8 flex max-w-5xl justify-center px-4 sm:mt-10 sm:px-6">
+    <a
+      href={getLocalizedPath('/downloads', locale)}
+      class="inline-flex h-10 items-center justify-center rounded-lg bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+    >
+      {tr('demo.download_free')}
+    </a>
   </div>
 </section>
