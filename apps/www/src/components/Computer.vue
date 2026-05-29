@@ -9,6 +9,8 @@ interface Props {
   appName?: string
   pageUrl?: string
   menuAppName?: string
+  /** Wider browser window (e.g. marketing showcase). */
+  wide?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -17,6 +19,7 @@ withDefaults(defineProps<Props>(), {
   appName: 'Typo',
   pageUrl: 'typo.yuler.cc',
   menuAppName: 'Chrome',
+  wide: false,
 })
 
 const svgId = useId().replace(/:/g, '')
@@ -37,12 +40,12 @@ const dockApps = [
 
 <template>
   <div
-    class="relative flex h-[400px] w-full flex-col overflow-hidden rounded-xl border border-white/15 bg-[linear-gradient(165deg,#0c2d4a_0%,#1a3d5c_30%,#3d2a5c_60%,#5a2d4e_85%,#120a1e_100%)] shadow-[inset_0_1px_0_rgb(255_255_255/8%)]"
+    class="relative flex aspect-[4/3] w-full flex-col overflow-hidden rounded-[32px] border-[6px] border-white/15 bg-[linear-gradient(165deg,#0c2d4a_0%,#1a3d5c_30%,#3d2a5c_60%,#5a2d4e_85%,#120a1e_100%)] shadow-2xl shadow-[inset_0_2px_0_rgb(255_255_255/12%)]"
   >
     <!-- macOS wallpaper + background windows -->
     <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <span class="absolute -top-1/4 left-1/4 h-2/3 w-2/3 rounded-full bg-sky-400/25 blur-[80px]" />
-      <span class="absolute right-0 bottom-0 h-1/2 w-1/2 rounded-full bg-fuchsia-500/20 blur-[70px]" />
+      <span class="absolute -top-1/4 left-1/4 h-2/3 w-2/3 rounded-full bg-sky-400/40 blur-[80px]" />
+      <span class="absolute right-0 bottom-0 h-1/2 w-1/2 rounded-full bg-fuchsia-500/30 blur-[70px]" />
       <div
         class="absolute top-[18%] -left-[5%] h-[55%] w-[34%] -rotate-6 overflow-hidden rounded-lg border border-white/15 bg-zinc-900/40 shadow-lg backdrop-blur-sm transition-all duration-500"
         :class="dimmed ? 'scale-[0.98] opacity-40 blur-md' : ''"
@@ -87,10 +90,16 @@ const dockApps = [
     </div>
 
     <!-- Focused browser window -->
-    <div class="relative z-1 flex min-h-0 flex-1 items-center justify-center px-5 pt-3 pb-16">
+    <div
+      class="relative z-1 flex min-h-0 flex-1 items-center justify-center pt-3 pb-16"
+      :class="wide ? 'px-3 sm:px-4' : 'px-5'"
+    >
       <div
-        class="flex w-full max-w-2xl flex-col overflow-hidden rounded-[10px] border border-black/40 bg-zinc-900/95 shadow-[0_24px_48px_rgb(0_0_0/45%)] transition-[border-color,box-shadow] duration-300"
-        :class="dimmed && 'ring-1 ring-indigo-400/40 shadow-[0_0_0_1px_rgb(129_140_248/20%),0_24px_56px_rgb(0_0_0/50%)]'"
+        class="flex w-full flex-col overflow-hidden rounded-[10px] border border-black/40 bg-zinc-900/95 shadow-[0_24px_48px_rgb(0_0_0/45%)] transition-[border-color,box-shadow] duration-300"
+        :class="[
+          wide ? 'max-w-4xl' : 'max-w-2xl',
+          dimmed && 'ring-1 ring-indigo-400/40 shadow-[0_0_0_1px_rgb(129_140_248/20%),0_24px_56px_rgb(0_0_0/50%)]',
+        ]"
       >
         <div class="flex items-end gap-1 bg-zinc-950/90 px-2 pt-2">
           <div class="mb-1.5 flex items-center gap-1.5 pr-1" aria-hidden="true">
