@@ -1,9 +1,20 @@
 // apps/desktop/src-tauri/src/windows.rs
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[cfg(target_os = "macos")]
 use tauri::{LogicalPosition, TitleBarStyle};
 
+static PENDING_OPEN_SETTINGS: AtomicBool = AtomicBool::new(false);
+
+pub fn set_pending_open_settings(value: bool) {
+    PENDING_OPEN_SETTINGS.store(value, Ordering::Relaxed);
+}
+
+#[tauri::command]
+pub fn consume_pending_open_settings() -> bool {
+    PENDING_OPEN_SETTINGS.swap(false, Ordering::Relaxed)
+}
 
 #[tauri::command]
 pub fn open_upgrade_window(app: AppHandle) {
@@ -13,6 +24,33 @@ pub fn open_upgrade_window(app: AppHandle) {
 #[tauri::command]
 pub fn open_indicator_window(app: AppHandle) {
     create_indicator_window(&app, true);
+}
+
+#[tauri::command]
+pub fn open_main_window(app: AppHandle) {
+    show_and_focus_main_settings(&app);
+}
+
+pub fn show_and_focus_main_settings(app: &AppHandle) {
+    set_pending_open_settings(true);
+    show_and_focus_main(app);
+    if let Err(err) = app.emit("open-settings", ()) {
+        log::error!("failed to emit open-settings: {}", err);
+    }
+}
+
+pub fn show_and_focus_main(app: &AppHandle) {
+    create_main_window(app);
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+
+    if let Err(err) = window.show() {
+        log::error!("failed to show main window: {}", err);
+    }
+    if let Err(err) = window.set_focus() {
+        log::error!("failed to focus main window: {}", err);
+    }
 }
 
 pub fn create_main_window(app: &AppHandle) {
@@ -45,9 +83,23 @@ pub fn create_main_window(app: &AppHandle) {
         .skip_taskbar(false)
         .visible(true);
 
-    if let Err(e) = win_builder.build() {
-        log::error!("failed to build main window: {}", e);
-    }
+    let window = match win_builder.build() {
+        Ok(window) => window,
+        Err(e) => {
+            log::error!("failed to build main window: {}", e);
+            return;
+        }
+    };
+
+    let window_for_close = window.clone();
+    window.on_window_event(move |event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            api.prevent_close();
+            if let Err(err) = window_for_close.hide() {
+                log::error!("failed to hide main window: {}", err);
+            }
+        }
+    });
 }
 
 pub fn create_indicator_window(app: &AppHandle, show: bool) {
@@ -70,7 +122,7 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
     };
 
     let win_width = 360.0;
-    let win_height = 56.0;
+    let win_height = 60.0;
     let x = (width - win_width) / 2.0;
     let y = height - win_height - 20.0; // 20px above the bottom of the work area
 

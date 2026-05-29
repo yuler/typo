@@ -1,0 +1,44 @@
+{
+  "version": "1.6.2",
+  "date": "2026-05-28",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.6.2",
+  "notes": "### Features\n- Added indicator shell with animated processing border",
+  "notes_i18n": {
+    "en": [
+      "Added indicator shell with animated processing border"
+    ],
+    "zh": [
+      "添加带有动画处理边框的指示器外壳"
+    ],
+    "jp": [
+      "アニメーション処理ボーダー付きのインジケーターシェルを追加"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.6.2_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.2/typo_1.6.2_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.6.2_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.2/typo_1.6.2_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.6.2_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.2/typo_1.6.2_amd64.deb"
+    },
+    {
+      "name": "typo_1.6.2_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.2/typo_1.6.2_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.6.2_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.2/typo_1.6.2_x64.dmg"
+    }
+  ]
+}

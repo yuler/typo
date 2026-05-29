@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import type { UnlistenFn } from '@tauri-apps/api/event'
+import type { IndicatorState } from '@typo/ui'
+import { invoke } from '@tauri-apps/api/core'
+import { LogicalSize } from '@tauri-apps/api/dpi'
+import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { formatShortcut, Indicator as IndicatorView } from '@typo/ui'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { Indicator, type IndicatorState } from '@typo/ui'
 import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
 
 import { useAuth } from '@/composables/useAuth'
@@ -36,7 +41,7 @@ const INDICATOR_MIN_IDLE_WIDTH = 180
 const INDICATOR_MAX_ACTIVE_WIDTH = 520
 const INDICATOR_MAX_CONTENT_WIDTH = 390
 const INDICATOR_CHROME_WIDTH = 106
-const INDICATOR_HEIGHT = 56
+const INDICATOR_HEIGHT = 60
 
 let unlistenSetInput: UnlistenFn
 let unlistenShortcutRequests: (() => void) | undefined
@@ -250,6 +255,20 @@ let abortController: AbortController | null = null
 
 async function fetchCorrection(text: string, preResolved?: { text: string, prompt: string, command?: string }): Promise<string> {
   abortController = new AbortController()
+  const signal = abortController.signal
+
+  // Note: only for development
+  if (import.meta.env.DEV && text.trim().startsWith('/mock')) {
+    await new Promise((resolve, reject) => {
+      const t = setTimeout(resolve, 5000)
+      signal.addEventListener('abort', () => {
+        clearTimeout(t)
+        reject(new DOMException('Aborted', 'AbortError'))
+      }, { once: true })
+    })
+    return text.replace(/^\s*\/mock/, '').trim() || 'Mock Result'
+  }
+
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
   switch (aiProvider) {
@@ -407,14 +426,21 @@ async function onESC() {
   await hideIndicator()
 }
 
-function gotoSettings() {
-  emit('open-settings')
+async function openMainWindow() {
+  await invoke('open_main_window')
+}
+
+async function handleErrorClick() {
+  if (isRateLimited.value) {
+    await login()
+    await hideIndicator()
+  }
 }
 </script>
 
 <template>
-  <Indicator
-    :state="(state as IndicatorState)"
+  <IndicatorView
+    :state="state"
     :input-text="inputText"
     :command-name="commandName"
     :result-text="resultText"
@@ -425,11 +451,7 @@ function gotoSettings() {
     :is-rate-limited="isRateLimited"
     :labels="{ copied: t('main.status.copied') }"
     @esc="onESC"
-    @settings="gotoSettings"
-    @error-click="isRateLimited ? (login(), hideIndicator()) : null"
+    @settings="openMainWindow"
+    @error-click="handleErrorClick"
   />
 </template>
-
-<style scoped>
-</style>
-
