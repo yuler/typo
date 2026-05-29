@@ -177,6 +177,9 @@ importers:
       astro:
         specifier: ^5.7.0
         version: 5.18.1(@types/node@24.12.2)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(tsx@4.21.0)(typescript@5.6.3)(yaml@2.8.3)
+      lucide-vue-next:
+        specifier: ^0.477.0
+        version: 0.477.0(vue@3.5.32(typescript@5.6.3))
       react:
         specifier: ^19.1.0
         version: 19.2.5
@@ -8797,6 +8800,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-vue-next@0.477.0(vue@3.5.32(typescript@5.6.3)):
+    dependencies:
+      vue: 3.5.32(typescript@5.6.3)
 
   lucide-vue-next@0.477.0(vue@3.5.32(typescript@6.0.3)):
     dependencies:

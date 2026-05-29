@@ -1,48 +1,47 @@
 ---
-import { Demo } from '@typo/ui'
+import Showcases from '@/components/Showcases.astro'
 import { getLocalizedPath } from '@/lib/i18n'
 
 const { locale, tr } = Astro.locals
 ---
 
-<section class="mx-auto max-w-5xl px-4 pb-16 pt-12 sm:px-6 sm:pt-16">
-  <div class="flex flex-col items-center gap-8 text-center sm:gap-10">
-    <div
-      class="inline-flex items-center gap-2 rounded-full border border-yellow-200 bg-yellow-50/70 px-3 py-1 text-xs font-medium text-yellow-700 dark:border-yellow-700/50 dark:bg-yellow-900/20 dark:text-yellow-200"
-    >
-      <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-400 dark:bg-yellow-300" aria-hidden></span>
-      {tr('hero.badge')}
-    </div>
-    <div class="space-y-4">
-      <h1 class="text-balance text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl dark:text-zinc-50">
-        {tr('hero.title')}
-      </h1>
-      <p class="mx-auto max-w-2xl text-pretty text-lg text-zinc-600 dark:text-zinc-400">
-        {tr('hero.description')}
-      </p>
-    </div>
-    <div class="flex flex-col items-center gap-3 sm:flex-row">
-      <a
-        href={getLocalizedPath('/downloads', locale)}
-        class="inline-flex h-11 items-center justify-center rounded-lg bg-zinc-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+<section class="pb-16 pt-12 sm:pb-20 sm:pt-16">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6">
+    <div class="flex flex-col items-center gap-8 text-center sm:gap-10">
+      <div
+        class="inline-flex items-center gap-2 rounded-full border border-yellow-200 bg-yellow-50/70 px-3 py-1 text-xs font-medium text-yellow-700 dark:border-yellow-700/50 dark:bg-yellow-900/20 dark:text-yellow-200"
       >
-        {tr('hero.download')}
-      </a>
-      <a
-        href={getLocalizedPath('/docs', locale)}
-        class="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-300 bg-white px-6 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-      >
-        {tr('hero.docs')}
-      </a>
+        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-400 dark:bg-yellow-300" aria-hidden></span>
+        {tr('hero.badge')}
+      </div>
+      <div class="space-y-4">
+        <h1 class="text-balance text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl dark:text-zinc-50">
+          {tr('hero.title')}
+        </h1>
+        <p class="mx-auto max-w-2xl text-pretty text-lg text-zinc-600 dark:text-zinc-400">
+          {tr('hero.description')}
+        </p>
+      </div>
+      <div class="flex flex-col items-center gap-3 sm:flex-row">
+        <a
+          href={getLocalizedPath('/downloads', locale)}
+          class="inline-flex h-11 items-center justify-center rounded-lg bg-zinc-900 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        >
+          {tr('hero.download')}
+        </a>
+        <a
+          href={getLocalizedPath('/docs', locale)}
+          class="inline-flex h-11 items-center justify-center rounded-lg border border-zinc-300 bg-white px-6 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+        >
+          {tr('hero.docs')}
+        </a>
+      </div>
     </div>
-    <figure class="mt-2 w-full max-w-3xl">
-      <Demo
-        client:visible
-        inputText="i thinks we should definitly ship the update by tomorow, their are no blockers left"
-        outputText="I think we should definitely ship the update by tomorrow — there are no blockers left."
-        inputLabel={tr('demo.input_label')}
-        replayLabel={tr('demo.replay_label')}
-      />
-    </figure>
+  </div>
+
+  <div class="relative left-1/2 mt-10 w-screen max-w-[100vw] -translate-x-1/2 sm:mt-12 lg:mt-14">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:max-w-[88rem] lg:px-8 xl:px-10">
+      <Showcases />
+    </div>
   </div>
 </section>

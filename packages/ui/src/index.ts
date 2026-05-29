@@ -1,7 +1,4 @@
 export { default as AppLogo } from './components/AppLogo.vue'
-export { default as Demo } from './components/Demo.vue'
-export type { DemoInteractState } from './components/Demo.vue'
 export { default as Indicator } from './components/Indicator.vue'
 export type { IndicatorState } from './components/Indicator.vue'
-export { default as ShowcaseTabs } from './components/ShowcaseTabs.vue'
 export * from './lib/utils'

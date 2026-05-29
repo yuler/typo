@@ -3,6 +3,11 @@ import logoDarkUrl from '../../assets/logo-dark.svg'
 import logoUrl from '../../assets/logo.svg'
 import { cn } from '../lib/utils'
 
+/** Vite/Astro may resolve SVG imports as `{ src, width, height }` rather than a plain URL. */
+function assetSrc(asset: string | { src: string }) {
+  return typeof asset === 'string' ? asset : asset.src
+}
+
 defineOptions({
   inheritAttrs: false,
 })
@@ -25,8 +30,8 @@ interface Props {
     :class="cn('relative flex flex-col items-center shrink-0 h-8 w-8', props.class)"
     :data-tauri-drag-region="drag ? true : undefined"
   >
-    <img v-if="!dark" :src="logoUrl" alt="logo" class="w-full h-full object-contain pointer-events-none">
-    <img v-else :src="logoDarkUrl" alt="logo" class="w-full h-full object-contain pointer-events-none">
+    <img v-if="!dark" :src="assetSrc(logoUrl)" alt="logo" class="w-full h-full object-contain pointer-events-none">
+    <img v-else :src="assetSrc(logoDarkUrl)" alt="logo" class="w-full h-full object-contain pointer-events-none">
     <span v-if="version" class="text-[8px] absolute -top-1 -right-1 text-muted-foreground pointer-events-none">v{{ version }}</span>
   </div>
 </template>
