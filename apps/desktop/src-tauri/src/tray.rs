@@ -11,6 +11,7 @@ const RELEASES_URL_BASE: &str = "https://typo.yuler.cc/releases/#v";
 // Menu-item IDs. Keep in sync with the on_menu_event match arms below.
 const ID_SHOW: &str = "show";
 const ID_SETTINGS: &str = "settings";
+const ID_PIN_INDICATOR: &str = "pin-indicator";
 const ID_CHECK_UPDATES: &str = "check-updates";
 const ID_ABOUT: &str = "about";
 const ID_OPEN_LOG_FOLDER: &str = "open-log-folder";
@@ -19,11 +20,13 @@ const ID_QUIT: &str = "quit";
 
 // Events emitted to the frontend.
 const EV_TOGGLE_CLICKED: &str = "tray:toggle-clicked";
+const EV_PIN_INDICATOR_TOGGLE_CLICKED: &str = "tray:pin-indicator-toggle-clicked";
 
 /// Handles to mutable menu items so update_tray_menu can relabel them.
 pub struct TrayMenuHandles {
     pub show: MenuItem<Wry>,
     pub settings: MenuItem<Wry>,
+    pub pin_indicator: CheckMenuItem<Wry>,
     pub check_updates: MenuItem<Wry>,
     pub about: MenuItem<Wry>,
     pub open_log_folder: MenuItem<Wry>,
@@ -35,6 +38,8 @@ pub struct TrayMenuHandles {
 pub struct TrayLabels {
     pub show: Option<String>,
     pub settings: Option<String>,
+    pub pin_indicator: Option<String>,
+    pub pin_indicator_checked: Option<bool>,
     pub check_updates: Option<String>,
     pub about: Option<String>,
     pub open_log_folder: Option<String>,
@@ -48,11 +53,19 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
     let handle = app.handle();
 
     let show = MenuItem::with_id(handle, ID_SHOW, "Show typo", true, None::<&str>)?;
-    let settings = MenuItem::with_id(handle, ID_SETTINGS, "Settings…", true, None::<&str>)?;
+    let settings = MenuItem::with_id(handle, ID_SETTINGS, "Settings", true, None::<&str>)?;
+    let pin_indicator = CheckMenuItem::with_id(
+        handle,
+        ID_PIN_INDICATOR,
+        "Pin Indicator",
+        true,
+        false,
+        None::<&str>,
+    )?;
     let check_updates = MenuItem::with_id(
         handle,
         ID_CHECK_UPDATES,
-        "Check for updates…",
+        "Check for updates",
         true,
         None::<&str>,
     )?;
@@ -66,7 +79,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
     let open_log_folder = MenuItem::with_id(
         handle,
         ID_OPEN_LOG_FOLDER,
-        "Open log folder…",
+        "Open log folder",
         true,
         None::<&str>,
     )?;
@@ -86,9 +99,11 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
         &[
             &show,
             &settings,
-            &check_updates,
             &PredefinedMenuItem::separator(handle)?,
+            &pin_indicator,
             &autostart,
+            &PredefinedMenuItem::separator(handle)?,
+            &check_updates,
             &open_log_folder,
             &PredefinedMenuItem::separator(handle)?,
             &about,
@@ -112,6 +127,7 @@ pub fn init(app: &tauri::App) -> tauri::Result<()> {
     handle.manage(TrayMenuHandles {
         show,
         settings,
+        pin_indicator,
         check_updates,
         about,
         open_log_folder,
@@ -132,17 +148,15 @@ fn handle_tray_icon_event(app: &AppHandle, event: TrayIconEvent) {
         if let Err(err) = app.emit(EV_TOGGLE_CLICKED, ()) {
             log::error!("failed to emit {}: {}", EV_TOGGLE_CLICKED, err);
         }
-        show_and_focus_main(app);
+        crate::windows::show_and_focus_main(app);
     }
 }
 
 fn handle_menu_event(app: &AppHandle, id: &str) {
     match id {
-        ID_SHOW => show_and_focus_main(app),
-        ID_SETTINGS => {
-            show_and_focus_main(app);
-            let _ = app.emit("open-settings", ());
-        }
+        ID_SHOW => crate::windows::show_and_focus_main(app),
+        ID_SETTINGS => crate::windows::show_and_focus_main_settings(app),
+        ID_PIN_INDICATOR => toggle_pin_indicator_action(app),
         ID_CHECK_UPDATES => {
             crate::windows::create_upgrade_window(app);
         }
@@ -156,6 +170,18 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         ID_AUTOSTART => toggle_autostart_action(app),
         ID_QUIT => app.exit(0),
         other => log::error!("unknown tray menu event id: {}", other),
+    }
+}
+
+fn toggle_pin_indicator_action(app: &AppHandle) {
+    let Some(state) = app.try_state::<TrayMenuHandles>() else {
+        log::error!("tray menu handles not found");
+        return;
+    };
+
+    let checked = state.pin_indicator.is_checked().unwrap_or(false);
+    if let Err(err) = app.emit(EV_PIN_INDICATOR_TOGGLE_CLICKED, checked) {
+        log::error!("failed to emit {}: {}", EV_PIN_INDICATOR_TOGGLE_CLICKED, err);
     }
 }
 
@@ -192,20 +218,6 @@ fn open_log_folder_action(app: &AppHandle) {
     }
 }
 
-fn show_and_focus_main(app: &AppHandle) {
-    crate::windows::create_main_window(app);
-    let Some(window) = app.get_webview_window("main") else {
-        return;
-    };
-
-    if let Err(err) = window.show() {
-        log::error!("failed to show main window: {}", err);
-    }
-    if let Err(err) = window.set_focus() {
-        log::error!("failed to focus main window: {}", err);
-    }
-}
-
 #[tauri::command]
 pub fn update_tray_menu(
     app: AppHandle,
@@ -220,6 +232,18 @@ pub fn update_tray_menu(
     }
     if let Some(text) = labels.settings.as_deref() {
         state.settings.set_text(text).map_err(|e| e.to_string())?;
+    }
+    if let Some(text) = labels.pin_indicator.as_deref() {
+        state
+            .pin_indicator
+            .set_text(text)
+            .map_err(|e| e.to_string())?;
+    }
+    if let Some(checked) = labels.pin_indicator_checked {
+        state
+            .pin_indicator
+            .set_checked(checked)
+            .map_err(|e| e.to_string())?;
     }
     if let Some(text) = labels.check_updates.as_deref() {
         state

@@ -7,6 +7,7 @@ import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
 import { initializeStore } from '@/stores/settings'
+import { syncTrayMenu } from '@/tray'
 import Indicator from '@/windows/Indicator.vue'
 import Main from '@/windows/Main.vue'
 import Upgrade from '@/windows/Upgrade.vue'
@@ -33,6 +34,10 @@ onMounted(async () => {
   await initializeI18n()
   if (!isMounted) {
     return
+  }
+
+  if (currentLabel === 'main') {
+    await syncTrayMenu()
   }
 
   // For indicator window, ensure it is always visible on all workspaces
