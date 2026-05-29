@@ -1,41 +1,30 @@
 ---
-import { Demo } from '@typo/ui'
+import { Demo, ShowcaseTabs } from '@typo/ui'
 
 const { tr } = Astro.locals
 
-const labels = {
-  inputLabel: tr('demo.input_label'),
-  replayLabel: tr('demo.replay_label'),
-}
+const tabs = [
+  tr('demo.cases.default.title'),
+  tr('demo.cases.polish.title'),
+  tr('demo.cases.japanese.title'),
+]
 
-const cases: Array<{
-  title: string
-  description: string
-  command?: string
-  inputText: string
-  outputText: string
-}> = [
+const cases = [
   {
-    title: tr('demo.cases.default.title'),
-    description: tr('demo.cases.default.description'),
-    inputText: 'i thinks we should definitly ship the update by tomorow, their are no blockers left',
-    outputText: 'I think we should definitely ship the update by tomorrow — there are no blockers left.',
+    initialText: 'i thinks we should definitly ship the update by tomorow, their are no blockers left',
+    resolvedText: 'I think we should definitely ship the update by tomorrow — there are no blockers left.',
   },
   {
-    title: tr('demo.cases.polish.title'),
-    description: tr('demo.cases.polish.description'),
     command: '/p',
-    inputText: 'hey can u send me the report asap, kinda need it now',
-    outputText: 'Hi, could you please send over the report at your earliest convenience? I need it fairly urgently. Thank you.',
+    initialText: '/p 看看今天的黄金价格',
+    resolvedText: '今天的黄金价格是每克...',
   },
   {
-    title: tr('demo.cases.japanese.title'),
-    description: tr('demo.cases.japanese.description'),
     command: '/jp',
-    inputText: 'Thanks so much for your help today, I really appreciate it.',
-    outputText: '本日は大変お世話になり、誠にありがとうございました。',
+    initialText: '/jp 你好阿',
+    resolvedText: 'こんにちは',
   },
-] 
+]
 ---
 
 <section class="border-y border-zinc-200 py-12 sm:py-16 lg:py-20 dark:border-zinc-800">
@@ -52,24 +41,68 @@ const cases: Array<{
       </p>
     </div>
 
-    <div class="mt-10 grid grid-cols-1 gap-6 sm:mt-12 lg:grid-cols-3 lg:gap-5">
-      {
-        cases.map(item => (
-          <article class="flex flex-col gap-4 rounded-2xl border border-zinc-200/80 bg-zinc-900 p-5 shadow-sm dark:border-zinc-800 sm:p-6">
-            <div>
-              <h3 class="text-base font-semibold text-zinc-50 sm:text-lg">{item.title}</h3>
-              <p class="mt-1.5 text-sm leading-relaxed text-zinc-400">{item.description}</p>
-            </div>
-            <Demo
-              client:visible
-              command={item.command}
-              inputText={item.inputText}
-              outputText={item.outputText}
-              {...labels}
-            />
-          </article>
-        ))
-      }
+    <div id="showcases-root" class="mt-10 sm:mt-12">
+      <div class="flex justify-center mb-8">
+        <ShowcaseTabs client:load tabs={tabs} id="showcase-tabs" />
+      </div>
+
+      <div class="swiper overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-900 shadow-sm dark:border-zinc-800">
+        <div class="swiper-wrapper">
+          {
+            cases.map((item, index) => (
+              <div class="swiper-slide p-5 sm:p-8">
+                <div class="mx-auto max-w-3xl h-[280px]">
+                  <Demo 
+                    client:load 
+                    initialText={item.initialText} 
+                    resolvedText={item.resolvedText} 
+                    command={item.command}
+                    data-index={index}
+                  />
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<script>
+  import Swiper from 'swiper'
+  import { Navigation, Pagination, EffectFade } from 'swiper/modules'
+  import 'swiper/css'
+  import 'swiper/css/effect-fade'
+
+  const swiper = new Swiper('.swiper', {
+    modules: [EffectFade],
+    effect: 'fade',
+    allowTouchMove: false, // Control via tabs
+    on: {
+      slideChange: (s) => {
+        const tabs = document.querySelector('#showcase-tabs') as any
+        if (tabs?.__vue_app__) {
+          // This is a hacky way to sync if we don't have a shared store
+          // Better to use a custom event or a store
+          window.dispatchEvent(new CustomEvent('showcase-slide-change', { detail: s.activeIndex }))
+        }
+      }
+    }
+  })
+
+  // Listen for tab changes
+  window.addEventListener('showcase-tab-change', (e: any) => {
+    swiper.slideTo(e.detail)
+  })
+</script>
+
+<style is:global>
+  .swiper-slide {
+    opacity: 0 !important;
+    transition: opacity 0.3s ease;
+  }
+  .swiper-slide-active {
+    opacity: 1 !important;
+  }
+</style>

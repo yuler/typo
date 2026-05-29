@@ -1,10 +1,24 @@
 <script setup lang="ts">
-defineProps<{
+import { watch } from 'vue'
+
+const props = defineProps<{
   modelValue: number
   tabs: string[]
 }>()
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
+
+function selectTab(index: number) {
+  emit('update:modelValue', index)
+  window.dispatchEvent(new CustomEvent('showcase-tab-change', { detail: index }))
+}
+
+// Listen for external sync
+if (typeof window !== 'undefined') {
+  window.addEventListener('showcase-slide-change', (e: any) => {
+    emit('update:modelValue', e.detail)
+  })
+}
 </script>
 
 <template>
@@ -12,7 +26,7 @@ defineEmits(['update:modelValue'])
     <button
       v-for="(tab, index) in tabs"
       :key="tab"
-      @click="$emit('update:modelValue', index)"
+      @click="selectTab(index)"
       :class="[
         'px-4 py-2 rounded-md text-sm font-medium transition-all',
         modelValue === index 
