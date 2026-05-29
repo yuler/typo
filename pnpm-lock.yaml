@@ -232,13 +232,13 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      lucide-vue-next:
+        specifier: ^0.477.0
+        version: 0.477.0(vue@3.5.32(typescript@6.0.3))
       tailwind-merge:
         specifier: ^3.0.2
         version: 3.5.0
     devDependencies:
-      lucide-vue-next:
-        specifier: ^0.477.0
-        version: 0.477.0(vue@3.5.32(typescript@6.0.3))
       vitest:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@24.12.2)(lightningcss@1.32.0)
