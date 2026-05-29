@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
-import AppLogo from './AppLogo.vue'
 import { formatShortcut } from '../lib/utils'
+import AppLogo from './AppLogo.vue'
 
 export type IndicatorState = 'idle' | 'processing' | 'result' | 'error'
 
@@ -38,7 +38,7 @@ withDefaults(defineProps<Props>(), {
 defineEmits<{
   (e: 'esc'): void
   (e: 'settings'): void
-  (e: 'error-click'): void
+  (e: 'errorClick'): void
 }>()
 </script>
 
@@ -84,7 +84,7 @@ defineEmits<{
           :class="{ 'cursor-pointer hover:underline': isRateLimited }"
           :data-tauri-drag-region="!isRateLimited"
           @mousedown="isRateLimited ? $event.stopPropagation() : undefined"
-          @click="$emit('error-click')"
+          @click="$emit('errorClick')"
         >
           {{ errorText }}
         </p>

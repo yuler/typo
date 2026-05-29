@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { cn } from '../lib/utils'
-import logoUrl from '../../assets/logo.svg'
 import logoDarkUrl from '../../assets/logo-dark.svg'
+import logoUrl from '../../assets/logo.svg'
+import { cn } from '../lib/utils'
 
 defineOptions({
   inheritAttrs: false,
+})
+
+const props = withDefaults(defineProps<Props>(), {
+  drag: false,
+  dark: false,
 })
 
 interface Props {
@@ -13,11 +18,6 @@ interface Props {
   class?: string
   dark?: boolean
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  drag: false,
-  dark: false,
-})
 </script>
 
 <template>
