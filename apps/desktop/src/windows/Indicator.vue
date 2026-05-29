@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { emit, listen, type UnlistenFn } from '@tauri-apps/api/event'
+import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { IndicatorState } from '@typo/ui'
 import { invoke } from '@tauri-apps/api/core'
 import { LogicalSize } from '@tauri-apps/api/dpi'
+import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { formatShortcut, Indicator as IndicatorView } from '@typo/ui'
