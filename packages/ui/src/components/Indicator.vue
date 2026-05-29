@@ -74,7 +74,7 @@ defineEmits<{
           <span class="truncate text-sm text-green-400 font-medium" data-tauri-drag-region>{{ resultText }}</span>
           <template v-if="copyResult">
             <ClipboardCheckIcon class="w-4 h-4 text-green-400 shrink-0" data-tauri-drag-region />
-            <span class="text-[10px] text-green-400/50 font-mono shrink-0" data-tauri-drag-region>{{ labels.copied }}</span>
+            <span class="text-[10px] text-green-400/50 font-mono shrink-0" data-tauri-drag-region>{{ labels?.copied ?? 'COPIED' }}</span>
           </template>
         </div>
 
@@ -82,7 +82,7 @@ defineEmits<{
           v-else-if="state === 'error'"
           class="truncate text-sm text-red-400 px-2 font-medium"
           :class="{ 'cursor-pointer hover:underline': isRateLimited }"
-          :data-tauri-drag-region="isRateLimited ? undefined : true"
+          :data-tauri-drag-region="!isRateLimited"
           @mousedown="isRateLimited ? $event.stopPropagation() : undefined"
           @click="$emit('error-click')"
         >

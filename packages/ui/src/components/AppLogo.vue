@@ -3,6 +3,10 @@ import { cn } from '../lib/utils'
 import logoUrl from '../../assets/logo.svg'
 import logoDarkUrl from '../../assets/logo-dark.svg'
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 interface Props {
   drag?: boolean
   version?: string
