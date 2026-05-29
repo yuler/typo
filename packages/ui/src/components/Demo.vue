@@ -1,108 +1,75 @@
 <script setup lang="ts">
 import { RotateCcwIcon } from 'lucide-vue-next'
-import { onMounted, onUnmounted, ref } from 'vue'
-import type { IndicatorState } from './Indicator.vue'
+import { ref, watch } from 'vue'
 import Indicator from './Indicator.vue'
 
-export type DemoInteractState = Extract<IndicatorState, 'idle' | 'processing' | 'result'>
-
 interface Props {
+  initialText: string
+  resolvedText: string
   command?: string
-  inputText: string
-  outputText: string
-  autoplay?: boolean
+  active?: boolean
   inputLabel?: string
   replayLabel?: string
   globalShortcut?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  autoplay: true,
   inputLabel: 'Input',
   replayLabel: 'Replay',
   globalShortcut: 'CommandOrControl+Shift+X',
 })
 
-const state = ref<DemoInteractState>('idle')
-const root = ref<HTMLElement | null>(null)
+const currentText = ref('')
+const status = ref<'idle' | 'typing' | 'pending' | 'processing' | 'result'>('idle')
 
-let observer: IntersectionObserver | null = null
-let timers: ReturnType<typeof setTimeout>[] = []
+async function runSimulation() {
+  if (status.value === 'typing') return
+  status.value = 'typing'
+  currentText.value = ''
 
-function clearTimers() {
-  for (const timer of timers)
-    clearTimeout(timer)
-  timers = []
+  for (let i = 0; i < props.initialText.length; i++) {
+    currentText.value += props.initialText[i]
+    await new Promise(r => setTimeout(r, 50 + Math.random() * 50))
+  }
+
+  status.value = 'pending'
 }
 
-function prefersReducedMotion() {
-  return typeof window !== 'undefined'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
-function runSequence() {
-  clearTimers()
-  state.value = 'idle'
-
-  const processingMs = prefersReducedMotion() ? 0 : 1400
-  const idleMs = prefersReducedMotion() ? 0 : 400
-
-  timers.push(setTimeout(() => {
-    state.value = 'processing'
-    timers.push(setTimeout(() => {
-      state.value = 'result'
-    }, processingMs))
-  }, idleMs))
-}
+watch(() => props.active, (isActive) => {
+  if (isActive)
+    runSimulation()
+}, { immediate: true })
 
 function replay() {
-  runSequence()
+  runSimulation()
 }
-
-onMounted(() => {
-  if (!props.autoplay || !root.value)
-    return
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0]
-      if (entry?.isIntersecting) {
-        runSequence()
-        observer?.disconnect()
-        observer = null
-      }
-    },
-    { threshold: 0.35 },
-  )
-  observer.observe(root.value)
-})
-
-onUnmounted(() => {
-  observer?.disconnect()
-  clearTimers()
-})
 </script>
 
 <template>
-  <div ref="root" class="demo-interact">
+  <div class="demo-interact">
     <div class="demo-interact__input">
       <p class="demo-interact__label">{{ inputLabel }}</p>
-      <p class="demo-interact__text">{{ inputText }}</p>
+      <textarea
+        v-model="currentText"
+        readonly
+        class="demo-interact__text"
+        rows="1"
+      />
     </div>
 
     <div class="demo-interact__indicator">
       <Indicator
         embedded
-        :state="state"
-        :input-text="inputText"
+        :state="status === 'processing' ? 'processing' : (status === 'result' ? 'result' : 'idle')"
+        :input-text="currentText"
         :command-name="command ?? ''"
-        :result-text="outputText"
+        :result-text="resolvedText"
         :global-shortcut="globalShortcut"
       />
     </div>
 
     <button
-      v-if="state === 'result'"
+      v-if="status === 'result'"
       type="button"
       class="demo-interact__replay"
       @click="replay"
@@ -141,6 +108,14 @@ onUnmounted(() => {
   font-size: 0.875rem;
   line-height: 1.55;
   color: rgb(228 228 231);
+  background: transparent;
+  border: none;
+  resize: none;
+  width: 100%;
+  outline: none;
+  padding: 0;
+  font-family: inherit;
+  display: block;
 }
 
 .demo-interact__indicator {
