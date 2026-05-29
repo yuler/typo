@@ -21,9 +21,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const currentText = ref('')
 const status = ref<'idle' | 'typing' | 'pending' | 'processing' | 'result'>('idle')
+const showIndicator = ref(false)
 
 async function runSimulation() {
-  if (status.value === 'typing') return
+  if (status.value === 'typing')
+    return
   status.value = 'typing'
   currentText.value = ''
 
@@ -33,6 +35,19 @@ async function runSimulation() {
   }
 
   status.value = 'pending'
+  await new Promise(r => setTimeout(r, 800))
+
+  status.value = 'processing'
+  showIndicator.value = true
+
+  await new Promise(r => setTimeout(r, 1500))
+
+  status.value = 'result'
+  currentText.value = props.resolvedText
+
+  await new Promise(r => setTimeout(r, 2000))
+  showIndicator.value = false
+  status.value = 'idle'
 }
 
 watch(() => props.active, (isActive) => {
@@ -48,28 +63,30 @@ function replay() {
 <template>
   <div class="demo-interact">
     <div class="demo-interact__input">
-      <p class="demo-interact__label">{{ inputLabel }}</p>
+      <p class="demo-interact__label">
+        {{ inputLabel }}
+      </p>
       <textarea
         v-model="currentText"
         readonly
         class="demo-interact__text"
         rows="1"
       />
-    </div>
 
-    <div class="demo-interact__indicator">
-      <Indicator
-        embedded
-        :state="status === 'processing' ? 'processing' : (status === 'result' ? 'result' : 'idle')"
-        :input-text="currentText"
-        :command-name="command ?? ''"
-        :result-text="resolvedText"
-        :global-shortcut="globalShortcut"
-      />
+      <div v-if="showIndicator" class="demo-interact__indicator">
+        <Indicator
+          embedded
+          :state="status === 'processing' ? 'processing' : (status === 'result' ? 'result' : 'idle')"
+          :input-text="currentText"
+          :command-name="command ?? ''"
+          :result-text="resolvedText"
+          :global-shortcut="globalShortcut"
+        />
+      </div>
     </div>
 
     <button
-      v-if="status === 'result'"
+      v-if="status === 'idle' && currentText === resolvedText"
       type="button"
       class="demo-interact__replay"
       @click="replay"
@@ -88,6 +105,7 @@ function replay() {
 }
 
 .demo-interact__input {
+  position: relative;
   border-radius: 0.75rem;
   border: 1px solid rgb(255 255 255 / 10%);
   background: rgb(39 39 42);
@@ -119,7 +137,9 @@ function replay() {
 }
 
 .demo-interact__indicator {
-  height: 3.75rem;
+  position: absolute;
+  inset: 0.375rem;
+  z-index: 10;
 }
 
 .demo-interact__replay {
