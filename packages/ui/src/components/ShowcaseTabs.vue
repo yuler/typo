@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-
-const props = defineProps<{
+defineProps<{
   modelValue: number
   tabs: string[]
 }>()
@@ -26,13 +24,12 @@ if (typeof window !== 'undefined') {
     <button
       v-for="(tab, index) in tabs"
       :key="tab"
-      @click="selectTab(index)"
-      :class="[
-        'px-4 py-2 rounded-md text-sm font-medium transition-all',
-        modelValue === index 
-          ? 'bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-100' 
-          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400'
+      class="px-4 py-2 rounded-md text-sm font-medium transition-all" :class="[
+        modelValue === index
+          ? 'bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-100'
+          : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400',
       ]"
+      @click="selectTab(index)"
     >
       {{ tab }}
     </button>

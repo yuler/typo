@@ -3,11 +3,7 @@ import { Demo, ShowcaseTabs } from '@typo/ui'
 
 const { tr } = Astro.locals
 
-const tabs = [
-  tr('demo.cases.default.title'),
-  tr('demo.cases.polish.title'),
-  tr('demo.cases.japanese.title'),
-]
+const tabs = [tr('demo.cases.default.title'), tr('demo.cases.polish.title'), tr('demo.cases.japanese.title')]
 
 const cases = [
   {
@@ -46,16 +42,18 @@ const cases = [
         <ShowcaseTabs client:load tabs={tabs} id="showcase-tabs" />
       </div>
 
-      <div class="swiper overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-900 shadow-sm dark:border-zinc-800">
+      <div
+        class="swiper overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-900 shadow-sm dark:border-zinc-800"
+      >
         <div class="swiper-wrapper">
           {
             cases.map((item, index) => (
               <div class="swiper-slide p-5 sm:p-8">
                 <div class="mx-auto max-w-3xl h-[280px]">
-                  <Demo 
-                    client:load 
-                    initialText={item.initialText} 
-                    resolvedText={item.resolvedText} 
+                  <Demo
+                    client:load
+                    initialText={item.initialText}
+                    resolvedText={item.resolvedText}
                     command={item.command}
                     data-index={index}
                   />
@@ -87,8 +85,8 @@ const cases = [
           // Better to use a custom event or a store
           window.dispatchEvent(new CustomEvent('showcase-slide-change', { detail: s.activeIndex }))
         }
-      }
-    }
+      },
+    },
   })
 
   // Listen for tab changes
