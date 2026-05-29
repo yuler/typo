@@ -455,3 +455,10 @@ async function handleErrorClick() {
     @error-click="handleErrorClick"
   />
 </template>
+
+<style>
+:global(body) {
+  background-color: transparent;
+  overflow: hidden;
+}
+</style>

@@ -1,6 +1,7 @@
 ---
 import FeatureGrid from '@/components/FeatureGrid.astro'
 import Hero from '@/components/Hero.astro'
+import Showcases from '@/components/Showcases.astro'
 import Testimonials from '@/components/Testimonials.astro'
 import BaseLayout from '@/layouts/BaseLayout.astro'
 
@@ -12,6 +13,7 @@ const { tr } = Astro.locals
 <BaseLayout title={tr('page.home.title')}>
   <main>
     <Hero />
+    <Showcases />
     <FeatureGrid />
     <Testimonials />
   </main>
