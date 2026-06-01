@@ -31,12 +31,13 @@ withDefaults(defineProps<Props>(), {
 })
 
 function formatMenuBarTime(date: Date) {
-  return date.toLocaleString('en-US', {
-    weekday: 'short',
+  const weekday = date.toLocaleString('en-US', { weekday: 'short' })
+  const time = date.toLocaleString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-  }).replace(', ', ' ')
+  })
+  return `${weekday} ${time}`
 }
 
 interface BatteryManager extends EventTarget {
@@ -91,6 +92,7 @@ const wifiIcon = computed((): FunctionalComponent => {
 
 let menuBarTimer: ReturnType<typeof setInterval>
 let batteryManager: BatteryManager | undefined
+let isMounted = false
 
 function getConnection() {
   return (navigator as NavigatorWithDeviceStatus).connection
@@ -120,6 +122,7 @@ function onBatteryChange() {
 }
 
 onMounted(async () => {
+  isMounted = true
   const tick = () => {
     menuBarTime.value = formatMenuBarTime(new Date())
   }
@@ -136,7 +139,10 @@ onMounted(async () => {
     return
 
   try {
-    batteryManager = await getBattery.call(navigator)
+    const nextBatteryManager = await getBattery.call(navigator)
+    if (!isMounted)
+      return
+    batteryManager = nextBatteryManager
     syncBattery(batteryManager)
     batteryManager.addEventListener('chargingchange', onBatteryChange)
     batteryManager.addEventListener('levelchange', onBatteryChange)
@@ -147,6 +153,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  isMounted = false
   clearInterval(menuBarTimer)
   getConnection()?.removeEventListener('change', syncConnection)
   window.removeEventListener('online', syncOnline)
