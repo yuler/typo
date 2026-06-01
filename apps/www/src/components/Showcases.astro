@@ -109,8 +109,7 @@ const showcaseTerminalDotClass =
   for (const container of document.querySelectorAll<HTMLElement>('[data-showcases]')) {
     const root = container.querySelector<HTMLElement>('[data-showcases-root]')
     const timeline = container.querySelector<HTMLElement>('[data-showcase-timeline]')
-    if (!root || !timeline)
-      continue
+    if (!root || !timeline) continue
 
     const slides = [...root.querySelectorAll<HTMLElement>('.showcase-slide')]
     const steps = [...timeline.querySelectorAll<HTMLElement>('.showcase-step')]
