@@ -73,7 +73,7 @@ async fn check_update_silent(app: &AppHandle) {
         Ok(Some(update)) => {
             let version = update.version;
 
-            let is_ignored = IGNORED_VERSION.read().unwrap().as_ref() == Some(&version);
+            let is_ignored = IGNORED_VERSION.read().unwrap_or_else(|e| e.into_inner()).as_ref() == Some(&version);
             if is_ignored {
                 log::info!("Update v{} is ignored, skipping window", version);
                 return;
