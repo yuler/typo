@@ -450,6 +450,7 @@ async function handleErrorClick() {
     :copy-result="copyResult"
     :is-rate-limited="isRateLimited"
     :labels="{ copied: t('main.status.copied') }"
+    :version="__APP_VERSION__"
     @esc="onESC"
     @settings="openMainWindow"
     @error-click="handleErrorClick"

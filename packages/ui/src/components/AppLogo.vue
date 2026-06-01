@@ -13,7 +13,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 /** Vite/Astro may resolve SVG imports as `{ src, width, height }` rather than a plain URL. */
-function assetSrc(asset: string | { src: string }) {
+function assetSrc(asset: string | { src: string } | null | undefined) {
+  if (!asset)
+    return ''
   return typeof asset === 'string' ? asset : asset.src
 }
 
