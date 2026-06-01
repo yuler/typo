@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -50,6 +52,9 @@ const {
 const activeFilter = ref<HistoryFilter>('all')
 const isShortcutsOpen = ref(false)
 const deleteKeyHeld = ref(false)
+const isDeleteDialogOpen = ref(false)
+const pendingDeleteId = ref<string | null>(null)
+const confirmDeleteButtonRef = ref<{ $el?: HTMLElement } | null>(null)
 const focusedIndex = ref(-1)
 const listContainerRef = ref<HTMLElement | null>(null)
 const loadMoreSentinelRef = ref<HTMLElement | null>(null)
@@ -360,6 +365,7 @@ function isTypingInField(e: KeyboardEvent) {
 
 function isListShortcutEvent(e: KeyboardEvent) {
   return !isShortcutsOpen.value
+    && !isDeleteDialogOpen.value
     && !e.metaKey && !e.ctrlKey && !e.altKey
     && !isTypingInField(e)
 }
@@ -426,7 +432,7 @@ function handleListKeyup(e: KeyboardEvent) {
 }
 
 function handleHistoryKeydown(e: KeyboardEvent) {
-  if (e.metaKey || e.ctrlKey || e.altKey || isShortcutsOpen.value || isTypingInField(e))
+  if (e.metaKey || e.ctrlKey || e.altKey || isShortcutsOpen.value || isDeleteDialogOpen.value || isTypingInField(e))
     return
   if (e.key === '?') {
     e.preventDefault()
@@ -457,6 +463,26 @@ async function refreshHistory() {
 async function handleDelete(id: string) {
   await remove(id)
   nextTick(() => listContainerRef.value?.focus())
+}
+
+function promptDelete(id: string) {
+  if (isDeleting.value === id)
+    return
+  pendingDeleteId.value = id
+  isDeleteDialogOpen.value = true
+}
+
+function focusConfirmDelete(e: Event) {
+  e.preventDefault()
+  nextTick(() => confirmDeleteButtonRef.value?.$el?.focus())
+}
+
+async function confirmDelete() {
+  const id = pendingDeleteId.value
+  isDeleteDialogOpen.value = false
+  pendingDeleteId.value = null
+  if (id)
+    await handleDelete(id)
 }
 
 // --- lifecycle ---
@@ -496,6 +522,11 @@ watch(
       focusListAt(0)
   },
 )
+
+watch(isDeleteDialogOpen, (open) => {
+  if (!open)
+    pendingDeleteId.value = null
+})
 
 watch(isLoggedIn, (loggedIn) => {
   if (loggedIn)
@@ -706,6 +737,7 @@ onUnmounted(() => {
                   :is-focused="focusedItemId === item.id"
                   @click="focusItemById(item.id)"
                   @delete="handleDelete"
+                  @request-delete="promptDelete"
                 />
               </TransitionGroup>
             </section>
@@ -782,6 +814,42 @@ onUnmounted(() => {
             </section>
           </div>
         </div>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog
+      :open="isDeleteDialogOpen"
+      @update:open="isDeleteDialogOpen = $event"
+    >
+      <DialogContent
+        class="max-w-[340px] gap-6 p-6"
+        @open-auto-focus="focusConfirmDelete"
+      >
+        <DialogHeader class="space-y-2.5">
+          <DialogTitle class="text-lg font-bold leading-none tracking-tight">
+            {{ t('history.delete_confirm_title') }}
+          </DialogTitle>
+          <DialogDescription class="text-sm leading-relaxed text-muted-foreground">
+            {{ t('history.delete_confirm_desc') }}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
+          <Button
+            variant="outline"
+            class="h-9 rounded-lg px-4 text-xs font-medium"
+            @click="isDeleteDialogOpen = false"
+          >
+            {{ t('main.common.cancel') }}
+          </Button>
+          <Button
+            ref="confirmDeleteButtonRef"
+            variant="destructive"
+            class="h-9 rounded-lg px-4 text-xs font-medium shadow-sm"
+            @click="confirmDelete"
+          >
+            {{ t('history.delete_action') }}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   </div>

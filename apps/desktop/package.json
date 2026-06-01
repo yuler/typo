@@ -1,7 +1,7 @@
 {
   "name": "@typo/desktop",
   "type": "module",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "private": true,
   "scripts": {
     "dev": "tauri dev",
@@ -29,6 +29,7 @@
     "@tauri-apps/plugin-store": "~2.4.2",
     "@tauri-apps/plugin-updater": "~2.10.1",
     "@typo/languages": "workspace:*",
+    "@typo/ui": "workspace:*",
     "@vueuse/core": "^13.3.0",
     "ai": "^4.3.16",
     "lucide-vue-next": "^0.516.0",

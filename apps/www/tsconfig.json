@@ -6,7 +6,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@typo/releases": ["../../packages/releases/src/index.ts"]
+      "@typo/releases": ["../../packages/releases/src/index.ts"],
+      "@typo/ui": ["../../packages/ui/src/index.ts"],
+      "@typo/ui/*": ["../../packages/ui/*"]
     }
   },
   "include": [".astro/types.d.ts", "**/*"],
