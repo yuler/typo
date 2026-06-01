@@ -124,7 +124,7 @@ onMounted(async () => {
     menuBarTime.value = formatMenuBarTime(new Date())
   }
   tick()
-  menuBarTimer = setInterval(tick, 60_000)
+  menuBarTimer = setInterval(tick, 1000)
 
   syncOnline()
   getConnection()?.addEventListener('change', syncConnection)
@@ -175,7 +175,7 @@ onUnmounted(() => {
     >
       <div class="flex items-center gap-4">
         <!-- SVG Apple Logo -->
-        <svg viewBox="0 0 14 17" fill="currentColor" class="h">
+        <svg viewBox="0 0 14 17" fill="currentColor" class="h-4">
           <path d="M12.65 8.91c-.04-1.92 1.58-2.85 1.65-2.9-1.28-1.85-3.26-2.1-3.99-2.14-1.68-.17-3.28.98-4.14.98-.86 0-2.19-1.02-3.6-1-1.83.02-3.52 1.05-4.46 2.67-1.9 3.25-.49 8.08 1.36 10.7 .91 1.29 1.98 2.73 3.4 2.68 1.36-.05 1.88-.86 3.52-.86 1.64 0 2.12.86 3.55.83 1.47-.02 2.4-1.3 3.3-2.58 1.05-1.5 1.48-2.95 1.5-3.03-.03-.01-2.81-1.06-2.85-3.41L12.65 8.91zM9.54 2.91c.76-.9 1.26-2.15 1.13-3.39-1.08.04-2.43.7-3.21 1.61-.69.79-1.29 2.06-1.14 3.28 1.21.09 2.47-.62 3.22-1.5z" />
         </svg>
         <span class="font-bold">{{ menuAppName }}</span>

@@ -61,11 +61,11 @@ const selectionRange = ref<{ start: number, end: number } | null>(null)
 const indicatorState = computed<IndicatorState>(() => (status.value === 'result' ? 'result' : 'processing'))
 const dimmed = computed(() => status.value !== 'idle')
 
-const isMacOS = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform)
+const isMacOS = ref(false)
 
 const keys = computed(() =>
   props.globalShortcut
-    .replace('CommandOrControl', isMacOS ? 'Command' : 'Ctrl')
+    .replace('CommandOrControl', isMacOS.value ? 'Command' : 'Ctrl')
     .split('+'),
 )
 
@@ -223,6 +223,7 @@ function observeIndicatorHostWidth() {
 }
 
 onMounted(() => {
+  isMacOS.value = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform)
   observeIndicatorHostWidth()
   if (props.slideIndex !== undefined) {
     window.addEventListener('typo-showcase-slide', onShowcaseSlide)
@@ -237,6 +238,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  runId++
   hostResizeObserver?.disconnect()
   if (props.slideIndex !== undefined) {
     window.removeEventListener('typo-showcase-slide', onShowcaseSlide)
