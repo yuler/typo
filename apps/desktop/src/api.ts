@@ -8,6 +8,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://app.ty
 
 let userAgentPromise: Promise<string> | null = null
 let isResetting = false
+let isOpeningForcedUpgrade = false
 
 function getUserAgent(): Promise<string> {
   if (userAgentPromise)
@@ -71,6 +72,28 @@ export async function apiFetch(path: string, options?: RequestInit): Promise<Res
     ...options,
     headers,
   })
+
+  if (response.status === 426) {
+    const errorData = await response.json().catch(() => ({ error: 'Upgrade required' }))
+    if (!isOpeningForcedUpgrade) {
+      isOpeningForcedUpgrade = true
+      try {
+        const { t } = useI18n()
+        toast.error(t('upgrade.required'))
+        await invoke('open_forced_upgrade_window')
+      }
+      catch (err) {
+        logger.error('api', 'Failed to open forced upgrade window', err)
+      }
+      finally {
+        isOpeningForcedUpgrade = false
+      }
+    }
+    if (import.meta.env.DEV) {
+      logger.error('api', `[Error] ${method} ${url} (426)`, errorData)
+    }
+    throw new Error(errorData.error || 'Upgrade required')
+  }
 
   if (response.status === 401 && !allowUnauthenticatedAccess(path, method)) {
     if (!isResetting) {

@@ -6,6 +6,7 @@ use tauri_plugin_updater::UpdaterExt;
 static ACTIVITY_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static IGNORED_VERSION: RwLock<Option<String>> = RwLock::new(None);
 static IS_CHECKING: AtomicBool = AtomicBool::new(false);
+static FORCED_UPGRADE: AtomicBool = AtomicBool::new(false);
 const ACTIVITY_THRESHOLD: usize = 10;
 const UPDATER_STATE_FILE: &str = "updater.json";
 
@@ -90,6 +91,17 @@ async fn check_update_silent(app: &AppHandle) {
             log::error!("Update check failed: {}", e);
         }
     }
+}
+
+#[tauri::command]
+pub fn is_forced_upgrade() -> bool {
+    FORCED_UPGRADE.load(Ordering::Relaxed)
+}
+
+#[tauri::command]
+pub fn open_forced_upgrade_window(app: AppHandle) {
+    FORCED_UPGRADE.store(true, Ordering::Release);
+    crate::windows::create_upgrade_window(&app);
 }
 
 #[tauri::command]

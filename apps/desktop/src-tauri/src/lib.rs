@@ -244,6 +244,8 @@ pub fn run() {
             windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,
+            upgrade::open_forced_upgrade_window,
+            upgrade::is_forced_upgrade,
             windows::open_indicator_window,
             windows::open_main_window,
             upgrade::ignore_version,

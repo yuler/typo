@@ -111,6 +111,8 @@
   "upgrade.later": "後で",
   "upgrade.confirm": "アップグレード",
   "upgrade.downloading": "ダウンロード中...",
+  "upgrade.required": "続行するにはアップデートが必要です",
+  "upgrade.required_message": "このバージョンはサポート対象外です。Typo を引き続き利用するにはアップデートしてください。",
   "tray.tooltip": "typo",
   "tray.show": "typo を表示",
   "tray.settings": "設定",

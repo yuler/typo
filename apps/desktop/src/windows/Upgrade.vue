@@ -21,6 +21,7 @@ const appWindow = getCurrentWebviewWindow()
 const { t, locale } = useI18n()
 const appVersion = __APP_VERSION__
 
+const isForced = ref(false)
 const updateInfo = shallowRef<Update | null>(null)
 const isUpgrading = ref(false)
 const downloadProgress = ref(0)
@@ -45,11 +46,18 @@ async function fetchRemoteNotes(version: string) {
 }
 
 useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && !isUpgrading.value)
+  if (e.key === 'Escape' && !isUpgrading.value && !isForced.value)
     onDismiss()
 })
 
 onMounted(async () => {
+  try {
+    isForced.value = await invoke<boolean>('is_forced_upgrade')
+  }
+  catch (e) {
+    logger.error('Update', 'Failed to read forced upgrade state', e)
+  }
+
   try {
     const update = await check()
     if (update) {
@@ -132,7 +140,7 @@ function startAutoCloseCountdown() {
 }
 
 watch(isUpToDate, (upToDate) => {
-  if (upToDate)
+  if (upToDate && !isForced.value)
     startAutoCloseCountdown()
   else
     stopCountdown()
@@ -168,6 +176,7 @@ function onDismiss() {
         <span class="text-xs font-bold text-zinc-400 tracking-wider uppercase">{{ t('upgrade.updater') }}</span>
       </div>
       <button
+        v-if="!isForced"
         class="flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-all duration-150 cursor-pointer"
         @click="onDismiss"
       >
@@ -199,7 +208,7 @@ function onDismiss() {
             {{ t('upgrade.check_failed_details') }}
           </p>
         </div>
-        <Button variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
+        <Button v-if="!isForced" variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
           {{ t('upgrade.close') }}
         </Button>
       </div>
@@ -213,13 +222,16 @@ function onDismiss() {
             {{ t('upgrade.auto_close_countdown', { seconds: closeCountdown }) }}
           </p>
         </div>
-        <Button variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
+        <Button v-if="!isForced" variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
           {{ t('upgrade.close') }}
         </Button>
       </div>
       <div v-else class="flex-1 flex flex-col min-h-0">
         <!-- Header -->
         <div class="flex flex-col gap-1.5 shrink-0">
+          <p v-if="isForced" class="text-sm text-amber-700 font-medium">
+            {{ t('upgrade.required_message') }}
+          </p>
           <h1 class="text-xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
             {{ t('upgrade.new_version') }}
             <Badge variant="secondary" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-900">
@@ -243,6 +255,7 @@ function onDismiss() {
         <!-- Action Buttons -->
         <div class="flex justify-end gap-3 shrink-0 pt-4 border-t border-zinc-100">
           <Button
+            v-if="!isForced"
             variant="outline"
             class="cursor-pointer font-medium"
             @click="onIgnore"

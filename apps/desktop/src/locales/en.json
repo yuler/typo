@@ -111,6 +111,8 @@
   "upgrade.later": "Later",
   "upgrade.confirm": "Upgrade",
   "upgrade.downloading": "Downloading...",
+  "upgrade.required": "Update required to continue",
+  "upgrade.required_message": "This version is no longer supported. Please update to continue using Typo.",
   "tray.tooltip": "typo",
   "tray.show": "Show typo",
   "tray.settings": "Settings",
