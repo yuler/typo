@@ -241,6 +241,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@typo/logo':
+        specifier: workspace:*
+        version: link:../logo
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

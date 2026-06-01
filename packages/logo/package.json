@@ -4,7 +4,10 @@
   "version": "1.6.2",
   "private": true,
   "exports": {
-    "./dist/*": "./dist/*"
+    "./assets/*": "./assets/*",
+    "./dist/*": "./dist/*",
+    "./logo-dark.svg": "./assets/logo-dark.svg",
+    "./logo.svg": "./assets/logo-light.svg"
   },
   "files": [
     "assets",

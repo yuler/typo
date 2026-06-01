@@ -9,7 +9,10 @@
     "moduleResolution": "Node",
     "paths": {
       "@/*": ["./src/*"],
-      "@typo/ui/*": ["./src/*"]
+      "@typo/ui/*": ["./src/*"],
+      "@typo/logo/*": ["../logo/assets/*"],
+      "@typo/logo/logo.svg": ["../logo/assets/logo-light.svg"],
+      "@typo/logo/logo-dark.svg": ["../logo/assets/logo-dark.svg"]
     },
     "resolveJsonModule": true,
     "strict": true,
