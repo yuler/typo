@@ -21,6 +21,7 @@ import { PIN_INDICATOR_CHANGED_EVENT } from '@/tray'
 import { sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
+const appVersion = __APP_VERSION__
 
 const { t } = useI18n()
 const { login } = useAuth()
@@ -450,7 +451,7 @@ async function handleErrorClick() {
     :copy-result="copyResult"
     :is-rate-limited="isRateLimited"
     :labels="{ copied: t('main.status.copied') }"
-    :version="__APP_VERSION__"
+    :version="appVersion"
     @esc="onESC"
     @settings="openMainWindow"
     @error-click="handleErrorClick"
