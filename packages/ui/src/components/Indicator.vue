@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import AppLogo from './AppLogo.vue'
-import { formatShortcut } from '../lib/utils'
 import { ClipboardCheckIcon, Loader2Icon, SettingsIcon, TerminalIcon } from 'lucide-vue-next'
+import { formatShortcut } from '../lib/utils'
+import AppLogo from './AppLogo.vue'
 
 export type IndicatorState = 'idle' | 'processing' | 'result' | 'error'
 
