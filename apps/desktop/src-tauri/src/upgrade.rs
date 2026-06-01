@@ -98,7 +98,7 @@ pub fn ignore_version(app: AppHandle, version: String) {
     
     // Update memory state
     {
-        let mut ignored = IGNORED_VERSION.write().unwrap();
+        let mut ignored = IGNORED_VERSION.write().unwrap_or_else(|e| e.into_inner());
         *ignored = Some(version.clone());
     }
 
