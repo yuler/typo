@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import logoDarkUrl from '../../assets/logo-dark.svg'
-import logoUrl from '../../assets/logo.svg'
-import { cn } from '../lib/utils'
+import logoDarkUrl from '@typo/ui/assets/logo-dark.svg'
+import logoUrl from '@typo/ui/assets/logo.svg'
+import { cn } from '@typo/ui/lib/utils'
 
 defineOptions({
   inheritAttrs: false,

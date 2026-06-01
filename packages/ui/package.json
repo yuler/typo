@@ -5,7 +5,9 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./components/*": "./src/components/*"
+    "./assets/*": "./src/assets/*",
+    "./components/*": "./src/components/*",
+    "./lib/utils": "./src/lib/utils.ts"
   },
   "scripts": {
     "test": "vitest run"

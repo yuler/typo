@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
+import { AppLogo } from '@typo/ui'
 import {
   BadgeCheck,
   Bell,
@@ -11,7 +12,6 @@ import {
 } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { toast } from 'vue-sonner'
-import AppLogo from '@/components/AppLogo.vue'
 import AppVersion from '@/components/AppVersion.vue'
 import {
   Avatar,
