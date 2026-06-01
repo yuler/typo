@@ -6,7 +6,7 @@ import { LogicalSize } from '@tauri-apps/api/dpi'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
-import { formatShortcut, Indicator as IndicatorView } from '@typo/ui'
+import { formatShortcut, Indicator as UIIndicator } from '@typo/ui'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
 
@@ -439,7 +439,7 @@ async function handleErrorClick() {
 </script>
 
 <template>
-  <IndicatorView
+  <UIIndicator
     :state="state"
     :input-text="inputText"
     :command-name="commandName"
