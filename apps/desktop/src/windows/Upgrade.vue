@@ -6,7 +6,7 @@ import { fetch } from '@tauri-apps/plugin-http'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check } from '@tauri-apps/plugin-updater'
 import { useEventListener } from '@vueuse/core'
-import { ArrowUpCircleIcon, CheckCircle2Icon, SparklesIcon, XIcon } from 'lucide-vue-next'
+import { AlertCircleIcon, ArrowUpCircleIcon, CheckCircle2Icon, SparklesIcon, XIcon } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, shallowRef, toRaw, watch } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,7 @@ const updateInfo = shallowRef<Update | null>(null)
 const isUpgrading = ref(false)
 const downloadProgress = ref(0)
 const isLoading = ref(true)
+const hasError = ref(false)
 const remoteNotes = ref('')
 
 async function fetchRemoteNotes(version: string) {
@@ -58,6 +59,7 @@ onMounted(async () => {
   }
   catch (e) {
     logger.error('Update', 'Failed to get update info', e)
+    hasError.value = true
   }
   finally {
     isLoading.value = false
@@ -106,7 +108,7 @@ async function onUpgradeConfirm() {
 const closeCountdown = ref(AUTO_CLOSE_SECONDS)
 let countdownTimer: ReturnType<typeof setInterval> | undefined
 
-const isUpToDate = computed(() => !isLoading.value && !updateInfo.value)
+const isUpToDate = computed(() => !isLoading.value && !updateInfo.value && !hasError.value)
 
 function stopCountdown() {
   if (countdownTimer) {
@@ -186,6 +188,20 @@ function onDismiss() {
           <span class="text-sm font-medium text-zinc-600 animate-pulse">{{ t('upgrade.checking') }}</span>
           <span class="text-xs text-zinc-400">{{ t('upgrade.checking_details') }}</span>
         </div>
+      </div>
+      <div v-else-if="hasError" class="flex-1 flex flex-col items-center justify-center gap-6 text-center px-4">
+        <AlertCircleIcon class="w-10 h-10 text-amber-500" />
+        <div class="flex flex-col gap-2">
+          <p class="text-base font-medium text-zinc-800">
+            {{ t('upgrade.check_failed') }}
+          </p>
+          <p class="text-sm text-zinc-500">
+            {{ t('upgrade.check_failed_details') }}
+          </p>
+        </div>
+        <Button variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
+          {{ t('upgrade.close') }}
+        </Button>
       </div>
       <div v-else-if="!updateInfo" class="flex-1 flex flex-col items-center justify-center gap-6 text-center px-4">
         <CheckCircle2Icon class="w-10 h-10 text-emerald-500" />

@@ -20,7 +20,6 @@ impl Drop for CheckingGuard {
 pub fn init(app: AppHandle) {
     // Load ignored version from store
     if let Ok(store) = app.store(UPDATER_STATE_FILE) {
-        let _ = store.reload();
         if let Some(version) = store.get("ignored_version") {
             if let Some(v_str) = version.as_str() {
                 let mut ignored = IGNORED_VERSION.write().unwrap();
@@ -105,7 +104,6 @@ pub fn ignore_version(app: AppHandle, version: String) {
 
     // Update local store
     if let Ok(store) = app.store(UPDATER_STATE_FILE) {
-        let _ = store.reload();
         store.set("ignored_version", serde_json::Value::String(version));
         if let Err(e) = store.save() {
             log::error!("Failed to save ignored_version to store: {}", e);

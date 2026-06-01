@@ -105,6 +105,8 @@
   "upgrade.new_version": "新しいバージョンが利用可能です",
   "upgrade.ready_to_install": "新しいリリースの Typo をインストールする準備ができました。",
   "upgrade.up_to_date": "最新バージョンを使用しています (v{version})",
+  "upgrade.check_failed": "アップデートを確認できません",
+  "upgrade.check_failed_details": "ネットワーク接続を確認して、後でもう一度お試しください。",
   "upgrade.no_notes": "リリースノートはありません。",
   "upgrade.later": "後で",
   "upgrade.confirm": "アップグレード",
