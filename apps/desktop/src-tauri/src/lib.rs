@@ -82,9 +82,6 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");
 
-    // Track activity
-    upgrade::increment_activity(app);
-
     let text = if in_linux_wayland() {
         get_selected_text_wayland(app)
     } else {
@@ -250,6 +247,7 @@ pub fn run() {
             windows::open_indicator_window,
             windows::open_main_window,
             upgrade::ignore_version,
+            upgrade::increment_activity,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

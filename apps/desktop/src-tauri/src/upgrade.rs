@@ -38,7 +38,8 @@ pub fn init(app: AppHandle) {
     });
 }
 
-pub fn increment_activity(app: &AppHandle) {
+#[tauri::command]
+pub fn increment_activity(app: AppHandle) {
     let old = ACTIVITY_COUNTER.fetch_add(1, Ordering::Relaxed);
     if (old + 1) % ACTIVITY_THRESHOLD == 0 {
         let handle = app.clone();

@@ -69,7 +69,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   const { text, mode } = payload
 
-  logger.info('Indicator', { text, mode })
+  logger.info('Indicator', 'processSetInputPayload', { text, mode })
 
   if (!text.trim().length) {
     errorText.value = t('main.error.no_text')
@@ -217,6 +217,8 @@ onMounted(async () => {
   unlistenShortcutRequests = cleanupShortcutRequests
 
   const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
+    void invoke('increment_activity')
+    logger.info('Indicator', 'set-input', event)
     // Force show and focus when event received
     await appWindow.show()
     // TODO: option in settings
