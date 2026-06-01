@@ -3,11 +3,6 @@ import logoDarkUrl from '../../assets/logo-dark.svg'
 import logoUrl from '../../assets/logo.svg'
 import { cn } from '../lib/utils'
 
-/** Vite/Astro may resolve SVG imports as `{ src, width, height }` rather than a plain URL. */
-function assetSrc(asset: string | { src: string }) {
-  return typeof asset === 'string' ? asset : asset.src
-}
-
 defineOptions({
   inheritAttrs: false,
 })
@@ -16,6 +11,11 @@ const props = withDefaults(defineProps<Props>(), {
   drag: false,
   dark: false,
 })
+
+/** Vite/Astro may resolve SVG imports as `{ src, width, height }` rather than a plain URL. */
+function assetSrc(asset: string | { src: string }) {
+  return typeof asset === 'string' ? asset : asset.src
+}
 
 interface Props {
   drag?: boolean

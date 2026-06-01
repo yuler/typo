@@ -59,11 +59,9 @@ const showcaseTerminalDotClass =
               <span class="showcase-step-line relative mt-[0.35rem] w-0.5 min-h-6 flex-1 overflow-hidden rounded-full bg-zinc-200 max-lg:mt-0 max-lg:ml-[0.35rem] max-lg:mr-[0.35rem] max-lg:h-0.5 max-lg:min-h-0 max-lg:w-auto max-lg:min-w-3 max-lg:flex-1 dark:bg-zinc-700">
                 <span class="showcase-step-line-fill absolute inset-0 rounded-full bg-zinc-900 dark:bg-zinc-50" />
               </span>
-              {
-                index === cases.length - 1 && (
-                  <span class:list={[showcaseTerminalDotClass, 'max-lg:ml-0 lg:mt-[0.35rem]']} />
-                )
-              }
+              {index === cases.length - 1 && (
+                <span class:list={[showcaseTerminalDotClass, 'max-lg:ml-0 lg:mt-[0.35rem]']} />
+              )}
             </span>
             <span class="lg:pt-8 flex flex-col gap-[0.3rem] pb-7 max-lg:items-center max-lg:text-center max-lg:pb-0 lg:flex-1 lg:justify-center lg:pb-0">
               <span class="text-base leading-snug font-semibold text-zinc-500 transition-colors duration-300 max-lg:text-xs max-lg:leading-tight group-[.showcase-step-active]/step:text-zinc-900 dark:text-zinc-400 dark:group-[.showcase-step-active]/step:text-zinc-50">
@@ -129,8 +127,7 @@ const showcaseTerminalDotClass =
     if (isHorizontalTimeline()) {
       fill.style.transformOrigin = 'left center'
       fill.style.transform = 'scaleX(0)'
-    }
-    else {
+    } else {
       fill.style.transformOrigin = 'top center'
       fill.style.transform = 'scaleY(0)'
     }
@@ -140,8 +137,7 @@ const showcaseTerminalDotClass =
     if (isHorizontalTimeline()) {
       fill.style.transformOrigin = 'left center'
       fill.style.transform = 'scaleX(1)'
-    }
-    else {
+    } else {
       fill.style.transformOrigin = 'top center'
       fill.style.transform = 'scaleY(1)'
     }
@@ -184,7 +180,7 @@ const showcaseTerminalDotClass =
   }
 
   window.addEventListener('typo-showcase-started', (e) => {
-    const detail = (e as CustomEvent<{ index: number, duration: number }>).detail
+    const detail = (e as CustomEvent<{ index: number; duration: number }>).detail
     if (detail.index === activeIndex) startProgress(detail.duration)
   })
 
