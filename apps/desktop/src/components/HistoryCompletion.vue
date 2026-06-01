@@ -15,6 +15,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   delete: [id: string]
+  requestDelete: [id: string]
 }>()
 const DELETE_HOLD_MS = 800
 const PROGRESS_RADIUS = 18
@@ -101,6 +102,12 @@ async function copyContent() {
     logger.error('HistoryCompletion', 'Failed to copy to clipboard', err)
     toast.error(t('history.copy_error'))
   }
+}
+
+function requestDelete() {
+  if (props.isDeleting)
+    return
+  emit('requestDelete', props.item.id)
 }
 
 function openPromptDetail() {
@@ -207,16 +214,9 @@ defineExpose({ copyContent, startDeleteHold, cancelDeleteHold, openPromptDetail,
           size="icon"
           class="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 select-none"
           :disabled="isDeleting"
-          :title="t('history.delete_hold_hint')"
+          :title="t('history.delete_action')"
           tabindex="-1"
-          @click.stop.prevent
-          @mousedown.stop.prevent="startDeleteHold"
-          @mouseup.stop="cancelDeleteHold"
-          @mouseleave.stop="cancelDeleteHold"
-          @touchstart.stop.prevent="startDeleteHold"
-          @touchend.stop="cancelDeleteHold"
-          @touchcancel.stop="cancelDeleteHold"
-          @contextmenu.stop.prevent
+          @click.stop="requestDelete"
         >
           <Loader2Icon
             v-if="isDeleting"
