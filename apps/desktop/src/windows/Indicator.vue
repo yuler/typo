@@ -261,9 +261,10 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
   const signal = abortController.signal
 
   // Note: only for development
+  // TODO: refactor this
   if (import.meta.env.DEV && text.trim().startsWith('/mock')) {
     await new Promise((resolve, reject) => {
-      const t = setTimeout(resolve, 5000)
+      const t = setTimeout(resolve, 2000)
       signal.addEventListener('abort', () => {
         clearTimeout(t)
         reject(new DOMException('Aborted', 'AbortError'))
