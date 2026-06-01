@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CompletionRecord } from '@/composables/useCompletions'
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, CopyIcon, Loader2Icon, Trash2Icon } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,11 +15,23 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   delete: [id: string]
+  requestDelete: [id: string]
 }>()
+const DELETE_HOLD_MS = 800
+const PROGRESS_RADIUS = 18
+const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS
 
 const { t } = useI18n()
 const copied = ref(false)
 const expanded = ref(false)
+const deleteHoldProgress = ref(0)
+
+let holdRaf = 0
+let holdStartedAt = 0
+
+const progressOffset = computed(() =>
+  PROGRESS_CIRCUMFERENCE * (1 - deleteHoldProgress.value),
+)
 
 const formattedTime = computed(() => {
   const date = new Date(props.item.created_at)
@@ -37,6 +49,43 @@ const durationLabel = computed(() => {
     return `${Math.round(ms)}ms`
   const seconds = ms / 1000
   return seconds >= 10 ? `${Math.round(seconds)}s` : `${seconds.toFixed(1)}s`
+})
+
+function cancelDeleteHold() {
+  if (holdRaf) {
+    cancelAnimationFrame(holdRaf)
+    holdRaf = 0
+  }
+  deleteHoldProgress.value = 0
+}
+
+function startDeleteHold() {
+  if (props.isDeleting)
+    return
+
+  cancelDeleteHold()
+  deleteHoldProgress.value = 0.001
+  holdStartedAt = performance.now()
+
+  const tick = () => {
+    const elapsed = performance.now() - holdStartedAt
+    const progress = Math.min(1, elapsed / DELETE_HOLD_MS)
+    deleteHoldProgress.value = progress
+
+    if (progress >= 1) {
+      cancelDeleteHold()
+      emit('delete', props.item.id)
+      return
+    }
+
+    holdRaf = requestAnimationFrame(tick)
+  }
+
+  holdRaf = requestAnimationFrame(tick)
+}
+
+onUnmounted(() => {
+  cancelDeleteHold()
 })
 
 async function copyContent() {
@@ -58,7 +107,7 @@ async function copyContent() {
 function requestDelete() {
   if (props.isDeleting)
     return
-  emit('delete', props.item.id)
+  emit('requestDelete', props.item.id)
 }
 
 function openPromptDetail() {
@@ -70,7 +119,7 @@ function closePromptDetail() {
   expanded.value = false
 }
 
-defineExpose({ copyContent, requestDelete, openPromptDetail, closePromptDetail })
+defineExpose({ copyContent, startDeleteHold, cancelDeleteHold, openPromptDetail, closePromptDetail })
 </script>
 
 <template>
@@ -78,6 +127,47 @@ defineExpose({ copyContent, requestDelete, openPromptDetail, closePromptDetail }
     class="relative scroll-mt-9 rounded-lg border bg-card/60 p-3 shadow-sm transition-colors duration-150"
     :class="isFocused ? 'border-primary/60 bg-primary/5 ring-1 ring-primary/20' : 'border-border/50'"
   >
+    <div
+      v-if="deleteHoldProgress > 0"
+      class="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/75 backdrop-blur-[2px]"
+      aria-live="polite"
+      :aria-label="t('history.delete_holding')"
+    >
+      <div class="flex flex-col items-center gap-2">
+        <div class="relative flex size-14 shrink-0 items-center justify-center">
+          <svg
+            class="absolute inset-0 size-14 -rotate-90"
+            viewBox="0 0 44 44"
+            aria-hidden="true"
+          >
+            <circle
+              cx="22"
+              cy="22"
+              :r="PROGRESS_RADIUS"
+              fill="none"
+              class="stroke-muted/40"
+              stroke-width="3"
+            />
+            <circle
+              cx="22"
+              cy="22"
+              :r="PROGRESS_RADIUS"
+              fill="none"
+              class="stroke-destructive transition-none"
+              stroke-width="3"
+              stroke-linecap="round"
+              :stroke-dasharray="PROGRESS_CIRCUMFERENCE"
+              :stroke-dashoffset="progressOffset"
+            />
+          </svg>
+          <Trash2Icon class="relative z-[1] size-5 text-destructive" />
+        </div>
+        <span class="text-[10px] font-medium text-muted-foreground">
+          {{ t('history.delete_holding') }}
+        </span>
+      </div>
+    </div>
+
     <!-- Header row: time + tags + actions -->
     <div class="flex items-center justify-between gap-2 mb-1.5">
       <div class="flex items-center gap-2 min-w-0 flex-1">

@@ -51,8 +51,10 @@ const {
 
 const activeFilter = ref<HistoryFilter>('all')
 const isShortcutsOpen = ref(false)
+const deleteKeyHeld = ref(false)
 const isDeleteDialogOpen = ref(false)
-const itemToDelete = ref<string | null>(null)
+const pendingDeleteId = ref<string | null>(null)
+const confirmDeleteButtonRef = ref<{ $el?: HTMLElement } | null>(null)
 const focusedIndex = ref(-1)
 const listContainerRef = ref<HTMLElement | null>(null)
 const loadMoreSentinelRef = ref<HTMLElement | null>(null)
@@ -178,7 +180,7 @@ const shortcutSections = computed(() => [
       { label: t('history.shortcuts.prompt_open'), keys: ['→'] },
       { label: t('history.shortcuts.prompt_close'), keys: ['←'] },
       { label: t('history.shortcuts.copy'), keys: ['Enter', 'c'] },
-      { label: t('history.shortcuts.delete'), keys: ['d'] },
+      { label: t('history.shortcuts.delete'), keys: ['d', t('history.shortcuts.delete_hold_badge')] },
       { label: t('history.shortcuts.clear_focus'), keys: ['Esc'] },
     ],
   },
@@ -402,11 +404,12 @@ function handleListKeydown(e: KeyboardEvent) {
     e.preventDefault()
     withFocusedCompletion(comp => comp.copyContent())
   }
-  else if (key === 'd') {
+  else if (key === 'd' && !e.repeat) {
     e.preventDefault()
-    const id = focusedItemId.value
-    if (id)
-      handleDelete(id)
+    if (!focusedItemId.value)
+      return
+    deleteKeyHeld.value = true
+    withFocusedCompletion(comp => comp.startDeleteHold())
   }
   else if (key === 'r' || key === 'R') {
     e.preventDefault()
@@ -419,6 +422,13 @@ function handleListKeydown(e: KeyboardEvent) {
   else if (key === 'Escape') {
     focusedIndex.value = -1
   }
+}
+
+function handleListKeyup(e: KeyboardEvent) {
+  if (e.key !== 'd' || !deleteKeyHeld.value)
+    return
+  deleteKeyHeld.value = false
+  withFocusedCompletion(comp => comp.cancelDeleteHold())
 }
 
 function handleHistoryKeydown(e: KeyboardEvent) {
@@ -450,21 +460,27 @@ async function refreshHistory() {
   })
 }
 
-function handleDelete(id: string) {
-  itemToDelete.value = id
+async function handleDelete(id: string) {
+  await remove(id)
+  nextTick(() => listContainerRef.value?.focus())
+}
+
+function promptDelete(id: string) {
+  pendingDeleteId.value = id
   isDeleteDialogOpen.value = true
 }
 
+function focusConfirmDelete(e: Event) {
+  e.preventDefault()
+  nextTick(() => confirmDeleteButtonRef.value?.$el?.focus())
+}
+
 async function confirmDelete() {
-  if (!itemToDelete.value)
-    return
-
-  const id = itemToDelete.value
+  const id = pendingDeleteId.value
   isDeleteDialogOpen.value = false
-  itemToDelete.value = null
-
-  await remove(id)
-  nextTick(() => listContainerRef.value?.focus())
+  pendingDeleteId.value = null
+  if (id)
+    await handleDelete(id)
 }
 
 // --- lifecycle ---
@@ -688,6 +704,7 @@ onUnmounted(() => {
           class="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 -mr-1 outline-none"
           tabindex="0"
           @keydown="handleListKeydown"
+          @keyup="handleListKeyup"
         >
           <div class="flex flex-col gap-5 pb-4">
             <section
@@ -713,6 +730,7 @@ onUnmounted(() => {
                   :is-focused="focusedItemId === item.id"
                   @click="focusItemById(item.id)"
                   @delete="handleDelete"
+                  @request-delete="promptDelete"
                 />
               </TransitionGroup>
             </section>
@@ -796,7 +814,10 @@ onUnmounted(() => {
       :open="isDeleteDialogOpen"
       @update:open="isDeleteDialogOpen = $event"
     >
-      <DialogContent class="max-w-[340px] gap-6 p-6">
+      <DialogContent
+        class="max-w-[340px] gap-6 p-6"
+        @open-auto-focus="focusConfirmDelete"
+      >
         <DialogHeader class="space-y-2.5">
           <DialogTitle class="text-lg font-bold leading-none tracking-tight">
             {{ t('history.delete_confirm_title') }}
@@ -814,6 +835,7 @@ onUnmounted(() => {
             {{ t('main.common.cancel') }}
           </Button>
           <Button
+            ref="confirmDeleteButtonRef"
             variant="destructive"
             class="h-9 rounded-lg px-4 text-xs font-medium shadow-sm"
             @click="confirmDelete"
