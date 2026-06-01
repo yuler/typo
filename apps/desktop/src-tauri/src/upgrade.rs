@@ -22,7 +22,7 @@ pub fn init(app: AppHandle) {
     if let Ok(store) = app.store(UPDATER_STATE_FILE) {
         if let Some(version) = store.get("ignored_version") {
             if let Some(v_str) = version.as_str() {
-                let mut ignored = IGNORED_VERSION.write().unwrap();
+                let mut ignored = IGNORED_VERSION.write().unwrap_or_else(|e| e.into_inner());
                 *ignored = Some(v_str.to_string());
                 log::info!("Loaded ignored version from store: v{}", v_str);
             }
