@@ -27,6 +27,7 @@ interface Props {
 
 <template>
   <div
+    v-bind="$attrs"
     :class="cn('relative flex flex-col items-center shrink-0 h-8 w-8', props.class)"
     :data-tauri-drag-region="drag ? true : undefined"
   >

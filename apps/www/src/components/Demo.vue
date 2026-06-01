@@ -98,7 +98,9 @@ async function runSimulation() {
   const id = ++runId
   const alive = () => id === runId
   const start = props.command
-    ? `${props.command} ${props.initialText.replace(new RegExp(`^${props.command}\\s*`), '')}`
+    ? (props.initialText.startsWith(props.command)
+        ? props.initialText
+        : `${props.command} ${props.initialText}`)
     : props.initialText
 
   status.value = 'typing'
@@ -114,10 +116,10 @@ async function runSimulation() {
     )
   }
 
-  for (let i = 0; i < start.length; i++) {
+  for (const char of start) {
     if (!alive())
       return
-    currentText.value += start[i]
+    currentText.value += char
     await wait(38 + Math.random() * 45)
   }
 
