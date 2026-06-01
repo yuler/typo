@@ -2,7 +2,7 @@ import antfu from '@antfu/eslint-config'
 
 export default antfu({
   vue: {
-    files: ['apps/desktop/**'],
+    files: ['apps/desktop/**/*.vue', 'apps/www/**/*.vue', 'packages/ui/**/*.vue'],
   },
   react: {
     files: ['apps/www/**/*.{tsx,jsx}'],
