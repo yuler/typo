@@ -152,7 +152,6 @@
   "history.polished": "Polished",
   "history.keyboard_tip": "↑↓/jk navigate · → prompt · ← close · C copy · R refresh · D hold to delete · ? help",
   "history.search_placeholder": "Search completions…",
-  "history.delete_hold_hint": "Hold for 1 second to delete",
   "history.delete_holding": "Deleting…",
   "history.shortcuts_title": "Keyboard shortcuts",
   "history.shortcuts_subtitle": "Shortcuts work anywhere on this page unless you are typing in a field.",

@@ -466,6 +466,8 @@ async function handleDelete(id: string) {
 }
 
 function promptDelete(id: string) {
+  if (isDeleting.value === id)
+    return
   pendingDeleteId.value = id
   isDeleteDialogOpen.value = true
 }
@@ -520,6 +522,11 @@ watch(
       focusListAt(0)
   },
 )
+
+watch(isDeleteDialogOpen, (open) => {
+  if (!open)
+    pendingDeleteId.value = null
+})
 
 watch(isLoggedIn, (loggedIn) => {
   if (loggedIn)

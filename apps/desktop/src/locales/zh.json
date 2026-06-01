@@ -152,7 +152,6 @@
   "history.polished": "润色文",
   "history.keyboard_tip": "↑↓/jk 移动 · → 提示词 · ← 收起 · C 复制 · R 刷新 · D 长按删除 · ? 帮助",
   "history.search_placeholder": "搜索历史记录…",
-  "history.delete_hold_hint": "长按 1 秒删除",
   "history.delete_holding": "正在删除…",
   "history.shortcuts_title": "键盘快捷键",
   "history.shortcuts_subtitle": "在页面任意位置可用，输入框内除外。",
