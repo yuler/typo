@@ -1,0 +1,47 @@
+{
+  "version": "1.6.3",
+  "date": "2026-06-01",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.6.3",
+  "notes": "**Features:**\n- Confirmed trash button delete in history (hold-d retained).\n- Abstracted Indicator component into shared @typo/ui package.",
+  "notes_i18n": {
+    "en": [
+      "Confirmed trash button delete in history with hold-d functionality.",
+      "Abstracted Indicator component into shared @typo/ui package."
+    ],
+    "zh": [
+      "确认在历史记录中删除回收站按钮，保留hold-d功能。",
+      "将Indicator组件抽象到共享的@typo/ui包中。"
+    ],
+    "jp": [
+      "履歴のゴミ箱ボタンの削除を確認し、hold-dを保持。",
+      "Indicatorコンポーネントを共有@typo/uiパッケージに抽象化。"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.6.3_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.3/typo_1.6.3_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.6.3_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.3/typo_1.6.3_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.6.3_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.3/typo_1.6.3_amd64.deb"
+    },
+    {
+      "name": "typo_1.6.3_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.3/typo_1.6.3_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.6.3_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.3/typo_1.6.3_x64.dmg"
+    }
+  ]
+}
