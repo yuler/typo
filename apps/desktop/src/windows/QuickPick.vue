@@ -146,14 +146,23 @@ async function loadQuickPickData() {
   logger.info('QuickPick', 'slashPrompts', { text, prompts })
 }
 
+function focusInput() {
+  void appWindow.setFocus()
+  const input = document.querySelector('input')
+  input?.focus()
+}
+
 onMounted(() => {
   window.addEventListener('keydown', onWindowKeyDown, true)
   document.addEventListener('keydown', onWindowKeyDown, true)
 
+  // Focus right away so the caret lands in the search box without waiting for
+  // the (potentially slow) selected-text/clipboard round trip to finish.
+  focusInput()
+  requestAnimationFrame(focusInput)
+
   void loadQuickPickData().finally(() => {
-    void appWindow.setFocus()
-    const input = document.querySelector('input')
-    input?.focus()
+    focusInput()
   })
 })
 

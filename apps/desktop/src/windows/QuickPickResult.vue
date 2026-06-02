@@ -115,13 +115,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen w-screen bg-neutral-900 text-white border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+  <div class="flex flex-col h-screen w-screen bg-white text-slate-900 border border-slate-200 rounded-xl overflow-hidden shadow-2xl">
     <!-- Header -->
-    <div class="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
-      <span class="text-xs font-medium text-neutral-400">
+    <div class="flex items-center justify-between px-4 py-2 border-b border-slate-200 bg-slate-50">
+      <span class="text-xs font-medium text-slate-500">
         {{ t('main.quick_pick.result_title') || 'Quick Pick Result' }}
       </span>
-      <button class="text-neutral-500 hover:text-white transition-colors" @click="close">
+      <button class="text-slate-400 hover:text-slate-900 transition-colors" @click="close">
         <X class="w-4 h-4" />
       </button>
     </div>
@@ -129,24 +129,24 @@ onUnmounted(() => {
     <!-- Content -->
     <div class="flex-1 overflow-hidden relative">
       <div v-if="state === 'processing'" class="flex flex-col items-center justify-center h-full space-y-4">
-        <div class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-        <p class="text-sm text-neutral-400">
+        <div class="w-8 h-8 border-2 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+        <p class="text-sm text-slate-500">
           {{ t('main.status.processing') || 'Processing...' }}
         </p>
       </div>
 
       <ScrollArea v-else-if="state === 'result'" class="h-full">
         <div class="p-4">
-          <pre class="text-sm whitespace-pre-wrap font-sans leading-relaxed selection:bg-white/20">{{ resultText }}</pre>
+          <pre class="text-sm whitespace-pre-wrap font-sans leading-relaxed text-slate-900 selection:bg-slate-200">{{ resultText }}</pre>
         </div>
       </ScrollArea>
 
       <div v-else-if="state === 'error'" class="p-8 text-center flex flex-col items-center justify-center h-full space-y-4">
-        <p class="text-red-400 text-sm">
+        <p class="text-red-500 text-sm">
           {{ errorText }}
         </p>
         <button
-          class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-xs transition-colors"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 rounded-lg text-xs transition-colors"
           @click="close"
         >
           {{ t('main.action.close') || 'Close' }}
@@ -155,12 +155,12 @@ onUnmounted(() => {
     </div>
 
     <!-- Footer -->
-    <div v-if="state === 'result'" class="px-4 py-3 border-t border-white/5 bg-white/5 flex justify-end gap-2">
+    <div v-if="state === 'result'" class="px-4 py-3 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
       <button
-        class="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-xs transition-colors border border-white/5"
+        class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-lg text-xs transition-colors border border-slate-200"
         @click="copyToClipboard"
       >
-        <component :is="copied ? Check : Copy" class="w-3.5 h-3.5" :class="copied ? 'text-green-400' : ''" />
+        <component :is="copied ? Check : Copy" class="w-3.5 h-3.5" :class="copied ? 'text-green-600' : ''" />
         {{ copied ? (t('main.status.copied') || 'Copied') : (t('main.action.copy') || 'Copy') }}
       </button>
     </div>
