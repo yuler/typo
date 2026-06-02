@@ -69,7 +69,7 @@ async function processSetInputPayload(payload: SetInputPayload) {
 
   const { text, mode } = payload
 
-  logger.info('Indicator', { text, mode })
+  logger.info('Indicator', 'processSetInputPayload', { text, mode })
 
   if (!text.trim().length) {
     errorText.value = t('main.error.no_text')
@@ -217,6 +217,8 @@ onMounted(async () => {
   unlistenShortcutRequests = cleanupShortcutRequests
 
   const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
+    void invoke('increment_activity')
+    logger.info('Indicator', 'set-input', event)
     // Force show and focus when event received
     await appWindow.show()
     // TODO: option in settings
@@ -259,9 +261,10 @@ async function fetchCorrection(text: string, preResolved?: { text: string, promp
   const signal = abortController.signal
 
   // Note: only for development
+  // TODO: refactor this
   if (import.meta.env.DEV && text.trim().startsWith('/mock')) {
     await new Promise((resolve, reject) => {
-      const t = setTimeout(resolve, 5000)
+      const t = setTimeout(resolve, 2000)
       signal.addEventListener('abort', () => {
         clearTimeout(t)
         reject(new DOMException('Aborted', 'AbortError'))

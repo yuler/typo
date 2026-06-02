@@ -2,7 +2,9 @@
 import type { NavItem } from '@/components/AppSidebar.vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { exit } from '@tauri-apps/plugin-process'
 import {
+  ArrowUpCircleIcon,
   HistoryIcon,
   HomeIcon,
   MessageSquareTextIcon,
@@ -29,6 +31,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
@@ -46,9 +49,17 @@ const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 const highlightShortcut = ref(false)
+const forcedUpgradeReady = ref(false)
+const isForcedUpgrade = ref(false)
 let highlightTimeout: ReturnType<typeof setTimeout> | null = null
 let unlistenOpenSettings: (() => void) | undefined
+let unlistenForcedUpgrade: (() => void) | undefined
 let isMounted = true
+
+function applyForcedUpgrade() {
+  isForcedUpgrade.value = true
+  forcedUpgradeReady.value = true
+}
 
 const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
@@ -74,8 +85,37 @@ function onNavigateToShortcut() {
   }, 3000)
 }
 
+function openUpgradeWindow() {
+  void invoke('open_upgrade_window')
+}
+
+function quitApp() {
+  void exit(0)
+}
+
 onMounted(async () => {
   logger.info('Main', 'onMounted')
+
+  try {
+    isForcedUpgrade.value = await invoke<boolean>('is_forced_upgrade')
+  }
+  catch (err) {
+    logger.error('Main', 'failed to read forced upgrade state', err)
+  }
+  finally {
+    forcedUpgradeReady.value = true
+  }
+  if (!isMounted) {
+    return
+  }
+
+  const unlistenForced = await listen('forced-upgrade', applyForcedUpgrade)
+  if (!isMounted) {
+    unlistenForced()
+  }
+  else {
+    unlistenForcedUpgrade = unlistenForced
+  }
 
   const unlisten = await listen('open-settings', () => {
     activeTab.value = 'settings'
@@ -148,13 +188,58 @@ onUnmounted(() => {
   if (unlistenOpenSettings) {
     unlistenOpenSettings()
   }
+  if (unlistenForcedUpgrade) {
+    unlistenForcedUpgrade()
+  }
 })
 </script>
 
 <template>
   <div class="w-full h-screen flex flex-col overflow-hidden">
-    <div v-if="isMacOS" class="h-7 w-full shrink-0 bg-sidebar border-sidebar-border select-none cursor-move" data-tauri-drag-region />
-    <SidebarProvider class="flex-1 overflow-hidden">
+    <div v-if="isMacOS && forcedUpgradeReady && !isForcedUpgrade" class="h-7 w-full shrink-0 bg-sidebar border-sidebar-border select-none cursor-move" data-tauri-drag-region />
+
+    <!-- Avoid flashing sidebar before forced-upgrade state is known -->
+    <div v-if="!forcedUpgradeReady" class="flex flex-1 flex-col overflow-hidden bg-background" />
+
+    <!-- Forced upgrade: replace app content until the user updates or quits -->
+    <div v-else-if="isForcedUpgrade" class="flex flex-1 flex-col overflow-hidden bg-background">
+      <div v-if="isMacOS" class="h-7 w-full shrink-0 bg-sidebar border-sidebar-border select-none cursor-move" data-tauri-drag-region />
+      <div class="flex flex-1 items-center justify-center overflow-hidden p-8">
+        <div class="flex w-full max-w-md flex-col items-center gap-6 text-center">
+          <div class="rounded-full bg-muted p-4">
+            <ArrowUpCircleIcon class="size-12 text-foreground" />
+          </div>
+          <div class="flex flex-col gap-2">
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">
+              {{ t('upgrade.required') }}
+            </h1>
+            <p class="text-sm leading-relaxed text-muted-foreground">
+              {{ t('upgrade.required_message') }}
+            </p>
+          </div>
+          <div class="flex justify-center w-full gap-3">
+            <Button
+              size="lg"
+              class="cursor-pointer gap-2 font-semibold"
+              @click="openUpgradeWindow"
+            >
+              <ArrowUpCircleIcon class="size-4" />
+              {{ t('upgrade.confirm') }}
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              class="cursor-pointer font-medium"
+              @click="quitApp"
+            >
+              {{ t('main.forced_upgrade.exit') }}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <SidebarProvider v-else-if="forcedUpgradeReady" class="flex-1 overflow-hidden">
       <AppSidebar
         v-model:active-tab="activeTab"
         :nav-items="navItems"
