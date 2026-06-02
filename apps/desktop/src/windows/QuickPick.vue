@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { ComponentPublicInstance } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { register, unregister } from '@tauri-apps/plugin-global-shortcut'
-import { SearchIcon, SettingsIcon } from 'lucide-vue-next'
+import { SearchIcon } from 'lucide-vue-next'
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -53,17 +54,20 @@ const filteredPrompts = computed(() => {
   })
 })
 
-const truncatedPreview = computed(() => {
-  if (capturedText.value.length <= 80)
-    return capturedText.value
-  return `${capturedText.value.slice(0, 77)}...`
-})
-
 const selectedPromptText = computed(() => {
   const selected = filteredPrompts.value[selectedIndex.value]
   if (selected?.value)
     return selected.value
   return searchQuery.value.trim()
+})
+
+const isUsingTypedPrompt = computed(() => {
+  return filteredPrompts.value.length === 0 && searchQuery.value.trim().length > 0
+})
+
+const displaySelectionText = computed(() => {
+  const normalized = capturedText.value.trim()
+  return normalized || 'Selection is empty'
 })
 
 async function confirmSelection(prompt: any) {
@@ -150,10 +154,9 @@ function scheduleInputFocus() {
 
   clearFocusTimers()
   focusInputWithRetry()
-  queueFocusRetry(80)
-  queueFocusRetry(180)
-  queueFocusRetry(420)
-  queueFocusRetry(900)
+  for (const delay of [50, 120, 240, 420, 700, 1000])
+    queueFocusRetry(delay)
+
   focusTimers.push(setTimeout(() => {
     const input = getSearchInputElement()
     if (shouldFocusInput && document.activeElement !== input)
@@ -206,11 +209,6 @@ function onWindowKeyDown(e: KeyboardEvent) {
   }
 }
 
-async function openSettings() {
-  await invoke('open_main_window')
-  await closeWindow()
-}
-
 async function loadQuickPickData() {
   const [text, prompts] = await Promise.all([
     invoke<string | null>('consume_quick_pick_selection'),
@@ -257,8 +255,8 @@ function focusInputWithRetry() {
 
   void focusInput()
   requestAnimationFrame(() => void focusInput())
-  // Input is rendered in a child component and may not be ready immediately.
-  for (const delay of [0, 16, 60, 120, 220, 360, 520, 800]) {
+
+  for (const delay of [0, 16, 60]) {
     focusTimers.push(setTimeout(() => {
       if (shouldFocusInput)
         void focusInput()
@@ -274,6 +272,19 @@ function getSearchInputElement() {
   if (refValue?.$el instanceof HTMLInputElement)
     return refValue.$el
 
+  if ((refValue as ComponentPublicInstance | null)?.$el instanceof HTMLElement) {
+    const el = (refValue as ComponentPublicInstance).$el as HTMLElement
+    const nestedInput = el.querySelector<HTMLInputElement>('input')
+    if (nestedInput)
+      return nestedInput
+  }
+
+  if (refValue instanceof HTMLElement) {
+    const nestedInput = refValue.querySelector<HTMLInputElement>('input')
+    if (nestedInput)
+      return nestedInput
+  }
+
   return quickPickRoot.value?.querySelector<HTMLInputElement>('input') ?? null
 }
 
@@ -285,28 +296,11 @@ onMounted(() => {
     if (!visible)
       return
 
-    openedAt = Date.now()
-    shouldFocusInput = true
-    void registerEscapeShortcut()
-    // Focus right away so the caret lands in the search box without waiting for
-    // the (potentially slow) selected-text/clipboard round trip to finish.
-    scheduleInputFocus()
-
-    void loadQuickPickData().finally(() => {
-      scheduleInputFocus()
-    })
+    beginQuickPickSession()
   })
 
   void listen('quick-pick-window-opened', () => {
-    openedAt = Date.now()
-    shouldFocusInput = true
-    void registerEscapeShortcut()
-    selectedIndex.value = 0
-    searchQuery.value = ''
-    scheduleInputFocus()
-    void loadQuickPickData().finally(() => {
-      scheduleInputFocus()
-    })
+    beginQuickPickSession()
   }).then((unlisten) => {
     unlistenWindowOpened = unlisten
   })
@@ -338,6 +332,20 @@ onUnmounted(() => {
     unlistenFocusChanged()
   void unregisterEscapeShortcut()
 })
+
+function beginQuickPickSession() {
+  openedAt = Date.now()
+  shouldFocusInput = true
+  clearFocusTimers()
+  selectedIndex.value = 0
+  searchQuery.value = ''
+  void registerEscapeShortcut()
+
+  scheduleInputFocus()
+  void loadQuickPickData().finally(() => {
+    scheduleInputFocus()
+  })
+}
 </script>
 
 <template>
@@ -348,7 +356,6 @@ onUnmounted(() => {
       <Input
         ref="searchInputRef"
         v-model="searchQuery"
-        autofocus
         class="h-8 border-slate-200 bg-white pl-8 text-xs"
         :placeholder="t('main.quick_pick.search_placeholder') || 'Search commands...'"
         @keydown="onKeyDown"
@@ -356,14 +363,14 @@ onUnmounted(() => {
     </div>
 
     <!-- Results -->
-    <ScrollArea class="flex-1">
+    <ScrollArea class="min-h-0 flex-1">
       <div v-if="filteredPrompts.length > 0" class="space-y-0.5 px-1.5 pb-1.5">
         <Button
           v-for="(prompt, index) in filteredPrompts"
           :key="prompt.key"
           variant="ghost"
           class="h-auto w-full justify-between rounded-md px-2 py-1.5 text-left text-xs"
-          :class="index === selectedIndex ? 'bg-slate-100 text-slate-900' : 'text-slate-900 hover:bg-slate-50'"
+          :class="index === selectedIndex ? 'border border-primary/50 bg-primary/10 text-slate-900 ring-1 ring-primary/20' : 'border border-transparent text-slate-900 hover:bg-slate-50'"
           @click="confirmSelection(prompt)"
           @mouseenter="selectedIndex = index"
         >
@@ -378,26 +385,27 @@ onUnmounted(() => {
           </div>
         </Button>
       </div>
-      <div v-else class="space-y-3 p-6 text-center">
-        <p class="text-xs text-slate-500">
-          {{ t('main.quick_pick.no_commands') || 'No commands found' }}
-        </p>
-        <button
-          class="text-xs text-primary hover:underline flex items-center gap-1 mx-auto"
-          @click="openSettings"
-        >
-          <SettingsIcon class="w-3 h-3" />
-          {{ t('main.quick_pick.configure') || 'Configure slash prompts' }}
-        </button>
-      </div>
     </ScrollArea>
 
-    <div class="space-y-1 border-t border-slate-200 bg-slate-50 px-2.5 py-1.5">
-      <p class="truncate font-mono text-[11px] text-slate-500">
-        {{ truncatedPreview }}
-      </p>
-      <p class="truncate text-[11px] text-slate-600">
-        {{ selectedPromptText || (t('main.quick_pick.no_commands') || 'No commands found') }}
+    <div class="shrink-0 space-y-2 border-t border-slate-200 bg-slate-50 px-2.5 py-2">
+      <div class="space-y-1">
+        <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
+          Prompt
+        </Badge>
+        <p class="line-clamp-3 whitespace-pre-wrap wrap-break-word text-[11px] leading-snug text-slate-700">
+          {{ selectedPromptText || (t('main.quick_pick.no_commands') || 'No commands found') }}
+        </p>
+      </div>
+      <div class="space-y-1">
+        <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
+          Selection
+        </Badge>
+        <p class="line-clamp-3 whitespace-pre-wrap wrap-break-word font-mono text-[11px] leading-snug text-slate-600">
+          {{ displaySelectionText }}
+        </p>
+      </div>
+      <p v-if="isUsingTypedPrompt" class="text-[10px] leading-snug text-primary/85">
+        No matching slash prompt. Press Enter to use your input as Prompt.
       </p>
     </div>
   </div>
