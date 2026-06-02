@@ -35,7 +35,7 @@
   "settings.appearance.language.description": "表示言語を選択してください",
   "settings.default_prompt.label": "デフォルトプロンプト",
   "settings.default_prompt.placeholder": "デフォルトプロンプトを入力してください",
-  "settings.slash_prompts.label": "スラッシュプロンプト（最大 10 つ）",
+  "settings.slash_prompts.label": "スラッシュプロンプト（最大 10 個）",
   "settings.slash_prompts.add": "スラッシュプロンプトを追加",
   "settings.slash_prompts.key_label": "キー",
   "settings.slash_prompts.aliases_label": "エイリアス（カンマ区切り）",
