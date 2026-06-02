@@ -110,6 +110,7 @@
   "upgrade.up_to_date": "You are on the latest version (v{version})",
   "upgrade.check_failed": "Unable to check for updates",
   "upgrade.check_failed_details": "Please check your network connection and try again later.",
+  "upgrade.retry": "Retry",
   "upgrade.no_notes": "No release notes.",
   "upgrade.later": "Later",
   "upgrade.skip_version": "Skip this version",

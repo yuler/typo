@@ -110,6 +110,7 @@
   "upgrade.up_to_date": "当前已是最新版本 (v{version})",
   "upgrade.check_failed": "无法检查更新",
   "upgrade.check_failed_details": "请检查网络连接后稍后再试。",
+  "upgrade.retry": "重试",
   "upgrade.no_notes": "暂无更新日志。",
   "upgrade.later": "以后再说",
   "upgrade.skip_version": "跳过此版本",

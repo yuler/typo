@@ -50,14 +50,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     onDismiss()
 })
 
-onMounted(async () => {
-  try {
-    isForced.value = await invoke<boolean>('is_forced_upgrade')
-  }
-  catch (e) {
-    logger.error('Update', 'Failed to read forced upgrade state', e)
-  }
-
+async function runCheck() {
+  isLoading.value = true
+  hasError.value = false
   try {
     const update = await check()
     if (update) {
@@ -72,6 +67,17 @@ onMounted(async () => {
   finally {
     isLoading.value = false
   }
+}
+
+onMounted(async () => {
+  try {
+    isForced.value = await invoke<boolean>('is_forced_upgrade')
+  }
+  catch (e) {
+    logger.error('Update', 'Failed to read forced upgrade state', e)
+  }
+
+  await runCheck()
 })
 
 const notes = computed(() => {
@@ -208,9 +214,14 @@ function onDismiss() {
             {{ t('upgrade.check_failed_details') }}
           </p>
         </div>
-        <Button v-if="!isForced" variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
-          {{ t('upgrade.close') }}
-        </Button>
+        <div class="flex gap-3">
+          <Button v-if="!isForced" variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
+            {{ t('upgrade.close') }}
+          </Button>
+          <Button variant="outline" class="cursor-pointer font-medium" @click="runCheck">
+            {{ t('upgrade.retry') }}
+          </Button>
+        </div>
       </div>
       <div v-else-if="!updateInfo" class="flex-1 flex flex-col items-center justify-center gap-6 text-center px-4">
         <CheckCircle2Icon class="w-10 h-10 text-emerald-500" />

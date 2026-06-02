@@ -110,6 +110,7 @@
   "upgrade.up_to_date": "最新バージョンを使用しています (v{version})",
   "upgrade.check_failed": "アップデートを確認できません",
   "upgrade.check_failed_details": "ネットワーク接続を確認して、後でもう一度お試しください。",
+  "upgrade.retry": "再試行",
   "upgrade.no_notes": "リリースノートはありません。",
   "upgrade.later": "後で",
   "upgrade.skip_version": "このバージョンをスキップ",
