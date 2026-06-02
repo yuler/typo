@@ -85,7 +85,6 @@ async function closeWindow() {
   catch (error) {
     logger.error('QuickPick', 'failed to hide window', error)
   }
-
 }
 
 function onKeyDown(e: KeyboardEvent) {
