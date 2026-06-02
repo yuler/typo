@@ -19,8 +19,13 @@ pub fn consume_pending_open_settings() -> bool {
 
 #[tauri::command]
 pub fn get_cursor_position() -> (i32, i32) {
-    let enigo = Enigo::new(&enigo::Settings::default()).expect("failed to initialize enigo");
-    enigo.location().unwrap_or((0, 0))
+    match Enigo::new(&enigo::Settings::default()) {
+        Ok(enigo) => enigo.location().unwrap_or((0, 0)),
+        Err(err) => {
+            log::error!("failed to initialize enigo: {}", err);
+            (0, 0)
+        }
+    }
 }
 
 #[tauri::command]

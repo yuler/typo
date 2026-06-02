@@ -25,16 +25,9 @@ const normalizedPrompts = computed(() => {
     .filter((prompt: any) => prompt?.key && prompt?.value)
     .map((prompt: any) => {
       const key = String(prompt.key).trim()
-<<<<<<< HEAD
       return {
         ...prompt,
         command: key.startsWith('/') ? key : `/${key}`,
-=======
-      const command = key.startsWith('/') ? key : `/${key}`
-      return {
-        ...prompt,
-        command,
->>>>>>> 26deb778 (♻️ [desktop]: Refactor QuickPick with light theme and Button components)
       }
     })
 })
