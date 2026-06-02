@@ -61,14 +61,6 @@ function applyForcedUpgrade() {
   forcedUpgradeReady.value = true
 }
 
-void listen('forced-upgrade', applyForcedUpgrade).then((unlisten) => {
-  if (!isMounted) {
-    unlisten()
-    return
-  }
-  unlistenForcedUpgrade = unlisten
-})
-
 const navItems = computed<NavItem[]>(() => [
   { id: 'main', label: t('main.nav.main'), icon: HomeIcon, group: 'workspace' },
   { id: 'history', label: t('main.nav.history'), icon: HistoryIcon, group: 'workspace' },
@@ -115,6 +107,14 @@ onMounted(async () => {
   }
   if (!isMounted) {
     return
+  }
+
+  const unlistenForced = await listen('forced-upgrade', applyForcedUpgrade)
+  if (!isMounted) {
+    unlistenForced()
+  }
+  else {
+    unlistenForcedUpgrade = unlistenForced
   }
 
   const unlisten = await listen('open-settings', () => {
