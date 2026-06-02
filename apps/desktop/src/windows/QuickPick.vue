@@ -1,32 +1,46 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { LazyStore } from '@tauri-apps/plugin-store'
 import { SearchIcon, SettingsIcon } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
-import * as store from '@/stores/settings'
 
 const { t } = useI18n()
 const appWindow = getCurrentWebviewWindow()
+const localSettingsStore = new LazyStore('settings.json')
 
 const capturedText = ref('')
 const searchQuery = ref('')
 const selectedIndex = ref(0)
 const slashPrompts = ref<any[]>([])
 
+const normalizedPrompts = computed(() => {
+  return slashPrompts.value
+    .filter((prompt: any) => prompt?.key && prompt?.value)
+    .map((prompt: any) => {
+      const key = String(prompt.key).trim()
+      return {
+        ...prompt,
+        command: key.startsWith('/') ? key : `/${key}`,
+      }
+    })
+})
+
 const filteredPrompts = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
   if (!query)
-    return slashPrompts.value
+    return normalizedPrompts.value
 
-  return slashPrompts.value.filter((p) => {
-    const keyMatch = p.key.toLowerCase().includes(query)
+  return normalizedPrompts.value.filter((p) => {
+    const keyMatch = p.command.toLowerCase().includes(query)
     const aliasMatch = p.aliases?.some((a: string) => a.toLowerCase().includes(query))
-    return keyMatch || aliasMatch
+    const promptMatch = p.value.toLowerCase().includes(query)
+    return keyMatch || aliasMatch || promptMatch
   })
 })
 
@@ -79,7 +93,27 @@ async function confirmSelection(prompt: any) {
   }
 }
 
+async function closeWindow() {
+  try {
+    await appWindow.hide()
+  }
+  catch (error) {
+    logger.error('QuickPick', 'failed to hide window', error)
+  }
+
+  try {
+    await appWindow.close()
+  }
+  catch (error) {
+    logger.error('QuickPick', 'failed to close window', error)
+  }
+}
+
 function onKeyDown(e: KeyboardEvent) {
+  if (!filteredPrompts.value.length && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    return
+  }
+
   if (e.key === 'ArrowDown') {
     e.preventDefault()
     selectedIndex.value = (selectedIndex.value + 1) % filteredPrompts.value.length
@@ -95,26 +129,45 @@ function onKeyDown(e: KeyboardEvent) {
     }
   }
   else if (e.key === 'Escape') {
-    appWindow.close()
+    void closeWindow()
+  }
+}
+
+function onWindowKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    e.stopPropagation()
+    void closeWindow()
   }
 }
 
 async function openSettings() {
   await invoke('open_main_window')
-  await appWindow.close()
+  await closeWindow()
 }
 
-onMounted(async () => {
+async function loadQuickPickData() {
   const [text, prompts] = await Promise.all([
     invoke<string>('get_selected_text'),
-    store.get('slash_prompts'),
+    localSettingsStore.get<any[]>('slash_prompts'),
   ])
   capturedText.value = text
-  slashPrompts.value = prompts
+  slashPrompts.value = Array.isArray(prompts) ? prompts : []
+}
 
-  // Focus search input
-  const input = document.querySelector('input')
-  input?.focus()
+onMounted(() => {
+  window.addEventListener('keydown', onWindowKeyDown, true)
+  document.addEventListener('keydown', onWindowKeyDown, true)
+
+  void loadQuickPickData().finally(() => {
+    const input = document.querySelector('input')
+    input?.focus()
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onWindowKeyDown, true)
+  document.removeEventListener('keydown', onWindowKeyDown, true)
 })
 </script>
 
@@ -150,7 +203,7 @@ onMounted(async () => {
           @mouseenter="selectedIndex = index"
         >
           <div class="flex items-center gap-2">
-            <span class="font-bold text-white">/{{ prompt.key }}</span>
+            <span class="font-bold text-white">{{ prompt.command }}</span>
             <span class="text-xs opacity-60 truncate max-w-[200px]">{{ prompt.value }}</span>
           </div>
           <div v-if="prompt.aliases?.length" class="flex gap-1">
