@@ -52,7 +52,7 @@ watch(isLoggedIn, async (loggedIn) => {
 })
 
 function addSlashPrompt() {
-  if (form.value.slash_prompts.length >= 5) {
+  if (form.value.slash_prompts.length >= 10) {
     return
   }
   form.value.slash_prompts.push({ id: crypto.randomUUID(), key: '', value: '' })
@@ -66,7 +66,7 @@ async function onSubmit() {
   const slashPrompts = form.value.slash_prompts
     .map(item => ({ ...item, key: item.key.trim(), value: item.value.trim() }))
     .filter(item => item.key && item.value)
-    .slice(0, 5)
+    .slice(0, 10)
 
   isSaving.value = true
   try {
@@ -104,7 +104,7 @@ async function onSubmit() {
           type="button"
           variant="outline"
           size="sm"
-          :disabled="isLoading || form.slash_prompts.length >= 5"
+          :disabled="isLoading || form.slash_prompts.length >= 10"
           @click="addSlashPrompt"
         >
           <PlusIcon class="w-4 h-4 mr-2" />
