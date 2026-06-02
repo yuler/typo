@@ -190,7 +190,12 @@ fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let startup_selection = cli::has_selection_flag(std::env::args());
+    let startup_cli_options = cli::evaluate_startup_options(std::env::args(), in_linux_wayland());
+    if startup_cli_options.should_exit {
+        return;
+    }
+
+    let startup_selection = startup_cli_options.startup_selection;
 
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
@@ -222,7 +227,7 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            if startup_selection && in_linux_wayland() {
+            if startup_selection {
                 app_cli_startup_selection_trigger(&app.handle());
             }
             Ok(())
