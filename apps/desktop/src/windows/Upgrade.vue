@@ -46,7 +46,7 @@ async function fetchRemoteNotes(version: string) {
 }
 
 useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && !isUpgrading.value && !isForced.value)
+  if (e.key === 'Escape' && !isUpgrading.value)
     onDismiss()
 })
 
@@ -174,101 +174,102 @@ function onDismiss() {
 </script>
 
 <template>
-  <div class="relative h-full w-full flex flex-col p-6 text-zinc-900 cursor-default select-none bg-white border border-zinc-200 shadow-2xl overflow-hidden">
+  <div class="relative flex h-full w-full cursor-default select-none flex-col overflow-hidden rounded-2xl border border-border bg-background p-6 text-foreground shadow-md">
     <!-- Draggable Header / Titlebar -->
-    <div class="h-8 w-full flex items-center justify-between select-none shrink-0 z-10" data-tauri-drag-region>
-      <div class="flex items-center gap-2 pointer-events-none">
-        <SparklesIcon class="w-4 h-4 text-zinc-400" />
-        <span class="text-xs font-bold text-zinc-400 tracking-wider uppercase">{{ t('upgrade.updater') }}</span>
+    <div class="z-10 flex h-8 w-full shrink-0 items-center justify-between select-none" data-tauri-drag-region>
+      <div class="pointer-events-none flex items-center gap-2">
+        <SparklesIcon class="size-4 text-muted-foreground" />
+        <span class="text-xs font-bold tracking-wider text-muted-foreground uppercase">{{ t('upgrade.updater') }}</span>
       </div>
       <button
-        v-if="!isForced"
-        class="flex items-center justify-center w-6 h-6 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-all duration-150 cursor-pointer"
+        class="flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-all duration-150 hover:bg-accent hover:text-foreground"
         @click="onDismiss"
       >
-        <XIcon class="w-3.5 h-3.5" />
+        <XIcon class="size-3.5" />
       </button>
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-h-0 mt-3 z-10">
-      <div v-if="isLoading" class="flex-1 flex flex-col items-center justify-center gap-4">
-        <!-- Premium Loader Spinner -->
-        <div class="relative w-12 h-12 flex items-center justify-center">
-          <div class="absolute inset-0 rounded-full border-2 border-zinc-100" />
-          <div class="absolute inset-0 rounded-full border-2 border-transparent border-t-zinc-900 border-r-zinc-900 animate-spin" />
-          <SparklesIcon class="w-4 h-4 text-zinc-400 animate-pulse" />
+    <div class="z-10 mt-3 flex min-h-0 flex-1 flex-col">
+      <div v-if="isLoading" class="flex flex-1 flex-col items-center justify-center gap-4">
+        <div class="relative flex size-12 items-center justify-center">
+          <div class="absolute inset-0 rounded-full border-2 border-muted" />
+          <div class="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-foreground border-r-foreground" />
+          <SparklesIcon class="size-4 animate-pulse text-muted-foreground" />
         </div>
         <div class="flex flex-col items-center gap-1 text-center">
-          <span class="text-sm font-medium text-zinc-600 animate-pulse">{{ t('upgrade.checking') }}</span>
-          <span class="text-xs text-zinc-400">{{ t('upgrade.checking_details') }}</span>
+          <span class="animate-pulse text-sm font-medium text-foreground">{{ t('upgrade.checking') }}</span>
+          <span class="text-xs text-muted-foreground">{{ t('upgrade.checking_details') }}</span>
         </div>
       </div>
-      <div v-else-if="hasError" class="flex-1 flex flex-col items-center justify-center gap-6 text-center px-4">
-        <AlertCircleIcon class="w-10 h-10 text-amber-500" />
+
+      <div v-else-if="hasError" class="flex flex-1 flex-col items-center justify-center gap-6 px-4 text-center">
+        <AlertCircleIcon class="size-10 text-red-500" />
         <div class="flex flex-col gap-2">
-          <p class="text-base font-medium text-zinc-800">
+          <p class="text-base font-medium text-foreground">
             {{ t('upgrade.check_failed') }}
           </p>
-          <p class="text-sm text-zinc-500">
+          <p class="text-sm text-muted-foreground">
             {{ t('upgrade.check_failed_details') }}
           </p>
         </div>
         <div class="flex gap-3">
-          <Button v-if="!isForced" variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
+          <Button variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
             {{ t('upgrade.close') }}
           </Button>
-          <Button variant="outline" class="cursor-pointer font-medium" @click="runCheck">
+          <Button class="cursor-pointer font-medium" @click="runCheck">
             {{ t('upgrade.retry') }}
           </Button>
         </div>
       </div>
-      <div v-else-if="!updateInfo" class="flex-1 flex flex-col items-center justify-center gap-6 text-center px-4">
-        <CheckCircle2Icon class="w-10 h-10 text-emerald-500" />
+
+      <div v-else-if="!updateInfo" class="flex flex-1 flex-col items-center justify-center gap-6 px-4 text-center">
+        <CheckCircle2Icon class="size-10 text-green-500" />
         <div class="flex flex-col gap-2">
-          <p class="text-base font-medium text-zinc-800">
+          <p class="text-base font-medium text-foreground">
             {{ t('upgrade.up_to_date', { version: appVersion }) }}
           </p>
-          <p class="text-sm text-zinc-500">
+          <p v-if="!isForced" class="text-sm text-muted-foreground">
             {{ t('upgrade.auto_close_countdown', { seconds: closeCountdown }) }}
           </p>
         </div>
-        <Button v-if="!isForced" variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
+        <Button variant="outline" class="cursor-pointer font-medium" @click="onDismiss">
           {{ t('upgrade.close') }}
         </Button>
       </div>
-      <div v-else class="flex-1 flex flex-col min-h-0">
+
+      <div v-else class="flex min-h-0 flex-1 flex-col">
         <!-- Header -->
-        <div class="flex flex-col gap-1.5 shrink-0">
-          <p v-if="isForced" class="text-sm text-amber-700 font-medium">
+        <div class="flex shrink-0 flex-col gap-1.5">
+          <p v-if="isForced" class="text-sm font-medium text-muted-foreground">
             {{ t('upgrade.required_message') }}
           </p>
-          <h1 class="text-xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">
+          <h1 class="flex items-center gap-2 text-xl font-bold tracking-tight text-foreground">
             {{ t('upgrade.new_version') }}
-            <Badge variant="secondary" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-900">
+            <Badge variant="secondary" class="rounded-full px-2 py-0.5 text-xs font-semibold">
               v{{ updateInfo?.version }}
             </Badge>
           </h1>
-          <p class="text-sm text-zinc-500">
+          <p class="text-sm text-muted-foreground">
             {{ t('upgrade.ready_to_install') }}
           </p>
         </div>
 
-        <!-- Release Notes Box (Borderless, clean list) -->
-        <div class="flex-1 min-h-0 flex flex-col mt-4 mb-4">
-          <ScrollArea class="flex-1 min-h-0 pr-2">
-            <div class="text-sm text-zinc-600 whitespace-pre-wrap leading-relaxed select-text pr-1">
+        <!-- Release Notes -->
+        <div class="mt-4 mb-4 flex min-h-0 flex-1 flex-col">
+          <ScrollArea class="min-h-0 flex-1 pr-2">
+            <div class="select-text pr-1 text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
               {{ notes }}
             </div>
           </ScrollArea>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-end gap-3 shrink-0 pt-4 border-t border-zinc-100">
+        <div class="flex shrink-0 justify-end gap-3 border-t border-border pt-4">
           <Button
             v-if="!isForced"
             variant="ghost"
-            class="cursor-pointer font-medium text-zinc-500"
+            class="cursor-pointer font-medium text-muted-foreground"
             @click="onIgnore"
           >
             {{ t('upgrade.skip_version') }}
@@ -283,10 +284,10 @@ function onDismiss() {
           </Button>
 
           <Button
-            class="font-semibold flex items-center gap-2 cursor-pointer"
+            class="flex cursor-pointer items-center gap-2 font-semibold"
             @click="onUpgradeConfirm"
           >
-            <ArrowUpCircleIcon class="w-4 h-4" />
+            <ArrowUpCircleIcon class="size-4" />
             {{ t('upgrade.confirm') }}
           </Button>
         </div>

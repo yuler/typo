@@ -101,7 +101,6 @@ pub fn is_forced_upgrade() -> bool {
 #[tauri::command]
 pub fn open_forced_upgrade_window(app: AppHandle) {
     FORCED_UPGRADE.store(true, Ordering::Release);
-    // Notify the main window so it can hide its content and show the update screen.
     if let Err(e) = app.emit("forced-upgrade", ()) {
         log::error!("Failed to emit forced-upgrade event: {}", e);
     }

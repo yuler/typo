@@ -16,13 +16,6 @@ function handleForcedUpgrade(): Promise<void> {
 
   forcedUpgradePromise = (async () => {
     try {
-      try {
-        const { t } = useI18n()
-        toast.error(t('upgrade.required'))
-      }
-      catch (err) {
-        logger.error('api', 'Failed to show forced upgrade toast', err)
-      }
       await invoke('open_forced_upgrade_window')
     }
     catch (err) {
