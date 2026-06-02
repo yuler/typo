@@ -212,6 +212,14 @@ fn create_quick_pick_floating_window(
         if let Err(err) = window.set_focus() {
             log::error!("failed to focus {} window: {}", label, err);
         }
+        let opened_event = if label == "quick-pick" {
+            "quick-pick-window-opened"
+        } else {
+            "quick-pick-result-window-opened"
+        };
+        if let Err(err) = window.emit(opened_event, ()) {
+            log::error!("failed to emit {} for {} window: {}", opened_event, label, err);
+        }
         return;
     }
 
@@ -282,4 +290,15 @@ fn create_quick_pick_floating_window(
     if let Err(err) = window.set_focus() {
         log::error!("failed to focus {} window: {}", label, err);
     }
+
+    let label_for_close = label.to_string();
+    let window_for_close = window.clone();
+    window.on_window_event(move |event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            api.prevent_close();
+            if let Err(err) = window_for_close.hide() {
+                log::error!("failed to hide {} window: {}", label_for_close, err);
+            }
+        }
+    });
 }

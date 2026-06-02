@@ -19,6 +19,7 @@ const errorText = ref('')
 const copied = ref(false)
 
 let unlisten: (() => void) | undefined
+let unlistenWindowOpened: (() => void) | undefined
 let abortController: AbortController | null = null
 let isMounted = true
 
@@ -45,8 +46,13 @@ async function fetchCorrection(payload: { text: string, prompt: string, command?
 }
 
 async function startProcessing(payload: { text: string, prompt: string, command: string }) {
+  abortController?.abort()
+  abortController = null
+  copied.value = false
   try {
     state.value = 'processing'
+    resultText.value = ''
+    errorText.value = ''
     const output = await fetchCorrection(payload)
     resultText.value = output
     state.value = 'result'
@@ -68,7 +74,7 @@ async function copyToClipboard() {
 
 function close() {
   abortController?.abort()
-  appWindow.close()
+  appWindow.hide()
 }
 
 function onKeyDown(e: KeyboardEvent) {
@@ -76,20 +82,25 @@ function onKeyDown(e: KeyboardEvent) {
     close()
 }
 
+function consumeCachedPayload() {
+  const cached = localStorage.getItem('quick-pick-payload')
+  if (!cached)
+    return
+
+  localStorage.removeItem('quick-pick-payload')
+  try {
+    void startProcessing(JSON.parse(cached))
+  }
+  catch (err) {
+    logger.error('QuickPickResult', 'failed to parse cached payload', err)
+  }
+}
+
 onMounted(async () => {
   // QuickPick.vue writes the payload to localStorage before opening this
   // window, so we can process it immediately on mount without waiting for an
   // event (which could be emitted before this window finished loading).
-  const cached = localStorage.getItem('quick-pick-payload')
-  if (cached) {
-    localStorage.removeItem('quick-pick-payload')
-    try {
-      startProcessing(JSON.parse(cached))
-    }
-    catch (err) {
-      logger.error('QuickPickResult', 'failed to parse cached payload', err)
-    }
-  }
+  consumeCachedPayload()
 
   // Keep the event listener as a fallback for any future callers.
   const unsubscribe = await listen<{ text: string, prompt: string, command: string }>('start-process', (event) => {
@@ -102,6 +113,14 @@ onMounted(async () => {
   else
     unlisten = unsubscribe
 
+  const unsubscribeWindowOpened = await listen('quick-pick-result-window-opened', () => {
+    consumeCachedPayload()
+  })
+  if (!isMounted)
+    unsubscribeWindowOpened()
+  else
+    unlistenWindowOpened = unsubscribeWindowOpened
+
   window.addEventListener('keydown', onKeyDown)
 })
 
@@ -111,6 +130,8 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown)
   if (unlisten)
     unlisten()
+  if (unlistenWindowOpened)
+    unlistenWindowOpened()
 })
 </script>
 
@@ -168,7 +189,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+:global(html) {
+  color-scheme: light !important;
+}
+
 :global(body) {
+  color-scheme: light !important;
   background-color: transparent !important;
 }
 </style>

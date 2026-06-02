@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { SearchIcon, SettingsIcon } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -17,6 +18,7 @@ const capturedText = ref('')
 const searchQuery = ref('')
 const selectedIndex = ref(0)
 const slashPrompts = ref<any[]>([])
+let unlistenWindowOpened: (() => void) | undefined
 
 const normalizedPrompts = computed(() => {
   return slashPrompts.value
@@ -70,7 +72,6 @@ async function confirmSelection(prompt: any) {
 
     await appWindow.hide() // Hide first for snappiness
     await invoke('open_quick_pick_result_window')
-    await appWindow.close()
   }
   catch (err) {
     logger.error('QuickPick', 'failed to confirm selection', err)
@@ -85,12 +86,6 @@ async function closeWindow() {
     logger.error('QuickPick', 'failed to hide window', error)
   }
 
-  try {
-    await appWindow.close()
-  }
-  catch (error) {
-    logger.error('QuickPick', 'failed to close window', error)
-  }
 }
 
 function onKeyDown(e: KeyboardEvent) {
@@ -148,8 +143,16 @@ async function loadQuickPickData() {
 
 function focusInput() {
   void appWindow.setFocus()
-  const input = document.querySelector('input')
+  const input = document.querySelector<HTMLInputElement>('input')
   input?.focus()
+}
+
+function focusInputWithRetry() {
+  focusInput()
+  // Input is rendered in a child component and may not be ready immediately.
+  setTimeout(focusInput, 16)
+  setTimeout(focusInput, 60)
+  setTimeout(focusInput, 120)
 }
 
 onMounted(() => {
@@ -158,17 +161,27 @@ onMounted(() => {
 
   // Focus right away so the caret lands in the search box without waiting for
   // the (potentially slow) selected-text/clipboard round trip to finish.
-  focusInput()
-  requestAnimationFrame(focusInput)
+  focusInputWithRetry()
 
   void loadQuickPickData().finally(() => {
-    focusInput()
+    focusInputWithRetry()
+  })
+
+  void listen('quick-pick-window-opened', () => {
+    selectedIndex.value = 0
+    void loadQuickPickData().finally(() => {
+      focusInputWithRetry()
+    })
+  }).then((unlisten) => {
+    unlistenWindowOpened = unlisten
   })
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onWindowKeyDown, true)
   document.removeEventListener('keydown', onWindowKeyDown, true)
+  if (unlistenWindowOpened)
+    unlistenWindowOpened()
 })
 </script>
 
