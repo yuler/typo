@@ -11,6 +11,7 @@ import { syncTrayMenu } from '@/tray'
 import Indicator from '@/windows/Indicator.vue'
 import Main from '@/windows/Main.vue'
 import QuickPick from '@/windows/QuickPick.vue'
+import QuickPickResult from '@/windows/QuickPickResult.vue'
 import Upgrade from '@/windows/Upgrade.vue'
 
 const appWindow = getCurrentWebviewWindow()
@@ -21,6 +22,7 @@ const windows: Record<string, Component> = {
   indicator: Indicator,
   upgrade: Upgrade,
   'quick-pick': QuickPick,
+  'quick-pick-result': QuickPickResult,
 }
 
 let isMounted = true
