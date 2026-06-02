@@ -79,6 +79,11 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
     PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
 }
 
+fn quick_pick_payload() -> &'static Mutex<Option<SetInputPayload>> {
+    static QUICK_PICK_PAYLOAD: OnceLock<Mutex<Option<SetInputPayload>>> = OnceLock::new();
+    QUICK_PICK_PAYLOAD.get_or_init(|| Mutex::new(None))
+}
+
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");
 
@@ -163,6 +168,24 @@ fn set_pending_selection_input(payload: SetInputPayload) {
     }
 }
 
+#[tauri::command]
+fn consume_quick_pick_input() -> Option<SetInputPayload> {
+    match quick_pick_payload().lock() {
+        Ok(mut pending) => pending.take(),
+        Err(error) => {
+            log::error!("failed to access quick pick payload: {}", error);
+            None
+        }
+    }
+}
+
+#[tauri::command]
+fn set_quick_pick_input(payload: SetInputPayload) {
+    if let Ok(mut pending) = quick_pick_payload().lock() {
+        *pending = Some(payload);
+    }
+}
+
 pub(crate) fn desktop_log_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
     app.path()
         .app_log_dir()
@@ -237,10 +260,12 @@ pub fn run() {
             get_system_info,
             get_selected_text,
             set_pending_selection_input,
+            set_quick_pick_input,
             open_log_folder,
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
+            consume_quick_pick_input,
             windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,
@@ -248,6 +273,9 @@ pub fn run() {
             upgrade::is_forced_upgrade,
             windows::open_indicator_window,
             windows::open_main_window,
+            windows::open_quick_pick_window,
+            windows::open_quick_pick_result_window,
+            windows::get_cursor_position,
             upgrade::ignore_version,
             upgrade::increment_activity,
         ])

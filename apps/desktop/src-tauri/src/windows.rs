@@ -1,6 +1,7 @@
 // apps/desktop/src-tauri/src/windows.rs
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use std::sync::atomic::{AtomicBool, Ordering};
+use enigo::{Enigo, Mouse};
 
 #[cfg(target_os = "macos")]
 use tauri::{LogicalPosition, TitleBarStyle};
@@ -17,6 +18,12 @@ pub fn consume_pending_open_settings() -> bool {
 }
 
 #[tauri::command]
+pub fn get_cursor_position() -> (i32, i32) {
+    let enigo = Enigo::new(&enigo::Settings::default()).expect("failed to initialize enigo");
+    enigo.location().unwrap_or((0, 0))
+}
+
+#[tauri::command]
 pub fn open_upgrade_window(app: AppHandle) {
     create_upgrade_window(&app);
 }
@@ -29,6 +36,16 @@ pub fn open_indicator_window(app: AppHandle) {
 #[tauri::command]
 pub fn open_main_window(app: AppHandle) {
     show_and_focus_main_settings(&app);
+}
+
+#[tauri::command]
+pub fn open_quick_pick_window(app: AppHandle) {
+    create_quick_pick_window(&app);
+}
+
+#[tauri::command]
+pub fn open_quick_pick_result_window(app: AppHandle) {
+    create_quick_pick_result_window(&app);
 }
 
 pub fn show_and_focus_main_settings(app: &AppHandle) {
@@ -105,8 +122,12 @@ pub fn create_main_window(app: &AppHandle) {
 pub fn create_indicator_window(app: &AppHandle, show: bool) {
     if let Some(window) = app.get_webview_window("indicator") {
         if show {
-            let _ = window.show();
-            let _ = window.set_always_on_top(true);
+            if let Err(err) = window.show() {
+                log::error!("failed to show indicator window: {}", err);
+            }
+            if let Err(err) = window.set_always_on_top(true) {
+                log::error!("failed to set always on top for indicator window: {}", err);
+            }
         }
         return;
     }
@@ -145,7 +166,9 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
 
 pub fn create_upgrade_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("upgrade") {
-        let _ = window.set_focus();
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus upgrade window: {}", err);
+        }
         return;
     }
 
@@ -159,5 +182,91 @@ pub fn create_upgrade_window(app: &AppHandle) {
         .build()
     {
         log::error!("failed to build upgrade window: {}", e);
+    }
+}
+
+pub fn create_quick_pick_window(app: &AppHandle) {
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 420.0, 320.0);
+}
+
+pub fn create_quick_pick_result_window(app: &AppHandle) {
+    create_quick_pick_floating_window(app, "quick-pick-result", "typo - Quick Pick Result", 480.0, 360.0);
+}
+
+fn create_quick_pick_floating_window(
+    app: &AppHandle,
+    label: &str,
+    title: &str,
+    win_width: f64,
+    win_height: f64,
+) {
+    if let Some(window) = app.get_webview_window(label) {
+        if let Err(err) = window.show() {
+            log::error!("failed to show {} window: {}", label, err);
+        }
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus {} window: {}", label, err);
+        }
+        return;
+    }
+
+    let (mut x, mut y) = {
+        let pos = get_cursor_position();
+        (pos.0 as f64, pos.1 as f64)
+    };
+
+    // Get the monitor that contains the cursor, or the primary monitor as fallback
+    let monitor = app.monitors().ok().and_then(|monitors| {
+        monitors.into_iter().find(|m| {
+            let pos = m.position();
+            let size = m.size();
+            let scale = m.scale_factor();
+            
+            // Physical coordinates for comparison
+            let (px, py) = if cfg!(target_os = "macos") {
+                (x * scale, y * scale)
+            } else {
+                (x, y)
+            };
+            
+            px >= pos.x as f64 && px <= (pos.x + size.width as i32) as f64 &&
+            py >= pos.y as f64 && py <= (pos.y + size.height as i32) as f64
+        })
+    }).or_else(|| app.primary_monitor().ok().flatten());
+
+    if let Some(m) = monitor {
+        let work_area = m.work_area();
+        let scale = m.scale_factor();
+        
+        let wa_x = work_area.position.x as f64 / scale;
+        let wa_y = work_area.position.y as f64 / scale;
+        let wa_w = work_area.size.width as f64 / scale;
+        let wa_h = work_area.size.height as f64 / scale;
+
+        // Convert cursor pos to logical if enigo returns physical (Windows/Linux)
+        #[cfg(not(target_os = "macos"))]
+        {
+            x /= scale;
+            y /= scale;
+        }
+
+        // Clamp to ensure the window is within the work area
+        x = x.clamp(wa_x, wa_x + wa_w - win_width);
+        y = y.clamp(wa_y, wa_y + wa_h - win_height);
+    }
+
+    if let Err(e) = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
+        .title(title)
+        .inner_size(win_width, win_height)
+        .position(x, y)
+        .decorations(false)
+        .transparent(true)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .visible_on_all_workspaces(true)
+        .visible(true)
+        .build()
+    {
+        log::error!("failed to build {} window: {}", label, e);
     }
 }
