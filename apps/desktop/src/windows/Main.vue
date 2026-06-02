@@ -3,6 +3,7 @@ import type { NavItem } from '@/components/AppSidebar.vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import {
+  ArrowUpCircleIcon,
   HistoryIcon,
   HomeIcon,
   MessageSquareTextIcon,
@@ -29,6 +30,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
   SidebarInset,
@@ -46,8 +48,10 @@ const isMacOS = ref(false)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const activeTab = ref('main')
 const highlightShortcut = ref(false)
+const isForcedUpgrade = ref(false)
 let highlightTimeout: ReturnType<typeof setTimeout> | null = null
 let unlistenOpenSettings: (() => void) | undefined
+let unlistenForcedUpgrade: (() => void) | undefined
 let isMounted = true
 
 const navItems = computed<NavItem[]>(() => [
@@ -74,8 +78,32 @@ function onNavigateToShortcut() {
   }, 3000)
 }
 
+function onForcedUpgrade() {
+  void invoke('open_forced_upgrade_window')
+}
+
 onMounted(async () => {
   logger.info('Main', 'onMounted')
+
+  try {
+    isForcedUpgrade.value = await invoke<boolean>('is_forced_upgrade')
+  }
+  catch (err) {
+    logger.error('Main', 'failed to read forced upgrade state', err)
+  }
+  if (!isMounted) {
+    return
+  }
+
+  const unlistenForced = await listen('forced-upgrade', () => {
+    isForcedUpgrade.value = true
+  })
+  if (!isMounted) {
+    unlistenForced()
+  }
+  else {
+    unlistenForcedUpgrade = unlistenForced
+  }
 
   const unlisten = await listen('open-settings', () => {
     activeTab.value = 'settings'
@@ -148,13 +176,38 @@ onUnmounted(() => {
   if (unlistenOpenSettings) {
     unlistenOpenSettings()
   }
+  if (unlistenForcedUpgrade) {
+    unlistenForcedUpgrade()
+  }
 })
 </script>
 
 <template>
   <div class="w-full h-screen flex flex-col overflow-hidden">
     <div v-if="isMacOS" class="h-7 w-full shrink-0 bg-sidebar border-sidebar-border select-none cursor-move" data-tauri-drag-region />
-    <SidebarProvider class="flex-1 overflow-hidden">
+
+    <!-- Forced upgrade: hide app content until the user updates -->
+    <div v-if="isForcedUpgrade" class="flex-1 flex items-center justify-center overflow-hidden p-8">
+      <div class="flex max-w-md flex-col items-center gap-6 text-center">
+        <div class="rounded-full bg-amber-100 p-4">
+          <ArrowUpCircleIcon class="w-12 h-12 text-amber-600" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <h1 class="text-2xl font-bold text-foreground">
+            {{ t('main.forced_upgrade.title') }}
+          </h1>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            {{ t('main.forced_upgrade.message') }}
+          </p>
+        </div>
+        <Button class="flex items-center gap-2 font-semibold cursor-pointer" @click="onForcedUpgrade">
+          <ArrowUpCircleIcon class="w-4 h-4" />
+          {{ t('main.forced_upgrade.action') }}
+        </Button>
+      </div>
+    </div>
+
+    <SidebarProvider v-else class="flex-1 overflow-hidden">
       <AppSidebar
         v-model:active-tab="activeTab"
         :nav-items="navItems"

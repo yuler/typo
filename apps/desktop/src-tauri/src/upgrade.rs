@@ -1,5 +1,5 @@
 use std::sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, RwLock};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_store::StoreExt;
 use tauri_plugin_updater::UpdaterExt;
 
@@ -101,6 +101,10 @@ pub fn is_forced_upgrade() -> bool {
 #[tauri::command]
 pub fn open_forced_upgrade_window(app: AppHandle) {
     FORCED_UPGRADE.store(true, Ordering::Release);
+    // Notify the main window so it can hide its content and show the update screen.
+    if let Err(e) = app.emit("forced-upgrade", ()) {
+        log::error!("Failed to emit forced-upgrade event: {}", e);
+    }
     crate::windows::create_upgrade_window(&app);
 }
 
