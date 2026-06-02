@@ -105,6 +105,12 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     }
 }
 
+fn app_cli_quick_pick_trigger(app: &tauri::AppHandle) {
+    log::debug!("app_cli_quick_pick_trigger");
+    
+    windows::open_quick_pick_window(app.clone());
+}
+
 fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
     // 1. Try ydotool first
     if keyboard::ydotool_copy_shortcut() {
@@ -232,6 +238,7 @@ pub fn run() {
                 &argv,
                 in_linux_wayland(),
                 app_cli_selection_trigger,
+                app_cli_quick_pick_trigger,
             );
         }))
         .setup(move |app| {

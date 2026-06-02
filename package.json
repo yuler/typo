@@ -19,6 +19,8 @@
     "desktop:build": "pnpm --filter @typo/desktop build",
     "desktop:preview": "pnpm --filter @typo/desktop preview",
     "desktop:tauri": "pnpm --filter @typo/desktop tauri",
+    "desktop:ubuntu-shortcut": "./scripts/ubuntu-shortcut.sh",
+    "desktop:ubuntu-shortcut:dev": "./scripts/ubuntu-shortcut.sh --dev",
     "www:dev": "pnpm --filter @typo/www dev",
     "www:build": "pnpm --filter @typo/www build",
     "www:preview": "pnpm --filter @typo/www preview",

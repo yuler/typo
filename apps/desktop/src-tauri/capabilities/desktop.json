@@ -8,7 +8,9 @@
   "windows": [
     "main",
     "indicator",
-    "upgrade"
+    "upgrade",
+    "quick-pick",
+    "quick-pick-result"
   ],
   "permissions": [
     "global-shortcut:default",
