@@ -18,9 +18,9 @@ const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
 
 const windows: Record<string, Component> = {
-  main: Main,
-  indicator: Indicator,
-  upgrade: Upgrade,
+  'main': Main,
+  'indicator': Indicator,
+  'upgrade': Upgrade,
   'quick-pick': QuickPick,
   'quick-pick-result': QuickPickResult,
 }

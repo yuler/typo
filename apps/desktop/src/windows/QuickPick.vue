@@ -50,25 +50,25 @@ async function confirmSelection(prompt: any) {
     // The spec says: Call existing AI providers with { text: selection, prompt: slash.value, command: slash.key }
     // We need to pass this to the result window.
     // We'll use a dedicated event or the same pending input pattern.
-    
+
     // Actually, Task 3 implemented set_quick_pick_input.
-    // Let's refine the payload to include prompt info if needed, 
+    // Let's refine the payload to include prompt info if needed,
     // but the spec says "AI providers with { text, prompt, command }".
     // We can just emit an event to the result window once it's open.
-    
+
     await invoke('open_quick_pick_result_window')
-    
+
     // Emit the specific prompt choice
     // We'll need to listen for this in QuickPickResult.vue
     setTimeout(async () => {
-        const resultWindow = await (window as any).__TAURI_INTERNALS__.plugins.webviewWindow.WebviewWindow.getByLabel('quick-pick-result')
-        if (resultWindow) {
-            await resultWindow.emit('start-process', {
-                text: capturedText.value,
-                prompt: prompt.value,
-                command: prompt.key
-            })
-        }
+      const resultWindow = await (window as any).__TAURI_INTERNALS__.plugins.webviewWindow.WebviewWindow.getByLabel('quick-pick-result')
+      if (resultWindow) {
+        await resultWindow.emit('start-process', {
+          text: capturedText.value,
+          prompt: prompt.value,
+          command: prompt.key,
+        })
+      }
     }, 500)
 
     await appWindow.hide() // Hide first for snappiness
@@ -100,8 +100,8 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 async function openSettings() {
-    await invoke('open_main_window')
-    await appWindow.close()
+  await invoke('open_main_window')
+  await appWindow.close()
 }
 
 onMounted(async () => {
@@ -111,7 +111,7 @@ onMounted(async () => {
   ])
   capturedText.value = text
   slashPrompts.value = prompts
-  
+
   // Focus search input
   const input = document.querySelector('input')
   input?.focus()
@@ -164,12 +164,12 @@ onMounted(async () => {
         <p class="text-sm text-neutral-500">
           {{ t('main.quick_pick.no_commands') || 'No commands found' }}
         </p>
-        <button 
-            class="text-xs text-primary hover:underline flex items-center gap-1 mx-auto"
-            @click="openSettings"
+        <button
+          class="text-xs text-primary hover:underline flex items-center gap-1 mx-auto"
+          @click="openSettings"
         >
-            <SettingsIcon class="w-3 h-3" />
-            {{ t('main.quick_pick.configure') || 'Configure slash prompts' }}
+          <SettingsIcon class="w-3 h-3" />
+          {{ t('main.quick_pick.configure') || 'Configure slash prompts' }}
         </button>
       </div>
     </ScrollArea>

@@ -23,7 +23,7 @@ let unlisten: (() => void) | undefined
 async function fetchCorrection(payload: { text: string, prompt: string, command?: string }): Promise<string> {
   const aiProvider = await store.get('ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
-  
+
   switch (aiProvider) {
     case 'typo':
       process = typoProcess
@@ -37,7 +37,7 @@ async function fetchCorrection(payload: { text: string, prompt: string, command?
     default:
       throw new Error(t('main.error.invalid_ai'))
   }
-  
+
   return process(payload.text, undefined, payload)
 }
 
@@ -56,7 +56,8 @@ async function startProcessing(payload: { text: string, prompt: string, command:
 }
 
 async function copyToClipboard() {
-  if (!resultText.value) return
+  if (!resultText.value)
+    return
   await writeText(resultText.value)
   copied.value = true
   setTimeout(() => copied.value = false, 2000)
@@ -74,14 +75,16 @@ onMounted(async () => {
 
   // Also try to consume pending input if start-process was missed
   // but usually QuickPick.vue emits it after window is open.
-  
+
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') close()
+    if (e.key === 'Escape')
+      close()
   })
 })
 
 onUnmounted(() => {
-  if (unlisten) unlisten()
+  if (unlisten)
+    unlisten()
 })
 </script>
 
@@ -92,7 +95,7 @@ onUnmounted(() => {
       <span class="text-xs font-medium text-neutral-400">
         {{ t('main.quick_pick.result_title') || 'Quick Pick Result' }}
       </span>
-      <button @click="close" class="text-neutral-500 hover:text-white transition-colors">
+      <button class="text-neutral-500 hover:text-white transition-colors" @click="close">
         <X class="w-4 h-4" />
       </button>
     </div>
@@ -100,21 +103,23 @@ onUnmounted(() => {
     <!-- Content -->
     <div class="flex-1 overflow-hidden relative">
       <div v-if="state === 'processing'" class="flex flex-col items-center justify-center h-full space-y-4">
-        <div class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+        <div class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
         <p class="text-sm text-neutral-400">
-            {{ t('main.status.processing') || 'Processing...' }}
+          {{ t('main.status.processing') || 'Processing...' }}
         </p>
       </div>
 
       <ScrollArea v-else-if="state === 'result'" class="h-full">
         <div class="p-4">
-            <pre class="text-sm whitespace-pre-wrap font-sans leading-relaxed selection:bg-white/20">{{ resultText }}</pre>
+          <pre class="text-sm whitespace-pre-wrap font-sans leading-relaxed selection:bg-white/20">{{ resultText }}</pre>
         </div>
       </ScrollArea>
 
       <div v-else-if="state === 'error'" class="p-8 text-center flex flex-col items-center justify-center h-full space-y-4">
-        <p class="text-red-400 text-sm">{{ errorText }}</p>
-        <button 
+        <p class="text-red-400 text-sm">
+          {{ errorText }}
+        </p>
+        <button
           class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-xs transition-colors"
           @click="close"
         >
@@ -125,7 +130,7 @@ onUnmounted(() => {
 
     <!-- Footer -->
     <div v-if="state === 'result'" class="px-4 py-3 border-t border-white/5 bg-white/5 flex justify-end gap-2">
-      <button 
+      <button
         class="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-xs transition-colors border border-white/5"
         @click="copyToClipboard"
       >
