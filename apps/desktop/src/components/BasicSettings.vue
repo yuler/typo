@@ -283,6 +283,11 @@ async function onSubmit() {
     form.value.global_shortcut = actualShortcuts.global || DEFAULT_GLOBAL_SHORTCUT
   }
 
+  if (form.value.quick_pick_shortcut && actualShortcuts.quickPick !== form.value.quick_pick_shortcut) {
+    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcuts.quickPick || DEFAULT_QUICK_PICK_SHORTCUT })
+    form.value.quick_pick_shortcut = actualShortcuts.quickPick || DEFAULT_QUICK_PICK_SHORTCUT
+  }
+
   isSaving.value = true
   try {
     await Promise.all([

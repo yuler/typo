@@ -60,31 +60,17 @@ async function confirmSelection(prompt: any) {
         mode: 'quick-pick',
       },
     })
-    // Store extra prompt info in settings or pass via custom event
-    // For simplicity, we'll store the chosen prompt in a temporary place or emit it
-    // The spec says: Call existing AI providers with { text: selection, prompt: slash.value, command: slash.key }
-    // We need to pass this to the result window.
-    // We'll use a dedicated event or the same pending input pattern.
 
-    // Actually, Task 3 implemented set_quick_pick_input.
-    // Let's refine the payload to include prompt info if needed,
-    // but the spec says "AI providers with { text, prompt, command }".
-    // We can just emit an event to the result window once it's open.
+    // Both windows share the same origin, so pass the chosen prompt via
+    // localStorage. The result window reads it synchronously on mount, which
+    // avoids the race condition of emitting an event before it has loaded.
+    localStorage.setItem('quick-pick-payload', JSON.stringify({
+      text: capturedText.value,
+      prompt: prompt.value,
+      command: prompt.key,
+    }))
 
     await invoke('open_quick_pick_result_window')
-
-    // Emit the specific prompt choice
-    // We'll need to listen for this in QuickPickResult.vue
-    setTimeout(async () => {
-      const resultWindow = await (window as any).__TAURI_INTERNALS__.plugins.webviewWindow.WebviewWindow.getByLabel('quick-pick-result')
-      if (resultWindow) {
-        await resultWindow.emit('start-process', {
-          text: capturedText.value,
-          prompt: prompt.value,
-          command: prompt.key,
-        })
-      }
-    }, 500)
 
     await appWindow.hide() // Hide first for snappiness
     await appWindow.close()

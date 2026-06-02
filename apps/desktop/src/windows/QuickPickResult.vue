@@ -19,6 +19,8 @@ const errorText = ref('')
 const copied = ref(false)
 
 let unlisten: (() => void) | undefined
+let abortController: AbortController | null = null
+let isMounted = true
 
 async function fetchCorrection(payload: { text: string, prompt: string, command?: string }): Promise<string> {
   const aiProvider = await store.get('ai_provider')
@@ -38,7 +40,8 @@ async function fetchCorrection(payload: { text: string, prompt: string, command?
       throw new Error(t('main.error.invalid_ai'))
   }
 
-  return process(payload.text, undefined, payload)
+  abortController = new AbortController()
+  return process(payload.text, abortController.signal, payload)
 }
 
 async function startProcessing(payload: { text: string, prompt: string, command: string }) {
@@ -64,25 +67,48 @@ async function copyToClipboard() {
 }
 
 function close() {
+  abortController?.abort()
   appWindow.close()
 }
 
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape')
+    close()
+}
+
 onMounted(async () => {
-  unlisten = await listen<{ text: string, prompt: string, command: string }>('start-process', (event) => {
+  // QuickPick.vue writes the payload to localStorage before opening this
+  // window, so we can process it immediately on mount without waiting for an
+  // event (which could be emitted before this window finished loading).
+  const cached = localStorage.getItem('quick-pick-payload')
+  if (cached) {
+    localStorage.removeItem('quick-pick-payload')
+    try {
+      startProcessing(JSON.parse(cached))
+    }
+    catch (err) {
+      logger.error('QuickPickResult', 'failed to parse cached payload', err)
+    }
+  }
+
+  // Keep the event listener as a fallback for any future callers.
+  const unsubscribe = await listen<{ text: string, prompt: string, command: string }>('start-process', (event) => {
     logger.info('QuickPickResult', 'start-process received', event.payload.command)
     startProcessing(event.payload)
   })
 
-  // Also try to consume pending input if start-process was missed
-  // but usually QuickPick.vue emits it after window is open.
+  if (!isMounted)
+    unsubscribe()
+  else
+    unlisten = unsubscribe
 
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape')
-      close()
-  })
+  window.addEventListener('keydown', onKeyDown)
 })
 
 onUnmounted(() => {
+  isMounted = false
+  abortController?.abort()
+  window.removeEventListener('keydown', onKeyDown)
   if (unlisten)
     unlisten()
 })
