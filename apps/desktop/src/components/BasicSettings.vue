@@ -131,8 +131,13 @@ function stopCapture(restoreShortcut = true) {
   recordedCaptureKeys.clear()
 
   if (restoreShortcut) {
-    void requestIndicatorGlobalShortcutSetup(form.value.global_shortcut).catch((err) => {
-      logger.error('BasicSettings', 'Failed to restore global shortcut:', err)
+    void store.get('quick_pick_shortcut').then((quickPickShortcut) => {
+      return requestIndicatorGlobalShortcutSetup({
+        global: form.value.global_shortcut,
+        quickPick: quickPickShortcut,
+      })
+    }).catch((err) => {
+      logger.error('BasicSettings', 'Failed to restore shortcuts:', err)
     })
   }
 }
@@ -262,12 +267,19 @@ async function onPinIndicatorToggle(value: boolean) {
 }
 
 async function onSubmit() {
-  const requestedShortcut = form.value.global_shortcut
-  const actualShortcut = await requestIndicatorGlobalShortcutSetup(requestedShortcut)
+  const requestedGlobal = form.value.global_shortcut
+  const quickPickShortcut = await store.get('quick_pick_shortcut')
 
-  if (requestedShortcut && actualShortcut !== requestedShortcut) {
-    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcut })
-    form.value.global_shortcut = actualShortcut
+  const actualShortcuts = await requestIndicatorGlobalShortcutSetup({
+    global: requestedGlobal,
+    quickPick: quickPickShortcut,
+  })
+
+  const actualGlobal = actualShortcuts.global || requestedGlobal
+
+  if (requestedGlobal && actualGlobal !== requestedGlobal) {
+    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualGlobal })
+    form.value.global_shortcut = actualGlobal
   }
 
   isSaving.value = true
@@ -276,7 +288,8 @@ async function onSubmit() {
       store.set('autoselect', form.value.autoselect),
       store.set('copy_result', form.value.copy_result),
       store.set('pin_indicator', form.value.pin_indicator),
-      store.set('global_shortcut', actualShortcut),
+      store.set('global_shortcut', actualGlobal),
+      store.set('quick_pick_shortcut', actualShortcuts.quickPick),
     ])
     await store.save()
     toast.success(t('settings.save_success'))
