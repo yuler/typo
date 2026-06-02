@@ -5,6 +5,7 @@ import { LazyStore } from '@tauri-apps/plugin-store'
 import { SearchIcon, SettingsIcon } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useI18n } from '@/composables/useI18n'
@@ -24,9 +25,16 @@ const normalizedPrompts = computed(() => {
     .filter((prompt: any) => prompt?.key && prompt?.value)
     .map((prompt: any) => {
       const key = String(prompt.key).trim()
+<<<<<<< HEAD
       return {
         ...prompt,
         command: key.startsWith('/') ? key : `/${key}`,
+=======
+      const command = key.startsWith('/') ? key : `/${key}`
+      return {
+        ...prompt,
+        command,
+>>>>>>> 26deb778 (♻️ [desktop]: Refactor QuickPick with light theme and Button components)
       }
     })
 })
@@ -172,20 +180,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-neutral-900 text-white border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+  <div class="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl">
     <!-- Header: Selection Preview -->
-    <div class="px-4 py-3 border-b border-white/5 bg-white/5">
-      <p class="text-xs text-neutral-400 truncate font-mono">
+    <div class="border-b border-slate-200 bg-slate-50 px-4 py-3">
+      <p class="truncate font-mono text-xs text-slate-500">
         {{ truncatedPreview }}
       </p>
     </div>
 
     <!-- Search Area -->
     <div class="relative p-2">
-      <SearchIcon class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+      <SearchIcon class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <Input
         v-model="searchQuery"
-        class="pl-10 bg-neutral-800 border-none focus-visible:ring-1 focus-visible:ring-white/20 h-10"
+        class="h-10 border-slate-200 bg-white pl-10"
         :placeholder="t('main.quick_pick.search_placeholder') || 'Search commands...'"
         @keydown="onKeyDown"
       />
@@ -193,12 +201,13 @@ onUnmounted(() => {
 
     <!-- Results -->
     <ScrollArea class="flex-1">
-      <div v-if="filteredPrompts.length > 0" class="p-2 space-y-1">
-        <button
+      <div v-if="filteredPrompts.length > 0" class="space-y-1 p-2">
+        <Button
           v-for="(prompt, index) in filteredPrompts"
           :key="prompt.key"
-          class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors text-left"
-          :class="index === selectedIndex ? 'bg-white/10 text-white' : 'text-neutral-400 hover:bg-white/5'"
+          variant="ghost"
+          class="h-auto w-full justify-between rounded-lg px-3 py-2 text-left text-sm"
+          :class="index === selectedIndex ? 'bg-slate-100 text-slate-900' : 'text-slate-900 hover:bg-slate-50'"
           @click="confirmSelection(prompt)"
           @mouseenter="selectedIndex = index"
         >
@@ -207,14 +216,14 @@ onUnmounted(() => {
             <span class="text-xs opacity-60 truncate max-w-[200px]">{{ prompt.value }}</span>
           </div>
           <div v-if="prompt.aliases?.length" class="flex gap-1">
-            <Badge v-for="alias in prompt.aliases" :key="alias" variant="outline" class="text-[10px] py-0 px-1 opacity-50">
+            <Badge v-for="alias in prompt.aliases" :key="alias" variant="secondary" class="px-1 py-0 text-[10px]">
               {{ alias }}
             </Badge>
           </div>
-        </button>
+        </Button>
       </div>
-      <div v-else class="p-8 text-center space-y-4">
-        <p class="text-sm text-neutral-500">
+      <div v-else class="space-y-4 p-8 text-center">
+        <p class="text-sm text-slate-500">
           {{ t('main.quick_pick.no_commands') || 'No commands found' }}
         </p>
         <button
