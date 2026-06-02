@@ -20,6 +20,7 @@ const copied = ref(false)
 
 let unlisten: (() => void) | undefined
 let unlistenWindowOpened: (() => void) | undefined
+let unlistenFocusChanged: (() => void) | undefined
 let abortController: AbortController | null = null
 let isMounted = true
 
@@ -69,12 +70,22 @@ async function copyToClipboard() {
     return
   await writeText(resultText.value)
   copied.value = true
+  await hideWindow()
   setTimeout(() => copied.value = false, 2000)
+}
+
+async function hideWindow() {
+  try {
+    await appWindow.hide()
+  }
+  catch (err) {
+    logger.error('QuickPickResult', 'failed to hide window', err)
+  }
 }
 
 function close() {
   abortController?.abort()
-  appWindow.hide()
+  void hideWindow()
 }
 
 function onKeyDown(e: KeyboardEvent) {
@@ -100,7 +111,8 @@ onMounted(async () => {
   // QuickPick.vue writes the payload to localStorage before opening this
   // window, so we can process it immediately on mount without waiting for an
   // event (which could be emitted before this window finished loading).
-  consumeCachedPayload()
+  if (await appWindow.isVisible())
+    consumeCachedPayload()
 
   // Keep the event listener as a fallback for any future callers.
   const unsubscribe = await listen<{ text: string, prompt: string, command: string }>('start-process', (event) => {
@@ -121,6 +133,15 @@ onMounted(async () => {
   else
     unlistenWindowOpened = unsubscribeWindowOpened
 
+  const unsubscribeFocusChanged = await appWindow.onFocusChanged(({ payload: focused }) => {
+    if (!focused && state.value !== 'processing')
+      void hideWindow()
+  })
+  if (!isMounted)
+    unsubscribeFocusChanged()
+  else
+    unlistenFocusChanged = unsubscribeFocusChanged
+
   window.addEventListener('keydown', onKeyDown)
 })
 
@@ -132,6 +153,8 @@ onUnmounted(() => {
     unlisten()
   if (unlistenWindowOpened)
     unlistenWindowOpened()
+  if (unlistenFocusChanged)
+    unlistenFocusChanged()
 })
 </script>
 
@@ -142,7 +165,7 @@ onUnmounted(() => {
       <span class="text-xs font-medium text-slate-500">
         {{ t('main.quick_pick.result_title') || 'Quick Pick Result' }}
       </span>
-      <button class="text-slate-400 hover:text-slate-900 transition-colors" @click="close">
+      <button v-if="state !== 'processing'" class="text-slate-400 hover:text-slate-900 transition-colors" @click="close">
         <X class="w-4 h-4" />
       </button>
     </div>
@@ -176,7 +199,12 @@ onUnmounted(() => {
     </div>
 
     <!-- Footer -->
-    <div v-if="state === 'result'" class="px-4 py-3 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
+    <div v-if="state === 'processing'" class="px-4 py-2 border-t border-slate-200 bg-slate-50">
+      <p class="text-[11px] text-slate-500">
+        Press Esc to cancel
+      </p>
+    </div>
+    <div v-else-if="state === 'result'" class="px-4 py-3 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
       <button
         class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-lg text-xs transition-colors border border-slate-200"
         @click="copyToClipboard"

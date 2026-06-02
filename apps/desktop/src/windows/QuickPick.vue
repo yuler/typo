@@ -2,8 +2,9 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+import { register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { SearchIcon, SettingsIcon } from 'lucide-vue-next'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +19,14 @@ const capturedText = ref('')
 const searchQuery = ref('')
 const selectedIndex = ref(0)
 const slashPrompts = ref<any[]>([])
+const quickPickRoot = ref<HTMLElement | null>(null)
+const searchInputRef = ref<{ $el?: HTMLInputElement } | HTMLInputElement | null>(null)
 let unlistenWindowOpened: (() => void) | undefined
+let unlistenFocusChanged: (() => void) | undefined
+let openedAt = 0
+let registeredEscapeShortcut: string | null = null
+let shouldFocusInput = false
+let focusTimers: ReturnType<typeof setTimeout>[] = []
 
 const normalizedPrompts = computed(() => {
   return slashPrompts.value
@@ -51,6 +59,13 @@ const truncatedPreview = computed(() => {
   return `${capturedText.value.slice(0, 77)}...`
 })
 
+const selectedPromptText = computed(() => {
+  const selected = filteredPrompts.value[selectedIndex.value]
+  if (selected?.value)
+    return selected.value
+  return searchQuery.value.trim()
+})
+
 async function confirmSelection(prompt: any) {
   try {
     logger.info('QuickPick', 'confirmSelection', prompt.key)
@@ -70,7 +85,7 @@ async function confirmSelection(prompt: any) {
       command: prompt.key,
     }))
 
-    await appWindow.hide() // Hide first for snappiness
+    await closeWindow() // Hide first for snappiness
     await invoke('open_quick_pick_result_window')
   }
   catch (err) {
@@ -80,11 +95,74 @@ async function confirmSelection(prompt: any) {
 
 async function closeWindow() {
   try {
+    shouldFocusInput = false
+    clearFocusTimers()
+    await unregisterEscapeShortcut()
     await appWindow.hide()
   }
   catch (error) {
     logger.error('QuickPick', 'failed to hide window', error)
   }
+}
+
+async function registerEscapeShortcut() {
+  if (registeredEscapeShortcut)
+    return
+
+  for (const shortcut of ['Esc', 'Escape']) {
+    try {
+      await register(shortcut, (event) => {
+        if (event.state === 'Released')
+          void closeWindow()
+      })
+      registeredEscapeShortcut = shortcut
+      return
+    }
+    catch (error) {
+      logger.warn('QuickPick', `failed to register ${shortcut} shortcut fallback`, error)
+    }
+  }
+}
+
+async function unregisterEscapeShortcut() {
+  if (!registeredEscapeShortcut)
+    return
+
+  const shortcut = registeredEscapeShortcut
+  registeredEscapeShortcut = null
+  try {
+    await unregister(shortcut)
+  }
+  catch (error) {
+    logger.warn('QuickPick', 'failed to unregister Escape shortcut fallback', error)
+  }
+}
+
+function clearFocusTimers() {
+  for (const timer of focusTimers)
+    clearTimeout(timer)
+  focusTimers = []
+}
+
+function scheduleInputFocus() {
+  if (!shouldFocusInput)
+    return
+
+  clearFocusTimers()
+  focusInputWithRetry()
+  queueFocusRetry(80)
+  queueFocusRetry(180)
+  queueFocusRetry(420)
+  queueFocusRetry(900)
+  focusTimers.push(setTimeout(() => {
+    const input = getSearchInputElement()
+    if (shouldFocusInput && document.activeElement !== input)
+      logger.warn('QuickPick', 'search input focus did not stick')
+  }, 1200))
+}
+
+function queueFocusRetry(delay: number) {
+  focusTimers.push(setTimeout(focusInputWithRetry, delay))
 }
 
 function onKeyDown(e: KeyboardEvent) {
@@ -104,6 +182,15 @@ function onKeyDown(e: KeyboardEvent) {
     const selected = filteredPrompts.value[selectedIndex.value]
     if (selected) {
       confirmSelection(selected)
+    }
+    else {
+      const typedPrompt = searchQuery.value.trim()
+      if (typedPrompt) {
+        confirmSelection({
+          key: typedPrompt,
+          value: typedPrompt,
+        })
+      }
     }
   }
   else if (e.key === 'Escape') {
@@ -125,79 +212,143 @@ async function openSettings() {
 }
 
 async function loadQuickPickData() {
-  const cachedSelection = localStorage.getItem('quick-pick-selection') || ''
-  if (cachedSelection) {
-    localStorage.removeItem('quick-pick-selection')
-  }
-
   const [text, prompts] = await Promise.all([
-    cachedSelection ? Promise.resolve(cachedSelection) : invoke<string>('get_selected_text'),
+    invoke<string | null>('consume_quick_pick_selection'),
     invoke<any[]>('get_local_slash_prompts'),
   ])
+
+  if (!text?.trim()) {
+    logger.warn('QuickPick', 'loadQuickPickData: no selection, hide window')
+    await closeWindow()
+    return
+  }
+
   capturedText.value = text
   slashPrompts.value = Array.isArray(prompts) ? prompts : []
 
   logger.info('QuickPick', 'slashPrompts', { text, prompts })
 }
 
-function focusInput() {
-  void appWindow.setFocus()
-  const input = document.querySelector<HTMLInputElement>('input')
-  input?.focus()
+async function focusInput() {
+  if (!shouldFocusInput)
+    return
+
+  try {
+    await appWindow.setFocus()
+  }
+  catch (error) {
+    logger.warn('QuickPick', 'failed to focus window before input focus', error)
+  }
+
+  window.focus()
+  await nextTick()
+  const input = getSearchInputElement()
+  if (!input)
+    return
+  input.focus({ preventScroll: true })
+  input.click()
+  // Keep existing text selected so users can immediately overwrite or type.
+  input.setSelectionRange(input.value.length, input.value.length)
 }
 
 function focusInputWithRetry() {
-  focusInput()
+  if (!shouldFocusInput)
+    return
+
+  void focusInput()
+  requestAnimationFrame(() => void focusInput())
   // Input is rendered in a child component and may not be ready immediately.
-  setTimeout(focusInput, 16)
-  setTimeout(focusInput, 60)
-  setTimeout(focusInput, 120)
+  for (const delay of [0, 16, 60, 120, 220, 360, 520, 800]) {
+    focusTimers.push(setTimeout(() => {
+      if (shouldFocusInput)
+        void focusInput()
+    }, delay))
+  }
+}
+
+function getSearchInputElement() {
+  const refValue = searchInputRef.value
+  if (refValue instanceof HTMLInputElement)
+    return refValue
+
+  if (refValue?.$el instanceof HTMLInputElement)
+    return refValue.$el
+
+  return quickPickRoot.value?.querySelector<HTMLInputElement>('input') ?? null
 }
 
 onMounted(() => {
   window.addEventListener('keydown', onWindowKeyDown, true)
   document.addEventListener('keydown', onWindowKeyDown, true)
 
-  // Focus right away so the caret lands in the search box without waiting for
-  // the (potentially slow) selected-text/clipboard round trip to finish.
-  focusInputWithRetry()
+  void appWindow.isVisible().then((visible) => {
+    if (!visible)
+      return
 
-  void loadQuickPickData().finally(() => {
-    focusInputWithRetry()
+    openedAt = Date.now()
+    shouldFocusInput = true
+    void registerEscapeShortcut()
+    // Focus right away so the caret lands in the search box without waiting for
+    // the (potentially slow) selected-text/clipboard round trip to finish.
+    scheduleInputFocus()
+
+    void loadQuickPickData().finally(() => {
+      scheduleInputFocus()
+    })
   })
 
   void listen('quick-pick-window-opened', () => {
+    openedAt = Date.now()
+    shouldFocusInput = true
+    void registerEscapeShortcut()
     selectedIndex.value = 0
+    searchQuery.value = ''
+    scheduleInputFocus()
     void loadQuickPickData().finally(() => {
-      focusInputWithRetry()
+      scheduleInputFocus()
     })
   }).then((unlisten) => {
     unlistenWindowOpened = unlisten
   })
+
+  void appWindow.onFocusChanged(({ payload: focused }) => {
+    if (focused) {
+      scheduleInputFocus()
+    }
+    else {
+      if (Date.now() - openedAt < 1200) {
+        scheduleInputFocus()
+        return
+      }
+      void closeWindow()
+    }
+  }).then((unlisten) => {
+    unlistenFocusChanged = unlisten
+  })
 })
 
 onUnmounted(() => {
+  shouldFocusInput = false
+  clearFocusTimers()
   window.removeEventListener('keydown', onWindowKeyDown, true)
   document.removeEventListener('keydown', onWindowKeyDown, true)
   if (unlistenWindowOpened)
     unlistenWindowOpened()
+  if (unlistenFocusChanged)
+    unlistenFocusChanged()
+  void unregisterEscapeShortcut()
 })
 </script>
 
 <template>
-  <div class="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 shadow-2xl">
-    <!-- Header: Selection Preview -->
-    <div class="border-b border-slate-200 bg-slate-50 px-2.5 py-1.5">
-      <p class="truncate font-mono text-[11px] text-slate-500">
-        {{ truncatedPreview }}
-      </p>
-    </div>
-
+  <div ref="quickPickRoot" class="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 shadow-2xl">
     <!-- Search Area -->
     <div class="relative p-1.5">
       <SearchIcon class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
       <Input
+        ref="searchInputRef"
         v-model="searchQuery"
+        autofocus
         class="h-8 border-slate-200 bg-white pl-8 text-xs"
         :placeholder="t('main.quick_pick.search_placeholder') || 'Search commands...'"
         @keydown="onKeyDown"
@@ -240,6 +391,15 @@ onUnmounted(() => {
         </button>
       </div>
     </ScrollArea>
+
+    <div class="space-y-1 border-t border-slate-200 bg-slate-50 px-2.5 py-1.5">
+      <p class="truncate font-mono text-[11px] text-slate-500">
+        {{ truncatedPreview }}
+      </p>
+      <p class="truncate text-[11px] text-slate-600">
+        {{ selectedPromptText || (t('main.quick_pick.no_commands') || 'No commands found') }}
+      </p>
+    </div>
   </div>
 </template>
 

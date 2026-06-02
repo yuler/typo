@@ -85,6 +85,54 @@ fn quick_pick_payload() -> &'static Mutex<Option<SetInputPayload>> {
     QUICK_PICK_PAYLOAD.get_or_init(|| Mutex::new(None))
 }
 
+fn quick_pick_selection() -> &'static Mutex<Option<String>> {
+    static QUICK_PICK_SELECTION: OnceLock<Mutex<Option<String>>> = OnceLock::new();
+    QUICK_PICK_SELECTION.get_or_init(|| Mutex::new(None))
+}
+
+fn set_quick_pick_selection(text: String) {
+    if let Ok(mut selection) = quick_pick_selection().lock() {
+        *selection = Some(text);
+    }
+}
+
+#[tauri::command]
+fn consume_quick_pick_selection() -> Option<String> {
+    match quick_pick_selection().lock() {
+        Ok(mut selection) => selection.take(),
+        Err(error) => {
+            log::error!("failed to access quick pick selection: {}", error);
+            None
+        }
+    }
+}
+
+/// Capture the current selection and only open the quick pick window when there
+/// is text to act on. Returns `false` when nothing is selected so callers can
+/// avoid showing an empty popup.
+#[tauri::command]
+fn open_quick_pick_with_selection(app: tauri::AppHandle, text: Option<String>) -> bool {
+    let text = text
+        .filter(|value| !value.trim().is_empty())
+        .or_else(|| {
+            let captured = if in_linux_wayland() {
+                get_selected_text_wayland(&app)
+            } else {
+                get_selected_text_enigo(&app)
+            };
+            captured.filter(|value| !value.trim().is_empty())
+        });
+
+    let Some(text) = text else {
+        log::warn!("open_quick_pick_with_selection: no selection, skip showing window");
+        return false;
+    };
+
+    set_quick_pick_selection(text);
+    windows::open_quick_pick_window(app);
+    true
+}
+
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");
 
@@ -108,8 +156,8 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
 
 fn app_cli_quick_pick_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_quick_pick_trigger");
-    
-    windows::open_quick_pick_window(app.clone());
+
+    open_quick_pick_with_selection(app.clone(), None);
 }
 
 fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
@@ -279,6 +327,7 @@ pub fn run() {
             upgrade::init(app.handle().clone());
             windows::create_main_window(&app.handle());
             windows::create_indicator_window(&app.handle(), false);
+            windows::preload_quick_pick_windows(&app.handle());
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
@@ -308,6 +357,8 @@ pub fn run() {
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
             consume_quick_pick_input,
+            consume_quick_pick_selection,
+            open_quick_pick_with_selection,
             windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,

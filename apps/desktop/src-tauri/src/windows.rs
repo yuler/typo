@@ -1,10 +1,13 @@
 // apps/desktop/src-tauri/src/windows.rs
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{
+    AppHandle, Emitter, LogicalPosition, Manager, Position, WebviewUrl, WebviewWindowBuilder,
+    WindowEvent,
+};
 use std::sync::atomic::{AtomicBool, Ordering};
 use enigo::{Enigo, Mouse};
 
 #[cfg(target_os = "macos")]
-use tauri::{LogicalPosition, TitleBarStyle};
+use tauri::TitleBarStyle;
 
 static PENDING_OPEN_SETTINGS: AtomicBool = AtomicBool::new(false);
 
@@ -51,6 +54,18 @@ pub fn open_quick_pick_window(app: AppHandle) {
 #[tauri::command]
 pub fn open_quick_pick_result_window(app: AppHandle) {
     create_quick_pick_result_window(&app);
+}
+
+pub fn preload_quick_pick_windows(app: &AppHandle) {
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 280.0, 300.0, false);
+    create_quick_pick_floating_window(
+        app,
+        "quick-pick-result",
+        "typo - Quick Pick Result",
+        480.0,
+        360.0,
+        false,
+    );
 }
 
 pub fn show_and_focus_main_settings(app: &AppHandle) {
@@ -191,11 +206,18 @@ pub fn create_upgrade_window(app: &AppHandle) {
 }
 
 pub fn create_quick_pick_window(app: &AppHandle) {
-    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 280.0, 300.0);
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 280.0, 300.0, true);
 }
 
 pub fn create_quick_pick_result_window(app: &AppHandle) {
-    create_quick_pick_floating_window(app, "quick-pick-result", "typo - Quick Pick Result", 480.0, 360.0);
+    create_quick_pick_floating_window(
+        app,
+        "quick-pick-result",
+        "typo - Quick Pick Result",
+        480.0,
+        360.0,
+        true,
+    );
 }
 
 fn create_quick_pick_floating_window(
@@ -204,26 +226,73 @@ fn create_quick_pick_floating_window(
     title: &str,
     win_width: f64,
     win_height: f64,
+    show: bool,
 ) {
     if let Some(window) = app.get_webview_window(label) {
-        if let Err(err) = window.show() {
-            log::error!("failed to show {} window: {}", label, err);
-        }
-        if let Err(err) = window.set_focus() {
-            log::error!("failed to focus {} window: {}", label, err);
-        }
-        let opened_event = if label == "quick-pick" {
-            "quick-pick-window-opened"
-        } else {
-            "quick-pick-result-window-opened"
-        };
-        if let Err(err) = window.emit(opened_event, ()) {
-            log::error!("failed to emit {} for {} window: {}", opened_event, label, err);
+        if show {
+            let (x, y) = quick_pick_window_position(app, win_width, win_height);
+            if let Err(err) = window.set_position(Position::Logical(LogicalPosition::new(x, y))) {
+                log::error!("failed to position {} window: {}", label, err);
+            }
+            if let Err(err) = window.show() {
+                log::error!("failed to show {} window: {}", label, err);
+            }
+            if let Err(err) = window.set_focus() {
+                log::error!("failed to focus {} window: {}", label, err);
+            }
+            let opened_event = if label == "quick-pick" {
+                "quick-pick-window-opened"
+            } else {
+                "quick-pick-result-window-opened"
+            };
+            if let Err(err) = window.emit(opened_event, ()) {
+                log::error!("failed to emit {} for {} window: {}", opened_event, label, err);
+            }
         }
         return;
     }
 
-    let (mut x, mut y) = {
+    let (x, y) = quick_pick_window_position(app, win_width, win_height);
+
+    let window = match WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
+        .title(title)
+        .inner_size(win_width, win_height)
+        .position(x, y)
+        .decorations(false)
+        .transparent(true)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .visible_on_all_workspaces(true)
+        .visible(show)
+        .build()
+    {
+        Ok(window) => window,
+        Err(e) => {
+            log::error!("failed to build {} window: {}", label, e);
+            return;
+        }
+    };
+
+    if show {
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus {} window: {}", label, err);
+        }
+    }
+
+    let label_for_close = label.to_string();
+    let window_for_close = window.clone();
+    window.on_window_event(move |event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            api.prevent_close();
+            if let Err(err) = window_for_close.hide() {
+                log::error!("failed to hide {} window: {}", label_for_close, err);
+            }
+        }
+    });
+}
+
+fn quick_pick_window_position(app: &AppHandle, win_width: f64, win_height: f64) -> (f64, f64) {
+    let (cursor_x, cursor_y) = {
         let pos = get_cursor_position();
         (pos.0 as f64, pos.1 as f64)
     };
@@ -237,9 +306,9 @@ fn create_quick_pick_floating_window(
             
             // Physical coordinates for comparison
             let (px, py) = if cfg!(target_os = "macos") {
-                (x * scale, y * scale)
+                (cursor_x * scale, cursor_y * scale)
             } else {
-                (x, y)
+                (cursor_x, cursor_y)
             };
             
             px >= pos.x as f64 && px <= (pos.x + size.width as i32) as f64 &&
@@ -250,55 +319,42 @@ fn create_quick_pick_floating_window(
     if let Some(m) = monitor {
         let work_area = m.work_area();
         let scale = m.scale_factor();
-        
+
         let wa_x = work_area.position.x as f64 / scale;
         let wa_y = work_area.position.y as f64 / scale;
         let wa_w = work_area.size.width as f64 / scale;
         let wa_h = work_area.size.height as f64 / scale;
 
-        // Convert cursor pos to logical if enigo returns physical (Windows/Linux)
-        #[cfg(not(target_os = "macos"))]
-        {
-            x /= scale;
-            y /= scale;
-        }
+        let (cursor_logical_x, cursor_logical_y) = if cfg!(target_os = "macos") {
+            (cursor_x, cursor_y)
+        } else {
+            (cursor_x / scale, cursor_y / scale)
+        };
 
-        // Clamp to ensure the window is within the work area
-        x = x.clamp(wa_x, wa_x + wa_w - win_width);
-        y = y.clamp(wa_y, wa_y + wa_h - win_height);
+        let gap = 12.0;
+        let max_x = wa_x + wa_w - win_width;
+        let max_y = wa_y + wa_h - win_height;
+        let preferred_x = cursor_logical_x + gap;
+        let preferred_y = cursor_logical_y + gap;
+        let flipped_x = cursor_logical_x - win_width - gap;
+        let flipped_y = cursor_logical_y - win_height - gap;
+
+        let x = if preferred_x <= max_x {
+            preferred_x
+        } else {
+            flipped_x
+        };
+        let y = if preferred_y <= max_y {
+            preferred_y
+        } else {
+            flipped_y
+        };
+
+        let x = x.clamp(wa_x, max_x.max(wa_x));
+        let y = y.clamp(wa_y, max_y.max(wa_y));
+
+        return (x, y);
     }
 
-    let window = match WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
-        .title(title)
-        .inner_size(win_width, win_height)
-        .position(x, y)
-        .decorations(false)
-        .transparent(true)
-        .always_on_top(true)
-        .skip_taskbar(true)
-        .visible_on_all_workspaces(true)
-        .visible(true)
-        .build()
-    {
-        Ok(window) => window,
-        Err(e) => {
-            log::error!("failed to build {} window: {}", label, e);
-            return;
-        }
-    };
-
-    if let Err(err) = window.set_focus() {
-        log::error!("failed to focus {} window: {}", label, err);
-    }
-
-    let label_for_close = label.to_string();
-    let window_for_close = window.clone();
-    window.on_window_event(move |event| {
-        if let WindowEvent::CloseRequested { api, .. } = event {
-            api.prevent_close();
-            if let Err(err) = window_for_close.hide() {
-                log::error!("failed to hide {} window: {}", label_for_close, err);
-            }
-        }
-    });
+    (cursor_x, cursor_y)
 }

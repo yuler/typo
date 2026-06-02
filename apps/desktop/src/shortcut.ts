@@ -64,13 +64,8 @@ async function onShortcut() {
 
 async function onQuickPickShortcut() {
   logger.info('shortcut', 'onQuickPickShortcut')
-  const selectedText = (await invoke('get_selected_text')) as string
-
-  if (selectedText) {
-    localStorage.setItem('quick-pick-selection', selectedText)
-    await invoke('open_quick_pick_window')
-  }
-  else {
+  const opened = await invoke<boolean>('open_quick_pick_with_selection')
+  if (!opened) {
     logger.warn('shortcut', 'onQuickPickShortcut: no text selected')
   }
 }
