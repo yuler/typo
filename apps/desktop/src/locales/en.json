@@ -98,7 +98,7 @@
   "main.error.rate_limit": "Rate limit exceeded. Sign in for Unlimited Access",
   "main.error.accessibility": "Enable Accessibility in System Preferences",
   "main.error.invalid_ai": "Invalid AI provider",
-  "main.error.forced_upgrade.exit": "Exit Typo",
+  "main.forced_upgrade.exit": "Exit Typo",
   "main.quick_pick.search_placeholder": "Search commands...",
   "main.quick_pick.no_commands": "No commands found",
   "main.quick_pick.configure": "Configure slash prompts",

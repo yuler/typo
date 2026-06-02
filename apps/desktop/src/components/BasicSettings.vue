@@ -279,8 +279,8 @@ async function onSubmit() {
   })
 
   if (form.value.global_shortcut && actualShortcuts.global !== form.value.global_shortcut) {
-    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcuts.global })
-    form.value.global_shortcut = actualShortcuts.global
+    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcuts.global || DEFAULT_GLOBAL_SHORTCUT })
+    form.value.global_shortcut = actualShortcuts.global || DEFAULT_GLOBAL_SHORTCUT
   }
 
   isSaving.value = true

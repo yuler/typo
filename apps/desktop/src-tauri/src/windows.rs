@@ -216,8 +216,8 @@ fn create_quick_pick_floating_window(
     };
 
     // Get the monitor that contains the cursor, or the primary monitor as fallback
-    let monitor = app.monitors().ok().and_then(|monitors| {
-        monitors.into_iter().find(|m| {
+    let monitor = app.available_monitors().ok().and_then(|monitors: Vec<tauri::Monitor>| {
+        monitors.into_iter().find(|m: &tauri::Monitor| {
             let pos = m.position();
             let size = m.size();
             let scale = m.scale_factor();
