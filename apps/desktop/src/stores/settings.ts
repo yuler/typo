@@ -15,6 +15,7 @@ export interface SlashPrompt {
 }
 
 export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
+export const DEFAULT_QUICK_PICK_SHORTCUT = 'CommandOrControl+Shift+Z'
 
 const DEFAULT_STORE = {
   autoselect: false,
@@ -26,6 +27,7 @@ const DEFAULT_STORE = {
   ollama_model: '',
   slash_prompts: [] as SlashPrompt[],
   global_shortcut: DEFAULT_GLOBAL_SHORTCUT,
+  quick_pick_shortcut: DEFAULT_QUICK_PICK_SHORTCUT,
   locale: defaultLocale satisfies Locale,
 }
 
