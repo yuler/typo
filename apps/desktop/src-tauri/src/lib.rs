@@ -1,6 +1,7 @@
 use serde::Serialize;
 use tauri::Manager;
 use tauri::Emitter;
+use tauri_plugin_store::StoreExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
 use std::sync::{Mutex, OnceLock};
@@ -192,6 +193,38 @@ fn set_quick_pick_input(payload: SetInputPayload) {
     }
 }
 
+#[tauri::command]
+fn get_local_slash_prompts(app: tauri::AppHandle) -> Result<Vec<serde_json::Value>, String> {
+    let store = app
+        .store("settings.json")
+        .map_err(|error| format!("failed to open settings store: {error}"))?;
+
+    let Some(value) = store.get("slash_prompts") else {
+        return Ok(Vec::new());
+    };
+
+    let prompts = value
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+
+    Ok(prompts)
+}
+
+#[tauri::command]
+fn get_local_ai_provider(app: tauri::AppHandle) -> Result<String, String> {
+    let store = app
+        .store("settings.json")
+        .map_err(|error| format!("failed to open settings store: {error}"))?;
+
+    let ai_provider = store
+        .get("ai_provider")
+        .and_then(|value| value.as_str().map(|value| value.to_string()))
+        .unwrap_or_else(|| "typo".to_string());
+
+    Ok(ai_provider)
+}
+
 pub(crate) fn desktop_log_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
     app.path()
         .app_log_dir()
@@ -268,6 +301,8 @@ pub fn run() {
             get_selected_text,
             set_pending_selection_input,
             set_quick_pick_input,
+            get_local_slash_prompts,
+            get_local_ai_provider,
             open_log_folder,
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,

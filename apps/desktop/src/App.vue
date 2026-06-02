@@ -29,13 +29,23 @@ let isMounted = true
 onMounted(async () => {
   logger.info('App', `onMounted for window: ${currentLabel}`)
 
-  // Basic initialization is required for every window
-  await initializeStore()
-  await initializeAuthStore()
+  const isQuickPickWindow = currentLabel === 'quick-pick' || currentLabel === 'quick-pick-result'
+
+  // Quick-pick windows run with restricted permissions and cannot use plugin-store.
+  // Skip store/auth/i18n bootstrapping there and rely on default locale + invoke calls.
+  if (!isQuickPickWindow) {
+    await initializeStore()
+    await initializeAuthStore()
+  }
+
   if (!isMounted) {
     return
   }
-  await initializeI18n()
+
+  if (!isQuickPickWindow) {
+    await initializeI18n()
+  }
+
   if (!isMounted) {
     return
   }

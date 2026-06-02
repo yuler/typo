@@ -191,7 +191,7 @@ pub fn create_upgrade_window(app: &AppHandle) {
 }
 
 pub fn create_quick_pick_window(app: &AppHandle) {
-    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 420.0, 320.0);
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 280.0, 300.0);
 }
 
 pub fn create_quick_pick_result_window(app: &AppHandle) {
@@ -260,7 +260,7 @@ fn create_quick_pick_floating_window(
         y = y.clamp(wa_y, wa_y + wa_h - win_height);
     }
 
-    if let Err(e) = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
+    let window = match WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
         .title(title)
         .inner_size(win_width, win_height)
         .position(x, y)
@@ -272,6 +272,14 @@ fn create_quick_pick_floating_window(
         .visible(true)
         .build()
     {
-        log::error!("failed to build {} window: {}", label, e);
+        Ok(window) => window,
+        Err(e) => {
+            log::error!("failed to build {} window: {}", label, e);
+            return;
+        }
+    };
+
+    if let Err(err) = window.set_focus() {
+        log::error!("failed to focus {} window: {}", label, err);
     }
 }

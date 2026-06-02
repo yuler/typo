@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
@@ -8,7 +9,6 @@ import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
-import * as store from '@/stores/settings'
 
 const { t } = useI18n()
 const appWindow = getCurrentWebviewWindow()
@@ -23,7 +23,7 @@ let abortController: AbortController | null = null
 let isMounted = true
 
 async function fetchCorrection(payload: { text: string, prompt: string, command?: string }): Promise<string> {
-  const aiProvider = await store.get('ai_provider')
+  const aiProvider = await invoke<string>('get_local_ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
 
   switch (aiProvider) {

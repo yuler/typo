@@ -67,6 +67,7 @@ async function onQuickPickShortcut() {
   const selectedText = (await invoke('get_selected_text')) as string
 
   if (selectedText) {
+    localStorage.setItem('quick-pick-selection', selectedText)
     await invoke('open_quick_pick_window')
   }
   else {

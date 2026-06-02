@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { LazyStore } from '@tauri-apps/plugin-store'
 import { SearchIcon, SettingsIcon } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +12,6 @@ import { logger } from '@/logger'
 
 const { t } = useI18n()
 const appWindow = getCurrentWebviewWindow()
-const localSettingsStore = new LazyStore('settings.json')
 
 const capturedText = ref('')
 const searchQuery = ref('')
@@ -70,9 +68,8 @@ async function confirmSelection(prompt: any) {
       command: prompt.key,
     }))
 
-    await invoke('open_quick_pick_result_window')
-
     await appWindow.hide() // Hide first for snappiness
+    await invoke('open_quick_pick_result_window')
     await appWindow.close()
   }
   catch (err) {
@@ -134,12 +131,19 @@ async function openSettings() {
 }
 
 async function loadQuickPickData() {
+  const cachedSelection = localStorage.getItem('quick-pick-selection') || ''
+  if (cachedSelection) {
+    localStorage.removeItem('quick-pick-selection')
+  }
+
   const [text, prompts] = await Promise.all([
-    invoke<string>('get_selected_text'),
-    localSettingsStore.get<any[]>('slash_prompts'),
+    cachedSelection ? Promise.resolve(cachedSelection) : invoke<string>('get_selected_text'),
+    invoke<any[]>('get_local_slash_prompts'),
   ])
   capturedText.value = text
   slashPrompts.value = Array.isArray(prompts) ? prompts : []
+
+  logger.info('QuickPick', 'slashPrompts', { text, prompts })
 }
 
 onMounted(() => {
@@ -147,6 +151,7 @@ onMounted(() => {
   document.addEventListener('keydown', onWindowKeyDown, true)
 
   void loadQuickPickData().finally(() => {
+    void appWindow.setFocus()
     const input = document.querySelector('input')
     input?.focus()
   })
@@ -159,20 +164,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl">
+  <div class="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 shadow-2xl">
     <!-- Header: Selection Preview -->
-    <div class="border-b border-slate-200 bg-slate-50 px-4 py-3">
-      <p class="truncate font-mono text-xs text-slate-500">
+    <div class="border-b border-slate-200 bg-slate-50 px-2.5 py-1.5">
+      <p class="truncate font-mono text-[11px] text-slate-500">
         {{ truncatedPreview }}
       </p>
     </div>
 
     <!-- Search Area -->
-    <div class="relative p-2">
-      <SearchIcon class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+    <div class="relative p-1.5">
+      <SearchIcon class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
       <Input
         v-model="searchQuery"
-        class="h-10 border-slate-200 bg-white pl-10"
+        class="h-8 border-slate-200 bg-white pl-8 text-xs"
         :placeholder="t('main.quick_pick.search_placeholder') || 'Search commands...'"
         @keydown="onKeyDown"
       />
@@ -180,29 +185,29 @@ onUnmounted(() => {
 
     <!-- Results -->
     <ScrollArea class="flex-1">
-      <div v-if="filteredPrompts.length > 0" class="space-y-1 p-2">
+      <div v-if="filteredPrompts.length > 0" class="space-y-0.5 px-1.5 pb-1.5">
         <Button
           v-for="(prompt, index) in filteredPrompts"
           :key="prompt.key"
           variant="ghost"
-          class="h-auto w-full justify-between rounded-lg px-3 py-2 text-left text-sm"
+          class="h-auto w-full justify-between rounded-md px-2 py-1.5 text-left text-xs"
           :class="index === selectedIndex ? 'bg-slate-100 text-slate-900' : 'text-slate-900 hover:bg-slate-50'"
           @click="confirmSelection(prompt)"
           @mouseenter="selectedIndex = index"
         >
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-white">{{ prompt.command }}</span>
-            <span class="text-xs opacity-60 truncate max-w-[200px]">{{ prompt.value }}</span>
+          <div class="flex min-w-0 items-center gap-1.5">
+            <span class="font-bold text-slate-900">{{ prompt.command }}</span>
+            <span class="truncate text-[11px] opacity-60">{{ prompt.value }}</span>
           </div>
-          <div v-if="prompt.aliases?.length" class="flex gap-1">
-            <Badge v-for="alias in prompt.aliases" :key="alias" variant="secondary" class="px-1 py-0 text-[10px]">
+          <div v-if="prompt.aliases?.length" class="flex shrink-0 gap-1">
+            <Badge v-for="alias in prompt.aliases" :key="alias" variant="secondary" class="px-1 py-0 text-[9px]">
               {{ alias }}
             </Badge>
           </div>
         </Button>
       </div>
-      <div v-else class="space-y-4 p-8 text-center">
-        <p class="text-sm text-slate-500">
+      <div v-else class="space-y-3 p-6 text-center">
+        <p class="text-xs text-slate-500">
           {{ t('main.quick_pick.no_commands') || 'No commands found' }}
         </p>
         <button
