@@ -5,7 +5,8 @@ class Api::V1::BaseController < ActionController::API
   include GearedPagination::Controller
 
   # Bump when shipping a release that must block older desktop clients.
-  MINIMUM_DESKTOP_VERSION = "1.7.0"
+  # TODO: Move to a global position — the apps/www also need this to display available release versions.
+  MINIMUM_DESKTOP_VERSION = "1.6.0"
 
   before_action :require_supported_desktop_version
 
