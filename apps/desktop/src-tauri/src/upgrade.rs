@@ -41,7 +41,7 @@ pub fn init(app: AppHandle) {
 #[tauri::command]
 pub fn increment_activity(app: AppHandle) {
     let old = ACTIVITY_COUNTER.fetch_add(1, Ordering::Relaxed);
-    if (old + 1) % ACTIVITY_THRESHOLD == 0 {
+    if old.wrapping_add(1) % ACTIVITY_THRESHOLD == 0 {
         let handle = app.clone();
         tauri::async_runtime::spawn(async move {
             check_update_silent(&handle).await;

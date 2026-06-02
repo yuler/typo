@@ -109,6 +109,7 @@
   "upgrade.check_failed_details": "ネットワーク接続を確認して、後でもう一度お試しください。",
   "upgrade.no_notes": "リリースノートはありません。",
   "upgrade.later": "後で",
+  "upgrade.skip_version": "このバージョンをスキップ",
   "upgrade.confirm": "アップグレード",
   "upgrade.downloading": "ダウンロード中...",
   "upgrade.required": "続行するにはアップデートが必要です",

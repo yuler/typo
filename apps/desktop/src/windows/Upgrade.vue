@@ -256,9 +256,17 @@ function onDismiss() {
         <div class="flex justify-end gap-3 shrink-0 pt-4 border-t border-zinc-100">
           <Button
             v-if="!isForced"
+            variant="ghost"
+            class="cursor-pointer font-medium text-zinc-500"
+            @click="onIgnore"
+          >
+            {{ t('upgrade.skip_version') }}
+          </Button>
+          <Button
+            v-if="!isForced"
             variant="outline"
             class="cursor-pointer font-medium"
-            @click="onIgnore"
+            @click="onDismiss"
           >
             {{ t('upgrade.later') }}
           </Button>

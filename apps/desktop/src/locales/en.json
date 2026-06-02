@@ -109,6 +109,7 @@
   "upgrade.check_failed_details": "Please check your network connection and try again later.",
   "upgrade.no_notes": "No release notes.",
   "upgrade.later": "Later",
+  "upgrade.skip_version": "Skip this version",
   "upgrade.confirm": "Upgrade",
   "upgrade.downloading": "Downloading...",
   "upgrade.required": "Update required to continue",
