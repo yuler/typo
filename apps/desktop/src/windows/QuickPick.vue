@@ -2,7 +2,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { SearchIcon } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -26,8 +25,8 @@ let unlistenFocusChanged: (() => void) | undefined
 let unlistenSelectionCaptured: (() => void) | undefined
 let selectionTimeout: ReturnType<typeof setTimeout> | null = null
 let openedAt = 0
-let registeredEscapeShortcut: string | null = null
 let shouldFocusInput = false
+let isMounted = true
 let isWindowFocused = false
 let focusTimers: ReturnType<typeof setTimeout>[] = []
 
@@ -107,44 +106,10 @@ async function closeWindow() {
       clearTimeout(selectionTimeout)
       selectionTimeout = null
     }
-    await unregisterEscapeShortcut()
     await appWindow.hide()
   }
   catch (error) {
     logger.error('QuickPick', 'failed to hide window', error)
-  }
-}
-
-async function registerEscapeShortcut() {
-  if (registeredEscapeShortcut)
-    return
-
-  for (const shortcut of ['Esc', 'Escape']) {
-    try {
-      await register(shortcut, (event) => {
-        if (event.state === 'Released')
-          void closeWindow()
-      })
-      registeredEscapeShortcut = shortcut
-      return
-    }
-    catch (error) {
-      logger.warn('QuickPick', `failed to register ${shortcut} shortcut fallback`, error)
-    }
-  }
-}
-
-async function unregisterEscapeShortcut() {
-  if (!registeredEscapeShortcut)
-    return
-
-  const shortcut = registeredEscapeShortcut
-  registeredEscapeShortcut = null
-  try {
-    await unregister(shortcut)
-  }
-  catch (error) {
-    logger.warn('QuickPick', 'failed to unregister Escape shortcut fallback', error)
   }
 }
 
@@ -296,12 +261,13 @@ onMounted(() => {
   document.addEventListener('keydown', onWindowKeyDown, true)
 
   void appWindow.isFocused().then((focused) => {
-    isWindowFocused = focused
+    if (isMounted)
+      isWindowFocused = focused
   })
 
   void appWindow.isVisible().then((visible) => {
     logger.info('QuickPick', 'onMounted: isVisible =', visible)
-    if (!visible)
+    if (!visible || !isMounted)
       return
 
     beginQuickPickSession()
@@ -311,14 +277,20 @@ onMounted(() => {
     logger.info('QuickPick', 'event quick-pick-window-opened received')
     beginQuickPickSession()
   }).then((unlisten) => {
-    unlistenWindowOpened = unlisten
+    if (!isMounted)
+      unlisten()
+    else
+      unlistenWindowOpened = unlisten
   })
 
   void listen<string | null>('quick-pick-selection-captured', (event) => {
     logger.info('QuickPick', 'event quick-pick-selection-captured received', event.payload)
     void handleSelectionCaptured(event.payload)
   }).then((unlisten) => {
-    unlistenSelectionCaptured = unlisten
+    if (!isMounted)
+      unlisten()
+    else
+      unlistenSelectionCaptured = unlisten
   })
 
   void appWindow.onFocusChanged(({ payload: focused }) => {
@@ -337,11 +309,15 @@ onMounted(() => {
       void closeWindow()
     }
   }).then((unlisten) => {
-    unlistenFocusChanged = unlisten
+    if (!isMounted)
+      unlisten()
+    else
+      unlistenFocusChanged = unlisten
   })
 })
 
 onUnmounted(() => {
+  isMounted = false
   shouldFocusInput = false
   clearFocusTimers()
   if (selectionTimeout) {
@@ -356,7 +332,6 @@ onUnmounted(() => {
     unlistenFocusChanged()
   if (unlistenSelectionCaptured)
     unlistenSelectionCaptured()
-  void unregisterEscapeShortcut()
 })
 
 async function handleSelectionCaptured(text: string | null) {
@@ -382,7 +357,6 @@ function beginQuickPickSession() {
   }
   selectedIndex.value = 0
   searchQuery.value = ''
-  void registerEscapeShortcut()
 
   scheduleInputFocus()
 

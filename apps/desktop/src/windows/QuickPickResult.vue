@@ -32,7 +32,10 @@ let unlistenFocusChanged: (() => void) | undefined
 let abortController: AbortController | null = null
 let isMounted = true
 
-async function fetchCorrection(payload: { text: string, prompt: string, command?: string }): Promise<string> {
+async function fetchCorrection(
+  payload: { text: string, prompt: string, command?: string },
+  signal: AbortSignal,
+): Promise<string> {
   const aiProvider = await invoke<string>('get_local_ai_provider')
   let process: (text: string, abortSignal?: AbortSignal, preResolved?: { text: string, prompt: string, command?: string }) => Promise<string>
 
@@ -50,26 +53,32 @@ async function fetchCorrection(payload: { text: string, prompt: string, command?
       throw new Error(t('main.error.invalid_ai'))
   }
 
-  abortController = new AbortController()
-  return process(payload.text, abortController.signal, payload)
+  return process(payload.text, signal, payload)
 }
 
 async function startProcessing(payload: { text: string, prompt: string, command: string }) {
   abortController?.abort()
-  abortController = null
+  const controller = new AbortController()
+  abortController = controller
   copied.value = false
   try {
     state.value = 'processing'
     resultText.value = ''
     errorText.value = ''
-    const output = await fetchCorrection(payload)
-    resultText.value = output
-    state.value = 'result'
+    const output = await fetchCorrection(payload, controller.signal)
+    if (abortController === controller) {
+      resultText.value = output
+      state.value = 'result'
+    }
   }
   catch (err: any) {
-    logger.error('QuickPickResult', 'Processing failed', err)
-    errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
-    state.value = 'error'
+    if (abortController === controller) {
+      if (err?.name === 'AbortError')
+        return
+      logger.error('QuickPickResult', 'Processing failed', err)
+      errorText.value = (typeof err === 'string' ? err : err?.message) || t('main.error.generic')
+      state.value = 'error'
+    }
   }
 }
 

@@ -251,7 +251,11 @@ fn create_quick_pick_floating_window(
         return;
     }
 
-    let (x, y) = quick_pick_window_position(app, win_width, win_height);
+    let (x, y) = if show {
+        quick_pick_window_position(app, win_width, win_height)
+    } else {
+        (0.0, 0.0)
+    };
 
     let window = match WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
         .title(title)
