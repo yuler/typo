@@ -240,6 +240,14 @@ fn create_quick_pick_floating_window(
             if let Err(err) = window.set_focus() {
                 log::error!("failed to focus {} window: {}", label, err);
             }
+            // Focus retry for Linux window manager mapping delay
+            let w = window.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                let _ = w.set_focus();
+                std::thread::sleep(std::time::Duration::from_millis(150));
+                let _ = w.set_focus();
+            });
             let opened_event = if label == "quick-pick" {
                 "quick-pick-window-opened"
             } else {
@@ -277,6 +285,14 @@ fn create_quick_pick_floating_window(
         if let Err(err) = window.set_focus() {
             log::error!("failed to focus {} window: {}", label, err);
         }
+        // Focus retry for Linux window manager mapping delay
+        let w = window.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(50));
+            let _ = w.set_focus();
+            std::thread::sleep(std::time::Duration::from_millis(150));
+            let _ = w.set_focus();
+        });
     }
 
     let label_for_close = label.to_string();

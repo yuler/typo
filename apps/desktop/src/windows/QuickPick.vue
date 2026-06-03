@@ -5,7 +5,7 @@ import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { register, unregister } from '@tauri-apps/plugin-global-shortcut'
 import { SearchIcon } from 'lucide-vue-next'
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -227,26 +227,24 @@ async function loadQuickPickData() {
   logger.info('QuickPick', 'slashPrompts', { text, prompts })
 }
 
-async function focusInput() {
+function focusInput() {
   if (!shouldFocusInput)
     return
 
-  try {
-    await appWindow.setFocus()
-  }
-  catch (error) {
+  void appWindow.setFocus().catch((error) => {
     logger.warn('QuickPick', 'failed to focus window before input focus', error)
-  }
+  })
 
   window.focus()
-  await nextTick()
   const input = getSearchInputElement()
   if (!input)
     return
   input.focus({ preventScroll: true })
   input.click()
   // Keep existing text selected so users can immediately overwrite or type.
-  input.setSelectionRange(input.value.length, input.value.length)
+  if (input.value) {
+    input.setSelectionRange(input.value.length, input.value.length)
+  }
 }
 
 function focusInputWithRetry() {
