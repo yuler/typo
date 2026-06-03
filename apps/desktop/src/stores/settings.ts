@@ -15,7 +15,7 @@ export interface SlashPrompt {
 }
 
 export const DEFAULT_GLOBAL_SHORTCUT = 'CommandOrControl+Shift+X'
-export const DEFAULT_QUICK_PICK_SHORTCUT = 'CommandOrControl+Shift+Z'
+export const DEFAULT_QUICK_PICK_SHORTCUT = 'CommandOrControl+Shift+Space'
 
 const DEFAULT_STORE = {
   autoselect: false,

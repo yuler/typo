@@ -3,11 +3,19 @@ set -euo pipefail
 
 # Settings -> Keyboard -> Custom Shortcuts
 
+if ! command -v gum >/dev/null 2>&1; then
+    echo "gum is required. Install from https://github.com/charmbracelet/gum" >&2
+    exit 1
+fi
+
+warn() { gum log -l warn "$@"; }
+
 # Default values
 MODE="global"
 CMD="typo --selection"
 BINDING="<Control><Shift>x"
-QUICK_PICK_BINDING="<Control><Shift>z"
+QUICK_PICK_BINDING="<Control><Shift>space"
+SHORTCUT_ROWS=()
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -22,10 +30,10 @@ while [[ "$#" -gt 0 ]]; do
             echo "  --global         Set the shortcut command for global installation (default)"
             echo "  --help, -h       Show this help message and exit"
             echo ""
-            echo "Shortcuts: Typo <Control><Shift>x, Typo Quick Pick <Control><Shift>z"
+            echo "Shortcuts: Typo <Control><Shift>x, Typo Quick Pick <Control><Shift>space"
             exit 0
             ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+        *) gum log -l error "Unknown parameter passed: $1"; exit 1 ;;
     esac
 done
 
@@ -55,14 +63,11 @@ gsettings_unquote() {
     printf '%s' "$value"
 }
 
-# Show Typo shortcuts and other bindings that may conflict before updating.
-show_existing_shortcuts() {
-    local current_bindings
-    current_bindings=$(gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings)
+# Warn if another shortcut already uses Typo's bindings.
+check_binding_conflicts() {
+    local current_bindings binding_conflict=false
 
-    echo "Existing GNOME custom shortcuts:"
-    local found_typo=false
-    local binding_conflict=false
+    current_bindings=$(gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings)
 
     while read -r p; do
         p=$(echo "$p" | tr -d "'")
@@ -70,52 +75,28 @@ show_existing_shortcuts() {
             continue
         fi
 
-        local name_raw binding_raw command_raw
+        local name_raw binding_raw
         name_raw=$(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$p" name 2>/dev/null || echo "''")
         binding_raw=$(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$p" binding 2>/dev/null || echo "''")
-        command_raw=$(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$p" command 2>/dev/null || echo "''")
 
-        local name binding command
+        local name binding
         name=$(gsettings_unquote "$name_raw")
         binding=$(gsettings_unquote "$binding_raw")
-        command=$(gsettings_unquote "$command_raw")
-
-        local tags=""
-        if [[ "$name" == Typo* ]] || [[ "$command" == *typo* ]]; then
-            tags+=" [Typo]"
-            found_typo=true
-        fi
 
         if [[ "$binding" == "$BINDING" || "$binding" == "$QUICK_PICK_BINDING" ]]; then
             if [[ "$name" != "Typo" && "$name" != "Typo Quick Pick" ]]; then
-                tags+=" [binding conflict]"
                 binding_conflict=true
             fi
         fi
-
-        if [ -n "$name" ] || [ -n "$binding" ] || [ -n "$command" ]; then
-            echo "  - ${name:-<unnamed>}: ${binding:-<unbound>} -> ${command:-<empty>}$tags"
-        fi
     done < <(echo "$current_bindings" | grep -o "'[^']*'")
 
-    if [[ "$found_typo" == "false" ]]; then
-        echo "  (no Typo shortcuts found)"
-    fi
-
     if [[ "$binding_conflict" == "true" ]]; then
-        echo ""
-        echo "Warning: another shortcut already uses $BINDING or $QUICK_PICK_BINDING."
-        echo "         Disable or rebind it in Settings -> Keyboard -> Custom Shortcuts."
+        warn "Another shortcut already uses $BINDING or $QUICK_PICK_BINDING."
+        warn "Disable or rebind it in Settings -> Keyboard -> Custom Shortcuts."
     fi
-
-    echo ""
-    echo "Updating Typo shortcuts [$MODE mode]:"
-    echo "  Typo:            $BINDING -> $CMD"
-    echo "  Typo Quick Pick: $QUICK_PICK_BINDING -> $QUICK_PICK_CMD"
-    echo ""
 }
 
-show_existing_shortcuts
+check_binding_conflicts
 
 # Register (create or update) a single custom keybinding identified by NAME.
 # Arguments: <name> <default-path> <command> <binding>
@@ -169,9 +150,26 @@ setup_keybinding() {
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$key_path" command "'$escaped_command'"
     gsettings set "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$key_path" binding "'$binding'"
 
-    echo "Shortcut '$name' setup successfully ($key_path) [$MODE mode]:"
-    echo "  Binding: $binding"
-    echo "  Command: $command"
+    SHORTCUT_ROWS+=("${name}"$'\t'"${binding}")
+}
+
+show_results() {
+    local lines=("✅ Typo shortcuts configured [$MODE mode]" "")
+
+    for row in "${SHORTCUT_ROWS[@]}"; do
+        local name binding
+        name="${row%%$'\t'*}"
+        binding="${row#*$'\t'}"
+        lines+=("$(printf '%-17s %s' "$name" "$binding")")
+    done
+
+    echo ""
+    gum style \
+        --border rounded \
+        --padding "1 2" \
+        --border-foreground 82 \
+        "${lines[@]}"
+    echo ""
 }
 
 setup_keybinding "Typo" \
@@ -181,3 +179,5 @@ setup_keybinding "Typo" \
 setup_keybinding "Typo Quick Pick" \
     "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom-typo-quick-pick/" \
     "$QUICK_PICK_CMD" "$QUICK_PICK_BINDING"
+
+show_results
