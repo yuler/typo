@@ -200,13 +200,11 @@ onUnmounted(() => {
     :class="{ 'quick-pick-result-shell--processing': state === 'processing' }"
   >
     <div
-      class="flex flex-col h-full w-full rounded-xl overflow-hidden shadow-2xl relative z-10"
-      :class="state === 'processing' ? 'bg-zinc-950 text-zinc-100 border border-zinc-800' : 'bg-white text-zinc-900 border border-zinc-200'"
+      class="flex flex-col h-full w-full rounded-xl overflow-hidden shadow-2xl relative z-10 bg-white text-zinc-900 border border-zinc-200"
     >
       <!-- Header -->
       <div
-        class="flex items-center justify-between px-4 py-2 border-b"
-        :class="state === 'processing' ? 'border-zinc-800 bg-zinc-900/50 text-zinc-400' : 'border-zinc-200 bg-zinc-50 text-zinc-500'"
+        class="flex items-center justify-between px-4 py-2 border-b border-zinc-200 bg-zinc-50 text-zinc-500"
       >
         <span class="text-xs font-medium">
           {{ t('main.quick_pick.result_title') || 'Quick Pick Result' }}
@@ -224,8 +222,8 @@ onUnmounted(() => {
       <!-- Content -->
       <div class="flex-1 overflow-hidden relative">
         <div v-if="state === 'processing'" class="flex flex-col items-center justify-center h-full space-y-4">
-          <div class="w-8 h-8 border-2 border-zinc-800 border-t-blue-500 rounded-full animate-spin" />
-          <p class="text-sm text-zinc-400 font-medium">
+          <div class="w-8 h-8 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+          <p class="text-sm text-zinc-500 font-medium">
             {{ t('main.status.processing') || 'Processing...' }}
           </p>
         </div>
@@ -253,8 +251,7 @@ onUnmounted(() => {
       <!-- Footer -->
       <div
         v-if="state === 'processing'"
-        class="px-4 py-2 border-t"
-        :class="state === 'processing' ? 'border-zinc-800 bg-zinc-900/50' : 'border-zinc-200 bg-zinc-50'"
+        class="px-4 py-2 border-t border-zinc-200 bg-zinc-50"
       >
         <p class="text-[11px] text-zinc-500">
           Press Esc to cancel
@@ -307,7 +304,7 @@ onUnmounted(() => {
   pointer-events: none;
   border-radius: inherit;
   z-index: 0;
-  background-color: rgb(9 9 11);
+  background-color: rgb(255 255 255);
 }
 
 .quick-pick-result-shell--processing::before {
@@ -321,14 +318,14 @@ onUnmounted(() => {
   background:
     conic-gradient(
       from var(--indicator-runner-angle, 0deg),
-      rgba(59, 130, 246, 0) 0deg,
-      rgba(59, 130, 246, 0) 310deg,
-      rgba(59, 130, 246, 0.95) 318deg,
-      rgba(59, 130, 246, 0.95) 336deg,
-      rgba(59, 130, 246, 0) 344deg,
-      rgba(59, 130, 246, 0) 360deg
+      rgba(24, 24, 27, 0) 0deg,
+      rgba(24, 24, 27, 0) 310deg,
+      rgba(24, 24, 27, 0.95) 318deg,
+      rgba(24, 24, 27, 0.95) 336deg,
+      rgba(24, 24, 27, 0) 344deg,
+      rgba(24, 24, 27, 0) 360deg
     );
-  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.35));
+  filter: drop-shadow(0 0 3px rgba(24, 24, 27, 0.35));
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);

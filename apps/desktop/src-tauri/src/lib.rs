@@ -132,24 +132,49 @@ fn capture_quick_pick_selection(app: tauri::AppHandle) {
     });
 }
 
-/// Capture the current selection and only open the quick pick window when there
-/// is text to act on. Returns `false` when nothing is selected so callers can
-/// avoid showing an empty popup.
 #[tauri::command]
 fn open_quick_pick_with_selection(app: tauri::AppHandle, text: Option<String>) -> bool {
-    // Show window immediately so GNOME window manager grants focus instantly
-    windows::open_quick_pick_window(app.clone());
+    let app_clone = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Some(val) = text.filter(|value| !value.trim().is_empty()) {
+            set_quick_pick_selection(val.clone());
+            windows::open_quick_pick_window(app_clone.clone());
+            if let Some(window) = app_clone.get_webview_window("quick-pick") {
+                let _ = window.emit("quick-pick-selection-captured", Some(val));
+            }
+        } else {
+            // 1. Capture the selection first while the active editor window still has focus
+            let captured_text = tauri::async_runtime::spawn_blocking(move || {
+                let captured = if in_linux_wayland() {
+                    get_selected_text_wayland(&app_clone)
+                } else {
+                    get_selected_text_enigo(&app_clone)
+                };
+                captured.filter(|value| !value.trim().is_empty())
+            })
+            .await
+            .unwrap_or(None);
 
-    if let Some(val) = text.filter(|value| !value.trim().is_empty()) {
-        set_quick_pick_selection(val.clone());
-        if let Some(window) = app.get_webview_window("quick-pick") {
-            let _ = window.emit("quick-pick-selection-captured", Some(val));
+            if let Some(ref val) = captured_text {
+                set_quick_pick_selection(val.clone());
+            } else {
+                if let Ok(mut sel) = quick_pick_selection().lock() {
+                    *sel = None;
+                }
+            }
+
+            // 2. Open the quick pick window
+            windows::open_quick_pick_window(app.clone());
+
+            // 3. Emit the event
+            if let Some(window) = app.get_webview_window("quick-pick") {
+                let _ = window.emit("quick-pick-selection-captured", captured_text);
+            }
         }
-    } else {
-        capture_quick_pick_selection(app);
-    }
+    });
     true
 }
+
 
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");

@@ -365,13 +365,7 @@ async function handleSelectionCaptured(text: string | null) {
     selectionTimeout = null
   }
 
-  if (!text?.trim()) {
-    logger.warn('QuickPick', 'handleSelectionCaptured: no selection, hide window')
-    await closeWindow()
-    return
-  }
-
-  capturedText.value = text
+  capturedText.value = text?.trim() || ''
   scheduleInputFocus()
 }
 
@@ -395,8 +389,9 @@ function beginQuickPickSession() {
   // Set a fallback timeout for selection capture
   selectionTimeout = setTimeout(() => {
     if (!capturedText.value) {
-      logger.warn('QuickPick', 'selection capture timed out, hiding window')
-      void closeWindow()
+      logger.warn('QuickPick', 'selection capture timed out')
+      capturedText.value = ''
+      scheduleInputFocus()
     }
   }, 1500)
 
