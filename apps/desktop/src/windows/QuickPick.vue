@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ComponentPublicInstance } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
@@ -228,6 +227,7 @@ async function loadQuickPickData() {
 }
 
 function focusInput() {
+  logger.info('QuickPick', 'focusInput called, shouldFocusInput =', shouldFocusInput)
   if (!shouldFocusInput)
     return
 
@@ -237,10 +237,15 @@ function focusInput() {
 
   window.focus()
   const input = getSearchInputElement()
+  logger.info('QuickPick', 'getSearchInputElement returned:', input ? 'input element' : 'null')
   if (!input)
     return
+
+  logger.info('QuickPick', 'document.activeElement before focus:', document.activeElement?.tagName)
   input.focus({ preventScroll: true })
   input.click()
+  logger.info('QuickPick', 'document.activeElement after focus:', document.activeElement?.tagName)
+
   // Keep existing text selected so users can immediately overwrite or type.
   if (input.value) {
     input.setSelectionRange(input.value.length, input.value.length)
@@ -251,39 +256,21 @@ function focusInputWithRetry() {
   if (!shouldFocusInput)
     return
 
-  void focusInput()
-  requestAnimationFrame(() => void focusInput())
+  focusInput()
+  requestAnimationFrame(() => focusInput())
 
   for (const delay of [0, 16, 60]) {
     focusTimers.push(setTimeout(() => {
       if (shouldFocusInput)
-        void focusInput()
+        focusInput()
     }, delay))
   }
 }
 
 function getSearchInputElement() {
-  const refValue = searchInputRef.value
-  if (refValue instanceof HTMLInputElement)
-    return refValue
-
-  if (refValue?.$el instanceof HTMLInputElement)
-    return refValue.$el
-
-  if ((refValue as ComponentPublicInstance | null)?.$el instanceof HTMLElement) {
-    const el = (refValue as ComponentPublicInstance).$el as HTMLElement
-    const nestedInput = el.querySelector<HTMLInputElement>('input')
-    if (nestedInput)
-      return nestedInput
-  }
-
-  if (refValue instanceof HTMLElement) {
-    const nestedInput = refValue.querySelector<HTMLInputElement>('input')
-    if (nestedInput)
-      return nestedInput
-  }
-
-  return quickPickRoot.value?.querySelector<HTMLInputElement>('input') ?? null
+  return document.querySelector<HTMLInputElement>('input')
+    || quickPickRoot.value?.querySelector<HTMLInputElement>('input')
+    || null
 }
 
 onMounted(() => {
@@ -291,6 +278,7 @@ onMounted(() => {
   document.addEventListener('keydown', onWindowKeyDown, true)
 
   void appWindow.isVisible().then((visible) => {
+    logger.info('QuickPick', 'onMounted: isVisible =', visible)
     if (!visible)
       return
 
@@ -298,20 +286,24 @@ onMounted(() => {
   })
 
   void listen('quick-pick-window-opened', () => {
+    logger.info('QuickPick', 'event quick-pick-window-opened received')
     beginQuickPickSession()
   }).then((unlisten) => {
     unlistenWindowOpened = unlisten
   })
 
   void appWindow.onFocusChanged(({ payload: focused }) => {
+    logger.info('QuickPick', 'onFocusChanged received focused =', focused)
     if (focused) {
       scheduleInputFocus()
     }
     else {
       if (Date.now() - openedAt < 1200) {
+        logger.info('QuickPick', 'lost focus within 1200ms, rescheduling focus')
         scheduleInputFocus()
         return
       }
+      logger.info('QuickPick', 'lost focus after 1200ms, closing window')
       void closeWindow()
     }
   }).then((unlisten) => {
