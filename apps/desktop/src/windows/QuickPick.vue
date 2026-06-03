@@ -189,11 +189,12 @@ async function loadQuickPickData() {
   slashPrompts.value = Array.isArray(prompts) ? prompts : []
   logger.info('QuickPick', 'loadQuickPickData', { text, prompts })
 
+  if (selectionTimeout) {
+    clearTimeout(selectionTimeout)
+    selectionTimeout = null
+  }
+
   if (text?.trim()) {
-    if (selectionTimeout) {
-      clearTimeout(selectionTimeout)
-      selectionTimeout = null
-    }
     capturedText.value = text
   }
   else {
@@ -231,7 +232,7 @@ function focusInput() {
 
   // Keep existing text selected so users can immediately overwrite or type.
   if (input.value) {
-    input.setSelectionRange(input.value.length, input.value.length)
+    input.select()
   }
 }
 

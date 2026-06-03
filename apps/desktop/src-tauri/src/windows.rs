@@ -239,6 +239,9 @@ fn create_quick_pick_floating_window(
             if let Err(err) = window.show() {
                 log::error!("failed to show {} window: {}", label, err);
             }
+            if let Err(err) = window.set_focus() {
+                log::error!("failed to focus {} window: {}", label, err);
+            }
             let opened_event = if label == "quick-pick" {
                 "quick-pick-window-opened"
             } else {
@@ -279,6 +282,9 @@ fn create_quick_pick_floating_window(
     if show {
         if let Err(err) = window.show() {
             log::error!("failed to show {} window: {}", label, err);
+        }
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus {} window: {}", label, err);
         }
     }
 
@@ -322,6 +328,7 @@ fn quick_pick_window_position(app: &AppHandle, win_width: f64, win_height: f64) 
     if let Some(m) = monitor {
         let work_area = m.work_area();
         let scale = m.scale_factor();
+        let scale = if scale <= 0.0 { 1.0 } else { scale };
 
         let wa_x = work_area.position.x as f64 / scale;
         let wa_y = work_area.position.y as f64 / scale;
