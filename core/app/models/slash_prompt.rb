@@ -3,12 +3,15 @@ class SlashPrompt < ApplicationRecord
 
   serialize :aliases, coder: JSON
 
+  MAX_PROMPTS_PER_ACCOUNT = 10
+
   validates :key, presence: true, format: { with: /\A\/\w+\z/, message: "must start with / and contain only letters/digits/underscores" }
   validates :value, presence: true
   validates :key, uniqueness: { scope: :account_id, message: "already exists for this account" }
 
   validate :validate_aliases_format
   validate :validate_triggers_unique_across_account_prompts
+  validate :validate_count_within_limit, on: :create
 
   before_validation :normalize_aliases
 
@@ -100,6 +103,12 @@ class SlashPrompt < ApplicationRecord
 
       errors.add(:base, "trigger '#{collision.first}' is already used by another slash prompt (#{other.key})")
       break
+    end
+  end
+
+  def validate_count_within_limit
+    if account.slash_prompts.count >= MAX_PROMPTS_PER_ACCOUNT
+      errors.add(:base, "Maximum number of slash prompts reached (#{MAX_PROMPTS_PER_ACCOUNT})")
     end
   end
 end
