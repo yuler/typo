@@ -29,7 +29,7 @@ where
 pub fn handle_single_instance_event(
     app: &tauri::AppHandle,
     argv: &[String],
-    is_wayland: bool,
+    _is_wayland: bool,
     selection_handler: fn(&tauri::AppHandle),
     quick_pick_handler: fn(&tauri::AppHandle),
 ) {
@@ -40,12 +40,12 @@ pub fn handle_single_instance_event(
         return;
     }
 
-    if has_selection_flag(argv.iter().map(|arg| arg.as_str())) && is_wayland {
+    if has_selection_flag(argv.iter().map(|arg| arg.as_str())) {
         selection_handler(app);
         return;
     }
 
-    if has_quick_pick_flag(argv.iter().map(|arg| arg.as_str())) && is_wayland {
+    if has_quick_pick_flag(argv.iter().map(|arg| arg.as_str())) {
         quick_pick_handler(app);
         return;
     }

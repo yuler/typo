@@ -107,29 +107,47 @@ fn consume_quick_pick_selection() -> Option<String> {
     }
 }
 
+#[tauri::command]
+fn capture_quick_pick_selection(app: tauri::AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        let app_clone = app.clone();
+        let text = tauri::async_runtime::spawn_blocking(move || {
+            let captured = if in_linux_wayland() {
+                get_selected_text_wayland(&app_clone)
+            } else {
+                get_selected_text_enigo(&app_clone)
+            };
+            captured.filter(|value| !value.trim().is_empty())
+        })
+        .await
+        .unwrap_or(None);
+
+        if let Some(ref val) = text {
+            set_quick_pick_selection(val.clone());
+        }
+
+        if let Some(window) = app.get_webview_window("quick-pick") {
+            let _ = window.emit("quick-pick-selection-captured", text);
+        }
+    });
+}
+
 /// Capture the current selection and only open the quick pick window when there
 /// is text to act on. Returns `false` when nothing is selected so callers can
 /// avoid showing an empty popup.
 #[tauri::command]
 fn open_quick_pick_with_selection(app: tauri::AppHandle, text: Option<String>) -> bool {
-    let text = text
-        .filter(|value| !value.trim().is_empty())
-        .or_else(|| {
-            let captured = if in_linux_wayland() {
-                get_selected_text_wayland(&app)
-            } else {
-                get_selected_text_enigo(&app)
-            };
-            captured.filter(|value| !value.trim().is_empty())
-        });
+    // Show window immediately so GNOME window manager grants focus instantly
+    windows::open_quick_pick_window(app.clone());
 
-    let Some(text) = text else {
-        log::warn!("open_quick_pick_with_selection: no selection, skip showing window");
-        return false;
-    };
-
-    set_quick_pick_selection(text);
-    windows::open_quick_pick_window(app);
+    if let Some(val) = text.filter(|value| !value.trim().is_empty()) {
+        set_quick_pick_selection(val.clone());
+        if let Some(window) = app.get_webview_window("quick-pick") {
+            let _ = window.emit("quick-pick-selection-captured", Some(val));
+        }
+    } else {
+        capture_quick_pick_selection(app);
+    }
     true
 }
 
@@ -301,6 +319,7 @@ fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
+    let startup_quick_pick = cli::has_quick_pick_flag(std::env::args());
 
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
@@ -337,6 +356,16 @@ pub fn run() {
             if startup_selection && in_linux_wayland() {
                 app_cli_startup_selection_trigger(&app.handle());
             }
+
+            // GNOME shortcuts spawn a new process; single-instance only handles the
+            // second instance, so the first launch must open quick pick from argv.
+            if startup_quick_pick {
+                let handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_millis(400));
+                    app_cli_quick_pick_trigger(&handle);
+                });
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -359,6 +388,7 @@ pub fn run() {
             consume_quick_pick_input,
             consume_quick_pick_selection,
             open_quick_pick_with_selection,
+            capture_quick_pick_selection,
             windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,

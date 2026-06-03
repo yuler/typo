@@ -106,6 +106,7 @@
   "main.status.processing": "Processing...",
   "main.action.close": "Close",
   "main.action.copy": "Copy",
+  "main.action.insert": "Insert",
   "upgrade.title": "New version {version} available",
   "upgrade.updater": "Typo Updater",
   "upgrade.checking": "Checking for updates...",

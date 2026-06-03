@@ -57,7 +57,7 @@ pub fn open_quick_pick_result_window(app: AppHandle) {
 }
 
 pub fn preload_quick_pick_windows(app: &AppHandle) {
-    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 280.0, 300.0, false);
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 300.0, false);
     create_quick_pick_floating_window(
         app,
         "quick-pick-result",
@@ -92,7 +92,9 @@ pub fn show_and_focus_main(app: &AppHandle) {
 
 pub fn create_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        let _ = window.set_focus();
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus main window: {}", err);
+        }
         return;
     }
 
@@ -206,7 +208,7 @@ pub fn create_upgrade_window(app: &AppHandle) {
 }
 
 pub fn create_quick_pick_window(app: &AppHandle) {
-    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 280.0, 300.0, true);
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 300.0, true);
 }
 
 pub fn create_quick_pick_result_window(app: &AppHandle) {
@@ -237,17 +239,6 @@ fn create_quick_pick_floating_window(
             if let Err(err) = window.show() {
                 log::error!("failed to show {} window: {}", label, err);
             }
-            if let Err(err) = window.set_focus() {
-                log::error!("failed to focus {} window: {}", label, err);
-            }
-            // Focus retry for Linux window manager mapping delay
-            let w = window.clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(std::time::Duration::from_millis(50));
-                let _ = w.set_focus();
-                std::thread::sleep(std::time::Duration::from_millis(150));
-                let _ = w.set_focus();
-            });
             let opened_event = if label == "quick-pick" {
                 "quick-pick-window-opened"
             } else {
@@ -282,17 +273,9 @@ fn create_quick_pick_floating_window(
     };
 
     if show {
-        if let Err(err) = window.set_focus() {
-            log::error!("failed to focus {} window: {}", label, err);
+        if let Err(err) = window.show() {
+            log::error!("failed to show {} window: {}", label, err);
         }
-        // Focus retry for Linux window manager mapping delay
-        let w = window.clone();
-        std::thread::spawn(move || {
-            std::thread::sleep(std::time::Duration::from_millis(50));
-            let _ = w.set_focus();
-            std::thread::sleep(std::time::Duration::from_millis(150));
-            let _ = w.set_focus();
-        });
     }
 
     let label_for_close = label.to_string();

@@ -23,9 +23,12 @@ const quickPickRoot = ref<HTMLElement | null>(null)
 const searchInputRef = ref<{ $el?: HTMLInputElement } | HTMLInputElement | null>(null)
 let unlistenWindowOpened: (() => void) | undefined
 let unlistenFocusChanged: (() => void) | undefined
+let unlistenSelectionCaptured: (() => void) | undefined
+let selectionTimeout: ReturnType<typeof setTimeout> | null = null
 let openedAt = 0
 let registeredEscapeShortcut: string | null = null
 let shouldFocusInput = false
+let isWindowFocused = false
 let focusTimers: ReturnType<typeof setTimeout>[] = []
 
 const normalizedPrompts = computed(() => {
@@ -100,6 +103,10 @@ async function closeWindow() {
   try {
     shouldFocusInput = false
     clearFocusTimers()
+    if (selectionTimeout) {
+      clearTimeout(selectionTimeout)
+      selectionTimeout = null
+    }
     await unregisterEscapeShortcut()
     await appWindow.hide()
   }
@@ -214,16 +221,18 @@ async function loadQuickPickData() {
     invoke<any[]>('get_local_slash_prompts'),
   ])
 
-  if (!text?.trim()) {
-    logger.warn('QuickPick', 'loadQuickPickData: no selection, hide window')
-    await closeWindow()
-    return
-  }
-
-  capturedText.value = text
   slashPrompts.value = Array.isArray(prompts) ? prompts : []
+  logger.info('QuickPick', 'loadQuickPickData', { text, prompts })
 
-  logger.info('QuickPick', 'slashPrompts', { text, prompts })
+  if (text?.trim()) {
+    if (selectionTimeout) {
+      clearTimeout(selectionTimeout)
+      selectionTimeout = null
+    }
+    capturedText.value = text
+  } else {
+    capturedText.value = ''
+  }
 }
 
 function focusInput() {
@@ -243,6 +252,10 @@ function focusInput() {
 
   logger.info('QuickPick', 'document.activeElement before focus:', document.activeElement?.tagName)
   if (document.activeElement === input) {
+    if (isWindowFocused) {
+      clearFocusTimers()
+      return
+    }
     logger.info('QuickPick', 'input is already activeElement, blurring first to force focus sync')
     input.blur()
   }
@@ -281,6 +294,10 @@ onMounted(() => {
   window.addEventListener('keydown', onWindowKeyDown, true)
   document.addEventListener('keydown', onWindowKeyDown, true)
 
+  void appWindow.isFocused().then((focused) => {
+    isWindowFocused = focused
+  })
+
   void appWindow.isVisible().then((visible) => {
     logger.info('QuickPick', 'onMounted: isVisible =', visible)
     if (!visible)
@@ -296,8 +313,16 @@ onMounted(() => {
     unlistenWindowOpened = unlisten
   })
 
+  void listen<string | null>('quick-pick-selection-captured', (event) => {
+    logger.info('QuickPick', 'event quick-pick-selection-captured received', event.payload)
+    void handleSelectionCaptured(event.payload)
+  }).then((unlisten) => {
+    unlistenSelectionCaptured = unlisten
+  })
+
   void appWindow.onFocusChanged(({ payload: focused }) => {
     logger.info('QuickPick', 'onFocusChanged received focused =', focused)
+    isWindowFocused = focused
     if (focused) {
       scheduleInputFocus()
     }
@@ -318,24 +343,62 @@ onMounted(() => {
 onUnmounted(() => {
   shouldFocusInput = false
   clearFocusTimers()
+  if (selectionTimeout) {
+    clearTimeout(selectionTimeout)
+    selectionTimeout = null
+  }
   window.removeEventListener('keydown', onWindowKeyDown, true)
   document.removeEventListener('keydown', onWindowKeyDown, true)
   if (unlistenWindowOpened)
     unlistenWindowOpened()
   if (unlistenFocusChanged)
     unlistenFocusChanged()
+  if (unlistenSelectionCaptured)
+    unlistenSelectionCaptured()
   void unregisterEscapeShortcut()
 })
+
+async function handleSelectionCaptured(text: string | null) {
+  if (selectionTimeout) {
+    clearTimeout(selectionTimeout)
+    selectionTimeout = null
+  }
+
+  if (!text?.trim()) {
+    logger.warn('QuickPick', 'handleSelectionCaptured: no selection, hide window')
+    await closeWindow()
+    return
+  }
+
+  capturedText.value = text
+  scheduleInputFocus()
+}
 
 function beginQuickPickSession() {
   openedAt = Date.now()
   shouldFocusInput = true
+  void appWindow.isFocused().then((focused) => {
+    isWindowFocused = focused
+  })
   clearFocusTimers()
+  if (selectionTimeout) {
+    clearTimeout(selectionTimeout)
+    selectionTimeout = null
+  }
   selectedIndex.value = 0
   searchQuery.value = ''
   void registerEscapeShortcut()
 
   scheduleInputFocus()
+
+  // Set a fallback timeout for selection capture
+  selectionTimeout = setTimeout(() => {
+    if (!capturedText.value) {
+      logger.warn('QuickPick', 'selection capture timed out, hiding window')
+      void closeWindow()
+    }
+  }, 1500)
+
   void loadQuickPickData().finally(() => {
     scheduleInputFocus()
   })
@@ -343,64 +406,88 @@ function beginQuickPickSession() {
 </script>
 
 <template>
-  <div ref="quickPickRoot" class="flex h-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-900 shadow-2xl">
-    <!-- Search Area -->
-    <div class="relative p-1.5">
-      <SearchIcon class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-      <Input
-        ref="searchInputRef"
-        v-model="searchQuery"
-        class="h-8 border-slate-200 bg-white pl-8 text-xs"
-        :placeholder="t('main.quick_pick.search_placeholder') || 'Search commands...'"
-        @keydown="onKeyDown"
-      />
+  <div ref="quickPickRoot" class="flex h-full flex-row overflow-hidden rounded-lg border border-zinc-200 bg-white text-zinc-900 shadow-2xl">
+    <!-- Left Pane: Commands -->
+    <div class="flex flex-col w-[250px] border-r border-zinc-200 shrink-0 h-full justify-between">
+      <div class="flex flex-col flex-1 min-h-0">
+        <!-- Search Area -->
+        <div class="relative p-1.5 shrink-0">
+          <SearchIcon class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+          <Input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            class="h-8 border-zinc-200 bg-white pl-8 text-xs focus-visible:ring-1 focus-visible:ring-primary"
+            :placeholder="t('main.quick_pick.search_placeholder') || 'search or directly input prompt'"
+            @keydown="onKeyDown"
+          />
+        </div>
+
+        <!-- Results -->
+        <ScrollArea class="min-h-0 flex-1">
+          <div v-if="filteredPrompts.length > 0" class="space-y-0.5 px-1.5 pb-1.5">
+            <Button
+              v-for="(prompt, index) in filteredPrompts"
+              :key="prompt.key"
+              variant="ghost"
+              class="h-auto w-full justify-between rounded-md px-2 py-1.5 text-left text-xs"
+              :class="index === selectedIndex ? 'border border-primary/50 bg-primary/10 text-zinc-900 ring-1 ring-primary/20' : 'border border-transparent text-zinc-900 hover:bg-zinc-50'"
+              @click="confirmSelection(prompt)"
+              @mouseenter="selectedIndex = index"
+            >
+              <div class="flex min-w-0 items-center gap-1.5">
+                <span class="font-bold text-zinc-900">{{ prompt.command }}</span>
+                <span class="truncate text-[11px] opacity-60">{{ prompt.value }}</span>
+              </div>
+              <div v-if="prompt.aliases?.length" class="flex shrink-0 gap-1">
+                <Badge v-for="alias in prompt.aliases" :key="alias" variant="secondary" class="px-1 py-0 text-[9px]">
+                  {{ alias }}
+                </Badge>
+              </div>
+            </Button>
+          </div>
+        </ScrollArea>
+      </div>
+
+      <!-- Left Bottom Tip -->
+      <div class="border-t border-zinc-100 bg-zinc-50/50 p-2 shrink-0 text-center">
+        <p v-if="isUsingTypedPrompt" class="text-[10px] leading-snug text-primary/85 font-medium">
+          will use input once prompt directly
+        </p>
+        <p v-else class="text-[10px] leading-snug text-zinc-400">
+          Select a command or press Enter to run
+        </p>
+      </div>
     </div>
 
-    <!-- Results -->
-    <ScrollArea class="min-h-0 flex-1">
-      <div v-if="filteredPrompts.length > 0" class="space-y-0.5 px-1.5 pb-1.5">
-        <Button
-          v-for="(prompt, index) in filteredPrompts"
-          :key="prompt.key"
-          variant="ghost"
-          class="h-auto w-full justify-between rounded-md px-2 py-1.5 text-left text-xs"
-          :class="index === selectedIndex ? 'border border-primary/50 bg-primary/10 text-slate-900 ring-1 ring-primary/20' : 'border border-transparent text-slate-900 hover:bg-slate-50'"
-          @click="confirmSelection(prompt)"
-          @mouseenter="selectedIndex = index"
-        >
-          <div class="flex min-w-0 items-center gap-1.5">
-            <span class="font-bold text-slate-900">{{ prompt.command }}</span>
-            <span class="truncate text-[11px] opacity-60">{{ prompt.value }}</span>
-          </div>
-          <div v-if="prompt.aliases?.length" class="flex shrink-0 gap-1">
-            <Badge v-for="alias in prompt.aliases" :key="alias" variant="secondary" class="px-1 py-0 text-[9px]">
-              {{ alias }}
-            </Badge>
-          </div>
-        </Button>
+    <!-- Right Pane: Prompt and Selection Preview (50/50 Fixed Height) -->
+    <div class="flex-1 flex flex-col bg-zinc-50 p-2.5 min-w-0 h-full">
+      <!-- Top Half: Prompt -->
+      <div class="flex-1 min-h-0 flex flex-col pb-1.5">
+        <div class="flex items-center justify-between mb-1 shrink-0">
+          <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
+            Prompt
+          </Badge>
+        </div>
+        <div class="flex-1 min-h-0 rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm overflow-y-auto">
+          <p class="whitespace-pre-wrap break-all text-[11px] leading-snug text-zinc-700">
+            {{ selectedPromptText || (t('main.quick_pick.no_commands') || 'No commands found') }}
+          </p>
+        </div>
       </div>
-    </ScrollArea>
 
-    <div class="shrink-0 space-y-2 border-t border-slate-200 bg-slate-50 px-2.5 py-2">
-      <div class="space-y-1">
-        <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
-          Prompt
-        </Badge>
-        <p class="line-clamp-3 whitespace-pre-wrap wrap-break-word text-[11px] leading-snug text-slate-700">
-          {{ selectedPromptText || (t('main.quick_pick.no_commands') || 'No commands found') }}
-        </p>
+      <!-- Bottom Half: Selection -->
+      <div class="flex-1 min-h-0 flex flex-col pt-1.5">
+        <div class="flex items-center justify-between mb-1 shrink-0">
+          <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
+            Selection
+          </Badge>
+        </div>
+        <div class="flex-1 min-h-0 rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm font-mono overflow-y-auto">
+          <p class="whitespace-pre-wrap break-all text-[11px] leading-snug text-zinc-600">
+            {{ displaySelectionText }}
+          </p>
+        </div>
       </div>
-      <div class="space-y-1">
-        <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
-          Selection
-        </Badge>
-        <p class="line-clamp-3 whitespace-pre-wrap wrap-break-word font-mono text-[11px] leading-snug text-slate-600">
-          {{ displaySelectionText }}
-        </p>
-      </div>
-      <p v-if="isUsingTypedPrompt" class="text-[10px] leading-snug text-primary/85">
-        No matching slash prompt. Press Enter to use your input as Prompt.
-      </p>
     </div>
   </div>
 </template>

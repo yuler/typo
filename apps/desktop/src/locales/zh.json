@@ -106,6 +106,7 @@
   "main.status.processing": "处理中...",
   "main.action.close": "关闭",
   "main.action.copy": "复制",
+  "main.action.insert": "插入",
   "upgrade.title": "新版本 {version} 可用",
   "upgrade.updater": "Typo 更新助手",
   "upgrade.checking": "正在检查更新...",
