@@ -81,4 +81,16 @@ class SlashPromptTest < ActiveSupport::TestCase
     assert_includes @account.slash_prompts.map(&:key), "/jp"
     assert_includes @account.slash_prompts.map(&:key), "/ph"
   end
+
+  test "should validate max prompts per account" do
+    # Create 10 prompts (the limit)
+    SlashPrompt::MAX_PROMPTS_PER_ACCOUNT.times do |i|
+      SlashPrompt.create!(account: @account, key: "/key#{i}", value: "val")
+    end
+
+    # Attempt to create the 11th prompt
+    over_limit = SlashPrompt.new(account: @account, key: "/over", value: "val")
+    assert_not over_limit.valid?
+    assert_includes over_limit.errors[:base], "Maximum number of slash prompts reached (10)"
+  end
 end

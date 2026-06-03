@@ -38,7 +38,7 @@
   "settings.appearance.language.description": "Select your preferred display language",
   "settings.default_prompt.label": "Default Prompt",
   "settings.default_prompt.placeholder": "Enter your default prompt",
-  "settings.slash_prompts.label": "Slash Prompts (Max 5)",
+  "settings.slash_prompts.label": "Slash Prompts (Max 10)",
   "settings.slash_prompts.add": "Add Slash Prompt",
   "settings.slash_prompts.key_label": "Key",
   "settings.slash_prompts.aliases_label": "Aliases (Comma separated)",
