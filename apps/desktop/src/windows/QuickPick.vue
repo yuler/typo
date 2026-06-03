@@ -242,6 +242,10 @@ function focusInput() {
     return
 
   logger.info('QuickPick', 'document.activeElement before focus:', document.activeElement?.tagName)
+  if (document.activeElement === input) {
+    logger.info('QuickPick', 'input is already activeElement, blurring first to force focus sync')
+    input.blur()
+  }
   input.focus({ preventScroll: true })
   input.click()
   logger.info('QuickPick', 'document.activeElement after focus:', document.activeElement?.tagName)
