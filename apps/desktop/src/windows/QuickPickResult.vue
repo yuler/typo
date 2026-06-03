@@ -76,21 +76,33 @@ async function startProcessing(payload: { text: string, prompt: string, command:
 async function copyToClipboard() {
   if (!resultText.value)
     return
-  await writeText(resultText.value)
-  copied.value = true
-  await hideWindow()
-  setTimeout(() => copied.value = false, 2000)
+  try {
+    await writeText(resultText.value)
+    copied.value = true
+    setTimeout(async () => {
+      await hideWindow()
+      copied.value = false
+    }, 1000)
+  } catch (err) {
+    logger.error('QuickPickResult', 'Failed to copy to clipboard', err)
+  }
 }
 
 async function insertText() {
   if (!resultText.value)
     return
   try {
-    await invoke('keyboard_paste_text', { text: resultText.value })
     await hideWindow()
+    setTimeout(async () => {
+      try {
+        await invoke('keyboard_paste_text', { text: resultText.value })
+      } catch (err) {
+        logger.error('QuickPickResult', 'Failed to insert text after hide', err)
+      }
+    }, 150)
   }
   catch (err) {
-    logger.error('QuickPickResult', 'Failed to insert text', err)
+    logger.error('QuickPickResult', 'Failed to hide window for insert', err)
   }
 }
 
@@ -162,13 +174,15 @@ onMounted(async () => {
   else
     unlistenFocusChanged = unsubscribeFocusChanged
 
-  window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keydown', onKeyDown, true)
+  document.addEventListener('keydown', onKeyDown, true)
 })
 
 onUnmounted(() => {
   isMounted = false
   abortController?.abort()
-  window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keydown', onKeyDown, true)
+  document.removeEventListener('keydown', onKeyDown, true)
   if (unlisten)
     unlisten()
   if (unlistenWindowOpened)
@@ -183,13 +197,24 @@ onUnmounted(() => {
     class="quick-pick-result-shell h-screen w-screen p-0.5"
     :class="{ 'quick-pick-result-shell--processing': state === 'processing' }"
   >
-    <div class="flex flex-col h-full w-full bg-white text-zinc-900 border border-zinc-200 rounded-xl overflow-hidden shadow-2xl relative z-10">
+    <div
+      class="flex flex-col h-full w-full rounded-xl overflow-hidden shadow-2xl relative z-10"
+      :class="state === 'processing' ? 'bg-zinc-950 text-zinc-100 border border-zinc-800' : 'bg-white text-zinc-900 border border-zinc-200'"
+    >
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 py-2 border-b border-zinc-200 bg-zinc-50">
-        <span class="text-xs font-medium text-zinc-500">
+      <div
+        class="flex items-center justify-between px-4 py-2 border-b"
+        :class="state === 'processing' ? 'border-zinc-800 bg-zinc-900/50 text-zinc-400' : 'border-zinc-200 bg-zinc-50 text-zinc-500'"
+      >
+        <span class="text-xs font-medium">
           {{ t('main.quick_pick.result_title') || 'Quick Pick Result' }}
         </span>
-        <button v-if="state !== 'processing'" class="text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer" @click="close">
+        <button
+          v-if="state !== 'processing'"
+          class="text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
+          tabindex="3"
+          @click="close"
+        >
           <X class="w-4 h-4" />
         </button>
       </div>
@@ -197,8 +222,8 @@ onUnmounted(() => {
       <!-- Content -->
       <div class="flex-1 overflow-hidden relative">
         <div v-if="state === 'processing'" class="flex flex-col items-center justify-center h-full space-y-4">
-          <div class="w-8 h-8 border-2 border-zinc-200 border-t-blue-500 rounded-full animate-spin" />
-          <p class="text-sm text-zinc-500 font-medium">
+          <div class="w-8 h-8 border-2 border-zinc-800 border-t-blue-500 rounded-full animate-spin" />
+          <p class="text-sm text-zinc-400 font-medium">
             {{ t('main.status.processing') || 'Processing...' }}
           </p>
         </div>
@@ -215,6 +240,7 @@ onUnmounted(() => {
           </p>
           <button
             class="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 rounded-lg text-xs transition-colors cursor-pointer"
+            tabindex="1"
             @click="close"
           >
             {{ t('main.action.close') || 'Close' }}
@@ -223,7 +249,11 @@ onUnmounted(() => {
       </div>
 
       <!-- Footer -->
-      <div v-if="state === 'processing'" class="px-4 py-2 border-t border-zinc-200 bg-zinc-50">
+      <div
+        v-if="state === 'processing'"
+        class="px-4 py-2 border-t"
+        :class="state === 'processing' ? 'border-zinc-800 bg-zinc-900/50' : 'border-zinc-200 bg-zinc-50'"
+      >
         <p class="text-[11px] text-zinc-500">
           Press Esc to cancel
         </p>
@@ -231,6 +261,7 @@ onUnmounted(() => {
       <div v-else-if="state === 'result'" class="px-4 py-3 border-t border-zinc-200 bg-zinc-50 flex justify-end gap-2">
         <button
           class="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-lg text-xs transition-colors border border-zinc-200 cursor-pointer"
+          tabindex="2"
           @click="copyToClipboard"
         >
           <component :is="copied ? Check : Copy" class="w-3.5 h-3.5" :class="copied ? 'text-green-600' : ''" />
@@ -239,6 +270,7 @@ onUnmounted(() => {
         <button
           ref="insertButtonRef"
           class="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs transition-colors border border-transparent shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+          tabindex="1"
           @click="insertText"
         >
           <CornerDownLeft class="w-3.5 h-3.5" />
@@ -273,7 +305,7 @@ onUnmounted(() => {
   pointer-events: none;
   border-radius: inherit;
   z-index: 0;
-  background-color: rgb(255 255 255);
+  background-color: rgb(9 9 11);
 }
 
 .quick-pick-result-shell--processing::before {
