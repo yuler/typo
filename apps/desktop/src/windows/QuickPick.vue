@@ -230,7 +230,8 @@ async function loadQuickPickData() {
       selectionTimeout = null
     }
     capturedText.value = text
-  } else {
+  }
+  else {
     capturedText.value = ''
   }
 }

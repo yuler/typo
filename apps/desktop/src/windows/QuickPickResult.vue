@@ -83,7 +83,8 @@ async function copyToClipboard() {
       await hideWindow()
       copied.value = false
     }, 1000)
-  } catch (err) {
+  }
+  catch (err) {
     logger.error('QuickPickResult', 'Failed to copy to clipboard', err)
   }
 }
@@ -96,7 +97,8 @@ async function insertText() {
     setTimeout(async () => {
       try {
         await invoke('keyboard_paste_text', { text: resultText.value })
-      } catch (err) {
+      }
+      catch (err) {
         logger.error('QuickPickResult', 'Failed to insert text after hide', err)
       }
     }, 150)
