@@ -1,0 +1,47 @@
+{
+  "version": "1.6.4",
+  "date": "2026-06-03",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.6.4",
+  "notes": "### Features\n- Increased custom slash prompts limit to 10\n- Activity-based update checks with persistable ignore",
+  "notes_i18n": {
+    "en": [
+      "Increased custom slash prompts limit to 10",
+      "Activity-based update checks with persistable ignore"
+    ],
+    "zh": [
+      "将自定义斜杠提示限制增加到10",
+      "基于活动的更新检查与持久化忽略"
+    ],
+    "jp": [
+      "カスタムスラッシュプロンプトの制限を10に引き上げ",
+      "アクティビティベースの更新チェックと永続化可能な無視"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.6.4_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.4/typo_1.6.4_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.6.4_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.4/typo_1.6.4_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.6.4_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.4/typo_1.6.4_amd64.deb"
+    },
+    {
+      "name": "typo_1.6.4_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.4/typo_1.6.4_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.6.4_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.6.4/typo_1.6.4_x64.dmg"
+    }
+  ]
+}
