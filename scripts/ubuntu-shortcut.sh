@@ -45,7 +45,13 @@ else
     QUICK_PICK_BIN="typo"
 fi
 
-QUICK_PICK_CMD="\"${QUICK_PICK_BIN}\" --quick-pick"
+# Wrap with xdotool so GNOME can raise the quick pick window (stored as bash -c '...' for gsettings).
+if command -v xdotool >/dev/null 2>&1; then
+    quick_pick_script="${QUICK_PICK_BIN} --quick-pick; for i in {1..10}; do xid=\$(xdotool search --onlyvisible --name \"^typo - Quick Pick\$\" | head -n 1); if [ -n \"\$xid\" ]; then xdotool windowactivate \$xid; break; fi; sleep 0.05; done"
+    QUICK_PICK_CMD="bash -c '${quick_pick_script}'"
+else
+    QUICK_PICK_CMD="${QUICK_PICK_BIN} --quick-pick"
+fi
 
 gsettings_unquote() {
     local value="$1"
