@@ -23,14 +23,36 @@ fn new_enigo() -> Result<(enigo::Enigo, enigo::Key), String> {
 }
 
 /// Sends `Ctrl + c` (Linux/Windows) or `Cmd + c` (macOS) to copy the current selection.
-pub(crate) fn enigo_copy() -> Result<(), String> {
-    let (mut enigo, modifier) = new_enigo()?;
+pub(crate) fn enigo_copy(app: &tauri::AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
+        app.run_on_main_thread(move || {
+            let res = (|| {
+                let (mut enigo, modifier) = new_enigo()?;
+                let _ = enigo.key(modifier, enigo::Direction::Press);
+                let _ = enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click);
+                let _ = enigo.key(modifier, enigo::Direction::Release);
+                Ok(())
+            })();
+            let _ = tx.send(res);
+        })
+        .map_err(|e| e.to_string())?;
 
-    let _ = enigo.key(modifier, enigo::Direction::Press);
-    let _ = enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click);
-    let _ = enigo.key(modifier, enigo::Direction::Release);
+        rx.recv().unwrap_or_else(|_| Err("Copy failed".into()))
+    }
 
-    Ok(())
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        let (mut enigo, modifier) = new_enigo()?;
+
+        let _ = enigo.key(modifier, enigo::Direction::Press);
+        let _ = enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click);
+        let _ = enigo.key(modifier, enigo::Direction::Release);
+
+        Ok(())
+    }
 }
 
 /// Sends `Ctrl + v` (Linux/Windows) or `Cmd + v` (macOS) to paste from the clipboard.
