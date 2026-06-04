@@ -9,6 +9,7 @@ on:
       - pnpm-workspace.yaml
       - package.json
       - .github/workflows/desktop-ci.yml
+      - .github/workflows/desktop-release.yml
   pull_request:
     branches: [main]
     paths: *desktop_paths
@@ -54,6 +55,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
 
       - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
