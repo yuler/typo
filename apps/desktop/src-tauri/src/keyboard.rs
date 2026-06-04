@@ -22,36 +22,42 @@ fn new_enigo() -> Result<(enigo::Enigo, enigo::Key), String> {
     Ok((enigo, modifier))
 }
 
+fn enigo_copy_raw() -> Result<(), String> {
+    let (mut enigo, modifier) = new_enigo()?;
+
+    let _ = enigo.key(modifier, enigo::Direction::Press);
+    let _ = enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click);
+    let _ = enigo.key(modifier, enigo::Direction::Release);
+
+    Ok(())
+}
+
 /// Sends `Ctrl + c` (Linux/Windows) or `Cmd + c` (macOS) to copy the current selection.
 pub(crate) fn enigo_copy(app: &tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
-        app.run_on_main_thread(move || {
-            let res = (|| {
-                let (mut enigo, modifier) = new_enigo()?;
-                let _ = enigo.key(modifier, enigo::Direction::Press);
-                let _ = enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click);
-                let _ = enigo.key(modifier, enigo::Direction::Release);
-                Ok(())
-            })();
-            let _ = tx.send(res);
-        })
-        .map_err(|e| e.to_string())?;
+        extern "C" {
+            fn pthread_main_np() -> std::os::raw::c_int;
+        }
+        let is_main_thread = unsafe { pthread_main_np() != 0 };
 
-        rx.recv().unwrap_or_else(|_| Err("Copy failed".into()))
+        if is_main_thread {
+            enigo_copy_raw()
+        } else {
+            let (tx, rx) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
+            app.run_on_main_thread(move || {
+                let _ = tx.send(enigo_copy_raw());
+            })
+            .map_err(|e| e.to_string())?;
+
+            rx.recv().unwrap_or_else(|_| Err("Copy failed".into()))
+        }
     }
 
     #[cfg(not(target_os = "macos"))]
     {
         let _ = app;
-        let (mut enigo, modifier) = new_enigo()?;
-
-        let _ = enigo.key(modifier, enigo::Direction::Press);
-        let _ = enigo.key(enigo::Key::Unicode('c'), enigo::Direction::Click);
-        let _ = enigo.key(modifier, enigo::Direction::Release);
-
-        Ok(())
+        enigo_copy_raw()
     }
 }
 
