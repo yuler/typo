@@ -121,7 +121,7 @@ pub(crate) fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String
 }
 
 pub(crate) fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
-    keyboard::enigo_copy().ok()?;
+    keyboard::enigo_copy(app).ok()?;
 
     std::thread::sleep(std::time::Duration::from_millis(100));
 
