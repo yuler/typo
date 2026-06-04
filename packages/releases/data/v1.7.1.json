@@ -1,0 +1,44 @@
+{
+  "version": "1.7.1",
+  "date": "2026-06-04",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.7.1",
+  "notes": "### Fixes\n- Fixed a crash on macOS by running enigo_copy on the main thread.\n### Other\n- Added Swatinem/rust-cache to CI and release workflows.",
+  "notes_i18n": {
+    "en": [
+      "Fixed a crash on macOS by running enigo_copy on the main thread."
+    ],
+    "zh": [
+      "修复了 macOS 上因在主线程外运行 enigo_copy 导致的崩溃。"
+    ],
+    "jp": [
+      "macOSでenigo_copyをメインスレッドで実行することでクラッシュを修正しました。"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.7.1_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.1/typo_1.7.1_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.7.1_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.1/typo_1.7.1_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.7.1_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.1/typo_1.7.1_amd64.deb"
+    },
+    {
+      "name": "typo_1.7.1_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.1/typo_1.7.1_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.7.1_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.1/typo_1.7.1_x64.dmg"
+    }
+  ]
+}
