@@ -3,7 +3,7 @@ import type { Component } from 'vue'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { onMounted, onUnmounted } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
-import { initializeI18n, initializeQuickPickI18n } from '@/composables/useI18n'
+import { initializeI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
 import { initializeStore } from '@/stores/settings'
@@ -41,12 +41,7 @@ onMounted(async () => {
     return
   }
 
-  if (isQuickPickWindow) {
-    await initializeQuickPickI18n()
-  }
-  else {
-    await initializeI18n()
-  }
+  await initializeI18n(isQuickPickWindow ? { source: 'invoke' } : undefined)
 
   if (!isMounted) {
     return

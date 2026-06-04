@@ -102,6 +102,7 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
 }
 
 pub(crate) fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
+    // 1. Try ydotool first
     if keyboard::ydotool_copy_shortcut() {
         std::thread::sleep(std::time::Duration::from_millis(80));
         let text = app.clipboard().read_text().unwrap_or_default();
@@ -110,6 +111,8 @@ pub(crate) fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String
         }
     }
 
+    // 2. Fallback to copyq selection
+    // TODO: remove this
     if let Some(text) = keyboard::copyq_selection() {
         return Some(text);
     }

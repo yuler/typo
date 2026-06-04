@@ -21,16 +21,17 @@ function isValidLocale(value: string): value is Locale {
   return (locales as readonly string[]).includes(value)
 }
 
-export async function initializeI18n(): Promise<void> {
-  locale.value = await get('locale')
-  await listen<Locale>(LOCALE_EVENT, (event) => {
-    locale.value = event.payload
-  })
-}
+export async function initializeI18n(options?: { source?: 'store' | 'invoke' }): Promise<void> {
+  const source = options?.source ?? 'store'
 
-export async function initializeQuickPickI18n(): Promise<void> {
-  const stored = await invoke<string>('get_local_locale').catch(() => defaultLocale)
-  locale.value = isValidLocale(stored) ? stored : defaultLocale
+  if (source === 'invoke') {
+    const stored = await invoke<string>('get_local_locale').catch(() => defaultLocale)
+    locale.value = isValidLocale(stored) ? stored : defaultLocale
+  }
+  else {
+    locale.value = await get('locale')
+  }
+
   await listen<Locale>(LOCALE_EVENT, (event) => {
     locale.value = event.payload
   })
