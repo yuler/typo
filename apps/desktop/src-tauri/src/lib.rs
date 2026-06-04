@@ -227,7 +227,7 @@ pub fn run() {
             upgrade::init(app.handle().clone());
             windows::create_main_window(&app.handle());
             windows::create_indicator_window(&app.handle(), false);
-            quick_pick::preload_quick_pick_windows(&app.handle());
+            windows::preload_quick_pick_windows(&app.handle());
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
@@ -270,8 +270,8 @@ pub fn run() {
             upgrade::is_forced_upgrade,
             windows::open_indicator_window,
             windows::open_main_window,
-            quick_pick::open_quick_pick_window,
-            quick_pick::open_quick_pick_result_window,
+            windows::open_quick_pick_window,
+            windows::open_quick_pick_result_window,
             windows::get_cursor_position,
             upgrade::ignore_version,
             upgrade::increment_activity,
