@@ -20,15 +20,24 @@ pub fn consume_pending_open_settings() -> bool {
     PENDING_OPEN_SETTINGS.swap(false, Ordering::Relaxed)
 }
 
+thread_local! {
+    static ENIGO: std::cell::RefCell<Option<Enigo>> = std::cell::RefCell::new(None);
+}
+
 #[tauri::command]
 pub fn get_cursor_position() -> (i32, i32) {
-    match Enigo::new(&enigo::Settings::default()) {
-        Ok(enigo) => enigo.location().unwrap_or((0, 0)),
-        Err(err) => {
-            log::error!("failed to initialize enigo: {}", err);
-            (0, 0)
+    ENIGO.with(|cell| {
+        let mut opt = cell.borrow_mut();
+        if opt.is_none() {
+            match Enigo::new(&enigo::Settings::default()) {
+                Ok(enigo) => *opt = Some(enigo),
+                Err(err) => log::error!("failed to initialize enigo: {}", err),
+            }
         }
-    }
+        opt.as_ref()
+            .and_then(|enigo| enigo.location().ok())
+            .unwrap_or((0, 0))
+    })
 }
 
 #[tauri::command]
@@ -190,36 +199,12 @@ pub fn open_quick_pick_window(app: AppHandle) {
     create_quick_pick_window(&app);
 }
 
-#[tauri::command]
-pub fn open_quick_pick_result_window(app: AppHandle) {
-    create_quick_pick_result_window(&app);
-}
-
 pub fn preload_quick_pick_windows(app: &AppHandle) {
-    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 300.0, false);
-    create_quick_pick_floating_window(
-        app,
-        "quick-pick-result",
-        "typo - Quick Pick Result",
-        480.0,
-        360.0,
-        false,
-    );
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 340.0, false);
 }
 
 pub fn create_quick_pick_window(app: &AppHandle) {
-    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 300.0, true);
-}
-
-pub fn create_quick_pick_result_window(app: &AppHandle) {
-    create_quick_pick_floating_window(
-        app,
-        "quick-pick-result",
-        "typo - Quick Pick Result",
-        480.0,
-        360.0,
-        true,
-    );
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 340.0, true);
 }
 
 fn create_quick_pick_floating_window(
@@ -242,11 +227,7 @@ fn create_quick_pick_floating_window(
             if let Err(err) = window.set_focus() {
                 log::error!("failed to focus {} window: {}", label, err);
             }
-            let opened_event = if label == "quick-pick" {
-                "quick-pick-window-opened"
-            } else {
-                "quick-pick-result-window-opened"
-            };
+            let opened_event = "quick-pick-window-opened";
             if let Err(err) = window.emit(opened_event, ()) {
                 log::error!("failed to emit {} for {} window: {}", opened_event, label, err);
             }

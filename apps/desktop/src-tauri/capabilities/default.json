@@ -6,8 +6,7 @@
     "main",
     "indicator",
     "upgrade",
-    "quick-pick",
-    "quick-pick-result"
+    "quick-pick"
   ],
   "permissions": [
     "core:default",

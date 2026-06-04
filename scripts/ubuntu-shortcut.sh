@@ -3,12 +3,9 @@ set -euo pipefail
 
 # Settings -> Keyboard -> Custom Shortcuts
 
-if ! command -v gum >/dev/null 2>&1; then
-    echo "gum is required. Install from https://github.com/charmbracelet/gum" >&2
-    exit 1
-fi
-
-warn() { gum log -l warn "$@"; }
+warn() {
+    echo "⚠️  [WARN] $*" >&2
+}
 
 # Default values
 MODE="global"
@@ -33,7 +30,7 @@ while [[ "$#" -gt 0 ]]; do
             echo "Shortcuts: Typo <Control><Shift>x, Typo Quick Pick <Control><Shift>space"
             exit 0
             ;;
-        *) gum log -l error "Unknown parameter passed: $1"; exit 1 ;;
+        *) echo "Unknown parameter passed: $1" >&2; exit 1 ;;
     esac
 done
 
@@ -48,13 +45,7 @@ else
     QUICK_PICK_BIN="typo"
 fi
 
-# Wrap with xdotool so GNOME can raise the quick pick window (stored as bash -c '...' for gsettings).
-if command -v xdotool >/dev/null 2>&1; then
-    quick_pick_script="${QUICK_PICK_BIN} --quick-pick; for i in {1..10}; do xid=\$(xdotool search --onlyvisible --name \"^typo - Quick Pick\$\" | head -n 1); if [ -n \"\$xid\" ]; then xdotool windowactivate \$xid; break; fi; sleep 0.05; done"
-    QUICK_PICK_CMD="bash -c '${quick_pick_script}'"
-else
-    QUICK_PICK_CMD="${QUICK_PICK_BIN} --quick-pick"
-fi
+QUICK_PICK_CMD="${QUICK_PICK_BIN} --quick-pick"
 
 gsettings_unquote() {
     local value="$1"
@@ -154,21 +145,17 @@ setup_keybinding() {
 }
 
 show_results() {
-    local lines=("✅ Typo shortcuts configured [$MODE mode]" "")
-
+    echo ""
+    echo "============================================="
+    echo "  ✅ Typo shortcuts configured [$MODE mode]"
+    echo "============================================="
     for row in "${SHORTCUT_ROWS[@]}"; do
         local name binding
         name="${row%%$'\t'*}"
         binding="${row#*$'\t'}"
-        lines+=("$(printf '%-17s %s' "$name" "$binding")")
+        printf "  %-17s %s\n" "$name" "$binding"
     done
-
-    echo ""
-    gum style \
-        --border rounded \
-        --padding "1 2" \
-        --border-foreground 82 \
-        "${lines[@]}"
+    echo "============================================="
     echo ""
 }
 

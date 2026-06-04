@@ -271,7 +271,6 @@ pub fn run() {
             windows::open_indicator_window,
             windows::open_main_window,
             windows::open_quick_pick_window,
-            windows::open_quick_pick_result_window,
             windows::get_cursor_position,
             upgrade::ignore_version,
             upgrade::increment_activity,
