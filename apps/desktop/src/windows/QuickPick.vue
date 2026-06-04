@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { SearchIcon } from 'lucide-vue-next'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,6 +53,10 @@ const filteredPrompts = computed(() => {
     const promptMatch = p.value.toLowerCase().includes(query)
     return keyMatch || aliasMatch || promptMatch
   })
+})
+
+watch(filteredPrompts, () => {
+  selectedIndex.value = 0
 })
 
 const selectedPromptText = computed(() => {
@@ -258,6 +262,10 @@ function getSearchInputElement() {
 }
 
 onMounted(() => {
+  void invoke('notify_quick_pick_window_ready').catch((error) => {
+    logger.warn('QuickPick', 'notify_quick_pick_window_ready failed', error)
+  })
+
   window.addEventListener('keydown', onWindowKeyDown, true)
   document.addEventListener('keydown', onWindowKeyDown, true)
 

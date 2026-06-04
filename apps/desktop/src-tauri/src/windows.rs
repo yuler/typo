@@ -312,7 +312,8 @@ fn quick_pick_window_position(app: &AppHandle, win_width: f64, win_height: f64) 
             let pos = m.position();
             let size = m.size();
             let scale = m.scale_factor();
-            
+            let scale = if scale <= 0.0 { 1.0 } else { scale };
+
             // Physical coordinates for comparison
             let (px, py) = if cfg!(target_os = "macos") {
                 (cursor_x * scale, cursor_y * scale)

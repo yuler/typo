@@ -4,6 +4,7 @@ use tauri::Emitter;
 use tauri_plugin_store::StoreExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 mod autostart;
@@ -88,6 +89,11 @@ fn quick_pick_payload() -> &'static Mutex<Option<SetInputPayload>> {
 fn quick_pick_selection() -> &'static Mutex<Option<String>> {
     static QUICK_PICK_SELECTION: OnceLock<Mutex<Option<String>>> = OnceLock::new();
     QUICK_PICK_SELECTION.get_or_init(|| Mutex::new(None))
+}
+
+fn pending_cli_quick_pick() -> &'static AtomicBool {
+    static PENDING_CLI_QUICK_PICK: OnceLock<AtomicBool> = OnceLock::new();
+    PENDING_CLI_QUICK_PICK.get_or_init(|| AtomicBool::new(false))
 }
 
 fn set_quick_pick_selection(text: String) {
@@ -201,6 +207,13 @@ fn app_cli_quick_pick_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_quick_pick_trigger");
 
     open_quick_pick_with_selection(app.clone(), None);
+}
+
+#[tauri::command]
+fn notify_quick_pick_window_ready(app: tauri::AppHandle) {
+    if pending_cli_quick_pick().swap(false, Ordering::SeqCst) {
+        app_cli_quick_pick_trigger(&app);
+    }
 }
 
 fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
@@ -367,6 +380,10 @@ pub fn run() {
             );
         }))
         .setup(move |app| {
+            if startup_quick_pick {
+                pending_cli_quick_pick().store(true, Ordering::SeqCst);
+            }
+
             log::info!("in_linux_wayland={}", in_linux_wayland());
             upgrade::init(app.handle().clone());
             windows::create_main_window(&app.handle());
@@ -382,15 +399,6 @@ pub fn run() {
                 app_cli_startup_selection_trigger(&app.handle());
             }
 
-            // GNOME shortcuts spawn a new process; single-instance only handles the
-            // second instance, so the first launch must open quick pick from argv.
-            if startup_quick_pick {
-                let handle = app.handle().clone();
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(400));
-                    app_cli_quick_pick_trigger(&handle);
-                });
-            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -413,6 +421,7 @@ pub fn run() {
             consume_quick_pick_input,
             consume_quick_pick_selection,
             open_quick_pick_with_selection,
+            notify_quick_pick_window_ready,
             capture_quick_pick_selection,
             windows::consume_pending_open_settings,
             tray::update_tray_menu,
