@@ -92,6 +92,15 @@ const displayCommand = computed(() => {
   return command.startsWith('/') ? command : `/${command}`
 })
 
+const cancelHintParts = computed(() => {
+  const hint = t('main.quick_pick.cancel_hint')
+  const parts = hint.split('Esc')
+  return {
+    before: parts[0] || '',
+    after: parts[1] || '',
+  }
+})
+
 watch(state, async (newState) => {
   if (newState === 'result') {
     await nextTick()
@@ -632,8 +641,10 @@ function beginQuickPickSession() {
             {{ t('main.status.processing') }}
           </span>
         </div>
-        <p class="text-[11px] text-zinc-400">
-          {{ t('main.quick_pick.cancel_hint') }}
+        <p class="text-[11px] text-zinc-400 flex items-center gap-1">
+          <span>{{ cancelHintParts.before }}</span>
+          <kbd class="pointer-events-none inline-flex h-4.5 select-none items-center gap-1 rounded border border-zinc-200 bg-white px-1.5 font-mono text-[9px] font-medium text-zinc-500 shadow-sm leading-none">Esc</kbd>
+          <span>{{ cancelHintParts.after }}</span>
         </p>
       </div>
       <div v-else-if="state === 'result'" class="px-4 py-3 border-t border-zinc-200 bg-zinc-50 flex justify-end gap-2 shrink-0 relative z-10">
