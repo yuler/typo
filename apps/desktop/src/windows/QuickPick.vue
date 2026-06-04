@@ -333,7 +333,10 @@ function getSearchInputElement(): HTMLInputElement | null {
   const el = '$el' in refValue ? refValue.$el : refValue
   if (el instanceof HTMLInputElement)
     return el
-  return el?.querySelector?.('input') ?? null
+  if (el && 'querySelector' in el) {
+    return (el as any).querySelector('input')
+  }
+  return null
 }
 
 onMounted(() => {
@@ -594,13 +597,6 @@ function beginQuickPickSession() {
                 {{ displaySelectionText }}
               </p>
             </div>
-
-            <div class="flex shrink-0 flex-col items-center justify-center py-3 space-y-2">
-            <div class="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
-            <p class="text-xs text-zinc-500 font-medium">
-              {{ t('main.status.processing') }}
-            </p>
-          </div>
           </div>
         </div>
 
@@ -628,9 +624,15 @@ function beginQuickPickSession() {
       <!-- Footer -->
       <div
         v-if="state === 'processing'"
-        class="px-4 py-2 border-t border-zinc-200 bg-zinc-50 shrink-0 relative z-10"
+        class="px-4 py-2 border-t border-zinc-200 bg-zinc-50 shrink-0 relative z-10 flex items-center justify-between"
       >
-        <p class="text-[11px] text-zinc-500">
+        <div class="flex items-center gap-2">
+          <div class="w-3.5 h-3.5 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+          <span class="text-[11px] text-zinc-500 font-medium">
+            {{ t('main.status.processing') }}
+          </span>
+        </div>
+        <p class="text-[11px] text-zinc-400">
           {{ t('main.quick_pick.cancel_hint') }}
         </p>
       </div>
