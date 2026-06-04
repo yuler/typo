@@ -39,7 +39,7 @@ pub(crate) fn enigo_copy(app: &tauri::AppHandle) -> Result<(), String> {
         extern "C" {
             fn pthread_main_np() -> std::os::raw::c_int;
         }
-        let is_main_thread = unsafe { pthread_main_np() != 0 };
+        let is_main_thread = unsafe { pthread_main_np() == 1 };
 
         if is_main_thread {
             enigo_copy_raw()
