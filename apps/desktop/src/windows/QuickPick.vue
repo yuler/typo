@@ -344,8 +344,6 @@ onMounted(() => {
   window.addEventListener('keydown', onWindowKeyDown, true)
   document.addEventListener('keydown', onWindowKeyDown, true)
 
-
-
   void appWindow.isVisible().then((visible) => {
     logger.info('QuickPick', 'onMounted: isVisible =', visible)
     if (!visible || !isMounted)
@@ -453,7 +451,6 @@ function beginQuickPickSession() {
 
 <template>
   <div ref="quickPickRoot" class="flex h-full w-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white text-zinc-900 shadow-2xl relative">
-    
     <!-- State: search (Command List UI) -->
     <div v-if="state === 'search'" class="flex flex-1 flex-row overflow-hidden min-h-0">
       <!-- Left Pane: Commands -->
@@ -542,10 +539,9 @@ function beginQuickPickSession() {
 
     <!-- State: processing | result | error (Unified Processing UI) -->
     <div v-else class="flex flex-1 flex-col overflow-hidden min-h-0 z-10 bg-white">
-      
       <!-- Border runner animation wrapper for processing state -->
       <div v-if="state === 'processing'" class="absolute inset-0 z-0 pointer-events-none rounded-lg overflow-hidden border-2 border-transparent">
-        <div class="absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_300deg,rgba(24,24,27,0.7)_340deg,transparent_360deg)] spin-slow"></div>
+        <div class="absolute inset-[-150%] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_300deg,rgba(24,24,27,0.7)_340deg,transparent_360deg)] spin-slow" />
       </div>
 
       <!-- Header -->
