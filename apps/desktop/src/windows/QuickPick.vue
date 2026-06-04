@@ -583,13 +583,6 @@ function beginQuickPickSession() {
             </div>
           </div>
 
-          <div class="flex shrink-0 flex-col items-center justify-center py-3 space-y-2">
-            <div class="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
-            <p class="text-xs text-zinc-500 font-medium">
-              {{ t('main.status.processing') }}
-            </p>
-          </div>
-
           <div class="flex-1 min-h-0 flex flex-col pt-1.5">
             <div class="flex items-center justify-between mb-1 shrink-0">
               <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
@@ -601,6 +594,13 @@ function beginQuickPickSession() {
                 {{ displaySelectionText }}
               </p>
             </div>
+
+            <div class="flex shrink-0 flex-col items-center justify-center py-3 space-y-2">
+            <div class="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+            <p class="text-xs text-zinc-500 font-medium">
+              {{ t('main.status.processing') }}
+            </p>
+          </div>
           </div>
         </div>
 
