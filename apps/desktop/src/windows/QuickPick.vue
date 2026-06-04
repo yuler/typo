@@ -311,9 +311,6 @@ async function loadQuickPickData() {
     if (text?.trim()) {
       capturedText.value = text
     }
-    else {
-      capturedText.value = ''
-    }
   }
   catch (err) {
     logger.error('QuickPick', 'loadQuickPickData failed', err)
@@ -354,7 +351,6 @@ onMounted(() => {
   })
 
   window.addEventListener('keydown', onWindowKeyDown, true)
-  document.addEventListener('keydown', onWindowKeyDown, true)
 
   void appWindow.isVisible().then((visible) => {
     logger.info('QuickPick', 'onMounted: isVisible =', visible)
@@ -412,7 +408,6 @@ onUnmounted(() => {
     insertTimeout = null
   }
   window.removeEventListener('keydown', onWindowKeyDown, true)
-  document.removeEventListener('keydown', onWindowKeyDown, true)
   if (unlistenWindowOpened)
     unlistenWindowOpened()
   if (unlistenFocusChanged)

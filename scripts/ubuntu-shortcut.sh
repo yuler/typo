@@ -45,7 +45,7 @@ else
     QUICK_PICK_BIN="typo"
 fi
 
-QUICK_PICK_CMD="${QUICK_PICK_BIN} --quick-pick"
+QUICK_PICK_CMD="\"${QUICK_PICK_BIN}\" --quick-pick"
 
 gsettings_unquote() {
     local value="$1"
