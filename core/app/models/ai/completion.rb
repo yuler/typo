@@ -7,7 +7,7 @@ module Ai
 
     DEFAULT_PROMPT = "You are Typo assistant.".freeze
 
-    MAX_TEXT_LENGTH = 1000
+    MAX_TEXT_LENGTH = 2048
 
     attribute :text, :string
     attribute :prompt, :string, default: -> { DEFAULT_PROMPT }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { UnlistenFn } from '@tauri-apps/api/event'
 import type { IndicatorState } from '@typo/ui'
+import type { ShortcutConfig } from '@/shortcut'
 import { invoke } from '@tauri-apps/api/core'
 import { LogicalSize } from '@tauri-apps/api/dpi'
 import { listen } from '@tauri-apps/api/event'
@@ -8,14 +9,14 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { formatShortcut, Indicator as UIIndicator } from '@typo/ui'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
 
+import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
 import { useAuth } from '@/composables/useAuth'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
-import { listenForIndicatorShortcutRequests, setupGlobalShortcut } from '@/shortcut'
+import { listenForIndicatorShortcutRequests, setupGlobalShortcuts } from '@/shortcut'
 import { parseSlashPrompts, resolveSlashPrompt } from '@/slashPrompts'
-import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
+import { DEFAULT_GLOBAL_SHORTCUT, DEFAULT_QUICK_PICK_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { PIN_INDICATOR_CHANGED_EVENT } from '@/tray'
 import { sleep } from '@/utils'
@@ -174,8 +175,9 @@ onMounted(async () => {
 
   isMacOS.value = systemInfo.os === 'macos'
 
-  const [shortcut, copy, pinned] = await Promise.all([
+  const [shortcut, quickPickShortcut, copy, pinned] = await Promise.all([
     store.get('global_shortcut'),
+    store.get('quick_pick_shortcut'),
     store.get('copy_result'),
     store.get('pin_indicator'),
   ])
@@ -186,7 +188,11 @@ onMounted(async () => {
   if (pinIndicator.value) {
     await appWindow.show()
   }
-  globalShortcut.value = await setupGlobalShortcut(globalShortcut.value)
+  const registered = await setupGlobalShortcuts({
+    global: globalShortcut.value,
+    quickPick: quickPickShortcut || DEFAULT_QUICK_PICK_SHORTCUT,
+  })
+  globalShortcut.value = registered.global || DEFAULT_GLOBAL_SHORTCUT
   if (!isMounted) {
     return
   }
@@ -207,8 +213,8 @@ onMounted(async () => {
   }
   unlistenPinIndicator = unlistenPin
 
-  const cleanupShortcutRequests = await listenForIndicatorShortcutRequests((shortcut) => {
-    globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
+  const cleanupShortcutRequests = await listenForIndicatorShortcutRequests((shortcuts: ShortcutConfig) => {
+    globalShortcut.value = shortcuts.global || DEFAULT_GLOBAL_SHORTCUT
   })
   if (!isMounted) {
     cleanupShortcutRequests()

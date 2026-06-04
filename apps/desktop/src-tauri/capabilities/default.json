@@ -5,7 +5,8 @@
   "windows": [
     "main",
     "indicator",
-    "upgrade"
+    "upgrade",
+    "quick-pick"
   ],
   "permissions": [
     "core:default",

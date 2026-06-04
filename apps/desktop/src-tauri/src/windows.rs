@@ -1,9 +1,13 @@
 // apps/desktop/src-tauri/src/windows.rs
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{
+    AppHandle, Emitter, LogicalPosition, Manager, Position, WebviewUrl, WebviewWindowBuilder,
+    WindowEvent,
+};
 use std::sync::atomic::{AtomicBool, Ordering};
+use enigo::{Enigo, Mouse};
 
 #[cfg(target_os = "macos")]
-use tauri::{LogicalPosition, TitleBarStyle};
+use tauri::TitleBarStyle;
 
 static PENDING_OPEN_SETTINGS: AtomicBool = AtomicBool::new(false);
 
@@ -14,6 +18,26 @@ pub fn set_pending_open_settings(value: bool) {
 #[tauri::command]
 pub fn consume_pending_open_settings() -> bool {
     PENDING_OPEN_SETTINGS.swap(false, Ordering::Relaxed)
+}
+
+thread_local! {
+    static ENIGO: std::cell::RefCell<Option<Enigo>> = std::cell::RefCell::new(None);
+}
+
+#[tauri::command]
+pub fn get_cursor_position() -> (i32, i32) {
+    ENIGO.with(|cell| {
+        let mut opt = cell.borrow_mut();
+        if opt.is_none() {
+            match Enigo::new(&enigo::Settings::default()) {
+                Ok(enigo) => *opt = Some(enigo),
+                Err(err) => log::error!("failed to initialize enigo: {}", err),
+            }
+        }
+        opt.as_ref()
+            .and_then(|enigo| enigo.location().ok())
+            .unwrap_or((0, 0))
+    })
 }
 
 #[tauri::command]
@@ -55,7 +79,9 @@ pub fn show_and_focus_main(app: &AppHandle) {
 
 pub fn create_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        let _ = window.set_focus();
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus main window: {}", err);
+        }
         return;
     }
 
@@ -105,8 +131,12 @@ pub fn create_main_window(app: &AppHandle) {
 pub fn create_indicator_window(app: &AppHandle, show: bool) {
     if let Some(window) = app.get_webview_window("indicator") {
         if show {
-            let _ = window.show();
-            let _ = window.set_always_on_top(true);
+            if let Err(err) = window.show() {
+                log::error!("failed to show indicator window: {}", err);
+            }
+            if let Err(err) = window.set_always_on_top(true) {
+                log::error!("failed to set always on top for indicator window: {}", err);
+            }
         }
         return;
     }
@@ -145,7 +175,9 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
 
 pub fn create_upgrade_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("upgrade") {
-        let _ = window.set_focus();
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus upgrade window: {}", err);
+        }
         return;
     }
 
@@ -161,3 +193,165 @@ pub fn create_upgrade_window(app: &AppHandle) {
         log::error!("failed to build upgrade window: {}", e);
     }
 }
+
+#[tauri::command]
+pub fn open_quick_pick_window(app: AppHandle) {
+    create_quick_pick_window(&app);
+}
+
+pub fn preload_quick_pick_windows(app: &AppHandle) {
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 340.0, false);
+}
+
+pub fn create_quick_pick_window(app: &AppHandle) {
+    create_quick_pick_floating_window(app, "quick-pick", "typo - Quick Pick", 500.0, 340.0, true);
+}
+
+fn create_quick_pick_floating_window(
+    app: &AppHandle,
+    label: &str,
+    title: &str,
+    win_width: f64,
+    win_height: f64,
+    show: bool,
+) {
+    if let Some(window) = app.get_webview_window(label) {
+        if show {
+            let (x, y) = quick_pick_window_position(app, win_width, win_height);
+            if let Err(err) = window.set_position(Position::Logical(LogicalPosition::new(x, y))) {
+                log::error!("failed to position {} window: {}", label, err);
+            }
+            if let Err(err) = window.show() {
+                log::error!("failed to show {} window: {}", label, err);
+            }
+            if let Err(err) = window.set_focus() {
+                log::error!("failed to focus {} window: {}", label, err);
+            }
+            let opened_event = "quick-pick-window-opened";
+            if let Err(err) = window.emit(opened_event, ()) {
+                log::error!("failed to emit {} for {} window: {}", opened_event, label, err);
+            }
+        }
+        return;
+    }
+
+    let (x, y) = if show {
+        quick_pick_window_position(app, win_width, win_height)
+    } else {
+        (0.0, 0.0)
+    };
+
+    let window = match WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
+        .title(title)
+        .inner_size(win_width, win_height)
+        .position(x, y)
+        .decorations(false)
+        .transparent(true)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .visible_on_all_workspaces(true)
+        .visible(show)
+        .build()
+    {
+        Ok(window) => window,
+        Err(e) => {
+            log::error!("failed to build {} window: {}", label, e);
+            return;
+        }
+    };
+
+    if show {
+        if let Err(err) = window.show() {
+            log::error!("failed to show {} window: {}", label, err);
+        }
+        if let Err(err) = window.set_focus() {
+            log::error!("failed to focus {} window: {}", label, err);
+        }
+    }
+
+    let label_for_close = label.to_string();
+    let window_for_close = window.clone();
+    window.on_window_event(move |event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            api.prevent_close();
+            if let Err(err) = window_for_close.hide() {
+                log::error!("failed to hide {} window: {}", label_for_close, err);
+            }
+        }
+    });
+}
+
+fn quick_pick_window_position(app: &AppHandle, win_width: f64, win_height: f64) -> (f64, f64) {
+    let (cursor_x, cursor_y) = {
+        let pos = get_cursor_position();
+        (pos.0 as f64, pos.1 as f64)
+    };
+
+    let monitor = app
+        .available_monitors()
+        .ok()
+        .and_then(|monitors: Vec<tauri::Monitor>| {
+            monitors.into_iter().find(|m: &tauri::Monitor| {
+                let pos = m.position();
+                let size = m.size();
+                let scale = m.scale_factor();
+                let scale = if scale <= 0.0 { 1.0 } else { scale };
+
+                let (px, py) = if cfg!(target_os = "macos") {
+                    (cursor_x * scale, cursor_y * scale)
+                } else {
+                    (cursor_x, cursor_y)
+                };
+
+                px >= pos.x as f64
+                    && px <= (pos.x + size.width as i32) as f64
+                    && py >= pos.y as f64
+                    && py <= (pos.y + size.height as i32) as f64
+            })
+        })
+        .or_else(|| app.primary_monitor().ok().flatten());
+
+    if let Some(m) = monitor {
+        let work_area = m.work_area();
+        let scale = m.scale_factor();
+        let scale = if scale <= 0.0 { 1.0 } else { scale };
+
+        let wa_x = work_area.position.x as f64 / scale;
+        let wa_y = work_area.position.y as f64 / scale;
+        let wa_w = work_area.size.width as f64 / scale;
+        let wa_h = work_area.size.height as f64 / scale;
+
+        let (cursor_logical_x, cursor_logical_y) = if cfg!(target_os = "macos") {
+            (cursor_x, cursor_y)
+        } else {
+            (cursor_x / scale, cursor_y / scale)
+        };
+
+        let gap = 12.0;
+        let max_x = wa_x + wa_w - win_width;
+        let max_y = wa_y + wa_h - win_height;
+        let preferred_x = cursor_logical_x + gap;
+        let preferred_y = cursor_logical_y + gap;
+        let flipped_x = cursor_logical_x - win_width - gap;
+        let flipped_y = cursor_logical_y - win_height - gap;
+
+        let x = if preferred_x <= max_x {
+            preferred_x
+        } else {
+            flipped_x
+        };
+        let y = if preferred_y <= max_y {
+            preferred_y
+        } else {
+            flipped_y
+        };
+
+        let x = x.clamp(wa_x, max_x.max(wa_x));
+        let y = y.clamp(wa_y, max_y.max(wa_y));
+
+        return (x, y);
+    }
+
+    (cursor_x, cursor_y)
+}
+

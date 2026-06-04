@@ -179,7 +179,7 @@ const stats = computed(() => [
     >
       <div class="flex items-center justify-between gap-4 border-b border-border/40 px-6 py-4">
         <div class="flex min-w-0 items-center gap-3">
-          <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 transition-transform group-hover:scale-105 dark:text-amber-400">
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 transition-transform group-hover:scale-105">
             <MessageSquareTextIcon class="size-5" />
           </div>
           <p class="truncate text-sm font-semibold text-foreground">
@@ -187,7 +187,7 @@ const stats = computed(() => [
           </p>
         </div>
         <div class="flex size-8 shrink-0 items-center justify-center rounded-full border border-border/50 bg-background transition-colors group-hover:border-amber-500/40">
-          <ArrowRight class="size-4 text-muted-foreground transition-colors group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+          <ArrowRight class="size-4 text-muted-foreground transition-colors group-hover:text-amber-600" />
         </div>
       </div>
 

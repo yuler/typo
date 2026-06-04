@@ -9,6 +9,7 @@ mod autostart;
 mod cli;
 mod keyboard;
 mod logging;
+mod quick_pick;
 mod tray;
 mod upgrade;
 mod windows;
@@ -69,7 +70,7 @@ pub(crate) fn in_linux_wayland() -> bool {
 }
 
 #[derive(Clone, Serialize, serde::Deserialize)]
-struct SetInputPayload {
+pub(crate) struct SetInputPayload {
     text: String,
     mode: String,
 }
@@ -100,7 +101,7 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     }
 }
 
-fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
+pub(crate) fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
     // 1. Try ydotool first
     if keyboard::ydotool_copy_shortcut() {
         std::thread::sleep(std::time::Duration::from_millis(80));
@@ -119,13 +120,17 @@ fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
     None
 }
 
-fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
+pub(crate) fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
     keyboard::enigo_copy().ok()?;
 
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     let text = app.clipboard().read_text().unwrap_or_default();
-    if text.is_empty() { None } else { Some(text) }
+    if text.is_empty() {
+        None
+    } else {
+        Some(text)
+    }
 }
 
 fn app_cli_startup_selection_trigger(app: &tauri::AppHandle) {
@@ -191,6 +196,7 @@ fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
+    let startup_quick_pick = cli::has_quick_pick_flag(std::env::args());
 
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
@@ -209,13 +215,19 @@ pub fn run() {
                 &argv,
                 in_linux_wayland(),
                 app_cli_selection_trigger,
+                quick_pick::app_cli_quick_pick_trigger,
             );
         }))
         .setup(move |app| {
+            if startup_quick_pick {
+                quick_pick::store_pending_cli_quick_pick();
+            }
+
             log::info!("in_linux_wayland={}", in_linux_wayland());
             upgrade::init(app.handle().clone());
             windows::create_main_window(&app.handle());
             windows::create_indicator_window(&app.handle(), false);
+            windows::preload_quick_pick_windows(&app.handle());
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
@@ -225,6 +237,7 @@ pub fn run() {
             if startup_selection && in_linux_wayland() {
                 app_cli_startup_selection_trigger(&app.handle());
             }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -237,10 +250,19 @@ pub fn run() {
             get_system_info,
             get_selected_text,
             set_pending_selection_input,
+            quick_pick::set_quick_pick_input,
+            quick_pick::get_local_slash_prompts,
+            quick_pick::get_local_ai_provider,
+            quick_pick::get_local_locale,
             open_log_folder,
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
+            quick_pick::consume_quick_pick_input,
+            quick_pick::consume_quick_pick_selection,
+            quick_pick::open_quick_pick_with_selection,
+            quick_pick::notify_quick_pick_window_ready,
+            quick_pick::capture_quick_pick_selection,
             windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,
@@ -248,6 +270,8 @@ pub fn run() {
             upgrade::is_forced_upgrade,
             windows::open_indicator_window,
             windows::open_main_window,
+            windows::open_quick_pick_window,
+            windows::get_cursor_position,
             upgrade::ignore_version,
             upgrade::increment_activity,
         ])

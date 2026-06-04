@@ -3,21 +3,26 @@ import { emit, listen } from '@tauri-apps/api/event'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { register, unregister, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
 import { logger } from '@/logger'
-import { DEFAULT_GLOBAL_SHORTCUT, get } from './stores/settings'
+import { DEFAULT_GLOBAL_SHORTCUT, DEFAULT_QUICK_PICK_SHORTCUT, get } from './stores/settings'
 
 const SHORTCUT_SETUP_REQUEST_EVENT = 'shortcut:setup-request'
 const SHORTCUT_SETUP_RESPONSE_EVENT = 'shortcut:setup-response'
 const SHORTCUT_UNREGISTER_REQUEST_EVENT = 'shortcut:unregister-request'
 const SHORTCUT_UNREGISTER_RESPONSE_EVENT = 'shortcut:unregister-response'
 
+export interface ShortcutConfig {
+  global?: string
+  quickPick?: string
+}
+
 interface ShortcutRequestPayload {
   requestId: string
-  shortcut?: string
+  shortcuts?: ShortcutConfig
 }
 
 interface ShortcutSetupResponsePayload {
   requestId: string
-  shortcut: string
+  shortcuts: ShortcutConfig
 }
 
 interface ShortcutUnregisterResponsePayload {
@@ -57,14 +62,23 @@ async function onShortcut() {
   }
 }
 
+async function onQuickPickShortcut() {
+  logger.info('shortcut', 'onQuickPickShortcut')
+  const opened = await invoke<boolean>('open_quick_pick_with_selection')
+  if (!opened) {
+    logger.warn('shortcut', 'onQuickPickShortcut: no text selected')
+  }
+}
+
 export async function unregisterCurrentGlobalShortcut(): Promise<void> {
   try {
     await unregisterAll()
   }
   catch (e) {
     logger.error('shortcut', 'Failed to unregisterAll', e)
-    const storedShortcut = await get('global_shortcut')
-    for (const shortcut of [DEFAULT_GLOBAL_SHORTCUT, storedShortcut]) {
+    const storedGlobalShortcut = await get('global_shortcut')
+    const storedQuickPickShortcut = await get('quick_pick_shortcut')
+    for (const shortcut of [DEFAULT_GLOBAL_SHORTCUT, DEFAULT_QUICK_PICK_SHORTCUT, storedGlobalShortcut, storedQuickPickShortcut]) {
       if (shortcut) {
         try {
           await unregister(shortcut)
@@ -75,40 +89,67 @@ export async function unregisterCurrentGlobalShortcut(): Promise<void> {
   }
 }
 
-export async function setupGlobalShortcut(shortcut?: string): Promise<string> {
-  logger.info('shortcut', 'setupGlobalShortcut', shortcut)
-  // 1. Unregister all existing shortcuts first
-  await unregisterCurrentGlobalShortcut()
-
-  // 2. Determine shortcut to register
-  const shortcutToRegister = shortcut || (await get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
+async function registerWithFallback(
+  shortcut: string,
+  defaultShortcut: string,
+  label: string,
+  onRelease: () => void,
+): Promise<string | undefined> {
+  const handler = (event: any) => {
+    logger.debug('shortcut', `${label} event`, event)
+    if (event.state === 'Released')
+      onRelease()
+  }
 
   try {
-    await register(shortcutToRegister, (event) => {
-      logger.debug('shortcut', 'event', event)
-      if (event.state === 'Released')
-        onShortcut()
-    })
-    logger.info('shortcut', 'registered', shortcutToRegister)
-    return shortcutToRegister
+    await register(shortcut, handler)
+    logger.info('shortcut', `registered ${label}`, shortcut)
+    return shortcut
   }
   catch (e) {
-    logger.error('shortcut', `Failed to register shortcut ${shortcutToRegister}:`, e)
-    // 3. Fallback to default if custom fails
-    if (shortcutToRegister !== DEFAULT_GLOBAL_SHORTCUT) {
+    logger.error('shortcut', `Failed to register ${label} shortcut ${shortcut}:`, e)
+    if (shortcut !== defaultShortcut) {
       try {
-        await register(DEFAULT_GLOBAL_SHORTCUT, (event) => {
-          if (event.state === 'Released')
-            onShortcut()
-        })
-        return DEFAULT_GLOBAL_SHORTCUT
+        await register(defaultShortcut, handler)
+        logger.info('shortcut', `registered fallback ${label}`, defaultShortcut)
+        return defaultShortcut
       }
       catch (fallbackError) {
-        logger.error('shortcut', 'Failed to register fallback shortcut:', fallbackError)
+        logger.error('shortcut', `Failed to register fallback ${label} shortcut:`, fallbackError)
       }
     }
   }
-  return ''
+  return undefined
+}
+
+export async function setupGlobalShortcuts(config?: ShortcutConfig): Promise<ShortcutConfig> {
+  logger.info('shortcut', 'setupGlobalShortcuts', config)
+  // 1. Unregister all existing shortcuts first
+  await unregisterCurrentGlobalShortcut()
+
+  // 2. Determine shortcuts to register
+  const globalToRegister = config?.global || (await get('global_shortcut')) || DEFAULT_GLOBAL_SHORTCUT
+  const quickPickToRegister = config?.quickPick || (await get('quick_pick_shortcut')) || DEFAULT_QUICK_PICK_SHORTCUT
+
+  const registered: ShortcutConfig = {}
+
+  // Register Global Shortcut
+  registered.global = await registerWithFallback(
+    globalToRegister,
+    DEFAULT_GLOBAL_SHORTCUT,
+    'global',
+    onShortcut,
+  )
+
+  // Register Quick Pick Shortcut
+  registered.quickPick = await registerWithFallback(
+    quickPickToRegister,
+    DEFAULT_QUICK_PICK_SHORTCUT,
+    'quick pick',
+    onQuickPickShortcut,
+  )
+
+  return registered
 }
 
 function createRequestId(): string {
@@ -168,10 +209,10 @@ async function emitIndicatorRequest<TResponse extends { requestId: string }>(
   }
 }
 
-export async function requestIndicatorGlobalShortcutSetup(shortcut?: string): Promise<string> {
+export async function requestIndicatorGlobalShortcutSetup(shortcuts?: ShortcutConfig): Promise<ShortcutConfig> {
   const payload = {
     requestId: createRequestId(),
-    shortcut,
+    shortcuts,
   }
 
   const response = await emitIndicatorRequest<ShortcutSetupResponsePayload>(
@@ -180,7 +221,7 @@ export async function requestIndicatorGlobalShortcutSetup(shortcut?: string): Pr
     payload,
   )
 
-  return response.shortcut
+  return response.shortcuts
 }
 
 export async function requestIndicatorGlobalShortcutUnregister(): Promise<void> {
@@ -195,14 +236,14 @@ export async function requestIndicatorGlobalShortcutUnregister(): Promise<void> 
   )
 }
 
-export async function listenForIndicatorShortcutRequests(onSetup?: (shortcut: string) => void): Promise<() => void> {
+export async function listenForIndicatorShortcutRequests(onSetup?: (shortcuts: ShortcutConfig) => void): Promise<() => void> {
   const [unlistenSetup, unlistenUnregister] = await Promise.all([
     listen<ShortcutRequestPayload>(SHORTCUT_SETUP_REQUEST_EVENT, async (event) => {
-      const shortcut = await setupGlobalShortcut(event.payload.shortcut)
-      onSetup?.(shortcut)
+      const shortcuts = await setupGlobalShortcuts(event.payload.shortcuts)
+      onSetup?.(shortcuts)
       await emit(SHORTCUT_SETUP_RESPONSE_EVENT, {
         requestId: event.payload.requestId,
-        shortcut,
+        shortcuts,
       } satisfies ShortcutSetupResponsePayload)
     }),
     listen<ShortcutRequestPayload>(SHORTCUT_UNREGISTER_REQUEST_EVENT, async (event) => {

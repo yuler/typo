@@ -10,28 +10,37 @@ import { initializeStore } from '@/stores/settings'
 import { syncTrayMenu } from '@/tray'
 import Indicator from '@/windows/Indicator.vue'
 import Main from '@/windows/Main.vue'
+import QuickPick from '@/windows/QuickPick.vue'
 import Upgrade from '@/windows/Upgrade.vue'
 
 const appWindow = getCurrentWebviewWindow()
 const currentLabel = appWindow.label
 
 const windows: Record<string, Component> = {
-  main: Main,
-  indicator: Indicator,
-  upgrade: Upgrade,
+  'main': Main,
+  'indicator': Indicator,
+  'upgrade': Upgrade,
+  'quick-pick': QuickPick,
 }
 
 let isMounted = true
 onMounted(async () => {
   logger.info('App', `onMounted for window: ${currentLabel}`)
 
-  // Basic initialization is required for every window
-  await initializeStore()
-  await initializeAuthStore()
+  const isQuickPickWindow = currentLabel === 'quick-pick'
+
+  // Quick-pick windows skip store/auth (no server sync); locale via Rust settings read.
+  if (!isQuickPickWindow) {
+    await initializeStore()
+    await initializeAuthStore()
+  }
+
   if (!isMounted) {
     return
   }
-  await initializeI18n()
+
+  await initializeI18n(isQuickPickWindow ? { source: 'invoke' } : undefined)
+
   if (!isMounted) {
     return
   }

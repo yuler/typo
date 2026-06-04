@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { requestIndicatorGlobalShortcutSetup, requestIndicatorGlobalShortcutUnregister } from '@/shortcut'
-import { DEFAULT_GLOBAL_SHORTCUT } from '@/stores/settings'
+import { DEFAULT_GLOBAL_SHORTCUT, DEFAULT_QUICK_PICK_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
 import { PIN_INDICATOR_CHANGED_EVENT, setPinIndicator, updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
@@ -24,7 +24,7 @@ defineProps<{
 const { t } = useI18n()
 const isMacOS = ref(false)
 const isSaving = ref(false)
-const isCapturingShortcut = ref(false)
+const capturingTarget = ref<'global' | 'quick_pick' | null>(null)
 const shortcutConflictError = ref('')
 const captureButtonEl = ref<HTMLElement | null>(null)
 const pressedCaptureKeys = new Set<string>()
@@ -36,6 +36,7 @@ const form = ref({
   copy_result: false,
   pin_indicator: false,
   global_shortcut: '',
+  quick_pick_shortcut: '',
 })
 
 let unlistenAutostart: UnlistenFn | undefined
@@ -106,9 +107,9 @@ function buildCapturedShortcut(keys: Set<string>): string {
   return [...modifiers, mainKey].join('+')
 }
 
-async function startCapture() {
+async function startCapture(target: 'global' | 'quick_pick') {
   await requestIndicatorGlobalShortcutUnregister()
-  isCapturingShortcut.value = true
+  capturingTarget.value = target
   shortcutConflictError.value = ''
   pressedCaptureKeys.clear()
   recordedCaptureKeys.clear()
@@ -119,10 +120,10 @@ async function startCapture() {
 }
 
 function stopCapture(restoreShortcut = true) {
-  if (!isCapturingShortcut.value)
+  if (!capturingTarget.value)
     return
 
-  isCapturingShortcut.value = false
+  capturingTarget.value = null
   window.removeEventListener('keydown', onShortcutKeyDown)
   window.removeEventListener('keyup', onShortcutKeyUp)
   window.removeEventListener('blur', onCaptureWindowBlur)
@@ -131,8 +132,11 @@ function stopCapture(restoreShortcut = true) {
   recordedCaptureKeys.clear()
 
   if (restoreShortcut) {
-    void requestIndicatorGlobalShortcutSetup(form.value.global_shortcut).catch((err) => {
-      logger.error('BasicSettings', 'Failed to restore global shortcut:', err)
+    void requestIndicatorGlobalShortcutSetup({
+      global: form.value.global_shortcut,
+      quickPick: form.value.quick_pick_shortcut,
+    }).catch((err) => {
+      logger.error('BasicSettings', 'Failed to restore shortcuts:', err)
     })
   }
 }
@@ -184,7 +188,12 @@ function onShortcutKeyUp(e: KeyboardEvent) {
   }
 
   shortcutConflictError.value = ''
-  form.value.global_shortcut = captured
+  if (capturingTarget.value === 'global') {
+    form.value.global_shortcut = captured
+  }
+  else if (capturingTarget.value === 'quick_pick') {
+    form.value.quick_pick_shortcut = captured
+  }
   stopCapture(false)
 }
 
@@ -194,11 +203,12 @@ onMounted(async () => {
     return
   form.value.autostart = autostartEnabled
 
-  const [autoselect, copyResult, pinIndicator, globalShortcut] = await Promise.all([
+  const [autoselect, copyResult, pinIndicator, globalShortcut, quickPickShortcut] = await Promise.all([
     store.get('autoselect'),
     store.get('copy_result'),
     store.get('pin_indicator'),
     store.get('global_shortcut'),
+    store.get('quick_pick_shortcut'),
   ])
   if (!isMounted)
     return
@@ -206,6 +216,7 @@ onMounted(async () => {
   form.value.copy_result = copyResult
   form.value.pin_indicator = pinIndicator
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
+  form.value.quick_pick_shortcut = quickPickShortcut || DEFAULT_QUICK_PICK_SHORTCUT
 
   const systemInfo = await invoke<{ os: string, version: string, is_wayland: boolean }>('get_system_info')
   if (!isMounted)
@@ -231,7 +242,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   isMounted = false
-  if (isCapturingShortcut.value) {
+  if (capturingTarget.value) {
     stopCapture()
   }
   unlistenAutostart?.()
@@ -262,12 +273,19 @@ async function onPinIndicatorToggle(value: boolean) {
 }
 
 async function onSubmit() {
-  const requestedShortcut = form.value.global_shortcut
-  const actualShortcut = await requestIndicatorGlobalShortcutSetup(requestedShortcut)
+  const actualShortcuts = await requestIndicatorGlobalShortcutSetup({
+    global: form.value.global_shortcut,
+    quickPick: form.value.quick_pick_shortcut,
+  })
 
-  if (requestedShortcut && actualShortcut !== requestedShortcut) {
-    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcut })
-    form.value.global_shortcut = actualShortcut
+  if (form.value.global_shortcut && actualShortcuts.global !== form.value.global_shortcut) {
+    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcuts.global || DEFAULT_GLOBAL_SHORTCUT })
+    form.value.global_shortcut = actualShortcuts.global || DEFAULT_GLOBAL_SHORTCUT
+  }
+
+  if (form.value.quick_pick_shortcut && actualShortcuts.quickPick !== form.value.quick_pick_shortcut) {
+    shortcutConflictError.value = t('settings.basic.shortcut.conflict', { shortcut: actualShortcuts.quickPick || DEFAULT_QUICK_PICK_SHORTCUT })
+    form.value.quick_pick_shortcut = actualShortcuts.quickPick || DEFAULT_QUICK_PICK_SHORTCUT
   }
 
   isSaving.value = true
@@ -276,7 +294,8 @@ async function onSubmit() {
       store.set('autoselect', form.value.autoselect),
       store.set('copy_result', form.value.copy_result),
       store.set('pin_indicator', form.value.pin_indicator),
-      store.set('global_shortcut', actualShortcut),
+      store.set('global_shortcut', actualShortcuts.global),
+      store.set('quick_pick_shortcut', actualShortcuts.quickPick),
     ])
     await store.save()
     toast.success(t('settings.save_success'))
@@ -294,13 +313,13 @@ async function onSubmit() {
 <template>
   <SettingsPageLayout :title="t('main.nav.settings')">
     <div class="space-y-6">
-      <!-- Shortcut Card -->
+      <!-- Global Shortcut Card -->
       <div class="rounded-xl border bg-card p-6 shadow-sm">
         <div class="space-y-4">
           <div class="space-y-1">
             <Label for="global_shortcut" class="text-base font-semibold">{{ t('settings.basic.shortcut.label') }}</Label>
             <p class="text-sm text-muted-foreground">
-              {{ isCapturingShortcut ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
+              {{ capturingTarget === 'global' ? t('settings.basic.shortcut.capturing_hint') : t('settings.basic.shortcut.hint') }}
             </p>
           </div>
           <div class="flex items-center gap-2">
@@ -310,13 +329,13 @@ async function onSubmit() {
               variant="outline"
               class="flex-1 justify-start font-mono h-12 text-base transition-all"
               :class="{
-                'border-primary ring-2 ring-primary bg-primary/5': isCapturingShortcut,
+                'border-primary ring-2 ring-primary bg-primary/5': capturingTarget === 'global',
                 'animate-flash-highlight': highlightShortcut,
               }"
-              @click="isCapturingShortcut ? stopCapture() : startCapture()"
+              @click="capturingTarget === 'global' ? stopCapture() : startCapture('global')"
             >
               {{
-                isCapturingShortcut
+                capturingTarget === 'global'
                   ? t('settings.basic.shortcut.listening')
                   : formatShortcut(form.global_shortcut, isMacOS)
               }}
@@ -331,7 +350,48 @@ async function onSubmit() {
               <RotateCcwIcon class="h-5 w-5" />
             </Button>
           </div>
-          <p v-if="shortcutConflictError" class="text-xs font-medium text-destructive animate-pulse">
+          <p v-if="shortcutConflictError && capturingTarget === 'global'" class="text-xs font-medium text-destructive animate-pulse">
+            {{ shortcutConflictError }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Pick Shortcut Card -->
+      <div class="rounded-xl border bg-card p-6 shadow-sm">
+        <div class="space-y-4">
+          <div class="space-y-1">
+            <Label for="quick_pick_shortcut" class="text-base font-semibold">{{ t('settings.basic.quick_pick_shortcut.label') || 'Quick Pick Shortcut' }}</Label>
+            <p class="text-sm text-muted-foreground">
+              {{ capturingTarget === 'quick_pick' ? t('settings.basic.shortcut.capturing_hint') : (t('settings.basic.quick_pick_shortcut.hint') || 'Open quick pick for current selection') }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              class="flex-1 justify-start font-mono h-12 text-base transition-all"
+              :class="{
+                'border-primary ring-2 ring-primary bg-primary/5': capturingTarget === 'quick_pick',
+              }"
+              @click="capturingTarget === 'quick_pick' ? stopCapture() : startCapture('quick_pick')"
+            >
+              {{
+                capturingTarget === 'quick_pick'
+                  ? t('settings.basic.shortcut.listening')
+                  : formatShortcut(form.quick_pick_shortcut, isMacOS)
+              }}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              class="h-12 w-12"
+              @click="form.quick_pick_shortcut = DEFAULT_QUICK_PICK_SHORTCUT"
+            >
+              <RotateCcwIcon class="h-5 w-5" />
+            </Button>
+          </div>
+          <p v-if="shortcutConflictError && capturingTarget === 'quick_pick'" class="text-xs font-medium text-destructive animate-pulse">
             {{ shortcutConflictError }}
           </p>
         </div>
