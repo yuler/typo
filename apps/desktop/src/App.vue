@@ -3,7 +3,7 @@ import type { Component } from 'vue'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { onMounted, onUnmounted } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
-import { initializeI18n } from '@/composables/useI18n'
+import { initializeI18n, initializeQuickPickI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
 import { initializeAuthStore } from '@/stores/auth'
 import { initializeStore } from '@/stores/settings'
@@ -31,8 +31,7 @@ onMounted(async () => {
 
   const isQuickPickWindow = currentLabel === 'quick-pick' || currentLabel === 'quick-pick-result'
 
-  // Quick-pick windows run with restricted permissions and cannot use plugin-store.
-  // Skip store/auth/i18n bootstrapping there and rely on default locale + invoke calls.
+  // Quick-pick windows skip store/auth (no server sync); locale via Rust settings read.
   if (!isQuickPickWindow) {
     await initializeStore()
     await initializeAuthStore()
@@ -42,7 +41,10 @@ onMounted(async () => {
     return
   }
 
-  if (!isQuickPickWindow) {
+  if (isQuickPickWindow) {
+    await initializeQuickPickI18n()
+  }
+  else {
     await initializeI18n()
   }
 

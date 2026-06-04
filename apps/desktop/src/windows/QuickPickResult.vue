@@ -4,8 +4,9 @@ import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import { Check, Copy, CornerDownLeft, X } from 'lucide-vue-next'
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { deepSeekProcess, ollamaProcess, typoProcess } from '@/ai'
+import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useI18n } from '@/composables/useI18n'
 import { logger } from '@/logger'
@@ -13,11 +14,30 @@ import { logger } from '@/logger'
 const { t } = useI18n()
 const appWindow = getCurrentWebviewWindow()
 
+interface QuickPickPayload {
+  text: string
+  prompt: string
+  command: string
+}
+
 const state = ref<'processing' | 'result' | 'error'>('processing')
+const activePayload = ref<QuickPickPayload | null>(null)
 const resultText = ref('')
 const errorText = ref('')
 const copied = ref(false)
 const insertButtonRef = ref<HTMLButtonElement | null>(null)
+
+const displayCommand = computed(() => {
+  const command = activePayload.value?.command?.trim()
+  if (!command)
+    return ''
+  return command.startsWith('/') ? command : `/${command}`
+})
+
+const displaySelectionText = computed(() => {
+  const normalized = activePayload.value?.text?.trim() ?? ''
+  return normalized || t('main.quick_pick.selection_empty')
+})
 
 watch(state, async (newState) => {
   if (newState === 'result') {
@@ -56,11 +76,12 @@ async function fetchCorrection(
   return process(payload.text, signal, payload)
 }
 
-async function startProcessing(payload: { text: string, prompt: string, command: string }) {
+async function startProcessing(payload: QuickPickPayload) {
   abortController?.abort()
   const controller = new AbortController()
   abortController = controller
   copied.value = false
+  activePayload.value = payload
   try {
     state.value = 'processing'
     resultText.value = ''
@@ -128,6 +149,7 @@ async function hideWindow() {
 
 function close() {
   abortController?.abort()
+  activePayload.value = null
   void hideWindow()
 }
 
@@ -215,9 +237,18 @@ onUnmounted(() => {
       <div
         class="flex items-center justify-between px-4 py-2 border-b border-zinc-200 bg-zinc-50 text-zinc-500"
       >
-        <span class="text-xs font-medium">
-          {{ t('main.quick_pick.result_title') || 'Quick Pick Result' }}
-        </span>
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-xs font-medium shrink-0">
+            {{ t('main.quick_pick.result_title') }}
+          </span>
+          <Badge
+            v-if="state === 'processing' && displayCommand"
+            variant="secondary"
+            class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide truncate max-w-[200px]"
+          >
+            {{ displayCommand }}
+          </Badge>
+        </div>
         <button
           v-if="state !== 'processing'"
           class="text-zinc-400 hover:text-zinc-900 transition-colors cursor-pointer"
@@ -230,11 +261,39 @@ onUnmounted(() => {
 
       <!-- Content -->
       <div class="flex-1 overflow-hidden relative">
-        <div v-if="state === 'processing'" class="flex flex-col items-center justify-center h-full space-y-4">
-          <div class="w-8 h-8 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
-          <p class="text-sm text-zinc-500 font-medium">
-            {{ t('main.status.processing') || 'Processing...' }}
-          </p>
+        <div v-if="state === 'processing'" class="flex flex-col h-full bg-zinc-50 p-2.5 min-h-0">
+          <div class="flex-1 min-h-0 flex flex-col pb-1.5">
+            <div class="flex items-center justify-between mb-1 shrink-0">
+              <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
+                {{ t('main.quick_pick.prompt_label') }}
+              </Badge>
+            </div>
+            <div class="flex-1 min-h-0 rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm overflow-y-auto">
+              <p class="whitespace-pre-wrap break-all text-[11px] leading-snug text-zinc-700">
+                {{ activePayload?.prompt || '' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex shrink-0 flex-col items-center justify-center py-3 space-y-2">
+            <div class="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+            <p class="text-xs text-zinc-500 font-medium">
+              {{ t('main.status.processing') }}
+            </p>
+          </div>
+
+          <div class="flex-1 min-h-0 flex flex-col pt-1.5">
+            <div class="flex items-center justify-between mb-1 shrink-0">
+              <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
+                {{ t('main.quick_pick.selection_label') }}
+              </Badge>
+            </div>
+            <div class="flex-1 min-h-0 rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm font-mono overflow-y-auto">
+              <p class="whitespace-pre-wrap break-all text-[11px] leading-snug text-zinc-600">
+                {{ displaySelectionText }}
+              </p>
+            </div>
+          </div>
         </div>
 
         <ScrollArea v-else-if="state === 'result'" class="h-full">
@@ -252,7 +311,7 @@ onUnmounted(() => {
             tabindex="1"
             @click="close"
           >
-            {{ t('main.action.close') || 'Close' }}
+            {{ t('main.action.close') }}
           </button>
         </div>
       </div>
@@ -263,7 +322,7 @@ onUnmounted(() => {
         class="px-4 py-2 border-t border-zinc-200 bg-zinc-50"
       >
         <p class="text-[11px] text-zinc-500">
-          Press Esc to cancel
+          {{ t('main.quick_pick.cancel_hint') }}
         </p>
       </div>
       <div v-else-if="state === 'result'" class="px-4 py-3 border-t border-zinc-200 bg-zinc-50 flex justify-end gap-2">
@@ -273,7 +332,7 @@ onUnmounted(() => {
           @click="copyToClipboard"
         >
           <component :is="copied ? Check : Copy" class="w-3.5 h-3.5" :class="copied ? 'text-green-600' : ''" />
-          {{ copied ? (t('main.status.copied') || 'Copied') : (t('main.action.copy') || 'Copy') }}
+          {{ copied ? t('main.status.copied') : t('main.action.copy') }}
         </button>
         <button
           ref="insertButtonRef"
@@ -282,7 +341,7 @@ onUnmounted(() => {
           @click="insertText"
         >
           <CornerDownLeft class="w-3.5 h-3.5" />
-          {{ t('main.action.insert') || 'Insert' }}
+          {{ t('main.action.insert') }}
         </button>
       </div>
     </div>

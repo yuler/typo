@@ -72,7 +72,7 @@ const isUsingTypedPrompt = computed(() => {
 
 const displaySelectionText = computed(() => {
   const normalized = capturedText.value.trim()
-  return normalized || 'Selection is empty'
+  return normalized || t('main.quick_pick.selection_empty')
 })
 
 async function confirmSelection(prompt: any) {
@@ -396,7 +396,7 @@ function beginQuickPickSession() {
             ref="searchInputRef"
             v-model="searchQuery"
             class="h-8 border-zinc-200 bg-white pl-8 text-xs focus-visible:ring-1 focus-visible:ring-primary"
-            :placeholder="t('main.quick_pick.search_placeholder') || 'search or directly input prompt'"
+            :placeholder="t('main.quick_pick.search_placeholder')"
             @keydown="onKeyDown"
           />
         </div>
@@ -430,10 +430,10 @@ function beginQuickPickSession() {
       <!-- Left Bottom Tip -->
       <div class="border-t border-zinc-100 bg-zinc-50/50 p-2 shrink-0 text-center">
         <p v-if="isUsingTypedPrompt" class="text-[10px] leading-snug text-primary/85 font-medium">
-          will use input once prompt directly
+          {{ t('main.quick_pick.hint_typed_prompt') }}
         </p>
         <p v-else class="text-[10px] leading-snug text-zinc-400">
-          Select a command or press Enter to run
+          {{ t('main.quick_pick.hint_select_command') }}
         </p>
       </div>
     </div>
@@ -444,12 +444,12 @@ function beginQuickPickSession() {
       <div class="flex-1 min-h-0 flex flex-col pb-1.5">
         <div class="flex items-center justify-between mb-1 shrink-0">
           <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
-            Prompt
+            {{ t('main.quick_pick.prompt_label') }}
           </Badge>
         </div>
         <div class="flex-1 min-h-0 rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm overflow-y-auto">
           <p class="whitespace-pre-wrap break-all text-[11px] leading-snug text-zinc-700">
-            {{ selectedPromptText || (t('main.quick_pick.no_commands') || 'No commands found') }}
+            {{ selectedPromptText || t('main.quick_pick.no_commands') }}
           </p>
         </div>
       </div>
@@ -458,7 +458,7 @@ function beginQuickPickSession() {
       <div class="flex-1 min-h-0 flex flex-col pt-1.5">
         <div class="flex items-center justify-between mb-1 shrink-0">
           <Badge variant="secondary" class="h-5 px-1.5 py-0 text-[10px] uppercase tracking-wide">
-            Selection
+            {{ t('main.quick_pick.selection_label') }}
           </Badge>
         </div>
         <div class="flex-1 min-h-0 rounded-md border border-zinc-200 bg-white p-2.5 shadow-sm font-mono overflow-y-auto">

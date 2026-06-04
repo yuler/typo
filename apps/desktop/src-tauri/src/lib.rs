@@ -1,16 +1,15 @@
 use serde::Serialize;
 use tauri::Manager;
 use tauri::Emitter;
-use tauri_plugin_store::StoreExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 mod autostart;
 mod cli;
 mod keyboard;
 mod logging;
+mod quick_pick;
 mod tray;
 mod upgrade;
 mod windows;
@@ -71,7 +70,7 @@ pub(crate) fn in_linux_wayland() -> bool {
 }
 
 #[derive(Clone, Serialize, serde::Deserialize)]
-struct SetInputPayload {
+pub(crate) struct SetInputPayload {
     text: String,
     mode: String,
 }
@@ -80,107 +79,6 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
     static PENDING_SELECTION_PAYLOAD: OnceLock<Mutex<Option<SetInputPayload>>> = OnceLock::new();
     PENDING_SELECTION_PAYLOAD.get_or_init(|| Mutex::new(None))
 }
-
-fn quick_pick_payload() -> &'static Mutex<Option<SetInputPayload>> {
-    static QUICK_PICK_PAYLOAD: OnceLock<Mutex<Option<SetInputPayload>>> = OnceLock::new();
-    QUICK_PICK_PAYLOAD.get_or_init(|| Mutex::new(None))
-}
-
-fn quick_pick_selection() -> &'static Mutex<Option<String>> {
-    static QUICK_PICK_SELECTION: OnceLock<Mutex<Option<String>>> = OnceLock::new();
-    QUICK_PICK_SELECTION.get_or_init(|| Mutex::new(None))
-}
-
-fn pending_cli_quick_pick() -> &'static AtomicBool {
-    static PENDING_CLI_QUICK_PICK: OnceLock<AtomicBool> = OnceLock::new();
-    PENDING_CLI_QUICK_PICK.get_or_init(|| AtomicBool::new(false))
-}
-
-fn set_quick_pick_selection(text: String) {
-    if let Ok(mut selection) = quick_pick_selection().lock() {
-        *selection = Some(text);
-    }
-}
-
-#[tauri::command]
-fn consume_quick_pick_selection() -> Option<String> {
-    match quick_pick_selection().lock() {
-        Ok(mut selection) => selection.take(),
-        Err(error) => {
-            log::error!("failed to access quick pick selection: {}", error);
-            None
-        }
-    }
-}
-
-#[tauri::command]
-fn capture_quick_pick_selection(app: tauri::AppHandle) {
-    tauri::async_runtime::spawn(async move {
-        let app_clone = app.clone();
-        let text = tauri::async_runtime::spawn_blocking(move || {
-            let captured = if in_linux_wayland() {
-                get_selected_text_wayland(&app_clone)
-            } else {
-                get_selected_text_enigo(&app_clone)
-            };
-            captured.filter(|value| !value.trim().is_empty())
-        })
-        .await
-        .unwrap_or(None);
-
-        if let Some(ref val) = text {
-            set_quick_pick_selection(val.clone());
-        }
-
-        if let Some(window) = app.get_webview_window("quick-pick") {
-            let _ = window.emit("quick-pick-selection-captured", text);
-        }
-    });
-}
-
-#[tauri::command]
-fn open_quick_pick_with_selection(app: tauri::AppHandle, text: Option<String>) -> bool {
-    let app_clone = app.clone();
-    tauri::async_runtime::spawn(async move {
-        if let Some(val) = text.filter(|value| !value.trim().is_empty()) {
-            set_quick_pick_selection(val.clone());
-            windows::open_quick_pick_window(app_clone.clone());
-            if let Some(window) = app_clone.get_webview_window("quick-pick") {
-                let _ = window.emit("quick-pick-selection-captured", Some(val));
-            }
-        } else {
-            // 1. Capture the selection first while the active editor window still has focus
-            let captured_text = tauri::async_runtime::spawn_blocking(move || {
-                let captured = if in_linux_wayland() {
-                    get_selected_text_wayland(&app_clone)
-                } else {
-                    get_selected_text_enigo(&app_clone)
-                };
-                captured.filter(|value| !value.trim().is_empty())
-            })
-            .await
-            .unwrap_or(None);
-
-            if let Some(ref val) = captured_text {
-                set_quick_pick_selection(val.clone());
-            } else {
-                if let Ok(mut sel) = quick_pick_selection().lock() {
-                    *sel = None;
-                }
-            }
-
-            // 2. Open the quick pick window
-            windows::open_quick_pick_window(app.clone());
-
-            // 3. Emit the event
-            if let Some(window) = app.get_webview_window("quick-pick") {
-                let _ = window.emit("quick-pick-selection-captured", captured_text);
-            }
-        }
-    });
-    true
-}
-
 
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");
@@ -203,21 +101,7 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     }
 }
 
-fn app_cli_quick_pick_trigger(app: &tauri::AppHandle) {
-    log::debug!("app_cli_quick_pick_trigger");
-
-    open_quick_pick_with_selection(app.clone(), None);
-}
-
-#[tauri::command]
-fn notify_quick_pick_window_ready(app: tauri::AppHandle) {
-    if pending_cli_quick_pick().swap(false, Ordering::SeqCst) {
-        app_cli_quick_pick_trigger(&app);
-    }
-}
-
-fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
-    // 1. Try ydotool first
+pub(crate) fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
     if keyboard::ydotool_copy_shortcut() {
         std::thread::sleep(std::time::Duration::from_millis(80));
         let text = app.clipboard().read_text().unwrap_or_default();
@@ -226,8 +110,6 @@ fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
         }
     }
 
-    // 2. Fallback to copyq selection
-    // TODO: remove this
     if let Some(text) = keyboard::copyq_selection() {
         return Some(text);
     }
@@ -235,13 +117,17 @@ fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
     None
 }
 
-fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
+pub(crate) fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> {
     keyboard::enigo_copy().ok()?;
 
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     let text = app.clipboard().read_text().unwrap_or_default();
-    if text.is_empty() { None } else { Some(text) }
+    if text.is_empty() {
+        None
+    } else {
+        Some(text)
+    }
 }
 
 fn app_cli_startup_selection_trigger(app: &tauri::AppHandle) {
@@ -277,56 +163,6 @@ fn set_pending_selection_input(payload: SetInputPayload) {
     if let Ok(mut pending) = pending_selection_payload().lock() {
         *pending = Some(payload);
     }
-}
-
-#[tauri::command]
-fn consume_quick_pick_input() -> Option<SetInputPayload> {
-    match quick_pick_payload().lock() {
-        Ok(mut pending) => pending.take(),
-        Err(error) => {
-            log::error!("failed to access quick pick payload: {}", error);
-            None
-        }
-    }
-}
-
-#[tauri::command]
-fn set_quick_pick_input(payload: SetInputPayload) {
-    if let Ok(mut pending) = quick_pick_payload().lock() {
-        *pending = Some(payload);
-    }
-}
-
-#[tauri::command]
-fn get_local_slash_prompts(app: tauri::AppHandle) -> Result<Vec<serde_json::Value>, String> {
-    let store = app
-        .store("settings.json")
-        .map_err(|error| format!("failed to open settings store: {error}"))?;
-
-    let Some(value) = store.get("slash_prompts") else {
-        return Ok(Vec::new());
-    };
-
-    let prompts = value
-        .as_array()
-        .cloned()
-        .unwrap_or_default();
-
-    Ok(prompts)
-}
-
-#[tauri::command]
-fn get_local_ai_provider(app: tauri::AppHandle) -> Result<String, String> {
-    let store = app
-        .store("settings.json")
-        .map_err(|error| format!("failed to open settings store: {error}"))?;
-
-    let ai_provider = store
-        .get("ai_provider")
-        .and_then(|value| value.as_str().map(|value| value.to_string()))
-        .unwrap_or_else(|| "typo".to_string());
-
-    Ok(ai_provider)
 }
 
 pub(crate) fn desktop_log_dir(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
@@ -376,19 +212,19 @@ pub fn run() {
                 &argv,
                 in_linux_wayland(),
                 app_cli_selection_trigger,
-                app_cli_quick_pick_trigger,
+                quick_pick::app_cli_quick_pick_trigger,
             );
         }))
         .setup(move |app| {
             if startup_quick_pick {
-                pending_cli_quick_pick().store(true, Ordering::SeqCst);
+                quick_pick::store_pending_cli_quick_pick();
             }
 
             log::info!("in_linux_wayland={}", in_linux_wayland());
             upgrade::init(app.handle().clone());
             windows::create_main_window(&app.handle());
             windows::create_indicator_window(&app.handle(), false);
-            windows::preload_quick_pick_windows(&app.handle());
+            quick_pick::preload_quick_pick_windows(&app.handle());
             if let Err(error) = tray::init(app) {
                 log::error!("failed to initialize system tray: {}", error);
             }
@@ -411,18 +247,19 @@ pub fn run() {
             get_system_info,
             get_selected_text,
             set_pending_selection_input,
-            set_quick_pick_input,
-            get_local_slash_prompts,
-            get_local_ai_provider,
+            quick_pick::set_quick_pick_input,
+            quick_pick::get_local_slash_prompts,
+            quick_pick::get_local_ai_provider,
+            quick_pick::get_local_locale,
             open_log_folder,
             keyboard::keyboard_select_all,
             keyboard::keyboard_paste_text,
             consume_pending_selection_input,
-            consume_quick_pick_input,
-            consume_quick_pick_selection,
-            open_quick_pick_with_selection,
-            notify_quick_pick_window_ready,
-            capture_quick_pick_selection,
+            quick_pick::consume_quick_pick_input,
+            quick_pick::consume_quick_pick_selection,
+            quick_pick::open_quick_pick_with_selection,
+            quick_pick::notify_quick_pick_window_ready,
+            quick_pick::capture_quick_pick_selection,
             windows::consume_pending_open_settings,
             tray::update_tray_menu,
             windows::open_upgrade_window,
@@ -430,8 +267,8 @@ pub fn run() {
             upgrade::is_forced_upgrade,
             windows::open_indicator_window,
             windows::open_main_window,
-            windows::open_quick_pick_window,
-            windows::open_quick_pick_result_window,
+            quick_pick::open_quick_pick_window,
+            quick_pick::open_quick_pick_result_window,
             windows::get_cursor_position,
             upgrade::ignore_version,
             upgrade::increment_activity,

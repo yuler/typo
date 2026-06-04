@@ -1,6 +1,7 @@
 import type { Locale, MessageKey } from '@typo/languages'
+import { invoke } from '@tauri-apps/api/core'
 import { emit, listen } from '@tauri-apps/api/event'
-import { createGenericTranslator, defaultLocale } from '@typo/languages'
+import { createGenericTranslator, defaultLocale, locales } from '@typo/languages'
 import { computed, ref } from 'vue'
 import { get, save, set } from '@/stores/settings'
 import en from '../locales/en.json'
@@ -16,8 +17,20 @@ const LOCALE_EVENT = 'typo://locale-changed'
 
 const locale = ref<Locale>(defaultLocale)
 
+function isValidLocale(value: string): value is Locale {
+  return (locales as readonly string[]).includes(value)
+}
+
 export async function initializeI18n(): Promise<void> {
   locale.value = await get('locale')
+  await listen<Locale>(LOCALE_EVENT, (event) => {
+    locale.value = event.payload
+  })
+}
+
+export async function initializeQuickPickI18n(): Promise<void> {
+  const stored = await invoke<string>('get_local_locale').catch(() => defaultLocale)
+  locale.value = isValidLocale(stored) ? stored : defaultLocale
   await listen<Locale>(LOCALE_EVENT, (event) => {
     locale.value = event.payload
   })
