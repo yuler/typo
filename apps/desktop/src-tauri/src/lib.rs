@@ -136,11 +136,14 @@ fn app_cli_startup_selection_trigger(app: &tauri::AppHandle) {
     };
 
     if let Some(text) = text {
-        if let Ok(mut pending) = pending_selection_payload().lock() {
-            *pending = Some(SetInputPayload {
-                text,
-                mode: "selected".to_string(),
-            });
+        match pending_selection_payload().lock() {
+            Ok(mut pending) => {
+                *pending = Some(SetInputPayload {
+                    text,
+                    mode: "selected".to_string(),
+                });
+            }
+            Err(error) => log::error!("failed to access pending selection payload: {}", error),
         }
     }
 }
@@ -158,8 +161,11 @@ fn consume_pending_selection_input() -> Option<SetInputPayload> {
 
 #[tauri::command]
 fn set_pending_selection_input(payload: SetInputPayload) {
-    if let Ok(mut pending) = pending_selection_payload().lock() {
-        *pending = Some(payload);
+    match pending_selection_payload().lock() {
+        Ok(mut pending) => {
+            *pending = Some(payload);
+        }
+        Err(error) => log::error!("failed to access pending selection payload: {}", error),
     }
 }
 
