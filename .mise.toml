@@ -92,4 +92,7 @@ run = "pnpm deps:up"
 
 [tasks.test]
 description = "Run all tests"
-run = ["pnpm languages:test", "pnpm core:test"]
+run = [
+  "pnpm languages:test",
+  "pnpm core:test"
+]
