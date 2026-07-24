@@ -101,17 +101,41 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     }
 }
 
+/// Sentinel written before simulated Ctrl+C so we can tell "copy failed,
+/// clipboard unchanged" from "copy succeeded". Without this, a failed Ctrl+C
+/// (e.g. Shift still held from Ctrl+Shift+X) returns the *previous* clipboard
+/// as if it were the selection.
+const SELECTION_CLIPBOARD_SENTINEL: &str = "\u{FEFF}\u{200B}typo-sel\u{200B}";
+
 pub(crate) fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
-    // 1. Try ydotool first
+    // 1. Ctrl+C via ydotool, reject stale clipboard with a sentinel.
+    let previous_clipboard = app.clipboard().read_text().unwrap_or_default();
+    let _ = app
+        .clipboard()
+        .write_text(SELECTION_CLIPBOARD_SENTINEL.to_string());
+    std::thread::sleep(std::time::Duration::from_millis(40));
+
     if keyboard::ydotool_copy_shortcut() {
-        std::thread::sleep(std::time::Duration::from_millis(80));
+        std::thread::sleep(std::time::Duration::from_millis(100));
         let text = app.clipboard().read_text().unwrap_or_default();
-        if !text.is_empty() {
+        if !text.is_empty() && text != SELECTION_CLIPBOARD_SENTINEL {
+            if !previous_clipboard.is_empty() {
+                let _ = app.clipboard().write_text(previous_clipboard);
+            }
             return Some(text);
         }
     }
 
-    // 2. Fallback to copyq selection
+    if !previous_clipboard.is_empty() {
+        let _ = app.clipboard().write_text(previous_clipboard);
+    }
+
+    // 2. Wayland primary selection (highlighted text; no Ctrl+C needed)
+    if let Some(text) = keyboard::wl_paste_primary() {
+        return Some(text);
+    }
+
+    // 3. Fallback to copyq selection
     // TODO: remove this
     if let Some(text) = keyboard::copyq_selection() {
         return Some(text);
