@@ -108,6 +108,23 @@ pub fn _enigo_paste_text(text: String, window: tauri::Window) -> Result<(), Stri
     Ok(())
 }
 
+/// `wl-paste --primary` — Wayland primary selection (highlighted text).
+pub fn wl_paste_primary() -> Option<String> {
+    let output = Command::new("wl-paste")
+        .args(["--primary", "--no-newline"])
+        .stderr(Stdio::null())
+        .output()
+        .ok()?;
+
+    if output.status.success() {
+        let text = String::from_utf8_lossy(&output.stdout).to_string();
+        if !text.is_empty() {
+            return Some(text);
+        }
+    }
+    None
+}
+
 /// `copyq selection`
 pub fn copyq_selection() -> Option<String> {
     ensure_copyq_server_start();
@@ -149,34 +166,80 @@ pub fn copyq_paste() -> bool {
     }
 }
 
-/// `ydotool key Ctrl + c` to trigger copy shortcut on Wayland.
-pub fn ydotool_copy_shortcut() -> bool {
-    let ctrl_c = Command::new("ydotool")
-        .args(["key", "CTRL+c"])
+// Linux input-event-codes.h — used by ydotool 1.0+ (`keycode:pressed`).
+const KEY_C: u16 = 46;
+const KEY_V: u16 = 47;
+const KEY_LEFTCTRL: u16 = 29;
+const KEY_LEFTSHIFT: u16 = 42;
+const KEY_LEFTALT: u16 = 56;
+
+fn ydotool_key(key_events: &[&str]) -> bool {
+    Command::new("ydotool")
+        .arg("key")
+        .args(key_events)
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
-        .output();
-
-    let Ok(ctrl_c_output) = ctrl_c else {
-        return false;
-    };
-
-    ctrl_c_output.status.success()
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false)
 }
 
-/// `ydotool key Ctrl+v` to trigger paste shortcuts on Wayland.
+fn ydotool_chord(events: &[(u16, u8)]) -> bool {
+    let args: Vec<String> = events
+        .iter()
+        .map(|(code, pressed)| format!("{code}:{pressed}"))
+        .collect();
+    let refs: Vec<&str> = args.iter().map(String::as_str).collect();
+    ydotool_key(&refs)
+}
+
+/// Release modifiers that may still be held from the system hotkey
+/// (e.g. Ctrl+Shift+X) so the following Ctrl+C/V is not Ctrl+Shift+C/V.
+fn ydotool_release_modifiers() {
+    let _ = ydotool_chord(&[
+        (KEY_LEFTCTRL, 0),
+        (KEY_LEFTSHIFT, 0),
+        (KEY_LEFTALT, 0),
+    ]);
+}
+
+/// Trigger Ctrl+C on Wayland via ydotool.
+///
+/// Prefers ydotool 1.0+ raw keycodes (Arch / recent distros). Falls back to
+/// the legacy named-key syntax (`CTRL+c`) used by older Ubuntu packages.
+/// Note: on ydotool 1.0+, `CTRL+c` is a no-op that still exits 0, so keycodes
+/// must be tried first.
+pub fn ydotool_copy_shortcut() -> bool {
+    ydotool_release_modifiers();
+    // Let the compositor drop the system hotkey modifiers before Ctrl+C.
+    std::thread::sleep(std::time::Duration::from_millis(50));
+
+    if ydotool_chord(&[
+        (KEY_LEFTCTRL, 1),
+        (KEY_C, 1),
+        (KEY_C, 0),
+        (KEY_LEFTCTRL, 0),
+    ]) {
+        return true;
+    }
+
+    ydotool_key(&["CTRL+c"])
+}
+
+/// Trigger Ctrl+V on Wayland via ydotool (same keycode / legacy fallback as copy).
 pub fn ydotool_paste_shortcut() -> bool {
-    let ctrl_v = Command::new("ydotool")
-        .args(["key", "CTRL+v"])
-        .stderr(Stdio::piped())
-        .stdout(Stdio::piped())
-        .output();
+    ydotool_release_modifiers();
 
-    let Ok(ctrl_v_output) = ctrl_v else {
-        return false;
-    };
+    if ydotool_chord(&[
+        (KEY_LEFTCTRL, 1),
+        (KEY_V, 1),
+        (KEY_V, 0),
+        (KEY_LEFTCTRL, 0),
+    ]) {
+        return true;
+    }
 
-    ctrl_v_output.status.success()
+    ydotool_key(&["CTRL+v"])
 }
 
 fn keyboard_paste_text_wayland(text: String, window: tauri::Window) -> Result<(), String> {
