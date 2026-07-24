@@ -26,7 +26,7 @@ Guidance for AI coding agents working in this repository. Prefer the conventions
 
 ## Setup
 
-Follow [`.agents/skills/setup/SKILL.md`](.agents/skills/setup/SKILL.md) to bootstrap Node.js (`.nvmrc`), pnpm (pinned in `package.json#packageManager` via Corepack), workspace deps, and the Rust toolchain for Tauri. `core/` uses Ruby (pinned in `core/.ruby-version`) and Rails 8; run `bundle install` inside `core/` to install gems.
+Follow [`.agents/skills/setup/SKILL.md`](.agents/skills/setup/SKILL.md) to bootstrap via mise (`mise install` + `mise run setup`). Tool versions come from `.mise.toml` (Node from `.nvmrc`, pnpm from `package.json#packageManager`, Ruby from `core/.ruby-version`). Rust for Tauri is installed separately via rustup.
 
 ## NPM Scripts
 

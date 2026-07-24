@@ -48,16 +48,19 @@ For full usage instructions, authentication details, configuration guides, and F
 
 ## Setup
 
-Follow the [`setup` skill](.agents/skills/setup/SKILL.md) to install Node.js (from `.nvmrc`), pnpm (via Corepack, pinned in `package.json`), workspace dependencies, and the Rust toolchain for the Tauri desktop app.
+Requires [mise](https://mise.jdx.dev). Install toolchains (Node from `.nvmrc`, pnpm from `package.json`, Ruby from `core/.ruby-version`) and project dependencies:
 
 ```bash
-/setup # run this skill/command in AI coding agent
+mise install
+mise run setup
 ```
+
+For the Tauri desktop app, also install [Rust](https://rustup.rs) and the [platform prerequisites](https://tauri.app/start/prerequisites/).
 
 ### Run the desktop app
 
 ```bash
-pnpm desktop:dev
+mise run desktop-dev
 ```
 
 ## Release flow
