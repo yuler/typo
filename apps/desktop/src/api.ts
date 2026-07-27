@@ -32,13 +32,19 @@ function getUserAgent(): Promise<string> {
 
   userAgentPromise = (async () => {
     try {
-      const { os, version } = await invoke<{ os: string, version: string }>('get_system_info')
+      const [{ os, version }, hostname] = await Promise.all([
+        invoke<{ os: string, version: string }>('get_system_info'),
+        invoke<string>('get_hostname').catch((error) => {
+          console.error('failed to get hostname', error)
+          return 'Unknown'
+        }),
+      ])
       const platform = {
         macos: 'macOS',
         windows: 'Windows',
         linux: 'Linux',
       }[os] || os
-      return `Typo Desktop/${version} (${platform})`
+      return `Typo Desktop/${version} (${platform}; ${hostname})`
     }
     catch (error) {
       console.error('failed to get system info for user agent', error)
