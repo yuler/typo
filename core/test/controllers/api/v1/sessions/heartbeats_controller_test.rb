@@ -26,4 +26,16 @@ class Api::V1::Sessions::HeartbeatsControllerTest < ActionDispatch::IntegrationT
     get api_v1_session_heartbeat_url, headers: { Authorization: "Bearer invalid_token" }
     assert_response :unauthorized
   end
+
+  test "heartbeat matches session show response" do
+    get api_v1_session_url, headers: { Authorization: "Bearer #{@token}" }
+    assert_response :success
+    show_json = JSON.parse(response.body)
+
+    get api_v1_session_heartbeat_url, headers: { Authorization: "Bearer #{@token}" }
+    assert_response :success
+    heartbeat_json = JSON.parse(response.body)
+
+    assert_equal show_json, heartbeat_json
+  end
 end
