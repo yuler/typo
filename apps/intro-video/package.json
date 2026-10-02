@@ -1,7 +1,7 @@
 {
   "name": "@typo/intro-video",
   "type": "module",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "private": true,
   "scripts": {
     "audio": "uv run --quiet --script audio/generate.py",

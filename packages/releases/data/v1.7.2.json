@@ -1,0 +1,50 @@
+{
+  "version": "1.7.2",
+  "date": "2026-10-02",
+  "github_url": "https://github.com/yuler/typo/releases/tag/v1.7.2",
+  "notes": "## Features\n- Add Chinese Remotion intro video and a \"Watch intro\" hero button on the website (#104)\n\n## Fixes\n- Improve Wayland copy/selection reliability on desktop (#103)\n\n## Chores\n- Migrate the setup workflow from fnm/nvm/Corepack to mise",
+  "notes_i18n": {
+    "en": [
+      "Features: Add Chinese Remotion intro video and a \"Watch intro\" hero button on the website (#104)",
+      "Fixes: Improve Wayland copy/selection reliability on desktop (#103)",
+      "Chores: Migrate the setup workflow from fnm/nvm/Corepack to mise"
+    ],
+    "zh": [
+      "功能：在网站添加中文 Remotion 介绍视频和“Watch intro”主视觉按钮（#104）。",
+      "修复：提升桌面端 Wayland 复制/选择可靠性（#103）。",
+      "杂项：将 setup 工作流从 fnm/nvm/Corepack 迁移到 mise。"
+    ],
+    "jp": [
+      "機能：Webサイトに中国語のRemotion紹介動画と「Watch intro」ヒーローボタンを追加（#104）。",
+      "修正：デスクトップ版Waylandのコピー/選択の信頼性を改善（#103）。",
+      "その他：セットアップワークフローをfnm/nvm/Corepackからmiseへ移行。"
+    ]
+  },
+  "assets": [
+    {
+      "name": "typo_1.7.2_aarch64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.2/typo_1.7.2_aarch64.dmg"
+    },
+    {
+      "name": "typo_1.7.2_amd64.AppImage",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.2/typo_1.7.2_amd64.AppImage"
+    },
+    {
+      "name": "typo_1.7.2_amd64.deb",
+      "platform": "linux",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.2/typo_1.7.2_amd64.deb"
+    },
+    {
+      "name": "typo_1.7.2_x64-setup.exe",
+      "platform": "windows",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.2/typo_1.7.2_x64-setup.exe"
+    },
+    {
+      "name": "typo_1.7.2_x64.dmg",
+      "platform": "macos",
+      "url": "https://github.com/yuler/typo/releases/download/v1.7.2/typo_1.7.2_x64.dmg"
+    }
+  ]
+}
