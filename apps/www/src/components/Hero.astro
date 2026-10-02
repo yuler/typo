@@ -1,5 +1,4 @@
 ---
-import Showcases from '@/components/Showcases.astro'
 import { getLocalizedPath } from '@/lib/i18n'
 
 const { locale, tr } = Astro.locals
@@ -27,7 +26,21 @@ const { locale, tr } = Astro.locals
 
   <div class="relative mt-10 w-full sm:mt-12 lg:mt-14">
     <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:max-w-352 lg:px-8 xl:px-10">
-      <Showcases />
+      <button
+        type="button"
+        data-intro-open
+        aria-label={tr('hero.watch')}
+        class="group relative mx-auto block aspect-video w-full max-w-5xl cursor-pointer overflow-hidden rounded-2xl bg-black shadow-2xl"
+      >
+        <img src="/intro-poster.jpg" alt="" class="size-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:opacity-90" />
+        <span class="absolute inset-0 flex items-center justify-center">
+          <span class="flex size-20 items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow-xl ring-8 ring-white/20 backdrop-blur transition duration-300 group-hover:scale-110 group-hover:bg-white sm:size-24">
+            <svg class="ml-1 size-9 sm:size-10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.92-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"></path>
+            </svg>
+          </span>
+        </span>
+      </button>
     </div>
   </div>
 
@@ -38,16 +51,6 @@ const { locale, tr } = Astro.locals
     >
       {tr('demo.download_free')}
     </a>
-    <button
-      type="button"
-      data-intro-open
-      class="inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-zinc-300 px-5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.92-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"></path>
-      </svg>
-      {tr('hero.watch')}
-    </button>
   </div>
 
   <dialog
