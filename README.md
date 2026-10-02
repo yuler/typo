@@ -61,7 +61,7 @@ For the Tauri desktop app, also install [Rust](https://rustup.rs) and the [platf
 ### Run the desktop app
 
 ```bash
-mise run desktop-dev
+mise run desktop:dev
 ```
 
 ## Release flow

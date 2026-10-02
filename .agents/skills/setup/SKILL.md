@@ -15,7 +15,7 @@ Use this skill when:
 
 - The user asks to "set up", "bootstrap", or "install everything".
 - A fresh clone needs its environment prepared.
-- Commands like `pnpm install`, `mise run desktop-dev`, `cargo`, `tauri`, or `mise run core-dev` fail because the toolchain is missing or the wrong version.
+- Commands like `pnpm install`, `mise run desktop:dev`, `cargo`, `tauri`, or `mise run core:dev` fail because the toolchain is missing or the wrong version.
 
 Do not use this skill for:
 
@@ -69,12 +69,12 @@ Never hardcode versions in the skill output. Read them from the files above when
 5. **Smoke test**
    - Only after the steps above, suggest:
      ```bash
-     mise run desktop-dev
+      mise run desktop:dev
      ```
    - If it fails on native build, the fix is almost always a missing Tauri system dependency from the link above.
    - For the Rails app, optionally:
      ```bash
-     mise run core-dev
+      mise run core:dev
      ```
 
 ## Rules
@@ -102,6 +102,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 
 # Run apps
-mise run desktop-dev
-mise run core-dev
+mise run desktop:dev
+mise run core:dev
 ```

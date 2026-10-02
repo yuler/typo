@@ -10,59 +10,59 @@ run = [
   "./core/bin/setup --skip-server",
 ]
 
-[tasks.desktop-dev]
+[tasks."desktop:dev"]
 description = "Run the desktop app in dev mode"
 run = "pnpm desktop:dev"
 
-[tasks.desktop-dev-x11]
+[tasks."desktop:dev:x11"]
 description = "Run the desktop app in dev mode (X11)"
 run = "pnpm desktop:dev:x11"
 
-[tasks.desktop-build]
+[tasks."desktop:build"]
 description = "Build the desktop app"
 run = "pnpm desktop:build"
 
-[tasks.desktop-preview]
+[tasks."desktop:preview"]
 description = "Preview the desktop app build"
 run = "pnpm desktop:preview"
 
-[tasks.desktop-tauri]
+[tasks."desktop:tauri"]
 description = "Run tauri CLI commands"
 run = "pnpm desktop:tauri"
 
-[tasks.www-dev]
+[tasks."www:dev"]
 description = "Run the marketing site in dev mode"
 run = "pnpm www:dev"
 
-[tasks.www-build]
+[tasks."www:build"]
 description = "Build the marketing site"
 run = "pnpm www:build"
 
-[tasks.www-deploy]
+[tasks."www:deploy"]
 description = "Build and deploy the marketing site"
 run = "pnpm www:deploy"
 
-[tasks.www-lint]
+[tasks."www:lint"]
 description = "Lint the marketing site"
 run = "pnpm www:lint"
 
-[tasks.core-dev]
+[tasks."core:dev"]
 description = "Run the Rails backend in dev mode"
 run = "pnpm core:dev"
 
-[tasks.core-setup]
+[tasks."core:setup"]
 description = "Set up the Rails backend"
 run = "pnpm core:setup"
 
-[tasks.core-test]
+[tasks."core:test"]
 description = "Run Rails tests"
 run = "pnpm core:test"
 
-[tasks.core-lint]
+[tasks."core:lint"]
 description = "Lint the Rails backend with RuboCop"
 run = "pnpm core:lint"
 
-[tasks.core-lint-fix]
+[tasks."core:lint:fix"]
 description = "Auto-fix Rails lint issues"
 run = "pnpm core:lint:fix"
 
@@ -70,7 +70,7 @@ run = "pnpm core:lint:fix"
 description = "Lint the entire workspace"
 run = "pnpm lint"
 
-[tasks.lint-fix]
+[tasks."lint:fix"]
 description = "Auto-fix lint issues"
 run = "pnpm lint:fix"
 
@@ -86,7 +86,7 @@ run = "pnpm clean"
 description = "Bump version and tag a release"
 run = "pnpm bump"
 
-[tasks.deps-up]
+[tasks."deps:up"]
 description = "Interactively update dependencies"
 run = "pnpm deps:up"
 
