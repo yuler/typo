@@ -14,7 +14,7 @@
 
 <!-- TODO: need updated screenshots -->
 
-<video src="https://github.com/user-attachments/assets/fd2ff3f3-ea57-4ab9-934f-b9a92c5c5b0e" controls playsinline width="720"></video>
+<video src="https://github.com/user-attachments/assets/521a5285-aaaf-4f00-8012-1277904c2c27" controls playsinline width="720"></video>
 
 ## Key Features
 
