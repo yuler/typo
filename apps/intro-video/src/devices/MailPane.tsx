@@ -1,4 +1,4 @@
-import type React from 'react'
+import type * as React from 'react'
 import { copy } from '../strings'
 import { color, sans } from '../theme'
 import { Selectable } from './Selectable'

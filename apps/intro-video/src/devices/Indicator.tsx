@@ -1,4 +1,4 @@
-import type React from 'react'
+import type * as React from 'react'
 import logoDark from '@typo/logo/logo-dark.svg'
 import { Img, useCurrentFrame } from 'remotion'
 import { color, mono, sans } from '../theme'

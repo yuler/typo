@@ -44,7 +44,7 @@ const { locale, tr } = Astro.locals
       class="inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-zinc-300 px-5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.92-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z" />
+        <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.92-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"></path>
       </svg>
       {tr('hero.watch')}
     </button>
@@ -75,6 +75,6 @@ const { locale, tr } = Astro.locals
     dialog?.showModal()
     void video?.play()
   })
-  dialog?.addEventListener('click', event => event.target === dialog && dialog.close())
+  dialog?.addEventListener('click', (event) => event.target === dialog && dialog.close())
   dialog?.addEventListener('close', () => video?.pause())
 </script>

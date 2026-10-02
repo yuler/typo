@@ -1,4 +1,4 @@
-import type React from 'react'
+import type * as React from 'react'
 import { color, sans } from '../theme'
 
 interface MacWindowProps {

@@ -1,4 +1,4 @@
-import type React from 'react'
+import type * as React from 'react'
 import { Audio, interpolate, Sequence, staticFile } from 'remotion'
 import { clamp } from './components'
 

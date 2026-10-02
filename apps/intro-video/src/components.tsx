@@ -1,4 +1,4 @@
-import type React from 'react'
+import type * as React from 'react'
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { color, mono, sans } from './theme'
 
@@ -61,7 +61,7 @@ const CJK = /[\u3000-\u303F\u4E00-\u9FFF\uFF00-\uFFEF]/
 function tokenize(text: string, accent: string[]) {
   const cjk = CJK.test(text)
   const parts = cjk ? Array.from(text) : text.split(' ')
-  const marks = Array.from({ length: text.length }, () => false)
+  const marks = Array.from({ length: text.length }).fill(false)
   for (const word of accent) {
     for (let at = text.indexOf(word); at !== -1; at = text.indexOf(word, at + word.length))
       marks.fill(true, at, at + word.length)

@@ -1,4 +1,4 @@
-import type React from 'react'
+import type * as React from 'react'
 import logo from '@typo/logo/logo.svg'
 import { AbsoluteFill, Img, spring, useCurrentFrame, useVideoConfig } from 'remotion'
 import { Words } from '../components'
