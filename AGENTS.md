@@ -15,6 +15,7 @@ Guidance for AI coding agents working in this repository. Prefer the conventions
 ├── core/                # Rails 8 monolith (backend services)
 ├── apps/                # Client-facing apps
 │   ├── desktop/         # Tauri + Vue 3 (main product)
+│   ├── intro-video/     # Remotion intro video (rendered into www/public)
 │   └── www/             # Astro (marketing / SEO)
 ├── packages/            # Code shared across apps
 │   ├── languages/       # i18n utilities and translation bundles
@@ -35,6 +36,7 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 - `pnpm desktop:<cmd>` — commands for `apps/desktop` (e.g. `dev`, `build`, `preview`, `tauri`).
 - `pnpm www:<cmd>` — commands for `apps/www` (e.g. `dev`, `build`, `preview`, `lint`).
 - `pnpm languages:<cmd>` — commands for `packages/languages` (e.g. `build`, `test`).
+- `pnpm intro-video:<cmd>` — commands for `apps/intro-video` (`studio`, `render`, `poster`, `audio`, `voice`, `typecheck`). Copy lives in `src/strings.ts`; after `voice`, set `VOICE_SECONDS` in `src/scenes/Refine.tsx` to the printed length, then `render` and `poster` write to `apps/www/public/`.
 - `pnpm core:<cmd>` — commands for the `core/` Rails app (e.g. `dev`, `test`, `lint`, `console`).
 - `pnpm lint` / `pnpm lint:fix` — ESLint across the workspace.
 - `pnpm format:fix` — alias of `lint:fix`; the canonical formatter for this repo.

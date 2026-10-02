@@ -31,12 +31,50 @@ const { locale, tr } = Astro.locals
     </div>
   </div>
 
-  <div class="mx-auto mt-8 flex max-w-5xl justify-center px-4 sm:mt-10 sm:px-6">
+  <div class="mx-auto mt-8 flex max-w-5xl flex-wrap justify-center gap-3 px-4 sm:mt-10 sm:px-6">
     <a
       href={getLocalizedPath('/downloads', locale)}
       class="inline-flex h-10 items-center justify-center rounded-lg bg-zinc-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
     >
       {tr('demo.download_free')}
     </a>
+    <button
+      type="button"
+      data-intro-open
+      class="inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-zinc-300 px-5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.92-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"></path>
+      </svg>
+      {tr('hero.watch')}
+    </button>
   </div>
+
+  <dialog
+    data-intro-dialog
+    class="m-auto max-h-[90vh] max-w-[90vw] overflow-visible rounded-2xl border-none bg-transparent p-0 shadow-2xl outline-none backdrop:bg-black/70"
+  >
+    <video
+      src="/intro.mp4"
+      poster="/intro-poster.jpg"
+      class="block max-h-[85vh] w-[90vw] max-w-7xl rounded-2xl bg-black"
+      controls
+      playsinline
+      preload="none"
+    >
+      {tr('hero.video_fallback')}
+    </video>
+  </dialog>
 </section>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-intro-dialog]')
+  const video = dialog?.querySelector('video')
+
+  document.querySelector('[data-intro-open]')?.addEventListener('click', () => {
+    dialog?.showModal()
+    void video?.play()
+  })
+  dialog?.addEventListener('click', (event) => event.target === dialog && dialog.close())
+  dialog?.addEventListener('close', () => video?.pause())
+</script>
