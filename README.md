@@ -37,6 +37,7 @@ For full usage instructions, authentication details, configuration guides, and F
 ├── .github/workflows/  # CI pipelines
 ├── apps/               # Client-facing apps
 │   ├── desktop/       # Tauri + Vue 3 (main product)
+│   ├── intro-video/   # Remotion intro video (rendered into www/public)
 │   └── www/           # Astro (marketing / SEO)
 ├── packages/          # Shared code across apps
 │   ├── languages/     # i18n utilities and translation bundles

@@ -31,7 +31,7 @@
   "hero.download": "立即获取",
   "hero.docs": "查看文档",
   "hero.video_fallback": "您的浏览器不支持嵌入视频。请前往 GitHub 上的项目 README 查看介绍。",
-  "hero.video_caption": "快速介绍 — 与 README 中的视频一致",
+  "hero.watch": "观看介绍",
   "features.tag": "设计理念",
   "features.title": "极致简约，为高效而生",
   "features.description": "typo 始终保持低调，仅在您需要时瞬间响应 —— 自动捕获选中文字，交由 AI 润色，并丝滑粘贴回原处。",

@@ -31,7 +31,7 @@
   "hero.download": "今すぐ入手",
   "hero.docs": "ドキュメントを読む",
   "hero.video_fallback": "お使いのブラウザは埋め込みビデオをサポートしていません。GitHubのプロジェクトREADMEでイントロをご覧ください。",
-  "hero.video_caption": "クイックイントロ — READMEと同じ動画です",
+  "hero.watch": "紹介動画を見る",
   "features.tag": "設計理念",
   "features.title": "究極のシンプルさ、効率性の追求",
   "features.description": "typoは常に低調を保ち、必要な瞬間にのみ即座に反応します —— 選択したテキストを自動的にキャプチャし、AIで校正して、元の場所に滑らかに貼り付けます。",

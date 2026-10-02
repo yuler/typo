@@ -5,7 +5,7 @@ export default antfu({
     files: ['apps/desktop/**/*.vue', 'apps/www/**/*.vue', 'packages/ui/**/*.vue'],
   },
   react: {
-    files: ['apps/www/**/*.{tsx,jsx}'],
+    files: ['apps/www/**/*.{tsx,jsx}', 'apps/intro-video/**/*.tsx'],
   },
   formatters: {
     astro: true,

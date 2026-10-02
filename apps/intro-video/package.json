@@ -1,0 +1,26 @@
+{
+  "name": "@typo/intro-video",
+  "type": "module",
+  "version": "1.7.1",
+  "private": true,
+  "scripts": {
+    "audio": "uv run --quiet --script audio/generate.py",
+    "voice": "bash audio/voice.sh",
+    "typecheck": "tsc",
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Intro ../www/public/intro.mp4 --codec h264 --crf 23 --audio-bitrate 128k",
+    "poster": "remotion still src/index.ts Intro ../www/public/intro-poster.jpg --frame 560 --jpeg-quality 90"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.532",
+    "@remotion/google-fonts": "4.0.532",
+    "@typo/logo": "workspace:*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "remotion": "4.0.532"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "typescript": "~5.6.2"
+  }
+}
