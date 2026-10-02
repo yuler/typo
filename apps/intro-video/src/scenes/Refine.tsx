@@ -8,11 +8,12 @@ import { copy } from '../strings'
 import { sec } from '../theme'
 
 // Length of public/voice.wav, printed by `pnpm intro-video:voice`.
-export const VOICE_SECONDS = 3.3
+export const VOICE_SECONDS = 3.5
 
-const CHARS_PER_FRAME = 0.75
+const DRAFT = Array.from(copy.draft)
 const TYPE_START = sec(0.4)
-const TYPE_FRAMES = copy.draft.length / CHARS_PER_FRAME
+const TYPE_FRAMES = sec(1.8)
+const CHARS_PER_FRAME = DRAFT.length / TYPE_FRAMES
 const SELECT = sec(2.5)
 const KEY_AT = (i: number) => sec(3.1) + i * sec(0.2)
 const PRESS = sec(3.9)
@@ -32,7 +33,7 @@ export function Refine() {
   const winIn = spring({ frame, fps, config: { damping: 18 } })
   const typed = Math.floor(Math.max(0, frame - TYPE_START) * CHARS_PER_FRAME)
   const done = frame >= RESULT
-  const text = done ? copy.polished : copy.draft.slice(0, typed)
+  const text = done ? copy.polished : DRAFT.slice(0, typed).join('')
   const selected = done ? 0 : progress(frame, SELECT, sec(0.5))
   const flash = done ? 1 - progress(frame, RESULT + 30, 50) : 0
 
@@ -56,7 +57,7 @@ export function Refine() {
         <Headline text={copy.select} frames={RESULT} accent={['⌘⇧X']} />
       </Sequence>
       <Sequence from={RESULT} durationInFrames={REFINE_FRAMES - RESULT} layout="none">
-        <Headline text={copy.refined} frames={REFINE_FRAMES - RESULT} accent={['Refined']} />
+        <Headline text={copy.refined} frames={REFINE_FRAMES - RESULT} accent={['原地替换']} />
       </Sequence>
 
       <div
@@ -69,7 +70,7 @@ export function Refine() {
         }}
       >
         <MacWindow title={copy.mailTitle} width={WIN.width} height={WIN.height}>
-          <MailPane text={text} selected={selected} flash={flash} caret={selected === 0} />
+          <MailPane text={text} selected={selected} flash={flash} />
         </MacWindow>
       </div>
 

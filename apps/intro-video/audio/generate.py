@@ -13,7 +13,7 @@ SR = 44100
 BPM = 104
 BEAT = 60 / BPM
 BAR = 4 * BEAT
-LENGTH = 23.0
+LENGTH = 29.0
 OUT = Path(__file__).resolve().parent.parent / "public" / "audio"
 rng = np.random.default_rng(7)
 

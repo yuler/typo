@@ -1,8 +1,13 @@
 import { loadFont as loadInter } from '@remotion/google-fonts/Inter'
 import { loadFont as loadMono } from '@remotion/google-fonts/JetBrainsMono'
+import { loadFont as loadNotoSC } from '@remotion/google-fonts/NotoSansSC'
 
-export const { fontFamily: sans } = loadInter('normal', { weights: ['400', '500', '600', '700', '800'], subsets: ['latin'] })
-export const { fontFamily: mono } = loadMono('normal', { weights: ['400', '600', '700'], subsets: ['latin'] })
+const { fontFamily: inter } = loadInter('normal', { weights: ['400', '500', '600', '700', '800'], subsets: ['latin'] })
+const { fontFamily: notoSC } = loadNotoSC('normal', { weights: ['400', '500', '700', '800'], subsets: ['chinese-simplified'] })
+const { fontFamily: jetbrains } = loadMono('normal', { weights: ['400', '600', '700'], subsets: ['latin'] })
+
+export const sans = `${inter}, ${notoSC}`
+export const mono = `${jetbrains}, ${notoSC}`
 
 export const FPS = 60
 export const WIDTH = 1920

@@ -14,7 +14,7 @@ export function Hook() {
       <Sfx name="pop" at={sec(1.05)} />
       <div style={{ textAlign: 'center' }}>
         <Words text={copy.hook[0]} size={120} delay={6} style={{ color: color.muted }} />
-        <Words text={copy.hook[1]} size={120} weight={800} delay={sec(1)} accent={['Polishing']} />
+        <Words text={copy.hook[1]} size={120} weight={800} delay={sec(1)} accent={['润色']} />
       </div>
     </AbsoluteFill>
   )

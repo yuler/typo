@@ -55,28 +55,46 @@ interface WordsProps {
   style?: React.CSSProperties
 }
 
+const CJK = /[\u3000-\u303F\u4E00-\u9FFF\uFF00-\uFFEF]/
+
+// CJK text animates per character, Latin text per word; accents match by substring.
+function tokenize(text: string, accent: string[]) {
+  const cjk = CJK.test(text)
+  const parts = cjk ? Array.from(text) : text.split(' ')
+  const marks = Array.from({ length: text.length }, () => false)
+  for (const word of accent) {
+    for (let at = text.indexOf(word); at !== -1; at = text.indexOf(word, at + word.length))
+      marks.fill(true, at, at + word.length)
+  }
+  let cursor = 0
+  return parts.map((part) => {
+    const at = text.indexOf(part, cursor)
+    cursor = at + part.length
+    return { part, cjk, highlighted: marks[at] ?? false }
+  })
+}
+
 export const Words: React.FC<WordsProps> = ({ text, delay = 0, stagger = 4, size = 72, weight = 700, accent = [], style }) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
-  const words = text.split(' ')
+  const tokens = tokenize(text, accent)
   return (
     <div style={{ fontFamily: sans, fontSize: size, fontWeight: weight, letterSpacing: '-0.035em', color: color.text, lineHeight: 1.1, ...style }}>
-      {words.map((word, i) => {
-        const p = spring({ frame: frame - delay - i * stagger, fps, config: { damping: 18, stiffness: 140 } })
-        const highlighted = accent.includes(word.replace(/[.,]/g, ''))
+      {tokens.map(({ part, cjk, highlighted }, i) => {
+        const p = spring({ frame: frame - delay - i * (cjk ? stagger / 2 : stagger), fps, config: { damping: 18, stiffness: 140 } })
         return (
           <span
             key={i}
             style={{
               display: 'inline-block',
-              marginRight: i < words.length - 1 ? '0.24em' : 0,
+              marginRight: !cjk && i < tokens.length - 1 ? '0.24em' : 0,
               opacity: p,
               transform: `translateY(${(1 - p) * 0.5}em)`,
               filter: `blur(${(1 - p) * 10}px)`,
               color: highlighted ? color.brand : undefined,
             }}
           >
-            {word}
+            {part === ' ' ? '\u00A0' : part}
           </span>
         )
       })}

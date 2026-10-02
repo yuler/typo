@@ -17,7 +17,7 @@ export function Models() {
       {copy.providers.map((provider, i) => (
         <Sfx key={provider.name} name="click" at={CARD_AT(i)} volume={0.4} />
       ))}
-      <Words text={copy.models} size={88} delay={2} accent={['local']} />
+      <Words text={copy.models} size={88} delay={2} accent={['本地']} />
       <div style={{ display: 'flex', gap: 36 }}>
         {copy.providers.map((provider, i) => {
           const p = spring({ frame: frame - CARD_AT(i), fps, config: { damping: 14, stiffness: 150 } })
