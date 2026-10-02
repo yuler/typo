@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import vue from '@astrojs/vue'
 import mdx from '@astrojs/mdx'
 import react from '@astrojs/react'
 import tailwindcss from '@tailwindcss/vite'
@@ -16,12 +17,13 @@ export default defineConfig({
     },
     fallback: { zh: 'en', jp: 'en' },
   },
-  integrations: [react(), mdx()],
+  integrations: [react(), vue(), mdx()],
   vite: {
     plugins: [tailwindcss()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '@typo/intro': fileURLToPath(new URL('../../packages/intro/src', import.meta.url)),
       },
     },
   },

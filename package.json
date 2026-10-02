@@ -31,6 +31,11 @@
     "format:fix": "eslint --fix . && pnpm core:lint:fix",
     "languages:build": "pnpm --filter @typo/languages build",
     "languages:test": "pnpm --filter @typo/languages test",
+    "intro:dev": "pnpm --filter @typo/intro dev",
+    "intro:build": "pnpm --filter @typo/intro build",
+    "intro:check": "pnpm --filter @typo/intro check",
+    "intro:render": "pnpm --filter @typo/intro render",
+    "intro:studio": "pnpm --filter @typo/intro studio",
     "releases:gen": "pnpm --filter @typo/releases gen",
     "deps:up": "npx taze -I"
   },

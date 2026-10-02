@@ -13,13 +13,16 @@
   "dependencies": {
     "@astrojs/mdx": "^4.2.6",
     "@astrojs/react": "^4.2.1",
+    "@astrojs/vue": "^5.1.0",
     "@tailwindcss/vite": "^4.1.10",
+    "@typo/intro": "workspace:*",
     "@typo/languages": "workspace:*",
     "@typo/releases": "workspace:*",
     "astro": "^5.7.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.10"
+    "tailwindcss": "^4.1.10",
+    "vue": "^3.5.13"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",

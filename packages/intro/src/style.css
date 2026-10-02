@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@source "../src/**/*.{vue,ts}";
+
+@font-face {
+  font-family: "PingFang SC";
+  src: local("PingFang SC"), local("PingFangSC-Regular");
+}
+
+@font-face {
+  font-family: "Helvetica Neue";
+  src: local("Helvetica Neue"), local("HelveticaNeue");
+}

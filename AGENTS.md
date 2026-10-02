@@ -18,6 +18,7 @@ Guidance for AI coding agents working in this repository. Prefer the conventions
 │   └── www/             # Astro (marketing / SEO)
 ├── packages/            # Code shared across apps
 │   ├── languages/       # i18n utilities and translation bundles
+│   ├── intro/             # HyperFrames intro video (WeChat + Indicator demo)
 │   └── releases/        # Release data and scripts
 ├── scripts/             # Repo-wide automation scripts
 ├── package.json         # Workspaces and top-level scripts
@@ -35,6 +36,7 @@ Run all scripts from the repo root. Each workspace is exposed through a `<worksp
 - `pnpm desktop:<cmd>` — commands for `apps/desktop` (e.g. `dev`, `build`, `preview`, `tauri`).
 - `pnpm www:<cmd>` — commands for `apps/www` (e.g. `dev`, `build`, `preview`, `lint`).
 - `pnpm languages:<cmd>` — commands for `packages/languages` (e.g. `build`, `test`).
+- `pnpm intro:<cmd>` — commands for `packages/intro` (e.g. `dev`, `build`, `check`, `render`, `studio`).
 - `pnpm core:<cmd>` — commands for the `core/` Rails app (e.g. `dev`, `test`, `lint`, `console`).
 - `pnpm lint` / `pnpm lint:fix` — ESLint across the workspace.
 - `pnpm format:fix` — alias of `lint:fix`; the canonical formatter for this repo.
