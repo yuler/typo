@@ -25,10 +25,10 @@ export const useAuth = createGlobalState(() => {
     avatar_url: '',
   })
 
-  const HEARTBEAT_INTERVAL = 2 * 60 * 1000 // 2 minutes
+  const SESSION_SYNC_INTERVAL = 2 * 60 * 1000 // 2 minutes
   let pollTimer: ReturnType<typeof setTimeout> | null = null
-  let heartbeatTimer: ReturnType<typeof setTimeout> | null = null
-  let heartbeatGeneration = 0
+  let sessionSyncTimer: ReturnType<typeof setTimeout> | null = null
+  let sessionSyncGeneration = 0
 
   async function initialize() {
     const token = await authStore.getAuth('access_token')
@@ -40,29 +40,29 @@ export const useAuth = createGlobalState(() => {
         email: userEmail,
         avatar_url: await gravatar(userEmail),
       }
-      startHeartbeat()
+      startSessionSync()
     }
   }
 
-  async function startHeartbeat() {
-    stopHeartbeat()
-    const generation = ++heartbeatGeneration
+  async function startSessionSync() {
+    stopSessionSync()
+    const generation = ++sessionSyncGeneration
 
-    const performHeartbeat = async () => {
+    const performSessionSync = async () => {
       const token = await authStore.getAuth('access_token')
-      if (!token || !isLoggedIn.value || generation !== heartbeatGeneration)
+      if (!token || !isLoggedIn.value || generation !== sessionSyncGeneration)
         return
 
       try {
-        const data = await api<{ name: string, email: string, avatar_url: string | null }>('/api/v1/session/heartbeat', {
+        const data = await api<{ name: string, email: string, avatar_url: string | null }>('/api/v1/session', {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        if (!isLoggedIn.value || generation !== heartbeatGeneration)
+        if (!isLoggedIn.value || generation !== sessionSyncGeneration)
           return
 
         const avatar_url = data.avatar_url || (data.email === user.value.email ? user.value.avatar_url : await gravatar(data.email))
-        if (!isLoggedIn.value || generation !== heartbeatGeneration)
+        if (!isLoggedIn.value || generation !== sessionSyncGeneration)
           return
 
         if (data.name !== user.value.name || data.email !== user.value.email || avatar_url !== user.value.avatar_url) {
@@ -72,22 +72,22 @@ export const useAuth = createGlobalState(() => {
         }
       }
       catch (err: any) {
-        logger.error('Auth', 'Heartbeat failed', err)
+        logger.error('Auth', 'Session sync failed', err)
       }
 
-      if (isLoggedIn.value && generation === heartbeatGeneration) {
-        heartbeatTimer = setTimeout(performHeartbeat, HEARTBEAT_INTERVAL)
+      if (isLoggedIn.value && generation === sessionSyncGeneration) {
+        sessionSyncTimer = setTimeout(performSessionSync, SESSION_SYNC_INTERVAL)
       }
     }
 
-    await performHeartbeat()
+    await performSessionSync()
   }
 
-  function stopHeartbeat() {
-    heartbeatGeneration++
-    if (heartbeatTimer) {
-      clearTimeout(heartbeatTimer)
-      heartbeatTimer = null
+  function stopSessionSync() {
+    sessionSyncGeneration++
+    if (sessionSyncTimer) {
+      clearTimeout(sessionSyncTimer)
+      sessionSyncTimer = null
     }
   }
 
@@ -169,7 +169,7 @@ export const useAuth = createGlobalState(() => {
     await authStore.setAuth('access_token', token)
     await authStore.setAuth('email', identity.email)
     await authStore.saveAuth()
-    startHeartbeat()
+    startSessionSync()
     if (pollTimer)
       clearTimeout(pollTimer)
   }
@@ -193,7 +193,7 @@ export const useAuth = createGlobalState(() => {
   }
 
   async function reset() {
-    stopHeartbeat()
+    stopSessionSync()
     cancel()
     isLoggedIn.value = false
     user.value = {
