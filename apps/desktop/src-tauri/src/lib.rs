@@ -82,23 +82,9 @@ fn pending_selection_payload() -> &'static Mutex<Option<SetInputPayload>> {
 
 fn app_cli_selection_trigger(app: &tauri::AppHandle) {
     log::debug!("app_cli_selection_trigger");
-
-    let text = if in_linux_wayland() {
-        get_selected_text_wayland(app)
-    } else {
-        get_selected_text_enigo(app)
-    };
-
-    let Some(text) = text else { return };
-
-    log::debug!("selected text: {}", text);
-    let payload = SetInputPayload {
-        text,
-        mode: "selected".to_string(),
-    };
-    if let Err(error) = app.emit("set-input", payload) {
-        log::error!("failed to emit set-input event: {}", error);
-    }
+    // Return immediately. Selection capture shells out to ydotool / wl-paste,
+    // and doing that on the single-instance thread wedges every later hotkey.
+    capture_selection_async(app.clone(), false);
 }
 
 /// Sentinel written before simulated Ctrl+C so we can tell "copy failed,
@@ -107,40 +93,83 @@ fn app_cli_selection_trigger(app: &tauri::AppHandle) {
 /// as if it were the selection.
 const SELECTION_CLIPBOARD_SENTINEL: &str = "\u{FEFF}\u{200B}typo-sel\u{200B}";
 
-pub(crate) fn get_selected_text_wayland(app: &tauri::AppHandle) -> Option<String> {
-    // 1. Ctrl+C via ydotool, reject stale clipboard with a sentinel.
-    let previous_clipboard = app.clipboard().read_text().unwrap_or_default();
-    let _ = app
-        .clipboard()
-        .write_text(SELECTION_CLIPBOARD_SENTINEL.to_string());
+fn selection_capture_lock() -> &'static Mutex<()> {
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| Mutex::new(()))
+}
+
+pub(crate) fn get_selected_text_wayland(_app: &tauri::AppHandle) -> Option<String> {
+    // Overlapping Ctrl+Shift+X presses used to race the sentinel: the second
+    // press sometimes observed the first press's late XWayland sync and looked
+    // like "mashing makes it work".
+    let _guard = selection_capture_lock()
+        .lock()
+        .unwrap_or_else(|err| err.into_inner());
+
+    // 1. Ctrl+C, reject stale clipboard with a sentinel.
+    // Write with wl-copy, not arboard: writing then reading the clipboard
+    // through arboard deadlocks on Wayland, so set-input never fires.
+    let xwayland = keyboard::focused_xwayland();
+    let previous_clipboard = read_clipboard(xwayland);
+    if !keyboard::wl_copy_text(SELECTION_CLIPBOARD_SENTINEL) {
+        log::warn!("failed to write selection sentinel to clipboard");
+    }
     std::thread::sleep(std::time::Duration::from_millis(40));
 
-    if keyboard::ydotool_copy_shortcut() {
-        std::thread::sleep(std::time::Duration::from_millis(100));
-        let text = app.clipboard().read_text().unwrap_or_default();
-        if !text.is_empty() && text != SELECTION_CLIPBOARD_SENTINEL {
-            if !previous_clipboard.is_empty() {
-                let _ = app.clipboard().write_text(previous_clipboard);
-            }
-            return Some(text);
+    let copied = if keyboard::ydotool_copy_shortcut() {
+        read_copied_text_after_shortcut(xwayland, std::time::Duration::from_millis(1000))
+    } else {
+        None
+    };
+    if copied.is_none() {
+        log::debug!("copy shortcut sent but clipboard never changed (xwayland={xwayland})");
+    }
+
+    if let Some(previous) = previous_clipboard.as_deref() {
+        if !keyboard::wl_copy_text(previous) {
+            log::warn!("failed to restore previous clipboard");
         }
     }
 
-    if !previous_clipboard.is_empty() {
-        let _ = app.clipboard().write_text(previous_clipboard);
-    }
-
-    // 2. Wayland primary selection (highlighted text; no Ctrl+C needed)
-    if let Some(text) = keyboard::wl_paste_primary() {
+    if let Some(text) = copied.filter(|text| text != SELECTION_CLIPBOARD_SENTINEL) {
         return Some(text);
     }
 
-    // 3. Fallback to copyq selection
+    // Do not fall back to the Wayland primary selection. It keeps the last
+    // highlight (here, "日") after Ctrl+C/Ctrl+Shift+C fails to copy.
+
+    // 2. Fallback to copyq selection
     // TODO: remove this
     if let Some(text) = keyboard::copyq_selection() {
         return Some(text);
     }
 
+    None
+}
+
+/// XWayland apps own the X11 clipboard, and reading it through the Wayland
+/// bridge with `wl-paste` hangs, so ask X11 directly.
+fn read_clipboard(xwayland: bool) -> Option<String> {
+    if xwayland {
+        keyboard::x11_clipboard_text(std::time::Duration::from_millis(200))
+    } else {
+        keyboard::wl_paste_clipboard()
+    }
+}
+
+fn read_copied_text_after_shortcut(
+    xwayland: bool,
+    budget: std::time::Duration,
+) -> Option<String> {
+    let started = std::time::Instant::now();
+    while started.elapsed() < budget {
+        if let Some(text) = read_clipboard(xwayland) {
+            if text != SELECTION_CLIPBOARD_SENTINEL && !text.contains('\0') {
+                return Some(text);
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(40));
+    }
     None
 }
 
@@ -158,20 +187,42 @@ pub(crate) fn get_selected_text_enigo(app: &tauri::AppHandle) -> Option<String> 
 }
 
 fn app_cli_startup_selection_trigger(app: &tauri::AppHandle) {
-    let text = if in_linux_wayland() {
-        get_selected_text_wayland(app)
-    } else {
-        get_selected_text_enigo(app)
-    };
+    capture_selection_async(app.clone(), true);
+}
 
-    if let Some(text) = text {
-        if let Ok(mut pending) = pending_selection_payload().lock() {
-            *pending = Some(SetInputPayload {
-                text,
-                mode: "selected".to_string(),
-            });
+fn capture_selection_async(app: tauri::AppHandle, store_pending: bool) {
+    tauri::async_runtime::spawn(async move {
+        let app_for_capture = app.clone();
+        let text = tauri::async_runtime::spawn_blocking(move || {
+            if in_linux_wayland() {
+                get_selected_text_wayland(&app_for_capture)
+            } else {
+                get_selected_text_enigo(&app_for_capture)
+            }
+        })
+        .await
+        .ok()
+        .flatten();
+
+        let Some(text) = text else {
+            log::debug!("selection capture returned no text");
+            return;
+        };
+
+        log::debug!("selected text: {}", text);
+        let payload = SetInputPayload {
+            text,
+            mode: "selected".to_string(),
+        };
+        if store_pending {
+            if let Ok(mut pending) = pending_selection_payload().lock() {
+                *pending = Some(payload.clone());
+            }
         }
-    }
+        if let Err(error) = app.emit("set-input", payload) {
+            log::error!("failed to emit set-input event: {}", error);
+        }
+    });
 }
 
 #[tauri::command]
@@ -249,7 +300,8 @@ pub fn run() {
 
             log::info!("in_linux_wayland={}", in_linux_wayland());
             upgrade::init(app.handle().clone());
-            windows::create_main_window(&app.handle());
+            // The main window is opened from the tray or the indicator.
+            // Creating it here puts a second window on screen at every launch.
             windows::create_indicator_window(&app.handle(), false);
             windows::preload_quick_pick_windows(&app.handle());
             if let Err(error) = tray::init(app) {

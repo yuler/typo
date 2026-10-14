@@ -45,7 +45,7 @@ onMounted(async () => {
     return
   }
 
-  if (currentLabel === 'main') {
+  if (currentLabel === 'main' || currentLabel === 'indicator') {
     await syncTrayMenu()
   }
 

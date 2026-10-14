@@ -6046,6 +6046,7 @@ dependencies = [
  "tauri-plugin-store",
  "tauri-plugin-updater",
  "tokio",
+ "x11rb",
 ]
 
 [[package]]
