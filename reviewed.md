@@ -9,6 +9,7 @@
 ## 总体评价
 
 本 PR 的核心目标非常明确且切中关键痛点：
+
 1. **解决 XWayland 应用（如微信）在 Hyprland 下剪贴板桥接挂起**：通过 `x11rb` 直接读取 X11 `CLIPBOARD`，绕过挂起 15s 的 `wl-paste`。
 2. **解耦单例事件线程**：将选区捕获异步化，防止阻塞 `tauri-plugin-single-instance` 导致后续快捷键挂死。
 3. **避免启动时弹出主窗口**：规范桌面后台工具的生命周期，增加悬浮 Indicator 窗口规则脚本。
@@ -21,7 +22,7 @@
 
 ### 1. Sentinel 哨兵机制在 XWayland 下完全失效（极易误读历史旧剪贴板）
 
-- **文件定位**: 
+- **文件定位**:
   - `apps/desktop/src-tauri/src/lib.rs` (L112-L174)
   - `apps/desktop/src-tauri/src/keyboard.rs` (L145-L200)
 
@@ -54,7 +55,7 @@
 
 ### 2. 取消启动时创建主窗口后，用户通过桌面启动器二次运行 `typo` 无法唤起窗口
 
-- **文件定位**: 
+- **文件定位**:
   - `apps/desktop/src-tauri/src/lib.rs` (L303-L305)
   - `apps/desktop/src-tauri/src/cli.rs` (L53-L57)
 
@@ -86,7 +87,7 @@
 
 ### 3. Omarchy `Super+C` 路径脆弱，且屏蔽了更可靠的原生 `hyprland_tap`
 
-- **文件定位**: 
+- **文件定位**:
   - `apps/desktop/src-tauri/src/keyboard.rs` (L370-L374, L429-L444)
 
 - **现象与根因**:
@@ -125,7 +126,7 @@
 
 ### 4. 手写字符串切片解析 JSON 极其脆弱 (`json_field`)
 
-- **文件定位**: 
+- **文件定位**:
   - `apps/desktop/src-tauri/src/keyboard.rs` (L301-L318)
 
 - **问题**:
@@ -149,7 +150,7 @@
 
 ### 5. `scripts/omarchy-indicator.sh` 的静态定位与 Indicator 动态宽度冲突
 
-- **文件定位**: 
+- **文件定位**:
   - `scripts/omarchy-indicator.sh` (L70-L77)
   - `apps/desktop/src/windows/Indicator.vue` (L340-L385)
 
@@ -166,7 +167,7 @@
 
 ### 6. 移除了 Wayland primary selection fallback，却留下了 `copyq_selection()`
 
-- **文件定位**: 
+- **文件定位**:
   - `apps/desktop/src-tauri/src/lib.rs` (L138-L147)
 
 - **问题**:
@@ -181,7 +182,7 @@
 
 ### 7. `x11_clipboard_text` 在轮询中反复建立/销毁 X11 连接
 
-- **文件定位**: 
+- **文件定位**:
   - `apps/desktop/src-tauri/src/keyboard.rs` (L145-L200)
 
 - **问题**:
@@ -192,11 +193,11 @@
 
 ## 四、 修改建议清单 (Actionable Checklist)
 
-| 优先级 | 修改项 | 文件 | 建议操作 |
-| :--- | :--- | :--- | :--- |
-| 🔴 **P0** | X11 剪贴板清空机制 | `keyboard.rs` / `lib.rs` | 触发快捷键前调用 `conn.set_selection_owner(x11rb::NONE, ...)` 清空 X11 剪贴板归属，解决误读旧内容问题 |
-| 🔴 **P0** | 二次启动唤醒主界面 | `cli.rs` | `handle_single_instance_event` 改用 `crate::windows::show_and_focus_main(app)` |
-| 🟡 **P1** | 统一 Hyprland 按键投递 | `keyboard.rs` | 移除 `omarchy_super_shortcut`，Hyprland 环境统一直接调用 `hyprland_tap`（走 `hl.dsp.send_key_state`） |
-| 🟡 **P1** | 规范 JSON 解析与合并请求 | `keyboard.rs` | 使用 `serde_json::Value` 解析 `activewindow -j`，一次性获取 `xwayland`、`class` 和 `tags` |
-| 🟢 **P2** | Indicator 定位自适应 | `scripts/omarchy-indicator.sh` | 评估在 Hyprland 规则或前端 resize 时动态处理位置计算，避免变宽溢出屏幕 |
-| 🟢 **P2** | 清理 CopyQ 遗留 | `lib.rs` | 移除 `copyq_selection()` 兜底代码 |
+| 优先级    | 修改项                   | 文件                           | 建议操作                                                                                              |
+| :-------- | :----------------------- | :----------------------------- | :---------------------------------------------------------------------------------------------------- |
+| 🔴 **P0** | X11 剪贴板清空机制       | `keyboard.rs` / `lib.rs`       | 触发快捷键前调用 `conn.set_selection_owner(x11rb::NONE, ...)` 清空 X11 剪贴板归属，解决误读旧内容问题 |
+| 🔴 **P0** | 二次启动唤醒主界面       | `cli.rs`                       | `handle_single_instance_event` 改用 `crate::windows::show_and_focus_main(app)`                        |
+| 🟡 **P1** | 统一 Hyprland 按键投递   | `keyboard.rs`                  | 移除 `omarchy_super_shortcut`，Hyprland 环境统一直接调用 `hyprland_tap`（走 `hl.dsp.send_key_state`） |
+| 🟡 **P1** | 规范 JSON 解析与合并请求 | `keyboard.rs`                  | 使用 `serde_json::Value` 解析 `activewindow -j`，一次性获取 `xwayland`、`class` 和 `tags`             |
+| 🟢 **P2** | Indicator 定位自适应     | `scripts/omarchy-indicator.sh` | 评估在 Hyprland 规则或前端 resize 时动态处理位置计算，避免变宽溢出屏幕                                |
+| 🟢 **P2** | 清理 CopyQ 遗留          | `lib.rs`                       | 移除 `copyq_selection()` 兜底代码                                                                     |
