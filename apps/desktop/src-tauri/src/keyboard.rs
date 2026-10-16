@@ -363,7 +363,7 @@ fn on_hyprland() -> bool {
     std::env::var_os("HYPRLAND_INSTANCE_SIGNATURE").is_some()
 }
 
-fn on_omarchy() -> bool {
+pub(crate) fn on_omarchy() -> bool {
     on_hyprland() && std::env::var_os("OMARCHY_PATH").is_some()
 }
 

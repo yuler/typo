@@ -58,6 +58,10 @@ watch([state, pinIndicator, inputText, resultText, errorText, commandName, copyR
   void updateIndicatorSize()
 }, { flush: 'post' })
 
+watch(state, (newState) => {
+  void invoke('notify_indicator_status', { status: newState })
+}, { immediate: true })
+
 interface SetInputPayload {
   text: string
   mode: string
@@ -251,6 +255,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  void invoke('notify_indicator_status', { status: 'idle' })
   isMounted = false
   if (resizeAnimationFrame) {
     cancelAnimationFrame(resizeAnimationFrame)

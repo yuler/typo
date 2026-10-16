@@ -268,6 +268,17 @@ fn open_log_folder(app: tauri::AppHandle) -> Result<(), String> {
     open_log_folder_inner(&app)
 }
 
+#[tauri::command]
+fn notify_indicator_status(status: String) {
+    if keyboard::on_omarchy() {
+        std::thread::spawn(move || {
+            let _ = std::process::Command::new("omarchy-shell")
+                .args(["-q", "typo", "setStatus", &status])
+                .status();
+        });
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
@@ -350,6 +361,7 @@ pub fn run() {
             windows::get_cursor_position,
             upgrade::ignore_version,
             upgrade::increment_activity,
+            notify_indicator_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

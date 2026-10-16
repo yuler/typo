@@ -50,6 +50,11 @@ pub struct TrayLabels {
 }
 
 pub fn init(app: &tauri::App) -> tauri::Result<()> {
+    if crate::keyboard::on_omarchy() {
+        log::info!("running on Omarchy; skipping system tray initialization (managed by Omarchy topbar plugin)");
+        return Ok(());
+    }
+
     let handle = app.handle();
 
     let show = MenuItem::with_id(handle, ID_SHOW, "Show typo", true, None::<&str>)?;
@@ -224,7 +229,7 @@ pub fn update_tray_menu(
     labels: TrayLabels,
 ) -> Result<(), String> {
     let Some(state) = app.try_state::<TrayMenuHandles>() else {
-        log::error!("tray menu handles not found in state, tray might not be initialized");
+        log::debug!("tray menu handles not found in state, tray might not be initialized");
         return Ok(());
     };
     if let Some(text) = labels.show.as_deref() {
