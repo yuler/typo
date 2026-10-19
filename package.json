@@ -21,6 +21,8 @@
     "desktop:tauri": "pnpm --filter @typo/desktop tauri",
     "desktop:ubuntu-shortcut": "./scripts/ubuntu-shortcut.sh",
     "desktop:ubuntu-shortcut:dev": "./scripts/ubuntu-shortcut.sh --dev",
+    "desktop:omarchy-indicator": "./scripts/omarchy-indicator.sh",
+    "desktop:omarchy-plugin": "./scripts/omarchy-plugin.sh",
     "www:dev": "pnpm --filter @typo/www dev",
     "www:build": "pnpm --filter @typo/www build",
     "www:preview": "pnpm --filter @typo/www preview",

@@ -30,6 +30,22 @@ run = "pnpm desktop:preview"
 description = "Run tauri CLI commands"
 run = "pnpm desktop:tauri"
 
+[tasks."omarchy:plugin:install"]
+description = "Link the Omarchy topbar plugin and register it in shell.json"
+run = "pnpm desktop:omarchy-plugin"
+
+[tasks."omarchy:plugin:reload"]
+description = "Force hot-reload of the Omarchy topbar plugin code"
+run = 'command -v omarchy-shell >/dev/null 2>&1 || { echo "omarchy-shell not found (Omarchy required)" >&2; exit 1; }; omarchy-shell shell rescanPlugins'
+
+[tasks."omarchy:plugin:config"]
+description = "Reload Omarchy shell.json after editing widget placement"
+run = 'command -v omarchy-shell >/dev/null 2>&1 || { echo "omarchy-shell not found (Omarchy required)" >&2; exit 1; }; omarchy-shell shell reloadConfig'
+
+[tasks."omarchy:indicator"]
+description = "Write the Hyprland window rule for the Typo indicator"
+run = "pnpm desktop:omarchy-indicator"
+
 [tasks."www:dev"]
 description = "Run the marketing site in dev mode"
 run = "pnpm www:dev"

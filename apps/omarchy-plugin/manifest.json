@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "typo",
+  "name": "Typo",
+  "version": "1.0.0",
+  "author": "Yu Le",
+  "license": "MIT",
+  "description": "Typo desktop status bar widget with active state runner.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Typo",
+    "description": "Typo desktop status bar widget with active state runner.",
+    "category": "Productivity",
+    "defaultSection": "right",
+    "allowMultiple": false
+  }
+}

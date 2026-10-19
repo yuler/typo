@@ -14,7 +14,7 @@ import { logger } from '@/logger'
 import { requestIndicatorGlobalShortcutSetup, requestIndicatorGlobalShortcutUnregister } from '@/shortcut'
 import { DEFAULT_GLOBAL_SHORTCUT, DEFAULT_QUICK_PICK_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
-import { PIN_INDICATOR_CHANGED_EVENT, setPinIndicator, updateTrayMenu } from '@/tray'
+import { HIDE_INDICATOR_CHANGED_EVENT, PIN_INDICATOR_CHANGED_EVENT, setHideIndicator, setPinIndicator, updateTrayMenu } from '@/tray'
 import { formatShortcut } from '@/utils'
 
 defineProps<{
@@ -35,12 +35,14 @@ const form = ref({
   autoselect: false,
   copy_result: false,
   pin_indicator: false,
+  hide_indicator: true,
   global_shortcut: '',
   quick_pick_shortcut: '',
 })
 
 let unlistenAutostart: UnlistenFn | undefined
 let unlistenPinIndicator: UnlistenFn | undefined
+let unlistenHideIndicator: UnlistenFn | undefined
 let isMounted = true
 
 async function openLogFolder(): Promise<void> {
@@ -203,10 +205,11 @@ onMounted(async () => {
     return
   form.value.autostart = autostartEnabled
 
-  const [autoselect, copyResult, pinIndicator, globalShortcut, quickPickShortcut] = await Promise.all([
+  const [autoselect, copyResult, pinIndicator, hideIndicator, globalShortcut, quickPickShortcut] = await Promise.all([
     store.get('autoselect'),
     store.get('copy_result'),
     store.get('pin_indicator'),
+    store.get('hide_indicator'),
     store.get('global_shortcut'),
     store.get('quick_pick_shortcut'),
   ])
@@ -215,6 +218,7 @@ onMounted(async () => {
   form.value.autoselect = autoselect
   form.value.copy_result = copyResult
   form.value.pin_indicator = pinIndicator
+  form.value.hide_indicator = hideIndicator ?? true
   form.value.global_shortcut = globalShortcut || DEFAULT_GLOBAL_SHORTCUT
   form.value.quick_pick_shortcut = quickPickShortcut || DEFAULT_QUICK_PICK_SHORTCUT
 
@@ -229,14 +233,19 @@ onMounted(async () => {
   const unlistenPin = await listen<boolean>(PIN_INDICATOR_CHANGED_EVENT, (event) => {
     form.value.pin_indicator = event.payload
   })
+  const unlistenHide = await listen<boolean>(HIDE_INDICATOR_CHANGED_EVENT, (event) => {
+    form.value.hide_indicator = event.payload
+  })
 
   if (!isMounted) {
     unlisten()
     unlistenPin()
+    unlistenHide()
   }
   else {
     unlistenAutostart = unlisten
     unlistenPinIndicator = unlistenPin
+    unlistenHideIndicator = unlistenHide
   }
 })
 
@@ -247,6 +256,7 @@ onUnmounted(() => {
   }
   unlistenAutostart?.()
   unlistenPinIndicator?.()
+  unlistenHideIndicator?.()
 })
 
 async function onAutostartToggle(value: boolean) {
@@ -272,6 +282,17 @@ async function onPinIndicatorToggle(value: boolean) {
   }
 }
 
+async function onHideIndicatorToggle(value: boolean) {
+  form.value.hide_indicator = value
+  try {
+    await setHideIndicator(value)
+  }
+  catch (error) {
+    logger.error('BasicSettings', 'Failed to update hide indicator setting:', error)
+    form.value.hide_indicator = !value
+  }
+}
+
 async function onSubmit() {
   const actualShortcuts = await requestIndicatorGlobalShortcutSetup({
     global: form.value.global_shortcut,
@@ -294,10 +315,12 @@ async function onSubmit() {
       store.set('autoselect', form.value.autoselect),
       store.set('copy_result', form.value.copy_result),
       store.set('pin_indicator', form.value.pin_indicator),
+      store.set('hide_indicator', form.value.hide_indicator),
       store.set('global_shortcut', actualShortcuts.global),
       store.set('quick_pick_shortcut', actualShortcuts.quickPick),
     ])
     await store.save()
+    await setHideIndicator(form.value.hide_indicator)
     toast.success(t('settings.save_success'))
   }
   catch (error) {
@@ -438,6 +461,16 @@ async function onSubmit() {
               </p>
             </div>
             <Switch id="pin_indicator" :model-value="form.pin_indicator" @update:model-value="onPinIndicatorToggle" />
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <Label class="text-base font-semibold">{{ t('settings.basic.hide_indicator.label') }}</Label>
+              <p class="text-sm text-muted-foreground">
+                {{ t('settings.basic.hide_indicator.description') }}
+              </p>
+            </div>
+            <Switch id="hide_indicator" :model-value="form.hide_indicator" @update:model-value="onHideIndicatorToggle" />
           </div>
         </div>
       </div>

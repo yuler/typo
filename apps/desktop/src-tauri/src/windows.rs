@@ -77,6 +77,50 @@ pub fn show_and_focus_main(app: &AppHandle) {
     }
 }
 
+/// WebKitGTK 2.46+ ignores custom-scheme handlers (`ipc://`, `tauri://`) unless the
+/// scheme is CORS-enabled, and then tries a real TCP connection to localhost.
+fn allow_webkit_custom_schemes(window: &tauri::WebviewWindow) {
+    #[cfg(target_os = "linux")]
+    {
+        let window = window.clone();
+        if let Err(err) = window.with_webview(|webview| {
+            use webkit2gtk::{SecurityManagerExt, WebContextExt, WebViewExt};
+
+            let Some(context) = webview.inner().context() else {
+                return;
+            };
+            let Some(manager) = context.security_manager() else {
+                return;
+            };
+
+            let mut newly_enabled = false;
+            for scheme in ["ipc", "tauri", "asset"] {
+                if !manager.uri_scheme_is_cors_enabled(scheme) {
+                    manager.register_uri_scheme_as_cors_enabled(scheme);
+                    newly_enabled = true;
+                }
+            }
+
+            // A custom-scheme load that already missed the handler shows
+            // "Could not connect to localhost: Connection refused".
+            let uri = webview.inner().uri().map(|uri| uri.to_string()).unwrap_or_default();
+            let custom_scheme = uri.starts_with("ipc:")
+                || uri.starts_with("tauri:")
+                || uri.starts_with("asset:");
+            if newly_enabled && custom_scheme {
+                webview.inner().reload();
+            }
+        }) {
+            log::warn!("failed to allow webkit custom schemes: {err}");
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = window;
+    }
+}
+
 pub fn create_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         if let Err(err) = window.set_focus() {
@@ -116,6 +160,7 @@ pub fn create_main_window(app: &AppHandle) {
             return;
         }
     };
+    allow_webkit_custom_schemes(&window);
 
     let window_for_close = window.clone();
     window.on_window_event(move |event| {
@@ -131,6 +176,12 @@ pub fn create_main_window(app: &AppHandle) {
 pub fn create_indicator_window(app: &AppHandle, show: bool) {
     if let Some(window) = app.get_webview_window("indicator") {
         if show {
+            #[cfg(target_os = "linux")]
+            if let Ok(gtk_win) = window.gtk_window() {
+                use gtk::prelude::*;
+                gtk_win.set_accept_focus(false);
+                gtk_win.set_focus_on_map(false);
+            }
             if let Err(err) = window.show() {
                 log::error!("failed to show indicator window: {}", err);
             }
@@ -156,7 +207,7 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
     let x = (width - win_width) / 2.0;
     let y = height - win_height - 20.0; // 20px above the bottom of the work area
 
-    if let Err(e) = WebviewWindowBuilder::new(app, "indicator", WebviewUrl::App("index.html".into()))
+    match WebviewWindowBuilder::new(app, "indicator", WebviewUrl::App("index.html".into()))
         .title("typo - Indicator")
         .inner_size(win_width, win_height)
         .position(x, y)
@@ -165,10 +216,20 @@ pub fn create_indicator_window(app: &AppHandle, show: bool) {
         .always_on_top(true)
         .skip_taskbar(true)
         .visible_on_all_workspaces(true)
+        .focusable(false)
         .visible(show)
         .build()
     {
-        log::error!("failed to build indicator window: {}", e);
+        Ok(window) => {
+            #[cfg(target_os = "linux")]
+            if let Ok(gtk_win) = window.gtk_window() {
+                use gtk::prelude::*;
+                gtk_win.set_accept_focus(false);
+                gtk_win.set_focus_on_map(false);
+            }
+            allow_webkit_custom_schemes(&window);
+        }
+        Err(e) => log::error!("failed to build indicator window: {}", e),
     }
 }
 
@@ -181,7 +242,7 @@ pub fn create_upgrade_window(app: &AppHandle) {
         return;
     }
 
-    if let Err(e) = WebviewWindowBuilder::new(app, "upgrade", WebviewUrl::App("index.html".into()))
+    match WebviewWindowBuilder::new(app, "upgrade", WebviewUrl::App("index.html".into()))
         .title("typo - Upgrade")
         .inner_size(480.0, 420.0)
         .decorations(false)
@@ -190,7 +251,8 @@ pub fn create_upgrade_window(app: &AppHandle) {
         .center()
         .build()
     {
-        log::error!("failed to build upgrade window: {}", e);
+        Ok(window) => allow_webkit_custom_schemes(&window),
+        Err(e) => log::error!("failed to build upgrade window: {}", e),
     }
 }
 
@@ -259,6 +321,7 @@ fn create_quick_pick_floating_window(
             return;
         }
     };
+    allow_webkit_custom_schemes(&window);
 
     if show {
         if let Err(err) = window.show() {

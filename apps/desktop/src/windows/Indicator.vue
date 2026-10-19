@@ -18,7 +18,7 @@ import { listenForIndicatorShortcutRequests, setupGlobalShortcuts } from '@/shor
 import { parseSlashPrompts, resolveSlashPrompt } from '@/slashPrompts'
 import { DEFAULT_GLOBAL_SHORTCUT, DEFAULT_QUICK_PICK_SHORTCUT } from '@/stores/settings'
 import * as store from '@/stores/settings'
-import { PIN_INDICATOR_CHANGED_EVENT } from '@/tray'
+import { HIDE_INDICATOR_CHANGED_EVENT, PIN_INDICATOR_CHANGED_EVENT } from '@/tray'
 import { sleep } from '@/utils'
 
 const appWindow = getCurrentWindow()
@@ -37,6 +37,7 @@ const processing = ref(false)
 const isMacOS = ref(false)
 const copyResult = ref(false)
 const pinIndicator = ref(false)
+const silentMode = ref(true)
 const globalShortcut = ref(DEFAULT_GLOBAL_SHORTCUT)
 const STATUS_DISPLAY_DURATION_MS = 1000
 const INDICATOR_MIN_IDLE_WIDTH = 180
@@ -48,6 +49,7 @@ const INDICATOR_HEIGHT = 60
 let unlistenSetInput: UnlistenFn
 let unlistenShortcutRequests: (() => void) | undefined
 let unlistenPinIndicator: UnlistenFn | undefined
+let unlistenHideIndicator: UnlistenFn | undefined
 let currentIndicatorWidth = 0
 let targetIndicatorWidth = 0
 let resizeAnimationFrame = 0
@@ -57,6 +59,10 @@ let isMounted = true
 watch([state, pinIndicator, inputText, resultText, errorText, commandName, copyResult, globalShortcut], () => {
   void updateIndicatorSize()
 }, { flush: 'post' })
+
+watch(state, (newState) => {
+  void invoke('notify_indicator_status', { status: newState })
+}, { immediate: true })
 
 interface SetInputPayload {
   text: string
@@ -175,17 +181,19 @@ onMounted(async () => {
 
   isMacOS.value = systemInfo.os === 'macos'
 
-  const [shortcut, quickPickShortcut, copy, pinned] = await Promise.all([
+  const [shortcut, quickPickShortcut, copy, pinned, hide] = await Promise.all([
     store.get('global_shortcut'),
     store.get('quick_pick_shortcut'),
     store.get('copy_result'),
     store.get('pin_indicator'),
+    store.get('hide_indicator'),
   ])
   globalShortcut.value = shortcut || DEFAULT_GLOBAL_SHORTCUT
   copyResult.value = copy as boolean
   pinIndicator.value = pinned as boolean
+  silentMode.value = hide as boolean
   await updateIndicatorSize()
-  if (pinIndicator.value) {
+  if (pinIndicator.value && !silentMode.value) {
     await appWindow.show()
   }
   const registered = await setupGlobalShortcuts({
@@ -199,7 +207,7 @@ onMounted(async () => {
 
   const unlistenPin = await listen<boolean>(PIN_INDICATOR_CHANGED_EVENT, async (event) => {
     pinIndicator.value = event.payload
-    if (pinIndicator.value) {
+    if (pinIndicator.value && !silentMode.value) {
       await updateIndicatorSize()
       await appWindow.show()
     }
@@ -213,6 +221,22 @@ onMounted(async () => {
   }
   unlistenPinIndicator = unlistenPin
 
+  const unlistenHide = await listen<boolean>(HIDE_INDICATOR_CHANGED_EVENT, async (event) => {
+    silentMode.value = event.payload
+    if (silentMode.value) {
+      await appWindow.hide()
+    }
+    else if (pinIndicator.value) {
+      await updateIndicatorSize()
+      await appWindow.show()
+    }
+  })
+  if (!isMounted) {
+    unlistenHide()
+    return
+  }
+  unlistenHideIndicator = unlistenHide
+
   const cleanupShortcutRequests = await listenForIndicatorShortcutRequests((shortcuts: ShortcutConfig) => {
     globalShortcut.value = shortcuts.global || DEFAULT_GLOBAL_SHORTCUT
   })
@@ -225,10 +249,9 @@ onMounted(async () => {
   const unlisten = await appWindow.listen('set-input', async (event: { payload: SetInputPayload }) => {
     void invoke('increment_activity')
     logger.info('Indicator', 'set-input', event)
-    // Force show and focus when event received
-    await appWindow.show()
-    // TODO: option in settings
-    // await appWindow.setFocus()
+    if (!silentMode.value) {
+      await appWindow.show()
+    }
     // Clear pending input since we are processing it now via event
     await invoke('consume_pending_selection_input')
     await processSetInputPayload(event.payload)
@@ -251,6 +274,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  void invoke('notify_indicator_status', { status: 'idle' })
   isMounted = false
   if (resizeAnimationFrame) {
     cancelAnimationFrame(resizeAnimationFrame)
@@ -258,6 +282,7 @@ onUnmounted(() => {
   unlistenSetInput?.()
   unlistenShortcutRequests?.()
   unlistenPinIndicator?.()
+  unlistenHideIndicator?.()
 })
 
 let abortController: AbortController | null = null
@@ -307,7 +332,7 @@ async function hideIndicator() {
   resultText.value = ''
   errorText.value = ''
   commandName.value = ''
-  if (pinIndicator.value) {
+  if (pinIndicator.value && !silentMode.value) {
     await updateIndicatorSize()
     await appWindow.show()
     return

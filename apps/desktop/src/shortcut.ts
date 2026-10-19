@@ -45,8 +45,10 @@ async function onShortcut() {
     }
   }
 
-  // Always show the indicator window
-  await invoke('open_indicator_window')
+  const hideIndicator = await get('hide_indicator')
+  if (!hideIndicator) {
+    await invoke('open_indicator_window')
+  }
 
   const indicatorWindow = await WebviewWindow.getByLabel('indicator')
   if (indicatorWindow) {
@@ -55,7 +57,7 @@ async function onShortcut() {
       logger.info('shortcut', 'emit set-input to indicator', payload)
       await indicatorWindow.emit('set-input', payload)
     }
-    else {
+    else if (!hideIndicator) {
       // Just show it if no payload
       await indicatorWindow.show()
     }

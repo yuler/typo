@@ -10,8 +10,20 @@ jobs:
     steps:
       - name: Check PR title format
         env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
+          # Re-running a job replays the original event payload, so read the
+          # live title from the API rather than trusting the snapshot.
+          PR_TITLE="$EVENT_PR_TITLE"
+          if [[ -n "$PR_NUMBER" ]]; then
+            LIVE_TITLE="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.title' || true)"
+            if [[ -n "$LIVE_TITLE" ]]; then
+              PR_TITLE="$LIVE_TITLE"
+            fi
+          fi
+
           # PR title must match: <emoji> [<scope>]: <content>
           # e.g. ✨ [desktop,core]: Implement auth heartbeat
           pattern='^[^ ]+ \[[a-zA-Z,]+\]: .+'

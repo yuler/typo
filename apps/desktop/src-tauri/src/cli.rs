@@ -1,6 +1,9 @@
 const SELECTION_FLAG: &str = "--selection";
 const VERSION_FLAG: &str = "--version";
 const QUICK_PICK_FLAG: &str = "--quick-pick";
+const SETTINGS_FLAG: &str = "--settings";
+const UPGRADE_FLAG: &str = "--upgrade";
+const QUIT_FLAG: &str = "--quit";
 
 pub fn has_selection_flag<I, S>(args: I) -> bool
 where
@@ -33,8 +36,6 @@ pub fn handle_single_instance_event(
     selection_handler: fn(&tauri::AppHandle),
     quick_pick_handler: fn(&tauri::AppHandle),
 ) {
-    use tauri::Manager;
-
     if has_version_flag(argv.iter().map(|arg| arg.as_str())) {
         println!("typo {}", env!("CARGO_PKG_VERSION"));
         return;
@@ -50,10 +51,21 @@ pub fn handle_single_instance_event(
         return;
     }
 
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.show();
-        // TODO: option in settings
-        // let _ = window.set_focus();
+    if argv.iter().any(|arg| arg == SETTINGS_FLAG) {
+        crate::windows::show_and_focus_main_settings(app);
+        return;
     }
+
+    if argv.iter().any(|arg| arg == UPGRADE_FLAG) {
+        crate::windows::create_upgrade_window(app);
+        return;
+    }
+
+    if argv.iter().any(|arg| arg == QUIT_FLAG) {
+        app.exit(0);
+        return;
+    }
+
+    crate::windows::show_and_focus_main(app);
 }
 
