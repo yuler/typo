@@ -9,6 +9,7 @@ let pushFn: (() => Promise<void>) | null = null
 let isListeningForTrayPinToggle = false
 
 export const PIN_INDICATOR_CHANGED_EVENT = 'settings:pin-indicator-changed'
+export const HIDE_INDICATOR_CHANGED_EVENT = 'settings:hide-indicator-changed'
 
 export async function updateTrayMenu(): Promise<void> {
   if (pushFn) {
@@ -64,4 +65,10 @@ export async function setPinIndicator(pinned: boolean): Promise<void> {
     await invoke('open_indicator_window')
   }
   await updateTrayMenu()
+}
+
+export async function setHideIndicator(hide: boolean): Promise<void> {
+  await store.set('hide_indicator', hide)
+  await store.save()
+  await emit(HIDE_INDICATOR_CHANGED_EVENT, hide)
 }

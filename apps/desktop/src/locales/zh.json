@@ -12,6 +12,8 @@
   "settings.basic.copy_result.description": "润色完成后，自动将结果复制到剪贴板。",
   "settings.basic.pin_indicator.label": "固定指示器",
   "settings.basic.pin_indicator.description": "空闲时仍保持指示器可见。",
+  "settings.basic.hide_indicator.label": "静默模式（隐藏指示器窗口）",
+  "settings.basic.hide_indicator.description": "快捷键触发时不弹出悬浮窗口，仅通过顶栏指示器显示状态。",
   "settings.basic.autostart.label": "开机自启动",
   "settings.basic.autostart.description": "登录系统时自动启动应用。",
   "settings.basic.shortcut.label": "全局快捷键",

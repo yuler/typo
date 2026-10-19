@@ -283,6 +283,8 @@ fn notify_indicator_status(status: String) {
 pub fn run() {
     let startup_selection = cli::has_selection_flag(std::env::args());
     let startup_quick_pick = cli::has_quick_pick_flag(std::env::args());
+    let startup_show = std::env::args().any(|a| a == "--show" || a == "-s");
+    let startup_settings = std::env::args().any(|a| a == "--settings");
 
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
@@ -320,6 +322,14 @@ pub fn run() {
             }
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+            notify_indicator_status("idle".into());
+
+            if startup_show {
+                windows::show_and_focus_main(&app.handle());
+            } else if startup_settings {
+                windows::show_and_focus_main_settings(&app.handle());
+            }
 
             if startup_selection && in_linux_wayland() {
                 app_cli_startup_selection_trigger(&app.handle());

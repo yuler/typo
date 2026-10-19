@@ -12,6 +12,8 @@
   "settings.basic.copy_result.description": "Automatically copy the polished result to your clipboard.",
   "settings.basic.pin_indicator.label": "Pin Indicator",
   "settings.basic.pin_indicator.description": "Keep the indicator visible when it is idle.",
+  "settings.basic.hide_indicator.label": "Silent Mode (Hide Indicator Window)",
+  "settings.basic.hide_indicator.description": "Do not show the floating window on shortcut; only display status via the top bar.",
   "settings.basic.autostart.label": "Launch at login",
   "settings.basic.autostart.description": "Automatically start the app when you log in.",
   "settings.basic.shortcut.label": "Global Shortcut",

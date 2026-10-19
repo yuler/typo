@@ -11,27 +11,65 @@ BarWidget {
   moduleName: "typo"
 
   property string status: "idle"
+  property bool appRunning: false
   property bool menuOpen: false
+
+  function close() {
+    menuOpen = false
+  }
+
+  function closeForPopoutSwitch() {
+    menuOpen = false
+  }
 
   readonly property color foreground: bar ? bar.barForeground : Color.foreground
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
 
-  implicitWidth: buttonContainer.implicitWidth
-  implicitHeight: buttonContainer.implicitHeight
+  implicitWidth: button.implicitWidth
+  implicitHeight: button.implicitHeight
+
+  Process {
+    id: checkProc
+    running: false
+    command: ["pgrep", "-x", "typo"]
+    onExited: function(exitCode) {
+      root.appRunning = (exitCode === 0)
+    }
+  }
+
+  Timer {
+    id: checkTimer
+    interval: 2000
+    repeat: true
+    running: true
+    triggeredOnStart: true
+    onTriggered: {
+      if (!checkProc.running) {
+        checkProc.running = true
+      }
+    }
+  }
 
   IpcHandler {
     target: "typo"
 
     function setStatus(s: string): void {
-      root.status = String(s || "idle").trim()
+      var val = String(s || "idle").trim()
+      root.status = val
+      root.appRunning = (val !== "stopped")
+    }
+
+    function setAppRunning(running: string): void {
+      var r = String(running || "").toLowerCase().trim()
+      root.appRunning = (r === "true" || r === "1" || r === "yes")
     }
 
     function open(): void {
-      root.launchTypo("")
+      root.launchTypo("--show")
     }
 
     function show(): void {
-      root.launchTypo("")
+      root.launchTypo("--show")
     }
 
     function settings(): void {
@@ -49,101 +87,105 @@ BarWidget {
   }
 
   function launchTypo(arg) {
-    var cmd = ["typo"]
+    var cmd = ["/home/yule/.local/bin/typo"]
     if (arg) cmd.push(arg)
     var p = procComponent.createObject(root, { command: cmd })
     if (p) {
-      p.exited.connect(function() { p.destroy() })
+      p.exited.connect(function() {
+        p.destroy()
+        checkTimer.restart()
+        if (!checkProc.running) checkProc.running = true
+      })
       p.running = true
     }
   }
 
+  // 360° Conic-gradient Marquee Border Runner (visible only when processing)
   Item {
-    id: buttonContainer
-    width: button.implicitWidth
-    height: button.implicitHeight
-    implicitWidth: button.implicitWidth
-    implicitHeight: button.implicitHeight
+    id: runnerContainer
+    anchors.fill: parent
+    z: 0
+    enabled: false
+    visible: opacity > 0
+    opacity: root.status === "processing" ? 1.0 : 0.0
 
-    // 360° Conic-gradient Marquee Border Runner (visible only when processing)
-    Item {
-      id: runnerContainer
-      anchors.fill: parent
-      visible: opacity > 0
-      opacity: root.status === "processing" ? 1.0 : 0.0
-
-      Behavior on opacity {
-        NumberAnimation { duration: 240; easing.type: Easing.OutCubic }
-      }
-
-      property real runnerAngle: 0
-      NumberAnimation on runnerAngle {
-        from: 0
-        to: 360
-        duration: 3600
-        loops: Animation.Infinite
-        running: root.status === "processing"
-      }
-
-      Shape {
-        id: runnerShape
-        anchors.fill: parent
-        layer.enabled: true
-        layer.samples: 4
-
-        readonly property real rOuter: Math.max(2, Style.cornerRadius)
-        readonly property real rInner: Math.max(1, Style.cornerRadius - 2)
-
-        ShapePath {
-          strokeWidth: 0
-          strokeColor: "transparent"
-          fillRule: ShapePath.OddEvenFill
-          fillGradient: ConicalGradient {
-            centerX: runnerShape.width / 2
-            centerY: runnerShape.height / 2
-            angle: runnerContainer.runnerAngle
-            GradientStop { position: 0.0; color: "transparent" }
-            GradientStop { position: 0.65; color: "transparent" }
-            GradientStop { position: 0.85; color: "#38bdf8" }
-            GradientStop { position: 0.94; color: "#ffffff" }
-            GradientStop { position: 0.98; color: "#38bdf8" }
-            GradientStop { position: 1.0; color: "transparent" }
-          }
-
-          // Outer rounded rect
-          startX: runnerShape.rOuter; startY: 0
-          PathLine { x: runnerShape.width - runnerShape.rOuter; y: 0 }
-          PathArc { x: runnerShape.width; y: runnerShape.rOuter; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
-          PathLine { x: runnerShape.width; y: runnerShape.height - runnerShape.rOuter }
-          PathArc { x: runnerShape.width - runnerShape.rOuter; y: runnerShape.height; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
-          PathLine { x: runnerShape.rOuter; y: runnerShape.height }
-          PathArc { x: 0; y: runnerShape.height - runnerShape.rOuter; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
-          PathLine { x: 0; y: runnerShape.rOuter }
-          PathArc { x: runnerShape.rOuter; y: 0; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
-
-          // Inner cutout (inset by 2px)
-          PathMove { x: runnerShape.rInner + 2; y: 2 }
-          PathLine { x: runnerShape.width - runnerShape.rInner - 2; y: 2 }
-          PathArc { x: runnerShape.width - 2; y: runnerShape.rInner + 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
-          PathLine { x: runnerShape.width - 2; y: runnerShape.height - runnerShape.rInner - 2 }
-          PathArc { x: runnerShape.width - runnerShape.rInner - 2; y: runnerShape.height - 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
-          PathLine { x: runnerShape.rInner + 2; y: runnerShape.height - 2 }
-          PathArc { x: 2; y: runnerShape.height - runnerShape.rInner - 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
-          PathLine { x: 2; y: runnerShape.rInner + 2 }
-          PathArc { x: runnerShape.rInner + 2; y: 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
-        }
-      }
+    Behavior on opacity {
+      NumberAnimation { duration: 240; easing.type: Easing.OutCubic }
     }
 
-    BarIconButton {
-      id: button
+    property real runnerAngle: 0
+    NumberAnimation on runnerAngle {
+      from: 0
+      to: 360
+      duration: 3600
+      loops: Animation.Infinite
+      running: root.status === "processing"
+    }
+
+    Shape {
+      id: runnerShape
       anchors.fill: parent
-      bar: root.bar
-      text: ""
-      tooltipText: root.status === "processing" ? "Typo (Processing...)" : "Typo"
-      iconComponent: Component {
+      layer.enabled: true
+      layer.samples: 4
+
+      readonly property real rOuter: Math.max(2, Style.cornerRadius)
+      readonly property real rInner: Math.max(1, Style.cornerRadius - 2)
+
+      ShapePath {
+        strokeWidth: 0
+        strokeColor: "transparent"
+        fillRule: ShapePath.OddEvenFill
+        fillGradient: ConicalGradient {
+          centerX: runnerShape.width / 2
+          centerY: runnerShape.height / 2
+          angle: runnerContainer.runnerAngle
+          GradientStop { position: 0.0; color: "transparent" }
+          GradientStop { position: 0.65; color: "transparent" }
+          GradientStop { position: 0.85; color: "#38bdf8" }
+          GradientStop { position: 0.94; color: "#ffffff" }
+          GradientStop { position: 0.98; color: "#38bdf8" }
+          GradientStop { position: 1.0; color: "transparent" }
+        }
+
+        // Outer rounded rect
+        startX: runnerShape.rOuter; startY: 0
+        PathLine { x: runnerShape.width - runnerShape.rOuter; y: 0 }
+        PathArc { x: runnerShape.width; y: runnerShape.rOuter; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
+        PathLine { x: runnerShape.width; y: runnerShape.height - runnerShape.rOuter }
+        PathArc { x: runnerShape.width - runnerShape.rOuter; y: runnerShape.height; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
+        PathLine { x: runnerShape.rOuter; y: runnerShape.height }
+        PathArc { x: 0; y: runnerShape.height - runnerShape.rOuter; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
+        PathLine { x: 0; y: runnerShape.rOuter }
+        PathArc { x: runnerShape.rOuter; y: 0; radiusX: runnerShape.rOuter; radiusY: runnerShape.rOuter }
+
+        // Inner cutout (inset by 2px)
+        PathMove { x: runnerShape.rInner + 2; y: 2 }
+        PathLine { x: runnerShape.width - runnerShape.rInner - 2; y: 2 }
+        PathArc { x: runnerShape.width - 2; y: runnerShape.rInner + 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
+        PathLine { x: runnerShape.width - 2; y: runnerShape.height - runnerShape.rInner - 2 }
+        PathArc { x: runnerShape.width - runnerShape.rInner - 2; y: runnerShape.height - 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
+        PathLine { x: runnerShape.rInner + 2; y: runnerShape.height - 2 }
+        PathArc { x: 2; y: runnerShape.height - runnerShape.rInner - 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
+        PathLine { x: 2; y: runnerShape.rInner + 2 }
+        PathArc { x: runnerShape.rInner + 2; y: 2; radiusX: runnerShape.rInner; radiusY: runnerShape.rInner }
+      }
+    }
+  }
+
+  BarIconButton {
+    id: button
+    anchors.fill: parent
+    z: 1
+    bar: root.bar
+    text: ""
+    tooltipText: !root.appRunning ? "Typo (Not Running - Click to launch)" : (root.status === "processing" ? "Typo (Processing...)" : "Typo")
+    iconComponent: Component {
+      Item {
+        anchors.fill: parent
+
         Item {
           anchors.fill: parent
+          opacity: root.appRunning ? 1.0 : 0.6
 
           Image {
             id: iconImg
@@ -165,25 +207,48 @@ BarWidget {
             colorizationColor: root.foreground
           }
         }
-      }
 
-      onPressed: function(btn) {
-        if (btn === Qt.RightButton) {
-          root.menuOpen = !root.menuOpen
-        } else if (btn === Qt.LeftButton) {
-          root.menuOpen = false
-          root.launchTypo("")
+        // Status dot in top-right corner: Red when stopped, Green when running
+        Rectangle {
+          id: statusBadge
+          visible: true
+          anchors.top: parent.top
+          anchors.right: parent.right
+          anchors.topMargin: Style.space(1)
+          anchors.rightMargin: Style.space(1)
+          width: Style.space(6)
+          height: Style.space(6)
+          radius: width / 2
+          color: root.appRunning ? "#22c55e" : "#ef4444"
+          border.width: 1
+          border.color: bar ? (bar.background || "#1e1e2e") : "#1e1e2e"
+
+          Behavior on color {
+            ColorAnimation { duration: 200 }
+          }
         }
+      }
+    }
+
+    onPressed: function(btn) {
+      if (btn === Qt.RightButton) {
+        root.menuOpen = !root.menuOpen
+      } else if (btn === Qt.LeftButton) {
+        root.menuOpen = false
+        root.launchTypo("--show")
       }
     }
   }
 
   PopupCard {
     id: menuPopup
-    anchorItem: button
+    anchorItem: root
     owner: root
     bar: root.bar
     open: root.menuOpen
+    onOpenChanged: {
+      if (!open) root.menuOpen = false
+    }
     padding: Style.space(8)
     borderColor: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.45)
     contentWidth: menuPopup.fittedContentWidth(Style.space(190))
@@ -216,7 +281,7 @@ BarWidget {
         title: "Show Typo"
         onTriggered: {
           root.menuOpen = false
-          root.launchTypo("")
+          root.launchTypo("--show")
         }
       }
 

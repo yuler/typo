@@ -21,6 +21,7 @@ const DEFAULT_STORE = {
   autoselect: false,
   copy_result: false,
   pin_indicator: false,
+  hide_indicator: true,
   ai_provider: 'typo' as AI_PROVIDER,
   default_prompt: '',
   deepseek_api_key: '',

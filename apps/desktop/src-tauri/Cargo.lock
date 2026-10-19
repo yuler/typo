@@ -5355,9 +5355,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-notification"
-version = "2.3.3"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01fc2c5ff41105bd1f7242d8201fdf3efd70749b82fa013a17f2126357d194cc"
+checksum = "ad2fd40946aef810c4be9fd33a2d1b9b397cb79042b2d21c81a0a8f204354fd1"
 dependencies = [
  "log",
  "notify-rust",
@@ -6028,6 +6028,7 @@ version = "1.7.2"
 dependencies = [
  "enigo 0.6.1",
  "get-selected-text",
+ "gtk",
  "log",
  "macos-accessibility-client",
  "serde",
@@ -6046,6 +6047,7 @@ dependencies = [
  "tauri-plugin-store",
  "tauri-plugin-updater",
  "tokio",
+ "webkit2gtk",
  "x11rb",
 ]
 
